@@ -120,14 +120,14 @@
 - **Deskripsi**: Form input jadwal dengan real-time conflict validation. Kalender view. Slot locking indicator. Reschedule flow.
 - **SRS Ref**: FR-02, FR-12, UC-02, UC-03, UC-05
 
-### T-012: Attendance UI + Face Detection
+### T-012: Attendance ✅ UI + Face Detection
 - **Prioritas**: High
 - **Dependensi**: T-006, T-009
 - **Role**: Frontend Developer
 - **Deskripsi**: Form absensi dengan kamera, face-api.js/MediaPipe client-side detection (≥30% frame), GPS validation, offline draft.
 - **SRS Ref**: FR-05, UC-03, UC-11, UC-12
 
-### T-013: Billing & Payment UI
+### T-013: Billing ✅ & Payment UI
 - **Prioritas**: High
 - **Dependensi**: T-005, T-009
 - **Role**: Frontend Developer
