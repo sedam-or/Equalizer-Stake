@@ -1,32 +1,47 @@
-# Design — Equalizer-Stake
+# Design — Equalizer-Stake (BMD Music School)
 
-Direktori ini berisi dokumentasi design system dan UI/UX untuk Equalizer-BMD Musik.
+Dokumen desain untuk frontend BMD Music School.
 
-## Status: Belum Diisi
+---
 
-Design files akan diisi setelah Phase 0 (Infrastruktur & Setup) selesai.
+## Design Documents
 
-## Rencana Design Files
+| # | File | Deskripsi |
+|---|------|-----------|
+| 1 | [landing-page-design.md](landing-page-design.md) | Landing page: design system, 7 sections, komponen React Bits, scroll animations, mobile rules |
+| 2 | [stitch-prompt.md](stitch-prompt.md) | Prompt untuk Stitch prototype |
+| 3 | [README.md](README.md) | Dokumen ini |
 
-| File | Deskripsi |
-|------|-----------|
-| 01-design-system.md | Color palette, spacing, typography |
-| 02-components.md | Reusable UI components |
-| 03-layout-grid.md | Responsive grid system |
-| 04-page-login.md | Login page design |
-| 05-page-dashboard.md | Dashboard designs (4 roles) |
-| 06-page-scheduling.md | Scheduling calendar UI |
-| 07-page-attendance.md | Attendance form + camera |
-| 08-page-billing.md | Invoice & payment UI |
-| 09-page-studio.md | Studio reservation UI |
-| 10-accessibility.md | WCAG 2.1 Level A compliance |
+---
 
-## Design Principles (dari SRS)
+## Design Principles
 
-- **Mobile-first**: 320px → 480px → 768px → 1024px+
-- **WCAG 2.1 Level A**: Contrast, focus indicators, keyboard navigation
-- **Bahasa Indonesia**: Semua label, tombol, pesan error
-- **High contrast mode**: Untuk ruangan dengan pencahayaan bervariasi
-- **Touch targets**: Minimal 44×44px untuk tombol aksi
-- **Visual indicators**: Tidak bergantung pada suara (studio bising)
-- **Actionable errors**: Setiap pesan error sertakan langkah selanjutnya
+1. **Business-oriented**: Website utama BMD Music, bukan sekadar MVP
+2. **Elegant**: Hero section langsung terasa profesional
+3. **Glassmorphism**: Cards transparan dengan backdrop blur
+4. **Green accent**: #08CB00 sebagai warna aksen utama
+5. **Dark theme**: Background gelap (#000000) dengan text putih
+6. **Mobile-first**: 60% user mobile
+7. **No dark mode**: Sudah dark by default
+
+---
+
+## React Bits Components
+
+Lihat `landing-page-design.md` untuk detail konfigurasi setiap komponen.
+
+### Files
+
+- `FLOATING_LINE_BG.md` — FloatingLines component
+- `BlurText_component.md` — BlurText component
+- `BorderGlow_compone.md` — BorderGlow component
+- `CircularGallery.md` — CircularGallery component
+- `GlassSurface_scroll+photos.md` — GlassSurface component
+- `GooeyNav_ketikabuttondtkn.md` — GooeyNav component
+- `RotatingText_compo.md` — RotatingText component
+- `ShinyText_component.md` — ShinyText component
+- `SplashCursor.md` — SplashCursor component
+- `Strands_component.md` — Strands component
+- `magic_bento.md` — MagicBento component
+- `shape_blur.md` — ShapeBlur component
+- `starBorder_component.md` — StarBorder component
