@@ -87,7 +87,7 @@
 - **Deskripsi**: Multi-channel notification (WhatsApp + email). Retry 3x (10/20/40s). Circuit breaker. Fallback mechanism. Notification log.
 - **SRS Ref**: FR-06, UC-04, UC-14, UC-15, BAB 7.2 (Integration Contracts)
 
-### T-008: Audit Log Service (FR-11)
+### T-008: Audit Log ✅ Service (FR-11)
 - **SRS Ref**: `srs/07-audit-governance.md`, `architecture/03-database.md` Service (FR-11)
 - **Prioritas**: High
 - **Dependensi**: T-002
@@ -99,7 +99,7 @@
 
 ## Phase 2: Frontend PWA
 
-### T-009: PWA Shell & Navigation
+### T-009: PWA Shell ✅ & Navigation
 - **Prioritas**: High
 - **Dependensi**: T-001
 - **Role**: Frontend Developer
