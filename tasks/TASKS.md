@@ -241,7 +241,7 @@
   - Rehearsal: self-service booking
   - Recording: Admin approval flow
 
-### T-016: Landing Page
+### T-016: Landing Page ✅
 - **SRS Ref**: `srs/00-overview.md`, `design/landing-page-design.md`
 - **NFR Ref**: NFR-USA-01 (WCAG), NFR-USA-02 (Mobile-first), NFR-PERF-01 (Load ≤2s)
 - **Prioritas**: High
@@ -258,7 +258,7 @@
 
 ## Phase 3: Compliance & Reporting
 
-### T-017: Data Deletion Flow (FR-09, UU PDP)
+### T-017: Data Deletion Flow (FR-09, UU PDP) ✅
 - **SRS Ref**: `srs/07-audit-governance.md`
 - **NFR Ref**: NFR-SEC-01 (PII protection), NFR-USA-03 (Indonesian)
 - **Prioritas**: High
