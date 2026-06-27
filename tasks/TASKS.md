@@ -106,14 +106,14 @@
 - **Deskripsi**: Setup Next.js PWA dengan service worker. Mobile-first responsive layout. Role-based navigation. Indonesian language UI. WCAG 2.1 Level A.
 - **SRS Ref**: BAB 3.3 (UI), BAB 2.7 (Operating Environment), NFR Usability
 
-### T-010: Login & Dashboard Pages
+### T-010: Login ✅ & Dashboard Pages
 - **Prioritas**: High
 - **Dependensi**: T-003, T-009
 - **Role**: Frontend Developer
 - **Deskripsi**: Halaman login, role-based dashboard (Owner monitoring, Admin operasional, Guru jadwal, Wali Murid multi-anak). Auto-save draft (IndexedDB).
 - **SRS Ref**: FR-01, FR-08, FR-10, FR-13, UC-01, UC-02, UC-10
 
-### T-011: Scheduling UI
+### T-011: Scheduling ✅ UI
 - **Prioritas**: High
 - **Dependensi**: T-004, T-009
 - **Role**: Frontend Developer
