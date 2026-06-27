@@ -272,7 +272,7 @@
   - Photo permanent deletion
   - Audit log category "Tindakan Kepatuhan"
 
-### T-018: Multi-Student Guardian (FR-10)
+### T-018: Multi-Student Guardian (FR-10) ✅
 - **SRS Ref**: `srs/09-multi-student.md`
 - **NFR Ref**: NFR-USA-02 (Mobile-first), NFR-USA-03 (Indonesian)
 - **Prioritas**: Medium
@@ -285,7 +285,7 @@
   - Profile switcher UI
   - Household-level freeze logic
 
-### T-019: Exam Eligibility Tracking (FR-07)
+### T-019: Exam Eligibility Tracking (FR-07) ✅
 - **SRS Ref**: `srs/06-reporting.md`
 - **NFR Ref**: NFR-PERF-01 (Load ≤2s), NFR-USA-03 (Indonesian)
 - **Prioritas**: Medium

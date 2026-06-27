@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy
+from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility
 
 settings = get_settings()
 
@@ -43,6 +43,8 @@ app.include_router(attendance.router)
 app.include_router(notification.router)
 app.include_router(audit.router)
 app.include_router(privacy.router)
+app.include_router(multi_student.router)
+app.include_router(eligibility.router)
 
 
 @app.get("/health")
