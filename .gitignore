@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Media uploads
+backend/media/*
+!backend/media/.gitkeep
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Ruff
+.ruff_cache/
+
+# Pytest
+.pytest_cache/
+
+# Alembic
+backend/alembic/versions/*.pyc

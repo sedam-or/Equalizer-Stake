@@ -1,0 +1,48 @@
+
+### T-006: Attendance API (FR-05)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-27
+- **FR/UC terkait**: FR-05, UC-03
+- **Files changed**:
+  - `backend/app/schemas/attendance.py` — AttendanceSubmit, AttendanceResponse, AttendanceReview
+  - `backend/app/services/attendance.py` — haversine_distance, validate_gps, validate_server_timestamp, submit_attendance, review_attendance
+  - `backend/app/routers/attendance.py` — POST /api/attendance/, PUT /api/attendance/{id}/review
+  - `backend/app/main.py` — Updated with attendance router
+- **Test results**:
+  - [x] GPS validation: Haversine formula, 150m radius + 15m tolerance
+  - [x] Server timestamp validation: [-30min, +15min] window
+  - [x] Face validation: client-side result accepted
+  - [x] Verification status: all valid → verified, any fail → pending_review
+  - [x] Role enforcement: teacher submit, admin/owner review
+- **Security findings**: None (CRUD only, RBAC enforced)
+- **Notes**:
+  - Photo upload: TODO (object storage integration)
+  - Client-side face detection: frontend task (T-012)
+  - Offline submission: TODO (IndexedDB + auto-upload)
+  - Admin review SLA: ≤2 hours (monitoring needed)
+- **Dependencies affected**: T-012 (Frontend attendance form)
+- **Rollback plan**: Delete attendance files, revert main.py
+
+### T-007: Notification Service (FR-06)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-27
+- **FR/UC terkait**: FR-06, UC-04
+- **Files changed**:
+  - `backend/app/schemas/notification.py` — NotificationResponse, NotificationToggle
+  - `backend/app/services/notification.py` — create_notification, send_notification, get_notifications, circuit breaker, retry logic
+  - `backend/app/routers/notification.py` — GET /api/notifications/, POST /api/notifications/circuit-breaker/reset
+  - `backend/app/main.py` — Updated with notification router
+- **Test results**:
+  - [x] Channel priority: critical=email first, non-critical=whatsapp first
+  - [x] Retry logic: 3x exponential backoff (10/20/40s)
+  - [x] Circuit breaker: >5 failures → disable channel, 30min cooldown
+  - [x] Fallback: auto-switch to alternative channel
+  - [x] Role enforcement: all roles can view, admin/owner reset circuit breaker
+- **Security findings**: None (notification service only)
+- **Notes**:
+  - WhatsApp gateway integration: TODO (REST API)
+  - Email SMTP integration: TODO
+  - Notification toggle per channel: TODO (admin dashboard)
+  - In-memory circuit breaker: should use Redis in production
+- **Dependencies affected**: T-004 (session reminders), T-005 (invoice/fine alerts)
+- **Rollback plan**: Delete notification files, revert main.py
