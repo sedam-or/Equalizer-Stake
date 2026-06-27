@@ -218,7 +218,7 @@
 - **Output**:
   - `frontend/src/app/dashboard/billing/page.tsx` — Billing page
 
-### T-014: Notification UI
+### T-014: Notification UI ✅
 - **SRS Ref**: `srs/05-notifications.md`
 - **NFR Ref**: NFR-USA-02 (Mobile-first), NFR-USA-03 (Indonesian)
 - **Prioritas**: Medium
@@ -229,7 +229,7 @@
   - `frontend/src/app/dashboard/notifications/page.tsx` — Notification list
   - Notification toggle component (Admin only)
 
-### T-015: Studio Reservation UI (FR-14)
+### T-015: Studio Reservation UI (FR-14) ✅
 - **SRS Ref**: `srs/08-studio-reservation.md`
 - **NFR Ref**: NFR-PERF-02 (Conflict ≤1s), NFR-USA-02 (Mobile-first)
 - **Prioritas**: Medium
