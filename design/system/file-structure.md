@@ -4,52 +4,75 @@ Struktur file untuk landing page dan seluruh frontend.
 
 ---
 
-## Landing Page
+## Current Structure
 
 ```
 frontend/src/
 ├── app/
-│   ├── page.tsx                  # Landing page (7 sections)
+│   ├── page.tsx                  # Landing page (TODO)
 │   ├── layout.tsx                # Root layout (fonts: Poppins + Inter)
 │   ├── globals.css               # Global styles + CSS variables
 │   ├── login/
-│   │   └── page.tsx              # Login page
+│   │   └── page.tsx              # Login form + role redirect ✅
 │   └── dashboard/
-│       ├── layout.tsx            # Dashboard layout (sidebar + bottom nav)
-│       └── page.tsx              # Dashboard page (KPI cards)
+│       ├── layout.tsx            # Dashboard layout (sidebar + bottom nav) ✅
+│       ├── page.tsx              # 4 role-based dashboards ✅
+│       ├── schedule/
+│       │   └── page.tsx          # Scheduling UI + new session form ✅
+│       ├── attendance/
+│       │   └── page.tsx          # Camera + GPS + face detection ✅
+│       └── billing/
+│           └── page.tsx          # Invoice list + payment info ✅
 ├── components/
-│   ├── landing/
-│   │   ├── Hero.tsx              # Hero section
-│   │   ├── Layanan.tsx           # Features section (MagicBento)
-│   │   ├── CaraKerja.tsx         # How it works (3 steps)
-│   │   ├── Studio.tsx            # Studio showcase (CircularGallery)
-│   │   ├── Testimonial.tsx       # Testimonials (3 cards)
-│   │   ├── CTA.tsx               # Call to action
-│   │   └── Footer.tsx            # Footer
+│   ├── landing/                  # TODO: Landing page sections
+│   │   ├── Hero.tsx
+│   │   ├── Layanan.tsx
+│   │   ├── CaraKerja.tsx
+│   │   ├── Studio.tsx
+│   │   ├── Testimonial.tsx
+│   │   ├── CTA.tsx
+│   │   └── Footer.tsx
 │   ├── nav/
-│   │   ├── GooeyNav.tsx          # Desktop navigation
-│   │   ├── MobileMenu.tsx        # Mobile hamburger menu
-│   │   ├── Sidebar.tsx           # Dashboard sidebar
-│   │   └── BottomNav.tsx         # Dashboard bottom nav
-│   └── ui/
-│       ├── FloatingLines.tsx     # Background effect (Three.js)
-│       ├── BlurText.tsx          # Text blur animation (motion)
-│       ├── RotatingText.tsx      # Rotating text (motion)
-│       ├── ShinyText.tsx         # Shiny text (motion)
-│       ├── BorderGlow.tsx        # Border glow card
-│       ├── GlassSurface.tsx      # Glass card
-│       ├── MagicBento.tsx        # Bento grid (gsap)
-│       ├── CircularGallery.tsx   # Gallery (ogl)
-│       ├── StarBorder.tsx        # Star border button
-│       └── SplashCursor.tsx      # Fluid cursor
-├── hooks/
-│   ├── useScrollAnimation.ts     # IntersectionObserver hook
-│   └── useMediaQuery.ts          # Responsive breakpoint hook
+│   │   ├── GooeyNav.tsx          # TODO
+│   │   ├── MobileMenu.tsx        # TODO
+│   │   ├── Sidebar.tsx           # Dashboard sidebar ✅
+│   │   └── BottomNav.tsx         # Dashboard bottom nav ✅
+│   └── ui/                       # TODO: React Bits components
+│       ├── FloatingLines.tsx
+│       ├── BlurText.tsx
+│       ├── RotatingText.tsx
+│       ├── ShinyText.tsx
+│       ├── BorderGlow.tsx
+│       ├── GlassSurface.tsx
+│       ├── MagicBento.tsx
+│       ├── CircularGallery.tsx
+│       ├── StarBorder.tsx
+│       └── SplashCursor.tsx
+├── hooks/                        # TODO
+│   ├── useScrollAnimation.ts
+│   └── useMediaQuery.ts
 ├── lib/
-│   └── utils.ts                  # cn() utility (clsx + twMerge)
+│   └── utils.ts                  # cn() utility ✅
 └── types/
-    └── index.ts                  # TypeScript types
+    └── index.ts                  # TODO
 ```
+
+## Status
+
+| Page | Status | File |
+|------|--------|------|
+| Login | ✅ Done | app/login/page.tsx |
+| Dashboard (Owner) | ✅ Done | app/dashboard/page.tsx |
+| Dashboard (Admin) | ✅ Done | app/dashboard/page.tsx |
+| Dashboard (Guru) | ✅ Done | app/dashboard/page.tsx |
+| Dashboard (Wali Murid) | ✅ Done | app/dashboard/page.tsx |
+| Schedule | ✅ Done | app/dashboard/schedule/page.tsx |
+| Attendance | ✅ Done | app/dashboard/attendance/page.tsx |
+| Billing | ✅ Done | app/dashboard/billing/page.tsx |
+| Landing Page | TODO | app/page.tsx |
+| Notifications | TODO | app/dashboard/notifications/page.tsx |
+| Audit Log | TODO | app/dashboard/audit/page.tsx |
+| Profile | TODO | app/dashboard/profile/page.tsx |
 
 ---
 
@@ -57,15 +80,15 @@ frontend/src/
 
 ```
 frontend/public/
-├── manifest.json                 # PWA manifest
-├── favicon.ico                   # Favicon
-├── icons/                        # PWA icons
+├── manifest.json                 # PWA manifest ✅
+├── favicon.ico                   # TODO
+├── icons/                        # TODO
 │   ├── icon-192x192.png
 │   └── icon-512x512.png
-└── images/                       # Landing page images
-    ├── logo.png                  # BMD Music logo
-    ├── studio-*.jpg              # Studio photos (untuk CircularGallery)
-    └── avatar-*.jpg              # Testimonial avatars
+└── images/                       # TODO
+    ├── logo.png
+    ├── studio-*.jpg
+    └── avatar-*.jpg
 ```
 
 ---
