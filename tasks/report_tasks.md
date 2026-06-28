@@ -132,3 +132,43 @@
 - **Dependencies affected**: None
 - **Rollback plan**: Revert override.py, routers/override.py, main.py, override/page.tsx, dashboard/page.tsx
 - **Rollback plan**: Delete eligibility files, revert main.py
+
+### T-038: System Settings (Superadmin)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-28
+- **FR/UC terkait**: FR-SYS (Pengaturan Sistem), ADR-006
+- **NFR Ref**: NFR-SEC-04, NFR-REL-01
+- **Files changed**:
+  - `backend/app/models/system_setting.py` — SystemSetting model (key-value JSONB)
+  - `backend/app/services/settings.py` — CRUD service + validation schema
+  - `backend/app/routers/settings.py` — Owner-only settings endpoints
+  - `backend/app/main.py` — Router registration
+  - `backend/app/models/__init__.py` — Model registration
+  - `frontend/src/app/dashboard/settings/page.tsx` — Settings management UI
+  - `frontend/src/app/dashboard/page.tsx` — Added settings link
+- **Test results**:
+  - [x] T1: GET settings owner → 200: PASS
+  - [x] T2: PUT maintenance → 200: PASS
+  - [x] T3: PUT alert_thresholds → 200: PASS
+  - [x] T4: PUT whatsapp_config → 200: PASS
+  - [x] T5: All 3 settings present: PASS
+  - [x] T6: GET single setting → 200: PASS
+  - [x] T7: GET nonexistent → 404: PASS
+  - [x] T8: PUT invalid key → 422: PASS
+  - [x] T9: PUT wrong type → 422: PASS
+  - [x] T10: PUT no value → 422: PASS
+  - [x] T11: Admin → 403: PASS
+  - [x] T12: Unauthenticated → 401: PASS
+  - [x] T13: Audit log created: PASS
+  - [x] T14: Update existing setting: PASS
+- **Security findings**:
+  - SEC-01: require_role("owner") on all endpoints ✓
+  - SEC-02: Input validation against ALLOWED_SETTINGS schema ✓
+  - SEC-03: ORM-only queries, no raw SQL ✓
+  - SEC-04: create_audit_log on all mutations ✓
+  - SEC-05: WhatsApp API key stored in DB (not hardcoded) ✓
+  - SEC-08: No PII in settings, audit trail present ✓
+- **Performance**: N/A (low-frequency admin action)
+- **Notes**: Bug fix during testing — flush() needed before audit log to populate record_id. DB table created via SQLAlchemy metadata.
+- **Dependencies affected**: T-039 (tarif) can now proceed
+- **Rollback plan**: Delete system_setting.py, services/settings.py, routers/settings.py, settings/page.tsx; revert main.py, models/__init__.py, dashboard/page.tsx; DROP TABLE system_settings

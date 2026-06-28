@@ -160,6 +160,7 @@ function OwnerDashboard() {
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <ActionButton href="/dashboard/admins" label="Kelola Admin" />
           <ActionButton href="/dashboard/override" label="Override Operasional" />
+          <ActionButton href="/dashboard/settings" label="Pengaturan Sistem" />
           <ActionButton href="/dashboard/audit" label="Audit Log" />
           <ActionButton href="/dashboard/reports" label="Laporan Detail" />
         </div>

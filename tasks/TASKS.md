@@ -539,7 +539,7 @@
   - `backend/app/services/override.py` — unfreeze, cancel invoice, revert schedule
   - `frontend/src/app/dashboard/override/page.tsx` — Override UI
 
-### T-038: System Settings (Superadmin)
+### T-038: System Settings (Superadmin) ✅
 - **SRS Ref**: `srs/11-user-interaction-flows.md`, ADR-006
 - **NFR Ref**: NFR-SEC-04 (Rate limit), NFR-REL-01 (Retry)
 - **Prioritas**: Medium
@@ -571,7 +571,7 @@
 | Phase 1: Core Backend | T-004..T-008 | ✅ 5/5 done |
 | Phase 2: Frontend PWA | T-009..T-016 | ✅ 8/8 |
 | Phase 3: Compliance | T-017..T-021 | ✅ 4/5 (T-021 TODO) |
-| Phase 3b: Superadmin | T-036..T-039 | ✅ 2/4 |
+| Phase 3b: Superadmin | T-036..T-039 | ✅ 3/4 |
 | Phase 4: Integration | T-022..T-023 | ⏳ 0/2 |
 | Phase 5: Testing | T-024..T-026 | ⏳ 0/3 |
 | Phase 6: Deployment | T-027..T-030 | ⏳ 0/4 |

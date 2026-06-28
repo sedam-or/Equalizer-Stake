@@ -11,6 +11,7 @@ from app.models.payment import Payment
 from app.models.attendance import Attendance
 from app.models.notification import Notification
 from app.models.audit_log import AuditLog
+from app.models.system_setting import SystemSetting
 
 __all__ = [
     "User",
@@ -24,4 +25,5 @@ __all__ = [
     "Attendance",
     "Notification",
     "AuditLog",
+    "SystemSetting",
 ]
