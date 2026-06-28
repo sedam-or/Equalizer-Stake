@@ -512,6 +512,57 @@
 
 ---
 
+## Phase 3b: Superadmin Features (ADR-006)
+
+### T-036: Admin Account Management (Superadmin)
+- **SRS Ref**: `srs/11-user-interaction-flows.md`, ADR-006
+- **NFR Ref**: NFR-SEC-01 (AES-256-GCM), NFR-SEC-03 (Brute force)
+- **Prioritas**: High
+- **Dependensi**: T-003
+- **Role**: Fullstack
+- **Deskripsi**: Superadmin-only CRUD akun Admin. Buat, nonaktifkan, hapus (PII anonim). Konfirmasi ketik username sebelum hapus. Force logout semua session saat Admin dihapus. Audit log setiap aksi.
+- **Output**:
+  - `backend/app/routers/admin_mgmt.py` — CRUD admin accounts (owner-only)
+  - `backend/app/services/admin_mgmt.py` — create, deactivate, delete admin
+  - `frontend/src/app/dashboard/admins/page.tsx` — Admin management UI
+  - Konfirmasi hapus: ketik username
+
+### T-037: Operational Override (Superadmin)
+- **SRS Ref**: `srs/11-user-interaction-flows.md`, ADR-006
+- **NFR Ref**: NFR-SEC-01, NFR-REL-03 (Atomic)
+- **Prioritas**: High
+- **Dependensi**: T-004, T-005, T-006
+- **Role**: Fullstack
+- **Deskripsi**: Override operasional: buka freeze akun, batalkan tagihan, revert jadwal. Semua aksi tercatat di audit log kategori "keamanan". Konfirmasi sebelum override.
+- **Output**:
+  - `backend/app/routers/override.py` — override endpoints (owner-only)
+  - `backend/app/services/override.py` — unfreeze, cancel invoice, revert schedule
+  - `frontend/src/app/dashboard/override/page.tsx` — Override UI
+
+### T-038: System Settings (Superadmin)
+- **SRS Ref**: `srs/11-user-interaction-flows.md`, ADR-006
+- **NFR Ref**: NFR-SEC-04 (Rate limit), NFR-REL-01 (Retry)
+- **Prioritas**: Medium
+- **Dependensi**: T-003
+- **Role**: Fullstack
+- **Deskripsi**: Pengaturan sistem: maintenance window, alert threshold, WhatsApp gateway config. Tersimpan di DB, bisa diubah runtime.
+- **Output**:
+  - `backend/app/models/system_setting.py` — SystemSetting model
+  - `backend/app/routers/settings.py` — CRUD settings (owner-only)
+  - `frontend/src/app/dashboard/settings/page.tsx` — Settings UI
+
+### T-039: Tarif Management
+- **SRS Ref**: `srs/11-user-interaction-flows.md`, ADR-006
+- **NFR Ref**: NFR-PERF-02 (Validation ≤1s)
+- **Prioritas**: Medium
+- **Dependensi**: T-005
+- **Role**: Fullstack
+- **Deskripsi**: Kelola tarif kursus/studio. Owner + Admin bisa ubah. History perubahan di audit log. Tarif berlaku efektif dari tanggal tertentu.
+- **Output**:
+  - `backend/app/models/pricing.py` — Pricing model (instrument, level, effective_date)
+  - `backend/app/routers/pricing.py` — CRUD pricing (owner + admin)
+  - `frontend/src/app/dashboard/pricing/page.tsx` — Pricing management UI
+
 ## Summary
 
 | Phase | Tasks | Status |
@@ -520,9 +571,10 @@
 | Phase 1: Core Backend | T-004..T-008 | ✅ 5/5 done |
 | Phase 2: Frontend PWA | T-009..T-016 | ✅ 8/8 |
 | Phase 3: Compliance | T-017..T-021 | ✅ 4/5 (T-021 TODO) |
+| Phase 3b: Superadmin | T-036..T-039 | ⏳ 0/4 |
 | Phase 4: Integration | T-022..T-023 | ⏳ 0/2 |
 | Phase 5: Testing | T-024..T-026 | ⏳ 0/3 |
 | Phase 6: Deployment | T-027..T-030 | ⏳ 0/4 |
 | Phase 7: Documentation | T-031..T-033 | ⏳ 0/3 |
 | Phase 8: Final | T-034..T-035 | ⏳ 0/2 |
-| **Total** | **35 tasks** | **15/35 done** |
+| **Total** | **39 tasks** | **15/39 done** |
