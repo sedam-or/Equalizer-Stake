@@ -43,4 +43,33 @@
   - Frontend eligibility dashboard: TODO
   - Batch eligibility check: TODO
 - **Dependencies affected**: T-020 (Owner Dashboard)
+
+### T-020: Owner Dashboard & Reports (FR-13)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-28
+- **FR/UC terkait**: FR-13, UC-14 (Pelaporan)
+- **Files changed**:
+  - `backend/app/services/reports.py` — KPI aggregation service (revenue, attendance, frozen accounts, studio utilization, audit summary)
+  - `backend/app/routers/eligibility.py` — Added `GET /api/reports/owner-dashboard` endpoint (owner-only)
+  - `backend/app/services/auth.py` — Replaced passlib+bcrypt with direct bcrypt (fix Python 3.14 compatibility)
+  - `frontend/src/app/dashboard/page.tsx` — OwnerDashboard: real API data fetch + printable export + detail sections
+  - `frontend/src/app/login/page.tsx` — Fixed owner redirect: `/dashboard/owner` → `/dashboard` (route didn't exist)
+- **Test results**:
+  - [x] Owner authenticated → 200 with KPI JSON: PASS
+  - [x] Empty DB → zeros, no 500: PASS
+  - [x] Non-owner role → 403 "Akses ditolak": PASS
+  - [x] TypeScript compilation: PASS (no errors)
+  - [x] Backend imports: PASS
+- **Security findings**:
+  - Finding 1: passlib+bcrypt broken on Python 3.14. Cara fix: replaced with direct `bcrypt.hashpw`/`bcrypt.checkpw`.
+- **Performance**:
+  - Response time: <50ms (multiple small queries, acceptable for ≤50 users)
+  - Query count: 8 (could optimize with CTE, but premature for MVP)
+- **Notes**: 
+  - Owner dashboard now shows 8 KPIs: total revenue, monthly revenue, attendance rate, frozen accounts, studio utilization, total students, unpaid invoices, overdue invoices
+  - Detail sections: attendance breakdown + last 10 audit log entries
+  - Print/export button uses `window.print()` with `print:hidden` on button, `print:block` on footer
+  - Login redirect fix prevents 404 for owner role
+- **Dependencies affected**: T-021 (Auto-Save Draft), T-022 (WhatsApp Integration)
+- **Rollback plan**: Revert eligibility.py, reports.py, auth.py, dashboard/page.tsx, login/page.tsx
 - **Rollback plan**: Delete eligibility files, revert main.py

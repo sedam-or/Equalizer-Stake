@@ -1,4 +1,4 @@
-"""Eligibility router — exam eligibility check."""
+"""Reports router — eligibility + owner dashboard KPIs."""
 
 from uuid import UUID
 
@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.middleware.auth import require_role
 from app.models.user import User
 from app.services.eligibility import check_eligibility
+from app.services.reports import get_owner_dashboard
 
 router = APIRouter(prefix="/api/reports", tags=["Reports"])
 
@@ -22,3 +23,13 @@ async def get_eligibility(
     """Check exam eligibility for a student."""
     result = await check_eligibility(db, UUID(student_id))
     return result
+
+
+@router.get("/owner-dashboard")
+async def owner_dashboard(
+    user: User = Depends(require_role("owner")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Aggregate KPI dashboard (Owner only). Read-only."""
+    data = await get_owner_dashboard(db)
+    return data

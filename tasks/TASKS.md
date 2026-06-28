@@ -297,7 +297,7 @@
   - Eligibility dashboard component
   - Warning indicators
 
-### T-020: Owner Dashboard & Reports (FR-13)
+### T-020: Owner Dashboard & Reports (FR-13) ✅
 - **SRS Ref**: `srs/06-reporting.md`
 - **NFR Ref**: NFR-PERF-01 (Load ≤3s), NFR-USA-01 (WCAG)
 - **Prioritas**: Medium
@@ -518,8 +518,8 @@
 |-------|-------|--------|
 | Phase 0: Infrastructure | T-001..T-003 | ✅ 3/3 done |
 | Phase 1: Core Backend | T-004..T-008 | ✅ 5/5 done |
-| Phase 2: Frontend PWA | T-009..T-016 | ✅ 7/8 (T-016 TODO) |
-| Phase 3: Compliance | T-017..T-021 | ⏳ 0/5 |
+| Phase 2: Frontend PWA | T-009..T-016 | ✅ 8/8 |
+| Phase 3: Compliance | T-017..T-021 | ✅ 4/5 (T-021 TODO) |
 | Phase 4: Integration | T-022..T-023 | ⏳ 0/2 |
 | Phase 5: Testing | T-024..T-026 | ⏳ 0/3 |
 | Phase 6: Deployment | T-027..T-030 | ⏳ 0/4 |
