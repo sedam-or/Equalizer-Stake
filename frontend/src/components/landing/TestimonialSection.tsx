@@ -1,5 +1,7 @@
 "use client";
 
+import BlurText from "@/components/ui/BlurText";
+
 export default function TestimonialSection() {
   const items = [
     { name: "Ananda Putra", role: "Orang Tua", quote: "Sangat membantu mengatur jadwal les anak saya" },
@@ -9,7 +11,7 @@ export default function TestimonialSection() {
   return (
     <section className="px-6 py-24 md:px-8">
       <div className="mx-auto max-w-7xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Apa Kata Mereka</h2>
+        <BlurText text="Apa Kata Mereka" delay={120} className="text-3xl font-bold tracking-tight text-white md:text-4xl" />
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
           {items.map((t, i) => (
             <div key={i} className="rounded-2xl border border-[#253900]/30 bg-transparent p-6 text-center">

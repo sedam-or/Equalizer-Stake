@@ -1,5 +1,7 @@
 "use client";
 
+import BlurText from "@/components/ui/BlurText";
+
 export default function CaraKerjaSection() {
   const steps = [
     { num: "01", title: "Daftar & Pilih Instrumen", desc: "Buat akun dan pilih kursus musik yang diinginkan" },
@@ -9,7 +11,7 @@ export default function CaraKerjaSection() {
   return (
     <section className="px-6 py-24 md:px-8">
       <div className="mx-auto max-w-7xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Mulai dalam 3 Langkah</h2>
+        <BlurText text="Mulai dalam 3 Langkah" delay={120} className="text-3xl font-bold tracking-tight text-white md:text-4xl" />
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
           {steps.map((s, i) => (
             <div key={i} className="rounded-2xl border border-[#08CB00]/30 bg-transparent p-6 text-center">
