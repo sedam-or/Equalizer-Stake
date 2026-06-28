@@ -1,5 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
+import { BG_CONFIG } from "@/components/ui/bg-config";
 
 const AnimatedLines = dynamic(() => import("@/components/ui/AnimatedLines"), { ssr: false });
 const Navbar = dynamic(() => import("@/components/landing/Navbar"), { ssr: false });
@@ -11,51 +12,29 @@ const TestimonialSection = dynamic(() => import("@/components/landing/Testimonia
 const CtaSection = dynamic(() => import("@/components/landing/CtaSection"), { ssr: false });
 const Footer = dynamic(() => import("@/components/landing/Footer"), { ssr: false });
 
-function SectionBg({ children, lineCount = 10, speed = 0.4 }: { children: React.ReactNode; lineCount?: number; speed?: number }) {
+function SectionBg({ children, lines, speed }: { children: React.ReactNode; lines: number; speed: number }) {
   return (
     <div className="snap-section relative overflow-hidden">
-      {/* AnimatedLines background per section */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
-        <AnimatedLines color="#08CB00" opacity={0.1} lineCount={lineCount} speed={speed} />
+        <AnimatedLines color={BG_CONFIG.color} opacity={BG_CONFIG.opacity} lineCount={lines} speed={speed} />
       </div>
-      {/* Transparent overlay content */}
-      <div className="relative z-10">
-        {children}
-      </div>
+      <div className="relative z-10">{children}</div>
     </div>
   );
 }
 
 export default function LandingPage() {
+  const c = BG_CONFIG;
   return (
     <main id="main-content" className="relative min-h-screen bg-[#000000]">
       <div className="relative z-10 snap-container">
         <Navbar />
-
-        <SectionBg lineCount={14} speed={0.5}>
-          <HeroSection />
-        </SectionBg>
-
-        <SectionBg lineCount={10} speed={0.3}>
-          <LayananSection />
-        </SectionBg>
-
-        <SectionBg lineCount={8} speed={0.4}>
-          <CaraKerjaSection />
-        </SectionBg>
-
-        <SectionBg lineCount={12} speed={0.35}>
-          <StudioSection />
-        </SectionBg>
-
-        <SectionBg lineCount={8} speed={0.3}>
-          <TestimonialSection />
-        </SectionBg>
-
-        <SectionBg lineCount={14} speed={0.5}>
-          <CtaSection />
-        </SectionBg>
-
+        <SectionBg lines={c.lines.hero} speed={c.speed.hero}><HeroSection /></SectionBg>
+        <SectionBg lines={c.lines.layanan} speed={c.speed.layanan}><LayananSection /></SectionBg>
+        <SectionBg lines={c.lines.caraKerja} speed={c.speed.caraKerja}><CaraKerjaSection /></SectionBg>
+        <SectionBg lines={c.lines.studio} speed={c.speed.studio}><StudioSection /></SectionBg>
+        <SectionBg lines={c.lines.testimonial} speed={c.speed.testimonial}><TestimonialSection /></SectionBg>
+        <SectionBg lines={c.lines.cta} speed={c.speed.cta}><CtaSection /></SectionBg>
         <Footer />
       </div>
     </main>
