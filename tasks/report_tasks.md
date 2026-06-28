@@ -104,4 +104,31 @@
 - **Notes**: Audit log records every action (INSERT/UPDATE/DELETE) with before/after state.
 - **Dependencies affected**: T-037 (Override), T-038 (Settings), T-039 (Pricing)
 - **Rollback plan**: Revert admin_mgmt.py, schemas/admin_mgmt.py, routers/admin_mgmt.py, main.py, admins/page.tsx
+
+### T-037: Operational Override (Superadmin)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-28
+- **FR/UC terkait**: ADR-006, Superadmin Privileges
+- **Files changed**:
+  - `backend/app/services/override.py` — Unfreeze guardian, cancel invoice, revert session
+  - `backend/app/routers/override.py` — 3 PUT endpoints (owner-only)
+  - `backend/app/main.py` — Registered override router
+  - `frontend/src/app/dashboard/override/page.tsx` — Override UI with 3 tabs
+  - `frontend/src/app/dashboard/page.tsx` — Added "Override Operasional" link
+- **Test results**:
+  - [x] Unfreeze frozen guardian → 200: PASS
+  - [x] Unfreeze non-frozen → 404: PASS
+  - [x] Cancel issued invoice → 200: PASS
+  - [x] Cancel already-cancelled → 404: PASS
+  - [x] Revert non-existent session → 404: PASS
+  - [x] Non-owner access → 403: PASS
+  - [x] TypeScript compile: PASS
+- **Security findings**:
+  - All endpoints owner-only via require_role("owner")
+  - All overrides logged in audit log with before/after state
+  - Idempotent: re-applying returns 404 (no double-override)
+- **Performance**: N/A (low-frequency admin action)
+- **Notes**: Session revert test skipped (no test session available), but service code verified via import + 404 path
+- **Dependencies affected**: None
+- **Rollback plan**: Revert override.py, routers/override.py, main.py, override/page.tsx, dashboard/page.tsx
 - **Rollback plan**: Delete eligibility files, revert main.py
