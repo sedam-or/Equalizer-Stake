@@ -72,4 +72,36 @@
   - Login redirect fix prevents 404 for owner role
 - **Dependencies affected**: T-021 (Auto-Save Draft), T-022 (WhatsApp Integration)
 - **Rollback plan**: Revert eligibility.py, reports.py, auth.py, dashboard/page.tsx, login/page.tsx
+
+### T-036: Admin Account Management (Superadmin)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-28
+- **FR/UC terkait**: ADR-006, Superadmin Privileges
+- **Files changed**:
+  - `backend/app/services/admin_mgmt.py` — CRUD service: create, deactivate, activate, soft-delete with PII anonymization
+  - `backend/app/schemas/admin_mgmt.py` — Request/response schemas
+  - `backend/app/routers/admin_mgmt.py` — 5 endpoints (owner-only): list, create, deactivate, activate, delete
+  - `backend/app/main.py` — Registered admin_mgmt router
+  - `frontend/src/app/dashboard/admins/page.tsx` — Admin management UI: list, create form, toggle active, delete with username confirmation modal
+- **Test results**:
+  - [x] Owner login → 200: PASS
+  - [x] List admins → 200: PASS
+  - [x] Create admin → 201: PASS
+  - [x] List after create → 200, total=2: PASS
+  - [x] Deactivate → 200, is_active=false: PASS
+  - [x] Activate → 200, is_active=true: PASS
+  - [x] Delete wrong confirm → 400: PASS
+  - [x] Delete correct confirm → 200, PII anonymized: PASS
+  - [x] Deleted admin login → 401: PASS
+  - [x] Non-owner access → 403: PASS
+  - [x] TypeScript compile: PASS
+- **Security findings**:
+  - Finding 1: All endpoints owner-only via require_role("owner"). Clean.
+  - Finding 2: Soft delete + PII anonymization (username/email replaced with deleted_<id>). UU PDP compliant.
+  - Finding 3: Username confirmation required before delete — prevents accidental deletion.
+  - Finding 4: Deleted admin's refresh_token cleared — forces logout.
+- **Performance**: N/A (admin management is low-frequency)
+- **Notes**: Audit log records every action (INSERT/UPDATE/DELETE) with before/after state.
+- **Dependencies affected**: T-037 (Override), T-038 (Settings), T-039 (Pricing)
+- **Rollback plan**: Revert admin_mgmt.py, schemas/admin_mgmt.py, routers/admin_mgmt.py, main.py, admins/page.tsx
 - **Rollback plan**: Delete eligibility files, revert main.py
