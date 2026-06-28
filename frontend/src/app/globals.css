@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-@keyframes float {
-  0% { transform: translateY(0px) rotate(var(--tw-rotate, 0deg)); }
-  100% { transform: translateY(-10px) rotate(var(--tw-rotate, 0deg)); }
-}
-
 :root {
   --background: #000000;
   --foreground: #FFFFFF;
@@ -22,6 +17,8 @@ html {
 
 .snap-container {
   scroll-snap-type: y mandatory;
+  overflow-y: auto;
+  height: 100vh;
 }
 
 .snap-section {
