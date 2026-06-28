@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function HeroSection() {
   return (
-    <section className="flex min-h-screen flex-col items-center justify-center px-6 py-20" style={{ transform: "translateY(-3%)" }}>
+    <section className="flex h-screen items-center justify-center px-6">
       <div className="w-full max-w-[780px] text-center">
         {/* Brand */}
         <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-[#08CB00] md:text-base">
@@ -27,7 +27,7 @@ export default function HeroSection() {
           jadi lebih mudah
         </p>
 
-        {/* Buttons — flex row, centered */}
+        {/* Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-4">
           <a
             href="#layanan"
@@ -42,13 +42,6 @@ export default function HeroSection() {
             Masuk
           </a>
         </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="mt-auto animate-bounce text-[#08CB00]">
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
       </div>
     </section>
   );
