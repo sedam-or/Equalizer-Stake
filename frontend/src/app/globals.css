@@ -6,16 +6,36 @@
 }
 
 :root {
-  --color-primary: #1E40AF;
-  --color-secondary: #3B82F6;
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --background: #000000;
+  --foreground: #FFFFFF;
 }
 
 body {
+  color: var(--foreground);
+  background: var(--background);
   font-family: system-ui, -apple-system, sans-serif;
-  color: #1F2937;
-  background-color: #F9FAFB;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.snap-container {
+  scroll-snap-type: y mandatory;
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
