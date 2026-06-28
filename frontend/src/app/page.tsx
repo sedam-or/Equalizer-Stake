@@ -6,12 +6,10 @@ import AnimatedLines from "@/components/ui/AnimatedLines";
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-[#000000] text-white">
-      {/* Global animated background — spans entire page */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <AnimatedLines color="#08CB00" opacity={0.12} lineCount={14} speed={0.4} />
-      </div>
+      {/* Animated background — canvas fixed, z-0 */}
+      <AnimatedLines color="#08CB00" opacity={0.12} lineCount={14} speed={0.4} />
 
-      {/* All content overlays sit on top, fully transparent */}
+      {/* Content on top */}
       <div className="relative z-10">
         <Navbar />
         <Hero />
