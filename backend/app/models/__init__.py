@@ -12,6 +12,7 @@ from app.models.attendance import Attendance
 from app.models.notification import Notification
 from app.models.audit_log import AuditLog
 from app.models.system_setting import SystemSetting
+from app.models.pricing import Pricing
 
 __all__ = [
     "User",
@@ -26,4 +27,5 @@ __all__ = [
     "Notification",
     "AuditLog",
     "SystemSetting",
+    "Pricing",
 ]

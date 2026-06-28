@@ -172,3 +172,44 @@
 - **Notes**: Bug fix during testing — flush() needed before audit log to populate record_id. DB table created via SQLAlchemy metadata.
 - **Dependencies affected**: T-039 (tarif) can now proceed
 - **Rollback plan**: Delete system_setting.py, services/settings.py, routers/settings.py, settings/page.tsx; revert main.py, models/__init__.py, dashboard/page.tsx; DROP TABLE system_settings
+
+### T-039: Tarif Management
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-28
+- **FR/UC terkait**: FR-BILL (Pricing), ADR-006
+- **NFR Ref**: NFR-PERF-02 (Validation ≤1s)
+- **Files changed**:
+  - `backend/app/models/pricing.py` — Pricing model (instrument, level, price, effective_date)
+  - `backend/app/services/pricing.py` — CRUD service + validation (instrument, level, price)
+  - `backend/app/routers/pricing.py` — Owner+Admin pricing endpoints
+  - `backend/app/main.py` — Router registration
+  - `backend/app/models/__init__.py` — Model registration
+  - `frontend/src/app/dashboard/pricing/page.tsx` — Pricing management UI
+  - `frontend/src/app/dashboard/page.tsx` — Added pricing link
+- **Test results**:
+  - [x] T1: GET pricing owner → 200: PASS
+  - [x] T2: POST create pricing → 200: PASS
+  - [x] T3: Admin POST → 200: PASS
+  - [x] T4: List has 2 entries: PASS
+  - [x] T5: GET single → 200: PASS
+  - [x] T6: GET nonexistent → 404: PASS
+  - [x] T7: PUT update → 200: PASS
+  - [x] T8: PUT deactivate → 200: PASS
+  - [x] T9: Invalid instrument → 422: PASS
+  - [x] T10: Invalid level → 422: PASS
+  - [x] T11: Negative price → 422: PASS
+  - [x] T12: Missing fields → 422: PASS
+  - [x] T13: Bad date → 422: PASS
+  - [x] T14: No token → 401: PASS
+  - [x] T15: Audit log entries: PASS
+- **Security findings**:
+  - SEC-01: require_role("owner","admin") on all endpoints ✓
+  - SEC-02: Input validation (instrument, level, price, date) ✓
+  - SEC-03: ORM-only queries ✓
+  - SEC-04: create_audit_log on POST + PUT ✓
+  - SEC-05: No hardcoded secrets ✓
+  - SEC-08: Audit trail for pricing changes ✓
+- **Performance**: N/A (low-frequency admin action)
+- **Notes**: flush() before audit log (learned from T-038). Effective date allows scheduling future prices.
+- **Dependencies affected**: None
+- **Rollback plan**: Delete pricing.py files, revert main.py, models/__init__.py, dashboard/page.tsx; DROP TABLE pricings

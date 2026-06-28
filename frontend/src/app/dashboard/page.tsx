@@ -161,6 +161,7 @@ function OwnerDashboard() {
           <ActionButton href="/dashboard/admins" label="Kelola Admin" />
           <ActionButton href="/dashboard/override" label="Override Operasional" />
           <ActionButton href="/dashboard/settings" label="Pengaturan Sistem" />
+          <ActionButton href="/dashboard/pricing" label="Kelola Tarif" />
           <ActionButton href="/dashboard/audit" label="Audit Log" />
           <ActionButton href="/dashboard/reports" label="Laporan Detail" />
         </div>
