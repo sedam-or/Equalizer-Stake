@@ -18,43 +18,43 @@ export default function LandingPage() {
       <div className="snap-container">
         <Navbar />
 
-        {/* Hero — FloatingLines bg + SplashCursor inside */}
-        <div className="snap-section relative">
+        {/* Hero — full screen */}
+        <div className="snap-section snap-section-hero relative">
           <HeroSection />
           <GradualBlur position="bottom" height="8rem" strength={2} divCount={5} curve="bezier" exponential={true} opacity={1} />
         </div>
 
-        {/* Program Kursus */}
+        {/* Program Kursus — auto height */}
         <div className="snap-section relative">
           <ProgramKursusSection />
           <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
         </div>
 
-        {/* Kenapa BMD */}
+        {/* Kenapa BMD — auto height */}
         <div className="snap-section relative">
           <KenapaBMDSection />
           <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
         </div>
 
-        {/* Studio Tour */}
+        {/* Studio Tour — auto height */}
         <div className="snap-section relative">
           <StudioTourSection />
           <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
         </div>
 
-        {/* Testimonial */}
+        {/* Testimonial — auto height */}
         <div className="snap-section relative">
           <TestimonialSection />
           <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
         </div>
 
-        {/* Paket & Harga */}
+        {/* Paket & Harga — auto height */}
         <div className="snap-section relative">
           <PaketHargaSection />
           <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
         </div>
 
-        {/* CTA */}
+        {/* CTA — auto height */}
         <div className="snap-section relative">
           <CtaSection />
         </div>

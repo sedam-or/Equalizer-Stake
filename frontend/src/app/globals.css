@@ -23,9 +23,13 @@ html {
 
 .snap-section {
   scroll-snap-align: start;
-  min-height: 100vh;
   position: relative;
   overflow: hidden;
+}
+
+/* Hero only — full screen */
+.snap-section-hero {
+  min-height: 100vh;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
