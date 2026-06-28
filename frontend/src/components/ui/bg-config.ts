@@ -4,29 +4,21 @@
  */
 
 export const BG_CONFIG = {
-  // Warna garis animasi (ubah di sini saja)
-  color: "#08CB00",
+  // Warna garis (gradient)
+  colors: ["#08CB00", "#253900"],
 
-  // Opacity garis (0-1, semakin kecil semakin transparan)
-  opacity: 0.1,
+  // Jumlah garis per wave [top, middle, bottom]
+  lineCount: [8, 12, 16],
 
-  // Jumlah garis per section
-  lines: {
-    hero: 14,
-    layanan: 10,
-    caraKerja: 8,
-    studio: 12,
-    testimonial: 8,
-    cta: 14,
-  },
+  // Jarak antar garis per wave
+  lineDistance: [10, 8, 5],
 
-  // Kecepatan animasi per section
-  speed: {
-    hero: 0.5,
-    layanan: 0.3,
-    caraKerja: 0.4,
-    studio: 0.35,
-    testimonial: 0.3,
-    cta: 0.5,
-  },
+  // Kecepatan animasi
+  animationSpeed: 0.8,
+
+  // Interaktif (garis mengikuti mouse)
+  interactive: true,
+
+  // Parallax effect
+  parallax: true,
 } as const;

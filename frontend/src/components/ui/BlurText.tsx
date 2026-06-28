@@ -21,7 +21,7 @@ export default function BlurText({
   direction = "top",
   threshold = 0.1,
   rootMargin = "0px",
-  stepDuration = 0.35,
+  stepDuration = 1.5,
 }: BlurTextProps) {
   const elements = animateBy === "words" ? text.split(" ") : text.split("");
   const [inView, setInView] = useState(false);
