@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 
 /**
- * AnimatedLines — Pure canvas animated background.
- * No three.js dependency. Visible animation as proof.
+ * AnimatedLines — Canvas animated background per section.
+ * Position: absolute (fills parent section).
  */
 export default function AnimatedLines({
   color = "#08CB00",
@@ -29,7 +29,6 @@ export default function AnimatedLines({
     let animId: number;
     let time = 0;
 
-    // Parse hex to rgb
     const hexToRgb = (hex: string) => {
       const h = hex.replace("#", "");
       return {
@@ -41,26 +40,32 @@ export default function AnimatedLines({
     const rgb = hexToRgb(color);
 
     const resize = () => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = window.innerWidth + "px";
-      canvas.style.height = window.innerHeight + "px";
+      const w = parent.clientWidth;
+      const h = parent.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
-    window.addEventListener("resize", resize);
+
+    const ro = new ResizeObserver(resize);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
 
     const draw = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
       ctx.clearRect(0, 0, w, h);
 
       for (let i = 0; i < lineCount; i++) {
         const t = i / lineCount;
         const yBase = h * (0.1 + t * 0.8);
-        const amplitude = 30 + i * 4;
-        const frequency = 0.004 + i * 0.0006;
+        const amplitude = 25 + i * 3;
+        const frequency = 0.004 + i * 0.0005;
         const phase = time * speed * (0.8 + i * 0.12);
 
         ctx.beginPath();
@@ -70,28 +75,27 @@ export default function AnimatedLines({
           const y =
             yBase +
             Math.sin(x * frequency + phase) * amplitude +
-            Math.sin(x * frequency * 1.5 + phase * 0.7) * (amplitude * 0.35) +
-            Math.cos(x * frequency * 0.5 + phase * 0.3) * (amplitude * 0.2);
+            Math.sin(x * frequency * 1.5 + phase * 0.7) * (amplitude * 0.3) +
+            Math.cos(x * frequency * 0.5 + phase * 0.3) * (amplitude * 0.15);
           ctx.lineTo(x, y);
         }
 
-        const alpha = opacity * (0.4 + t * 0.6);
+        const alpha = opacity * (0.3 + t * 0.7);
         ctx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Second glow line (offset)
+        // Glow line
         ctx.beginPath();
         ctx.moveTo(0, yBase + 2);
         for (let x = 0; x <= w; x += 3) {
           const y =
-            yBase +
-            2 +
-            Math.sin(x * frequency + phase + 0.3) * amplitude * 0.5 +
-            Math.sin(x * frequency * 1.5 + phase * 0.7 + 0.3) * (amplitude * 0.2);
+            yBase + 2 +
+            Math.sin(x * frequency + phase + 0.3) * amplitude * 0.4 +
+            Math.sin(x * frequency * 1.5 + phase * 0.7 + 0.3) * (amplitude * 0.15);
           ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.3})`;
+        ctx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.25})`;
         ctx.lineWidth = 3;
         ctx.stroke();
       }
@@ -103,7 +107,7 @@ export default function AnimatedLines({
 
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener("resize", resize);
+      ro.disconnect();
     };
   }, [color, opacity, lineCount, speed]);
 
@@ -111,13 +115,12 @@ export default function AnimatedLines({
     <canvas
       ref={canvasRef}
       style={{
-        position: "fixed",
+        position: "absolute",
         top: 0,
         left: 0,
-        width: "100vw",
-        height: "100vh",
+        width: "100%",
+        height: "100%",
         pointerEvents: "none",
-        zIndex: 0,
       }}
     />
   );

@@ -11,41 +11,50 @@ const TestimonialSection = dynamic(() => import("@/components/landing/Testimonia
 const CtaSection = dynamic(() => import("@/components/landing/CtaSection"), { ssr: false });
 const Footer = dynamic(() => import("@/components/landing/Footer"), { ssr: false });
 
+function SectionBg({ children, lineCount = 10, speed = 0.4 }: { children: React.ReactNode; lineCount?: number; speed?: number }) {
+  return (
+    <div className="snap-section relative overflow-hidden">
+      {/* AnimatedLines background per section */}
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <AnimatedLines color="#08CB00" opacity={0.1} lineCount={lineCount} speed={speed} />
+      </div>
+      {/* Transparent overlay content */}
+      <div className="relative z-10">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   return (
     <main id="main-content" className="relative min-h-screen bg-[#000000]">
-      {/* ONE AnimatedLines for entire page */}
-      <div className="fixed inset-0 z-0" aria-hidden="true">
-        <AnimatedLines color="#08CB00" opacity={0.12} lineCount={14} speed={0.4} />
-      </div>
-
-      {/* All content on top */}
       <div className="relative z-10 snap-container">
         <Navbar />
 
-        <div className="snap-section relative">
+        <SectionBg lineCount={14} speed={0.5}>
           <HeroSection />
-        </div>
+        </SectionBg>
 
-        <div className="snap-section relative">
+        <SectionBg lineCount={10} speed={0.3}>
           <LayananSection />
-        </div>
+        </SectionBg>
 
-        <div className="snap-section relative">
+        <SectionBg lineCount={8} speed={0.4}>
           <CaraKerjaSection />
-        </div>
+        </SectionBg>
 
-        <div className="snap-section relative">
+        <SectionBg lineCount={12} speed={0.35}>
           <StudioSection />
-        </div>
+        </SectionBg>
 
-        <div className="snap-section relative">
+        <SectionBg lineCount={8} speed={0.3}>
           <TestimonialSection />
-        </div>
+        </SectionBg>
 
-        <div className="snap-section relative">
+        <SectionBg lineCount={14} speed={0.5}>
           <CtaSection />
-        </div>
+        </SectionBg>
 
         <Footer />
       </div>
