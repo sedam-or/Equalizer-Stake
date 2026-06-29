@@ -10,6 +10,8 @@ const navItems = [
   { href: "/dashboard/billing", label: "Tagihan", icon: "💰" },
   { href: "/dashboard/students", label: "Siswa", icon: "👨‍🎓" },
   { href: "/dashboard/notifications", label: "Notifikasi", icon: "🔔" },
+  { href: "/dashboard/reports", label: "Laporan", icon: "📈" },
+  { href: "/dashboard/audit-log", label: "Audit Log", icon: "📋" },
 ];
 
 export default function Sidebar() {
