@@ -309,7 +309,7 @@
   - `GET /api/reports/owner-dashboard` — aggregate KPI
   - Export component (printable format)
 
-### T-021: Auto-Save Draft (FR-08)
+### T-021: Auto-Save Draft (FR-08) ✅
 - **SRS Ref**: `srs/10-draft-autosave.md`
 - **NFR Ref**: NFR-REL-03 (Atomic), NFR-USA-02 (Mobile-first)
 - **Prioritas**: Medium
@@ -570,7 +570,7 @@
 | Phase 0: Infrastructure | T-001..T-003 | ✅ 3/3 done |
 | Phase 1: Core Backend | T-004..T-008 | ✅ 5/5 done |
 | Phase 2: Frontend PWA | T-009..T-016 | ✅ 8/8 |
-| Phase 3: Compliance | T-017..T-021 | ✅ 4/5 (T-021 TODO) |
+| Phase 3: Compliance | T-017..T-021 | ✅ 5/5 |
 | Phase 3b: Superadmin | T-036..T-039 | ✅ 4/4 |
 | Phase 4: Integration | T-022..T-023 | ⏳ 0/2 |
 | Phase 5: Testing | T-024..T-026 | ⏳ 0/3 |

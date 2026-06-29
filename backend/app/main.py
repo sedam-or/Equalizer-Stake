@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing
+from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft
 
 settings = get_settings()
 
@@ -49,6 +49,7 @@ app.include_router(admin_mgmt.router)
 app.include_router(override.router)
 app.include_router(settings_router.router)
 app.include_router(pricing.router)
+app.include_router(draft.router)
 
 
 @app.get("/health")

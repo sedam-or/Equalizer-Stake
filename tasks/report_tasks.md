@@ -213,3 +213,39 @@
 - **Notes**: flush() before audit log (learned from T-038). Effective date allows scheduling future prices.
 - **Dependencies affected**: None
 - **Rollback plan**: Delete pricing.py files, revert main.py, models/__init__.py, dashboard/page.tsx; DROP TABLE pricings
+
+### T-021: Auto-Save Draft (FR-08)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-28
+- **FR/UC terkait**: FR-08, UC-13
+- **NFR Ref**: NFR-REL-03 (Atomic), NFR-USA-02 (Mobile-first)
+- **Files changed**:
+  - `backend/app/models/draft.py` — Draft model (id_user, form_key, draft_data JSONB)
+  - `backend/app/services/draft.py` — Draft CRUD + TTL cleanup (7 days)
+  - `backend/app/routers/draft.py` — Draft endpoints (GET/POST/DELETE)
+  - `backend/app/main.py` — Router registration
+  - `backend/app/models/__init__.py` — Model registration
+  - `frontend/src/hooks/useAutoSave.ts` — Auto-save hook (30s interval, localStorage + server sync, retry 3x)
+  - `frontend/src/components/DraftIndicator.tsx` — Sync status indicator + restore prompt
+- **Test results**:
+  - [x] T1: GET drafts → 200: PASS
+  - [x] T2: POST save draft → 200: PASS
+  - [x] T3: GET single draft → 200: PASS
+  - [x] T4: POST update draft → 200: PASS
+  - [x] T5: POST different form → 200: PASS
+  - [x] T6: List has 2 drafts: PASS
+  - [x] T7: DELETE draft → 200: PASS
+  - [x] T8: GET deleted → 404: PASS
+  - [x] T9: DELETE nonexistent → 404: PASS
+  - [x] T10: POST invalid → 422: PASS
+  - [x] T11: No token → 401: PASS
+  - [x] T12: Owner access → 200: PASS
+- **Security findings**:
+  - SEC-01: require_role('owner','admin','teacher') on all endpoints ✓
+  - SEC-02: Input validation (draft_data required) ✓
+  - SEC-03: ORM-only queries ✓
+  - SEC-08: Draft data scoped per user ✓
+- **Performance**: N/A (async server sync, no blocking)
+- **Notes**: useAutoSave hook ready for integration with form pages. localStorage fallback when server unreachable. Exponential backoff retry.
+- **Dependencies affected**: None
+- **Rollback plan**: Delete draft.py files, hooks/useAutoSave.ts, components/DraftIndicator.tsx; revert main.py, models/__init__.py; DROP TABLE drafts

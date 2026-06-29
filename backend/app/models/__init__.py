@@ -13,6 +13,7 @@ from app.models.notification import Notification
 from app.models.audit_log import AuditLog
 from app.models.system_setting import SystemSetting
 from app.models.pricing import Pricing
+from app.models.draft import Draft
 
 __all__ = [
     "User",
@@ -28,4 +29,5 @@ __all__ = [
     "AuditLog",
     "SystemSetting",
     "Pricing",
+    "Draft",
 ]
