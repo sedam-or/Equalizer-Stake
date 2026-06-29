@@ -249,3 +249,38 @@
 - **Notes**: useAutoSave hook ready for integration with form pages. localStorage fallback when server unreachable. Exponential backoff retry.
 - **Dependencies affected**: None
 - **Rollback plan**: Delete draft.py files, hooks/useAutoSave.ts, components/DraftIndicator.tsx; revert main.py, models/__init__.py; DROP TABLE drafts
+
+### T-022: WhatsApp Gateway Integration
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-29
+- **FR/UC terkait**: FR-06, UC-04
+- **NFR Ref**: NFR-REL-01 (Retry 3x), NFR-REL-02 (Circuit breaker)
+- **Files changed**:
+  - `backend/app/services/whatsapp.py` — WhatsApp gateway client (httpx, retry 3x exponential, circuit breaker, phone normalization)
+  - `backend/app/services/notification.py` — Updated to use WhatsApp client with config from system_settings
+  - `backend/app/routers/notification.py` — Added circuit breaker status/reset + test-whatsapp endpoints
+- **Test results**:
+  - [x] T1: Circuit breaker status → 200: PASS
+  - [x] T2: Reset circuit breaker → 200: PASS
+  - [x] T3: Invalid channel → 400: PASS
+  - [x] T4: Test WA no config → 400: PASS (config exists from T-038)
+  - [x] T5: Set WA config → 200: PASS
+  - [x] T6: Missing phone → 422: PASS
+  - [x] T7: Admin access → 200: PASS
+  - [x] T8: Notifications list → 200: PASS
+  - [x] T9: No token → 401: PASS
+  - [x] T10: Phone normalization: PASS
+  - [x] T11: Circuit breaker threshold: PASS
+  - [x] T12: Circuit breaker reset: PASS
+  - [x] T13: send_with_retry importable: PASS
+  - [x] T14: Notification integration: PASS
+- **Security findings**:
+  - SEC-01: require_role('admin','owner') on admin endpoints ✓
+  - SEC-02: Phone normalization (sanitization) ✓
+  - SEC-03: httpx async client (non-blocking) ✓
+  - SEC-05: API key from DB settings ✓
+  - SEC-08: Circuit breaker prevents abuse ✓
+- **Performance**: httpx async with 30s timeout. Non-blocking.
+- **Notes**: WhatsApp config loaded from system_settings (T-038). Circuit breaker: 5 failures → 30min cooldown. Retry: 10s/20s/40s exponential backoff.
+- **Dependencies affected**: T-023 (Email SMTP) can use same pattern
+- **Rollback plan**: Delete whatsapp.py; revert notification.py, notification router

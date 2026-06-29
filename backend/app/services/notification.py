@@ -8,6 +8,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.notification import Notification
+from app.services.whatsapp import send_with_retry, reset_circuit_breaker as reset_wa_cb, get_circuit_status as get_wa_cb_status
 
 # Retry settings
 MAX_RETRIES = 3
@@ -26,6 +27,8 @@ _circuit_breaker_state = {
 
 def is_circuit_breaker_open(channel: str) -> bool:
     """Check if circuit breaker is open for a channel."""
+    if channel == "whatsapp":
+        return get_wa_cb_status()["is_open"]
     state = _circuit_breaker_state.get(channel, {})
     if state.get("open_until"):
         if datetime.now(timezone.utc) < state["open_until"]:
@@ -38,6 +41,8 @@ def is_circuit_breaker_open(channel: str) -> bool:
 
 def record_circuit_breaker_failure(channel: str):
     """Record a failure for circuit breaker."""
+    if channel == "whatsapp":
+        return  # Handled by whatsapp module
     state = _circuit_breaker_state.setdefault(channel, {"failures": 0, "open_until": None})
     state["failures"] += 1
     if state["failures"] >= CIRCUIT_BREAKER_THRESHOLD:
@@ -48,7 +53,10 @@ def record_circuit_breaker_failure(channel: str):
 
 def reset_circuit_breaker(channel: str):
     """Manually reset circuit breaker."""
-    _circuit_breaker_state[channel] = {"failures": 0, "open_until": None}
+    if channel == "whatsapp":
+        reset_wa_cb()
+    else:
+        _circuit_breaker_state[channel] = {"failures": 0, "open_until": None}
 
 
 def get_channel_priority(category: str) -> list[str]:
@@ -117,9 +125,27 @@ async def send_notification(
     # Try sending with retries
     for attempt in range(MAX_RETRIES):
         try:
-            # TODO: integrate with actual WhatsApp/Email gateway
-            # For now, simulate success
-            success = True  # Replace with actual gateway call
+            if channel == "whatsapp":
+                # Get WhatsApp config from system_settings
+                from app.services.settings import get_setting
+                wa_config = await get_setting(db, "whatsapp_config")
+                if not wa_config or not wa_config.setting_value.get("enabled"):
+                    # WhatsApp not configured, skip to fallback
+                    break
+                
+                result = await send_with_retry(
+                    api_url=wa_config.setting_value.get("api_url", ""),
+                    api_key=wa_config.setting_value.get("api_key", ""),
+                    phone=notification.body.split("Phone: ")[1].split("\n")[0] if "Phone: " in notification.body else "",
+                    message=notification.body,
+                    sender_number=wa_config.setting_value.get("sender_number"),
+                )
+                success = result.get("success", False)
+                if not success:
+                    notification.error_message = result.get("error", "Unknown error")
+            else:
+                # Email or other channel — simulate for now
+                success = True  # ponytail: email integration in T-023
 
             if success:
                 notification.status = "sent"

@@ -326,7 +326,7 @@
 
 ## Phase 4: Integration & External
 
-### T-022: WhatsApp Gateway Integration
+### T-022: WhatsApp Gateway Integration ✅
 - **SRS Ref**: `srs/05-notifications.md`, `architecture/05-integrations.md`
 - **NFR Ref**: NFR-REL-01 (Retry 3x), NFR-REL-02 (Circuit breaker)
 - **Prioritas**: High
