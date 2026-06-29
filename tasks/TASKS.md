@@ -338,7 +338,7 @@
   - Gateway integration (unofficial API)
   - Retry + circuit breaker logic
 
-### T-023: Email SMTP Integration
+### T-023: Email SMTP Integration ✅
 - **SRS Ref**: `srs/05-notifications.md`, `architecture/05-integrations.md`
 - **NFR Ref**: NFR-REL-01 (Retry 3x), NFR-SEC-02 (TLS)
 - **Prioritas**: High
@@ -572,7 +572,7 @@
 | Phase 2: Frontend PWA | T-009..T-016 | ✅ 8/8 |
 | Phase 3: Compliance | T-017..T-021 | ✅ 5/5 |
 | Phase 3b: Superadmin | T-036..T-039 | ✅ 4/4 |
-| Phase 4: Integration | T-022..T-023 | ⏳ 0/2 |
+| Phase 4: Integration | T-022..T-023 | ✅ 2/2 |
 | Phase 5: Testing | T-024..T-026 | ⏳ 0/3 |
 | Phase 6: Deployment | T-027..T-030 | ⏳ 0/4 |
 | Phase 7: Documentation | T-031..T-033 | ⏳ 0/3 |

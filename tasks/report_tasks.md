@@ -284,3 +284,32 @@
 - **Notes**: WhatsApp config loaded from system_settings (T-038). Circuit breaker: 5 failures → 30min cooldown. Retry: 10s/20s/40s exponential backoff.
 - **Dependencies affected**: T-023 (Email SMTP) can use same pattern
 - **Rollback plan**: Delete whatsapp.py; revert notification.py, notification router
+
+### T-023: Email SMTP Integration
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-29
+- **FR/UC terkait**: FR-06, UC-04
+- **NFR Ref**: NFR-REL-01 (Retry 3x), NFR-SEC-02 (TLS)
+- **Files changed**:
+  - `backend/app/services/email.py` — SMTP client (aiosmtplib, TLS, retry 3x, circuit breaker, Jinja2 templates)
+  - `backend/app/services/notification.py` — Updated email fallback with actual SMTP client
+  - `backend/app/routers/notification.py` — Added email/status endpoint
+- **Test results**:
+  - [x] T1: Email status → 200: PASS
+  - [x] T2: Admin access → 200: PASS
+  - [x] T3: No token → 401: PASS
+  - [x] T4: Templates exist: PASS
+  - [x] T5: Render template: PASS
+  - [x] T6: Invalid template error: PASS
+  - [x] T7: Circuit breaker: PASS
+  - [x] T8: Circuit status: PASS
+  - [x] T9: Notification integration: PASS
+- **Security findings**:
+  - SEC-01: require_role('admin','owner') on email status ✓
+  - SEC-02: TLS 1.2+ via use_tls=True ✓
+  - SEC-05: SMTP creds from config ✓
+  - SEC-08: Circuit breaker ✓
+- **Performance**: aiosmtplib async, non-blocking
+- **Notes**: 3 email templates (invoice, reminder, freeze). SMTP config from .env. Circuit breaker: 5 failures → 30min cooldown.
+- **Dependencies affected**: None
+- **Rollback plan**: Delete email.py; revert notification.py, notification router

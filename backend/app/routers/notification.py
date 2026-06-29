@@ -11,6 +11,7 @@ from app.models.user import User
 from app.schemas.notification import NotificationResponse
 from app.services.notification import get_notifications, reset_circuit_breaker
 from app.services.whatsapp import get_circuit_status, send_with_retry
+from app.services.email import get_circuit_status as get_email_cb_status
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 
@@ -87,4 +88,18 @@ async def test_whatsapp(
         "success": result.get("success", False),
         "message": result.get("error") if not result.get("success") else "Pesan terkirim",
         "retry_count": result.get("retry_count", 0),
+    }
+
+
+@router.get("/email/status")
+async def email_status(
+    user: User = Depends(require_role("admin", "owner")),
+):
+    """Get email SMTP status (Admin/Owner only)."""
+    from app.core.config import get_settings
+    settings = get_settings()
+    return {
+        "email": get_email_cb_status(),
+        "smtp_configured": bool(settings.SMTP_HOST),
+        "smtp_host": settings.SMTP_HOST if settings.SMTP_HOST else None,
     }

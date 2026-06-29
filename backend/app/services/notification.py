@@ -144,8 +144,27 @@ async def send_notification(
                 if not success:
                     notification.error_message = result.get("error", "Unknown error")
             else:
-                # Email or other channel — simulate for now
-                success = True  # ponytail: email integration in T-023
+                # Email channel
+                from app.services.email import send_email_with_retry
+                from app.core.config import get_settings
+                settings = get_settings()
+                
+                if not settings.SMTP_HOST:
+                    notification.error_message = "SMTP belum dikonfigurasi"
+                    break
+                
+                result = await send_email_with_retry(
+                    smtp_host=settings.SMTP_HOST,
+                    smtp_port=settings.SMTP_PORT,
+                    smtp_user=settings.SMTP_USER,
+                    smtp_password=settings.SMTP_PASSWORD,
+                    recipient=notification.body.split("Email: ")[1].split("\n")[0] if "Email: " in notification.body else "",
+                    subject=notification.subject or "Notifikasi BMD Musik",
+                    html_body=notification.body,
+                )
+                success = result.get("success", False)
+                if not success:
+                    notification.error_message = result.get("error", "Unknown error")
 
             if success:
                 notification.status = "sent"
