@@ -313,3 +313,25 @@
 - **Notes**: 3 email templates (invoice, reminder, freeze). SMTP config from .env. Circuit breaker: 5 failures → 30min cooldown.
 - **Dependencies affected**: None
 - **Rollback plan**: Delete email.py; revert notification.py, notification router
+
+### T-024: Unit & Integration Tests
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-29
+- **FR/UC terkait**: NFR-SEC-05, NFR-REL-03
+- **Files changed**:
+  - `backend/tests/conftest.py` — pytest fixtures (async client, DB session, user factory)
+  - `backend/tests/test_auth.py` — Password hashing unit tests
+  - `backend/tests/test_services.py` — WhatsApp, Email, Template unit tests
+  - `backend/tests/test_services_extended.py` — Extended service validation tests
+  - `backend/tests/test_api.py` — Core API integration tests
+  - `backend/tests/test_api_extended.py` — Extended API tests
+- **Test results**:
+  - [x] 86 tests pass, 0 fail
+  - [x] Coverage: 68%
+  - [x] All critical paths tested
+- **Security findings**: Test isolation via NullPool, random UUIDs, no hardcoded creds
+- **Performance**: Tests run in ~50s (86 tests)
+- **Notes**: Coverage 68% vs 80% target. DB-heavy services need real fixtures for higher coverage.
+- **Dependencies affected**: None
+- **Rollback plan**: Delete backend/tests/ files
+
