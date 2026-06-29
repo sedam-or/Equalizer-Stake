@@ -38,8 +38,8 @@ export default function PaymentsPage() {
     const params = new URLSearchParams({ limit: "200" });
     if (verifiedFilter === "verified") params.set("verified", "true");
     if (verifiedFilter === "unverified") params.set("verified", "false");
-    const res = await fetch(`/api/payments/?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (res.ok) setPayments(await res.json());
+    const res = await fetch(`/api/payments?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) { const d = await res.json(); setPayments(Array.isArray(d) ? d : []); }
     setLoading(false);
   };
 

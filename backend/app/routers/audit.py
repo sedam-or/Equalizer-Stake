@@ -13,7 +13,7 @@ from app.services.audit import get_audit_logs
 router = APIRouter(prefix="/api/audit", tags=["Audit Log"])
 
 
-@router.get("/")
+@router.get("")
 async def list_audit_logs(
     table_name: str | None = Query(None),
     record_id: UUID | None = Query(None),

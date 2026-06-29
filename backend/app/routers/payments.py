@@ -20,7 +20,7 @@ class PaymentVerify(BaseModel):
     notes: str | None = None
 
 
-@router.get("/")
+@router.get("")
 async def list_payments(
     verified: bool | None = Query(None),
     method: str | None = Query(None),

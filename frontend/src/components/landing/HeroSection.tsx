@@ -71,7 +71,7 @@ export default function HeroSection() {
 
         {/* Glow buttons */}
         <div className="flex flex-wrap items-center justify-center gap-4">
-          <GlowButton href="#layanan" variant="primary">Mulai Sekarang</GlowButton>
+          <GlowButton href="/register" variant="primary">Mulai Sekarang</GlowButton>
           <GlowButton href="/login" variant="secondary">Masuk</GlowButton>
         </div>
       </div>

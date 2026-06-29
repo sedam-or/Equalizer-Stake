@@ -49,15 +49,17 @@ export default function AuditLogPage() {
     if (table) params.set("table_name", table);
 
     try {
-      const res = await fetch(`/api/audit/?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`/api/audit?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.status === 403) { router.push("/dashboard"); return; }
+      if (!res.ok) { setLoading(false); return; }
       const data = await res.json();
+      if (!Array.isArray(data)) { setLoading(false); return; }
       let filtered = data;
       if (action) filtered = data.filter((l: AuditEntry) => l.action === action);
       if (reset) { setLogs(filtered); setOffset(100); }
       else { setLogs(prev => [...prev, ...filtered]); setOffset(prev => prev + 100); }
       setHasMore(data.length === 100);
-    } catch { /* network error */ }
+    } catch (e) { /* network error */ }
     finally { setLoading(false); }
   };
 

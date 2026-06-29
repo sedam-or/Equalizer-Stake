@@ -18,7 +18,7 @@ from app.services.settings import (
 router = APIRouter(prefix="/api/settings", tags=["Settings"])
 
 
-@router.get("/")
+@router.get("")
 async def list_settings(
     user: User = Depends(require_role("owner")),
     db: AsyncSession = Depends(get_db),

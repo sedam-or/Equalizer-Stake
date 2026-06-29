@@ -33,6 +33,9 @@ export default function PaketHargaSection() {
               </ul>
               <div className="mt-6">
                 <GlowButton href="/login" variant={pkg.popular ? "primary" : "secondary"} className="w-full text-sm">Pilih Paket</GlowButton>
+              <div className="mt-3">
+                <GlowButton href="/register" variant={pkg.popular ? "primary" : "secondary"} className="w-full text-sm">Daftar</GlowButton>
+              </div>
               </div>
             </div>
           ))}

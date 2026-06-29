@@ -33,7 +33,7 @@ export default function SettingsPage() {
     if (!token) { router.push("/login"); return; }
 
     try {
-      const res = await fetch("http://localhost:8001/api/settings/", {
+      const res = await fetch("/api/settings", {
         headers: { Authorization: `${B} ${token}` },
       });
       if (res.status === 403) {
@@ -68,7 +68,7 @@ export default function SettingsPage() {
     const token = localStorage.getItem("token");
     try {
       const parsed = JSON.parse(editValue);
-      const res = await fetch(`http://localhost:8001/api/settings/${editKey}`, {
+      const res = await fetch(`/api/settings/${editKey}`, {
         method: "PUT",
         headers: {
           Authorization: `${B} ${token}`,

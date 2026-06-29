@@ -39,7 +39,7 @@ export default function MyPaymentsPage() {
     if (!token) { router.push("/login"); return; }
     fetch("/api/my/payments", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : [])
-      .then(setInvoices)
+      .then(d => setInvoices(Array.isArray(d) ? d : []))
       .finally(() => setLoading(false));
   }, [router]);
 

@@ -49,13 +49,13 @@ export default function PricingPage() {
     const token = localStorage.getItem("token");
     if (!token) { router.push("/login"); return; }
     try {
-      const res = await fetch("http://localhost:8001/api/pricing/", {
+      const res = await fetch("/api/pricing", {
         headers: { Authorization: `${B} ${token}` },
       });
       if (res.status === 403) { setError("Akses ditolak."); return; }
       if (!res.ok) throw new Error("Gagal memuat tarif");
       const json = await res.json();
-      setPricings(json.pricings || []);
+      setPricings(Array.isArray(json.pricings) ? json.pricings : []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Terjadi kesalahan");
     } finally {
@@ -89,8 +89,8 @@ export default function PricingPage() {
         instrument, level, price: Number(price), effective_date: effectiveDate, description: description || null,
       };
       const url = editItem
-        ? `http://localhost:8001/api/pricing/${editItem.id_pricing}`
-        : "http://localhost:8001/api/pricing/";
+        ? `/api/pricing/${editItem.id_pricing}`
+        : "/api/pricing";
       const method = editItem ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
@@ -115,7 +115,7 @@ export default function PricingPage() {
     if (!confirm("Nonaktifkan tarif ini?")) return;
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:8001/api/pricing/${id}`, {
+      const res = await fetch(`/api/pricing/${id}`, {
         method: "PUT",
         headers: { Authorization: `${B} ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: false }),

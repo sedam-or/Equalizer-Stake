@@ -21,7 +21,7 @@ from app.services.pricing import (
 router = APIRouter(prefix="/api/pricing", tags=["Pricing"])
 
 
-@router.get("/")
+@router.get("")
 async def list_pricing(
     user: User = Depends(require_role("owner", "admin")),
     db: AsyncSession = Depends(get_db),
@@ -70,7 +70,7 @@ async def get_single_pricing(
     }
 
 
-@router.post("/")
+@router.post("")
 async def create_pricing_endpoint(
     request: Request,
     user: User = Depends(require_role("owner", "admin")),

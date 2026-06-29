@@ -33,7 +33,7 @@ export default function MyChildrenPage() {
     if (!token) { router.push("/login"); return; }
     fetch("/api/my/children", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : [])
-      .then(setChildren)
+      .then(d => setChildren(Array.isArray(d) ? d : []))
       .finally(() => setLoading(false));
   }, [router]);
 

@@ -18,6 +18,8 @@ export default function Navbar() {
           <a href="#layanan" className="text-sm font-medium text-gray-300 transition-colors hover:text-[#08CB00]">Layanan</a>
           <a href="#studio" className="text-sm font-medium text-gray-300 transition-colors hover:text-[#08CB00]">Studio</a>
           <a href="#hubungi" className="text-sm font-medium text-gray-300 transition-colors hover:text-[#08CB00]">Hubungi</a>
+          <a href="/register" className="text-sm font-medium text-gray-300 transition-colors hover:text-[#08CB00]">Daftar</a>
+          <a href="/dashboard" className="text-sm font-medium text-gray-300 transition-colors hover:text-[#08CB00]">Dashboard</a>
           <a href="/login" className="rounded-full border border-[#08CB00] px-5 py-2 text-sm font-semibold text-[#08CB00] transition-all hover:bg-[#08CB00] hover:text-black">Masuk</a>
         </div>
         <button className="flex h-10 w-10 items-center justify-center text-white md:hidden" aria-label="Menu">

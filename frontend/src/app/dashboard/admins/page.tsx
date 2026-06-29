@@ -35,7 +35,7 @@ export default function AdminsPage() {
       });
       if (!res.ok) throw new Error("Gagal memuat data");
       const data = await res.json();
-      setAdmins(data.admins);
+      setAdmins(Array.isArray(data.admins) ? data.admins : []);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error");
     } finally {

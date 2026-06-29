@@ -30,7 +30,7 @@ class StudentUpdate(BaseModel):
     enrollment_status: str | None = None
 
 
-@router.get("/")
+@router.get("")
 async def list_students(
     guardian_id: UUID | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),

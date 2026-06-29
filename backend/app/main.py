@@ -37,6 +37,7 @@ app = FastAPI(
     version=settings.APP_VERSION,
     description="Sistem Penjadwalan Kursus & Reservasi Studio BMD Musik Yogyakarta",
     lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 # Rate limiter

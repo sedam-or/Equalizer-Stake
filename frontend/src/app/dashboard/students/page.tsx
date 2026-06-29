@@ -46,8 +46,8 @@ export default function StudentsPage() {
     if (!token) { router.push("/login"); return; }
     const params = new URLSearchParams({ limit: "200" });
     if (filter) params.set("status", filter);
-    const res = await fetch(`/api/students/?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (res.ok) setStudents(await res.json());
+    const res = await fetch(`/api/students?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) { const d = await res.json(); setStudents(Array.isArray(d) ? d : []); }
     setLoading(false);
   };
 
@@ -57,7 +57,7 @@ export default function StudentsPage() {
     setErr(""); setMsg("");
     if (!form.full_name.trim() || !form.id_guardian.trim()) { setErr("Nama dan ID Guardian wajib diisi"); return; }
     const token = localStorage.getItem("token");
-    const res = await fetch("/api/students/", {
+    const res = await fetch("/api/students", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),

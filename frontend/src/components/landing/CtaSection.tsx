@@ -10,7 +10,7 @@ export default function CtaSection() {
         <BlurText text="Siap Belajar Musik?" delay={120} className="text-3xl font-bold tracking-tight text-[#08CB00] md:text-5xl" />
         <BlurText text="Daftar sekarang dan mulai perjalanan musikmu bersama BMD Music School" delay={100} className="mt-4 text-base text-gray-400 md:text-lg" />
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <GlowButton href="#harga" variant="primary">Lihat Paket</GlowButton>
+          <GlowButton href="/register" variant="primary">Daftar Sekarang</GlowButton>
           <GlowButton href="#hubungi" variant="secondary">Hubungi Kami</GlowButton>
         </div>
       </div>

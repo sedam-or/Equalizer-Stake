@@ -11,7 +11,7 @@ from app.services.draft import delete_draft, get_draft, get_user_drafts, save_dr
 router = APIRouter(prefix="/api/drafts", tags=["Drafts"])
 
 
-@router.get("/")
+@router.get("")
 async def list_my_drafts(
     user: User = Depends(require_role("owner", "admin", "teacher")),
     db: AsyncSession = Depends(get_db),

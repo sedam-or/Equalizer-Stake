@@ -39,7 +39,7 @@ export default function MySchedulePage() {
     setRole(r);
     fetch("/api/my/schedule", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : [])
-      .then(setSessions)
+      .then(d => setSessions(Array.isArray(d) ? d : []))
       .finally(() => setLoading(false));
   }, [router]);
 
