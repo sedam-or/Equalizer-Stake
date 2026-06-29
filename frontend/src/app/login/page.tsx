@@ -2,174 +2,109 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./page.module.css";
 
-type Tab = "login" | "register" | "forgot";
-
-export default function Login() {
+export default function LoginPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<{ username?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
+
+  const validate = () => {
+    const e: typeof errors = {};
+    if (!username.trim()) e.username = "Username wajib diisi";
+    if (!password) e.password = "Password wajib diisi";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setErrors({});
+    if (!validate()) return;
 
+    setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || "Username atau password salah");
+        setErrors({ general: data.detail || "Username atau password tidak valid" });
         return;
       }
 
-      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("role", data.role);
-
-      switch (data.role) {
-        case "owner":
-          router.push("/dashboard");
-          break;
-        case "admin":
-          router.push("/dashboard");
-          break;
-        case "teacher":
-          router.push("/dashboard/attendance");
-          break;
-        case "guardian":
-          router.push("/dashboard");
-          break;
-        default:
-          router.push("/dashboard");
-      }
+      router.push("/dashboard");
     } catch {
-      setError("Gagal terhubung ke server");
+      setErrors({ general: "Gagal terhubung ke server" });
     } finally {
       setLoading(false);
     }
   };
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "login", label: "Login" },
-    { key: "register", label: "Daftar" },
-    { key: "forgot", label: "Lupa Password" },
-  ];
-
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#000000] p-4">
-      <div className="w-full max-w-md rounded-2xl border border-[#253900] bg-[#0a0a0a] shadow-lg">
+    <div className={styles.container}>
+      <div className={styles.wrapper}>
         {/* Header */}
-        <div className="p-8 pb-4 text-center">
-          <h1 className="text-2xl font-bold text-[#08CB00]">BMD Music School</h1>
-          <p className="mt-1 text-sm text-[#EEEEEE]">Sistem Penjadwalan Kursus</p>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Daftar Akun</h1>
+          <p className={styles.subtitle}>Masuk ke sistem BMD Musik</p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-[#253900]">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => {
-                setActiveTab(tab.key);
-                setError("");
-              }}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === tab.key
-                  ? "border-b-2 border-[#08CB00] text-[#08CB00]"
-                  : "text-gray-400 hover:text-[#EEEEEE]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        <div className="p-8">
-          {activeTab === "login" && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400">
-                  {error}
-                </div>
-              )}
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-[#EEEEEE]">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full rounded-lg border border-[#253900] bg-[#111] px-4 py-3 text-sm text-[#EEEEEE] placeholder-gray-500 focus:border-[#08CB00] focus:outline-none focus:ring-1 focus:ring-[#08CB00]"
-                  placeholder="Masukkan username"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-[#EEEEEE]">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[#253900] bg-[#111] px-4 py-3 text-sm text-[#EEEEEE] placeholder-gray-500 focus:border-[#08CB00] focus:outline-none focus:ring-1 focus:ring-[#08CB00]"
-                  placeholder="Masukkan password"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-[#08CB00] py-3 text-sm font-semibold text-black transition-colors hover:bg-[#0aad00] disabled:opacity-50"
-              >
-                {loading ? "Masuk..." : "Masuk"}
-              </button>
-            </form>
+        {/* Form Card */}
+        <form onSubmit={handleSubmit} noValidate className={styles.card}>
+          {errors.general && (
+            <div className={styles.errorBox}>{errors.general}</div>
           )}
 
-          {activeTab === "register" && (
-            <div className="space-y-4 text-center">
-              <p className="text-sm text-[#EEEEEE]">
-                Belum punya akun? Daftar sekarang untuk mengakses sistem.
-              </p>
-              <button
-                onClick={() => router.push("/register")}
-                className="w-full rounded-lg bg-[#08CB00] py-3 text-sm font-semibold text-black transition-colors hover:bg-[#0aad00]"
-              >
-                Daftar Sekarang
-              </button>
-            </div>
-          )}
+          {/* Username */}
+          <div className={styles.field}>
+            <label className={styles.label}>Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => { setUsername(e.target.value); setErrors(p => ({ ...p, username: undefined, general: undefined })); }}
+              className={styles.input}
+              placeholder="Masukkan username"
+            />
+            {errors.username && <span className={styles.errorBox}>{errors.username}</span>}
+          </div>
 
-          {activeTab === "forgot" && (
-            <div className="space-y-4 text-center">
-              <p className="text-sm text-[#EEEEEE]">
-                Lupa password? Hubungi administrator untuk mereset password Anda.
-              </p>
-              <button
-                onClick={() => router.push("/forgot-password")}
-                className="w-full rounded-lg bg-[#08CB00] py-3 text-sm font-semibold text-black transition-colors hover:bg-[#0aad00]"
-              >
-                Reset Password
-              </button>
-            </div>
-          )}
-        </div>
+          {/* Password */}
+          <div className={styles.field}>
+            <label className={styles.label}>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setErrors(p => ({ ...p, password: undefined, general: undefined })); }}
+              className={styles.input}
+              placeholder="Masukkan password"
+            />
+            {errors.password && <span className={styles.errorBox}>{errors.password}</span>}
+          </div>
+
+          {/* Submit */}
+          <button type="submit" disabled={loading} className={styles.submitBtn}>
+            {loading ? "Masuk..." : "Masuk"}
+          </button>
+        </form>
+
+        {/* Links */}
+        <p className={styles.footer}>
+          Belum punya akun?{" "}
+          <a href="/register" className={styles.footerLink}>Daftar</a>
+        </p>
+        <p className={styles.forgotLink}>
+          <a href="/forgot-password">Lupa Password?</a>
+        </p>
       </div>
-    </main>
+    </div>
   );
 }
