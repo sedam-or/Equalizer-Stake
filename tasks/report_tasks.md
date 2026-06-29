@@ -396,3 +396,27 @@
 - **Dependencies affected**: None
 - **Rollback plan**: Delete load_test.py
 
+
+### T-027: Docker Production Build
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-29
+- **FR/UC terkait**: NFR-AVL-01, NFR-REL-04
+- **Files changed**:
+  - `docker-compose.prod.yml` — Production compose with health checks, resource limits, replicas
+  - `.env.example` — Environment variable template
+  - `.dockerignore` — Build context optimization
+  - `backend/Dockerfile` — Updated to Python 3.14, added curl for healthcheck
+- **Test results**:
+  - [x] docker-compose.prod.yml syntax valid
+  - [x] All services have health checks
+  - [x] Resource limits set (backend 512M, frontend 256M, postgres 512M, redis 256M)
+  - [x] .env.example has all required vars
+- **Security findings**:
+  - SEC-05: No hardcoded passwords (all from env vars) ✓
+  - Redis password protected ✓
+  - Non-root user in containers ✓
+- **Performance**: Resource limits prevent OOM. Backend replicas configurable.
+- **Notes**: Backend Dockerfile updated to Python 3.14. Frontend Dockerfile unchanged (already multi-stage).
+- **Dependencies affected**: T-028 (Cloud Deployment) can proceed
+- **Rollback plan**: Use original docker-compose.yml for development
+
