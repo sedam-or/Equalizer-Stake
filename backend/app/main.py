@@ -11,7 +11,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from app.core.config import get_settings
-from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft
+from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft, students, payments
 
 settings = get_settings()
 
@@ -67,6 +67,8 @@ app.include_router(override.router)
 app.include_router(settings_router.router)
 app.include_router(pricing.router)
 app.include_router(draft.router)
+app.include_router(students.router)
+app.include_router(payments.router)
 
 
 @app.get("/health")

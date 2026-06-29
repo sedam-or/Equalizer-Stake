@@ -9,6 +9,8 @@ const navItems = [
   { href: "/dashboard/attendance", label: "Absensi", icon: "📷" },
   { href: "/dashboard/billing", label: "Tagihan", icon: "💰" },
   { href: "/dashboard/students", label: "Siswa", icon: "👨‍🎓" },
+  { href: "/dashboard/payments", label: "Pembayaran", icon: "💳" },
+  { href: "/dashboard/holidays", label: "Libur", icon: "🏖️" },
   { href: "/dashboard/notifications", label: "Notifikasi", icon: "🔔" },
   { href: "/dashboard/reports", label: "Laporan", icon: "📈" },
   { href: "/dashboard/audit-log", label: "Audit Log", icon: "📋" },

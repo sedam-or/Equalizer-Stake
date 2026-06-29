@@ -577,7 +577,7 @@
   - `frontend/src/components/Sidebar.tsx` — Added profile link
   - `frontend/src/components/BottomNav.tsx` — Added profile icon for mobile
 
-### T-041: Owner Audit Log + Reports
+### T-041: Owner Audit Log + Reports ✅
 - **Status**: ⏳
 - **SRS Ref**: UC-17 (Ekspor Laporan), UC-18 (Audit Log)
 - **Role**: Fullstack
@@ -616,7 +616,7 @@
 | Phase 2: Frontend PWA | T-009..T-016 | ✅ 8/8 |
 | Phase 3: Compliance | T-017..T-021 | ✅ 5/5 |
 | Phase 3b: Superadmin | T-036..T-039 | ✅ 4/4 |
-| Phase 2b: Pages | T-040..T-043 | ✅ 1/4 |
+| Phase 2b: Pages | T-040..T-043 | ✅ 2/4 |
 | Phase 4: Integration | T-022..T-023 | ✅ 2/2 |
 | Phase 5: Testing | T-024..T-026 | ✅ 3/3 |
 | Phase 6: Deployment | T-027..T-030 | ⏳ 0/4 |

@@ -448,3 +448,19 @@
   - Response time: <100ms (single query per endpoint)
 - **Notes**: Admin model doesn't exist yet — admin profile returns None for full_name/phone. Guardian profile works fully. Teacher profile reads full_name only.
 - **Rollback plan**: Revert auth.py, schemas/auth.py, profile page, sidebar, bottomnav
+
+### T-041: Owner Audit Log + Reports Dashboard
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-29
+- **FR/UC terkait**: UC-17 (Ekspor Laporan), UC-18 (Audit Log)
+- **Files changed**:
+  - `frontend/src/app/dashboard/audit-log/page.tsx` — Audit log viewer with filters
+  - `frontend/src/app/dashboard/reports/page.tsx` — KPI dashboard + recent audit
+  - `frontend/src/components/Sidebar.tsx` — Added Laporan + Audit Log links
+- **Test results**:
+  - [x] GET /api/audit/?limit=5 → 200, 5 entries
+  - [x] GET /api/audit/?table_name=users → 200, filtered results
+  - [x] GET /api/reports/owner-dashboard (admin) → 403 (correct, owner only)
+  - [x] TypeScript compiles clean
+- **Notes**: Owner dashboard endpoint only accessible by owner role. CSV export placeholder added.
+- **Rollback plan**: Revert audit-log/page.tsx, reports/page.tsx, Sidebar.tsx
