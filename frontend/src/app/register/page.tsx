@@ -27,13 +27,16 @@ export default function RegisterPage() {
     setError("");
     setSuccess("");
 
+    // Validate all fields
+    if (!form.fullName.trim()) { setError("Nama lengkap wajib diisi"); return; }
+    if (!form.username.trim()) { setError("Username wajib diisi"); return; }
+    if (form.username.length < 6) { setError("Username minimal 6 karakter"); return; }
+    if (!form.email.trim()) { setError("Email wajib diisi"); return; }
+    if (!form.phone.trim()) { setError("Nomor WhatsApp wajib diisi"); return; }
+    if (!form.password) { setError("Password wajib diisi"); return; }
+    if (form.password.length < 8) { setError("Password minimal 8 karakter"); return; }
     if (form.password !== form.confirmPassword) {
       setError("Password tidak cocok");
-      return;
-    }
-
-    if (form.password.length < 8) {
-      setError("Password minimal 8 karakter");
       return;
     }
 
@@ -78,7 +81,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-[#111111] rounded-xl p-6 border border-gray-800 space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="bg-[#111111] rounded-xl p-6 border border-gray-800 space-y-4">
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
               {error}
