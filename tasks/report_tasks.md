@@ -464,3 +464,23 @@
   - [x] TypeScript compiles clean
 - **Notes**: Owner dashboard endpoint only accessible by owner role. CSV export placeholder added.
 - **Rollback plan**: Revert audit-log/page.tsx, reports/page.tsx, Sidebar.tsx
+
+### T-042: Admin Pages — Students, Payments, Holidays
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-29
+- **FR/UC terkait**: UC-05 (Kelola Libur), UC-06 (Siswa), UC-08 (Verifikasi Pembayaran)
+- **Files changed**:
+  - `backend/app/routers/students.py` — Student CRUD (list, create, update, soft-delete)
+  - `backend/app/routers/payments.py` — Payment list + verify endpoint
+  - `backend/app/main.py` — Registered students + payments routers
+  - `frontend/src/app/dashboard/students/page.tsx` — Student management UI
+  - `frontend/src/app/dashboard/payments/page.tsx` — Payment verification UI
+  - `frontend/src/app/dashboard/holidays/page.tsx` — Holiday management UI
+  - `frontend/src/components/Sidebar.tsx` — Added Pembayaran + Libur links
+- **Test results**:
+  - [x] GET /api/students/ → 200, empty list
+  - [x] POST /api/students/ → 201, created
+  - [x] GET /api/payments/ → 200, empty list
+  - [x] TypeScript compiles clean
+- **Notes**: Holidays use /api/settings/holidays (system_settings). Students link to guardian via id_guardian UUID.
+- **Rollback plan**: Revert students.py, payments.py, 3 page.tsx files, Sidebar.tsx, main.py

@@ -204,28 +204,23 @@ function GuardianDashboard() {
       <h1 className="text-2xl font-bold text-[#000000]">Dashboard Wali Murid</h1>
       <p className="mt-1 text-sm text-gray-500">Monitoring anak-anak Anda</p>
 
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold text-[#000000]">Anak Anda</h2>
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <StudentCard name="Andi Pratama" instrument="Gitar" status="aktif" />
-          <StudentCard name="Rina Wulandari" instrument="Piano" status="aktif" />
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-[#000000]">Tagihan Terbaru</h2>
-        <div className="mt-4 rounded-lg border border-[#253900] bg-[#fafafa] p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-[#000000]">Januari 2026</p>
-              <p className="text-sm text-gray-500">Jatuh tempo: 10 Januari</p>
-            </div>
-            <div className="text-right">
-              <p className="font-bold text-[#08CB00]">Rp 850.000</p>
-              <p className="text-xs text-yellow-600">Kode: 127</p>
-            </div>
-          </div>
-        </div>
+      <div className="mt-6 grid grid-cols-2 gap-3">
+        <a href="/dashboard/my-children" className="rounded-lg border border-gray-200 bg-white p-4 text-center hover:border-[#08CB00] transition-colors">
+          <span className="text-2xl">👨‍🎓</span>
+          <p className="mt-1 text-sm font-medium">Anak Saya</p>
+        </a>
+        <a href="/dashboard/my-schedule" className="rounded-lg border border-gray-200 bg-white p-4 text-center hover:border-[#08CB00] transition-colors">
+          <span className="text-2xl">📅</span>
+          <p className="mt-1 text-sm font-medium">Jadwal</p>
+        </a>
+        <a href="/dashboard/my-payments" className="rounded-lg border border-gray-200 bg-white p-4 text-center hover:border-[#08CB00] transition-colors">
+          <span className="text-2xl">💰</span>
+          <p className="mt-1 text-sm font-medium">Tagihan</p>
+        </a>
+        <a href="/dashboard/profile" className="rounded-lg border border-gray-200 bg-white p-4 text-center hover:border-[#08CB00] transition-colors">
+          <span className="text-2xl">👤</span>
+          <p className="mt-1 text-sm font-medium">Profil</p>
+        </a>
       </div>
     </div>
   );
