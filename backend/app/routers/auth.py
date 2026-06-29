@@ -71,6 +71,19 @@ async def register(body: RegisterRequest, request: Request, db: AsyncSession = D
             detail="Email sudah terdaftar",
         )
     
+    # Check phone uniqueness
+    from app.services.whatsapp import normalize_phone
+    from app.models.guardian import Guardian
+    normalized_phone = normalize_phone(body.phone)
+    existing_phone = await db.execute(
+        select(Guardian).where(Guardian.phone_whatsapp == normalized_phone)
+    )
+    if existing_phone.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Nomor WhatsApp sudah terdaftar",
+        )
+    
     # Create user with guardian role
     pw_hash = hash_password(body.password)
     user = User(
@@ -84,8 +97,6 @@ async def register(body: RegisterRequest, request: Request, db: AsyncSession = D
     await db.flush()
     
     # Create guardian profile
-    from app.models.guardian import Guardian
-    from app.services.whatsapp import normalize_phone
     guardian = Guardian(
         id_user=user.id_user,
         full_name=body.full_name,
