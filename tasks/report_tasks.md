@@ -335,3 +335,36 @@
 - **Dependencies affected**: None
 - **Rollback plan**: Delete backend/tests/ files
 
+
+### T-025: Security Audit & Penetration Test
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-29
+- **FR/UC terkait**: NFR-SEC-01..05
+- **Files changed**:
+  - `backend/app/main.py` — Added rate limiting (slowapi, 100/min), SECRET_KEY warning
+  - Security audit report (inline below)
+- **OWASP Compliance Matrix**:
+  - A02 (Cryptographic): bcrypt ✓, JWT HS256 ✓, PII NOT encrypted ✗ (documented)
+  - A03 (Injection): ORM-only ✓, no raw SQL ✓
+  - A04 (Insecure Design): Input validation ✓, error handling ✓
+  - A05 (Security Config): CORS configured ✓, rate limiting added ✓
+  - A06 (Vulnerable Components): 336 packages, no known critical vulns
+  - A07 (Auth Failures): JWT validation ✓, brute-force protection ✓
+- **Security Findings**:
+  - [FIXED] Rate limiting: Added slowapi 100/min per IP (NFR-SEC-04)
+  - [FIXED] SECRET_KEY warning: Logs warning if default key used
+  - [DOCUMENTED] PII encryption: AES-256-GCM marked but not implemented (needs dedicated task)
+  - [DOCUMENTED] TLS: Expected at reverse proxy level, not app level
+  - [OK] Brute-force: 5 attempts / 15 min lockout
+  - [OK] SQL injection: ORM-only, no raw SQL
+  - [OK] XSS: No innerHTML/dangerouslySetInnerHTML
+  - [OK] CSRF: JWT stateless, no cookies for auth
+- **Test results**:
+  - [x] 86 pytest tests pass
+  - [x] Rate limiting active
+  - [x] Server starts without errors
+- **Performance**: N/A
+- **Notes**: PII encryption (SEC-01) is a significant gap — needs dedicated implementation task. All other NFRs met or documented.
+- **Dependencies affected**: None
+- **Rollback plan**: Revert main.py changes
+

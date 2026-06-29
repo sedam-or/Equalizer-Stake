@@ -366,7 +366,7 @@
   - `frontend/__tests__/` — component tests
   - CI pipeline test step
 
-### T-025: Security Audit & Penetration Test
+### T-025: Security Audit & Penetration Test ✅
 - **SRS Ref**: `srs/99-nfr.md` (NFR-SEC-01..05)
 - **NFR Ref**: NFR-SEC-01..05 (All security NFRs)
 - **Prioritas**: High
