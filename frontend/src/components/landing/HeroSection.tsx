@@ -1,31 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import BlurText from "@/components/ui/BlurText";
 import ShinyText from "@/components/ui/ShinyText";
 import GlowButton from "@/components/ui/GlowButton";
 
-const FloatingLines = dynamic(() => import("@/components/ui/FloatingLines"), { ssr: false });
+const Hyperspeed = dynamic(() => import("@/components/ui/Hyperspeed"), { ssr: false });
 const SplashCursor = dynamic(() => import("@/components/ui/SplashCursor"), { ssr: false });
 
 export default function HeroSection() {
+  const hyperspeedOptions = useMemo(() => ({
+    distortion: "turbulentDistortion" as const,
+    length: 400,
+    roadWidth: 10,
+    islandWidth: 2,
+    lanesPerRoad: 4,
+    fov: 90,
+    fovSpeedUp: 150,
+    speedUp: 2,
+    carLightsFade: 0.4,
+    totalSideLightSticks: 20,
+    lightPairsPerRoadWay: 40,
+    shoulderLinesWidthPercentage: 0.05,
+    brokenLinesWidthPercentage: 0.1,
+    brokenLinesLengthPercentage: 0.5,
+    lightStickWidth: [0.12, 0.5] as [number, number],
+    lightStickHeight: [1.3, 1.7] as [number, number],
+    movingAwaySpeed: [60, 80] as [number, number],
+    movingCloserSpeed: [-120, -160] as [number, number],
+    carLightsLength: [12, 80] as [number, number],
+    carLightsRadius: [0.05, 0.14] as [number, number],
+    carWidthPercentage: [0.3, 0.5] as [number, number],
+    carShiftX: [-0.8, 0.8] as [number, number],
+    carFloorSeparation: [0, 5] as [number, number],
+    colors: {
+      roadColor: 0x080808,
+      islandColor: 0x0a0a0a,
+      background: 0x000000,
+      shoulderLines: 0x131318,
+      brokenLines: 0x131318,
+      leftCars: [0x08cb00, 0x253900, 0x0aad00],
+      rightCars: [0x03b3c3, 0x0e5ea5, 0x324555],
+      sticks: 0x08cb00,
+    },
+  }), []);
+
   return (
     <section className="relative flex h-screen items-center justify-center overflow-hidden">
-      {/* FloatingLines background — hero only */}
+      {/* Hyperspeed background — hero only */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
-        <FloatingLines
-          linesGradient={["#08CB00", "#253900"]}
-          enabledWaves={["top", "middle", "bottom"]}
-          lineCount={[8, 12, 16]}
-          lineDistance={[10, 8, 5]}
-          animationSpeed={0.8}
-          interactive={true}
-          parallax={true}
-          bendRadius={5.0}
-          bendStrength={-0.5}
-          mixBlendMode="screen"
-        />
+        <Hyperspeed effectOptions={hyperspeedOptions} />
       </div>
 
       {/* SplashCursor — fluid effect on mouse */}
