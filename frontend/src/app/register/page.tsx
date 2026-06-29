@@ -58,7 +58,16 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || "Registrasi gagal");
+        // Handle FastAPI validation errors (array of objects) vs custom messages (string)
+        const detail = data.detail;
+        if (Array.isArray(detail)) {
+          const messages = detail.map((e: { loc?: string[]; msg: string }) => 
+            `${e.loc?.join(" → ")}: ${e.msg}`
+          ).join("; ");
+          setError(messages || "Data tidak valid");
+        } else {
+          setError(detail || "Registrasi gagal");
+        }
         return;
       }
 
