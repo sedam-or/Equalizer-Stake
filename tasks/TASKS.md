@@ -563,6 +563,50 @@
   - `backend/app/routers/pricing.py` — CRUD pricing (owner + admin)
   - `frontend/src/app/dashboard/pricing/page.tsx` — Pricing management UI
 
+## Phase 2b: Remaining Pages
+
+### T-040: Profile Page (Shared)
+- **Status**: ✅ Selesai
+- **SRS Ref**: UC-02 (Kelola Profil)
+- **Role**: Fullstack
+- **Deskripsi**: Profil user shared semua role. View/edit info, change password.
+- **Output**:
+  - `backend/app/routers/auth.py` — Fixed /me, /change-password, added /me/profile + PATCH /me/profile
+  - `backend/app/schemas/auth.py` — Added UpdateProfileRequest, ProfileResponse
+  - `frontend/src/app/dashboard/profile/page.tsx` — Profile page
+  - `frontend/src/components/Sidebar.tsx` — Added profile link
+  - `frontend/src/components/BottomNav.tsx` — Added profile icon for mobile
+
+### T-041: Owner Audit Log + Reports
+- **Status**: ⏳
+- **SRS Ref**: UC-17 (Ekspor Laporan), UC-18 (Audit Log)
+- **Role**: Fullstack
+- **Deskripsi**: Audit log viewer + laporan/reports dashboard untuk Owner.
+- **Output**:
+  - `frontend/src/app/dashboard/audit-log/page.tsx`
+  - `frontend/src/app/dashboard/reports/page.tsx`
+
+### T-042: Admin Students + Holidays + Payments
+- **Status**: ⏳
+- **SRS Ref**: UC-05, UC-06, UC-08
+- **Role**: Fullstack
+- **Deskripsi**: Manajemen siswa, konfigurasi libur, verifikasi pembayaran manual.
+- **Output**:
+  - `frontend/src/app/dashboard/students/page.tsx` (upgrade)
+  - `frontend/src/app/dashboard/holidays/page.tsx`
+  - `frontend/src/app/dashboard/payments/page.tsx`
+
+### T-043: Guru + Wali Murid Portal Pages
+- **Status**: ⏳
+- **SRS Ref**: UC-03, UC-06, UC-11
+- **Role**: Fullstack
+- **Deskripsi**: My Schedule (guru/WM), My Children, My Payments, My Bookings.
+- **Output**:
+  - `frontend/src/app/dashboard/my-schedule/page.tsx`
+  - `frontend/src/app/dashboard/my-children/page.tsx`
+  - `frontend/src/app/dashboard/my-payments/page.tsx`
+  - `frontend/src/app/dashboard/my-bookings/page.tsx`
+
 ## Summary
 
 | Phase | Tasks | Status |
@@ -572,6 +616,7 @@
 | Phase 2: Frontend PWA | T-009..T-016 | ✅ 8/8 |
 | Phase 3: Compliance | T-017..T-021 | ✅ 5/5 |
 | Phase 3b: Superadmin | T-036..T-039 | ✅ 4/4 |
+| Phase 2b: Pages | T-040..T-043 | ✅ 1/4 |
 | Phase 4: Integration | T-022..T-023 | ✅ 2/2 |
 | Phase 5: Testing | T-024..T-026 | ✅ 3/3 |
 | Phase 6: Deployment | T-027..T-030 | ⏳ 0/4 |

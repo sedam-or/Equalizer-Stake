@@ -420,3 +420,31 @@
 - **Dependencies affected**: T-028 (Cloud Deployment) can proceed
 - **Rollback plan**: Use original docker-compose.yml for development
 
+
+### T-039: Profile Page (Shared — All 4 Roles)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-06-29
+- **FR/UC terkait**: UC-02 (Kelola Profil)
+- **Files changed**:
+  - `backend/app/routers/auth.py` — Fixed /me, /change-password, added /me/profile + PATCH /me/profile
+  - `backend/app/schemas/auth.py` — Added UpdateProfileRequest, ProfileResponse schemas
+  - `frontend/src/app/dashboard/profile/page.tsx` — New profile page (view/edit/change password)
+  - `frontend/src/components/Sidebar.tsx` — Added "Profil Saya" link at bottom
+  - `frontend/src/components/BottomNav.tsx` — Added "Profil" icon for mobile
+- **Test results**:
+  - [x] GET /me → 200 with user data
+  - [x] GET /me/profile → 200 with full_name/phone (guardian) or None (admin)
+  - [x] PATCH /me/profile → 200 "Profil berhasil diperbarui"
+  - [x] POST /change-password (wrong current) → 400 "Password saat ini salah"
+  - [x] POST /change-password (same password) → 400 "Password baru harus berbeda"
+  - [x] POST /change-password (success) → 200 "Password berhasil diubah"
+  - [x] GET /me (no token) → 401 "Not authenticated"
+  - [x] TypeScript compiles clean
+- **Security findings**:
+  - No hardcoded secrets
+  - JWT validation via HTTPBearer middleware
+  - Password hashed with bcrypt before storage
+- **Performance**:
+  - Response time: <100ms (single query per endpoint)
+- **Notes**: Admin model doesn't exist yet — admin profile returns None for full_name/phone. Guardian profile works fully. Teacher profile reads full_name only.
+- **Rollback plan**: Revert auth.py, schemas/auth.py, profile page, sidebar, bottomnav

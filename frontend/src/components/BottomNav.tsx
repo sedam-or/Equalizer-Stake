@@ -9,6 +9,7 @@ const bottomNavItems = [
   { href: "/dashboard/attendance", label: "Absensi", icon: "📷" },
   { href: "/dashboard/billing", label: "Tagihan", icon: "💰" },
   { href: "/dashboard/notifications", label: "Notif", icon: "🔔" },
+  { href: "/dashboard/profile", label: "Profil", icon: "👤" },
 ];
 
 export default function BottomNav() {
@@ -23,11 +24,11 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center px-2 py-1 text-xs ${
-                isActive ? "text-[#1E40AF]" : "text-gray-500"
+              className={`flex flex-col items-center px-1.5 py-1 text-[10px] ${
+                isActive ? "text-[#08CB00] font-semibold" : "text-gray-500"
               }`}
             >
-              <span className="text-xl">{item.icon}</span>
+              <span className="text-lg">{item.icon}</span>
               <span className="mt-0.5">{item.label}</span>
             </Link>
           );
