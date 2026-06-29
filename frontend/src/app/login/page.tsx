@@ -114,6 +114,13 @@ export default function Login() {
             </a>
           </div>
         </form>
+
+        <p className="mt-6 text-center text-sm text-gray-400">
+          Belum punya akun?{" "}
+          <a href="/register" className="text-[#08CB00] hover:underline font-medium">
+            Daftar di sini
+          </a>
+        </p>
       </div>
     </main>
   );

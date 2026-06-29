@@ -9,6 +9,7 @@ from app.schemas.auth import (
     ForgotPasswordRequest,
     LoginRequest,
     LoginResponse,
+    RegisterRequest,
     UserResponse,
 )
 from app.services.auth import (
@@ -47,6 +48,59 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
         role=user.role,
         expires_in=30 * 60,  # 30 minutes default
     )
+
+
+@router.post("/register", status_code=201)
+async def register(body: RegisterRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    """Register new guardian account."""
+    from sqlalchemy import select
+    
+    # Check username uniqueness
+    existing = await db.execute(select(User).where(User.username == body.username))
+    if existing.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username sudah digunakan",
+        )
+    
+    # Check email uniqueness
+    existing = await db.execute(select(User).where(User.email == body.email))
+    if existing.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email sudah terdaftar",
+        )
+    
+    # Create user with guardian role
+    pw_hash = hash_password(body.password)
+    user = User(
+        username=body.username,
+        email=body.email,
+        password_hash=pw_hash,
+        role="guardian",
+        is_active=True,
+    )
+    db.add(user)
+    await db.flush()
+    
+    # Create guardian profile
+    from app.models.guardian import Guardian
+    from app.services.whatsapp import normalize_phone
+    guardian = Guardian(
+        id_user=user.id_user,
+        full_name=body.full_name,
+        phone_whatsapp=normalize_phone(body.phone),
+        email=body.email,
+        account_status="active",
+    )
+    db.add(guardian)
+    await db.commit()
+    
+    return {
+        "detail": "Registrasi berhasil. Silakan login.",
+        "username": user.username,
+        "role": user.role,
+    }
 
 
 @router.post("/change-password")
