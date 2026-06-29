@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 
-const Navbar = dynamic(() => import("@/components/landing/Navbar"), { ssr: false });
+
 const HeroSection = dynamic(() => import("@/components/landing/HeroSection"), { ssr: false });
 const ProgramKursusSection = dynamic(() => import("@/components/landing/ProgramKursusSection"), { ssr: false });
 const KenapaBMDSection = dynamic(() => import("@/components/landing/KenapaBMDSection"), { ssr: false });
@@ -9,15 +9,13 @@ const StudioTourSection = dynamic(() => import("@/components/landing/StudioTourS
 const TestimonialSection = dynamic(() => import("@/components/landing/TestimonialSection"), { ssr: false });
 const PaketHargaSection = dynamic(() => import("@/components/landing/PaketHargaSection"), { ssr: false });
 const CtaSection = dynamic(() => import("@/components/landing/CtaSection"), { ssr: false });
-const Footer = dynamic(() => import("@/components/landing/Footer"), { ssr: false });
+
 const GradualBlur = dynamic(() => import("@/components/ui/GradualBlur"), { ssr: false });
 
 export default function LandingPage() {
   return (
     <main id="main-content" className="relative min-h-screen bg-[#000000]">
       <div className="snap-container">
-        <Navbar />
-
         {/* Hero — full screen */}
         <div className="snap-section snap-section-hero relative">
           <HeroSection />
@@ -59,7 +57,6 @@ export default function LandingPage() {
           <CtaSection />
         </div>
 
-        <Footer />
       </div>
     </main>
   );

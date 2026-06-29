@@ -69,6 +69,7 @@ export default function LoginPage() {
             <label className={styles.label}>Username</label>
             <input
               type="text"
+              autoComplete="off"
               value={username}
               onChange={(e) => { setUsername(e.target.value); setErrors(p => ({ ...p, username: undefined, general: undefined })); }}
               className={styles.input}
@@ -82,6 +83,7 @@ export default function LoginPage() {
             <label className={styles.label}>Password</label>
             <input
               type="password"
+              autoComplete="off"
               value={password}
               onChange={(e) => { setPassword(e.target.value); setErrors(p => ({ ...p, password: undefined, general: undefined })); }}
               className={styles.input}

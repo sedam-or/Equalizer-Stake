@@ -27,6 +27,7 @@ export default function Register() {
   const [serverMessage, setServerMessage] = useState("");
   const [serverSuccess, setServerSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const validate = (): Errors => {
     const e: Errors = {};
@@ -106,6 +107,7 @@ export default function Register() {
   ];
 
   return (
+    <>
     <main className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>Daftar</h1>
@@ -124,6 +126,7 @@ export default function Register() {
               </label>
               <input
                 id={f.name}
+                autoComplete="off"
                 className={`${styles.input} ${errors[f.key] ? styles.inputError : ""}`}
                 type={f.type}
                 placeholder={f.placeholder}
@@ -142,11 +145,15 @@ export default function Register() {
               checked={terms}
               onChange={(e) => setTerms(e.target.checked)}
             />
-            <label htmlFor="terms" className={styles.checkboxLabel}>
+            <label className={styles.checkboxLabel}>
               Saya menyetujui{" "}
-              <a href="/terms" target="_blank" rel="noopener noreferrer">
+              <button
+                type="button"
+                onClick={() => setShowTerms(true)}
+                style={{ color: "#08cb00", textDecoration: "none", background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit" }}
+              >
                 Syarat &amp; Ketentuan
-              </a>
+              </button>
             </label>
           </div>
           {errors.terms && <p className={styles.error}>{errors.terms}</p>}
@@ -162,5 +169,65 @@ export default function Register() {
         </p>
       </div>
     </main>
+
+      {showTerms && (
+        <div
+          onClick={() => setShowTerms(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "1rem",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#111",
+              border: "1px solid #333",
+              borderRadius: "0.75rem",
+              padding: "1.5rem",
+              maxWidth: "32rem",
+              width: "100%",
+              maxHeight: "80vh",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <h2 style={{ color: "#08cb00", fontSize: "1.25rem", fontWeight: 700, marginBottom: "1rem" }}>
+              Syarat &amp; Ketentuan
+            </h2>
+            <div style={{ flex: 1, overflowY: "auto", color: "#aaa", fontSize: "0.875rem", lineHeight: 1.6 }}>
+              <p>Syarat dan Ketentuan ini berlaku untuk penggunaan layanan BMD Music.</p>
+              <p>Dengan mendaftar, pengguna menyetujui untuk mematuhi seluruh ketentuan yang berlaku.</p>
+              <p>Informasi pribadi yang dikumpulkan akan digunakan sesuai dengan kebijakan privasi kami.</p>
+              <p>BMD Music berhak untuk mengubah syarat dan ketentuan ini sewaktu-waktu tanpa pemberitahuan terlebih dahulu.</p>
+              <p>Pengguna bertanggung jawab atas keamanan akun mereka sendiri.</p>
+              <p>Layanan ini disediakan "sebagaimana adanya" tanpa jaminan apapun.</p>
+            </div>
+            <button
+              onClick={() => setShowTerms(false)}
+              style={{
+                marginTop: "1rem",
+                padding: "0.6rem 1.25rem",
+                background: "#08cb00",
+                color: "#000",
+                border: "none",
+                borderRadius: "0.5rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
