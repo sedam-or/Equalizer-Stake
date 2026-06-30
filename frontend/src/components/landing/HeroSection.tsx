@@ -1,17 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import BlurText from "@/components/ui/BlurText";
 
 const FloatingLines = dynamic(() => import("@/components/ui/FloatingLines"), { ssr: false });
 
 export default function HeroSection() {
+  const [webglFailed, setWebglFailed] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Check if canvas rendered after 2 seconds
+    const timer = setTimeout(() => {
+      if (containerRef.current) {
+        const canvas = containerRef.current.querySelector("canvas");
+        if (!canvas) {
+          setWebglFailed(true);
+        }
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="relative flex h-screen items-center justify-center px-6">
-      {/* Floating Lines background — full bleed */}
-      <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-        <FloatingLines />
+      {/* Background */}
+      <div ref={containerRef} className="absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+        {webglFailed ? (
+          <div className="floating-lines-fallback" />
+        ) : (
+          <FloatingLines />
+        )}
       </div>
 
       {/* Content — centered */}
