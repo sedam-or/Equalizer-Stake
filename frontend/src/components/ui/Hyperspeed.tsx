@@ -917,26 +917,26 @@ function resizeRendererToDisplaySize(
 }
 
 class App {
-  container: HTMLElement;
+  container!: HTMLElement;
   options: HyperspeedOptions;
-  renderer: THREE.WebGLRenderer;
-  composer: EffectComposer;
-  camera: THREE.PerspectiveCamera;
-  scene: THREE.Scene;
+  renderer!: THREE.WebGLRenderer;
+  composer!: EffectComposer;
+  camera!: THREE.PerspectiveCamera;
+  scene!: THREE.Scene;
   renderPass!: RenderPass;
   bloomPass!: EffectPass;
-  clock: THREE.Clock;
-  assets: Record<string, any>;
-  disposed: boolean;
-  road: Road;
-  leftCarLights: CarLights;
-  rightCarLights: CarLights;
-  leftSticks: LightsSticks;
-  fogUniforms: Record<string, { value: any }>;
-  fovTarget: number;
-  speedUpTarget: number;
-  speedUp: number;
-  timeOffset: number;
+  clock!: THREE.Clock;
+  assets!: Record<string, any>;
+  disposed!: boolean;
+  road!: Road;
+  leftCarLights!: CarLights;
+  rightCarLights!: CarLights;
+  leftSticks!: LightsSticks;
+  fogUniforms!: Record<string, { value: any }>;
+  fovTarget: number = 0;
+  speedUpTarget: number = 0;
+  speedUp: number = 0;
+  timeOffset: number = 0;
   hasValidSize: boolean;
 
   constructor(container: HTMLElement, options: HyperspeedOptions) {
@@ -959,6 +959,16 @@ class App {
     });
     this.renderer.setSize(initW, initH, false);
     this.renderer.setPixelRatio(window.devicePixelRatio);
+
+    // Check WebGL context before creating EffectComposer
+    const gl = this.renderer.getContext();
+    if (!gl || !gl.getContextAttributes || !gl.getContextAttributes()) {
+      console.warn("Hyperspeed: WebGL context not available, skipping effect");
+      this.composer = null as any;
+      this.renderPass = null as any;
+      this.bloomPass = null as any;
+      return;
+    }
 
     this.composer = new EffectComposer(this.renderer);
     container.appendChild(this.renderer.domElement);
@@ -1036,11 +1046,12 @@ class App {
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.composer.setSize(width, height);
+    if (this.composer) this.composer.setSize(width, height);
     this.hasValidSize = true;
   }
 
   initPasses() {
+    if (!this.composer) return;
     this.renderPass = new RenderPass(this.scene, this.camera);
     this.bloomPass = new EffectPass(
       this.camera,
@@ -1182,7 +1193,7 @@ class App {
   }
 
   render(delta: number) {
-    this.composer.render(delta);
+    if (this.composer) this.composer.render(delta);
   }
 
   dispose() {
@@ -1214,7 +1225,7 @@ class App {
       }
     }
     if (this.composer) {
-      this.composer.dispose();
+      if (this.composer) this.composer.dispose();
     }
 
     window.removeEventListener('resize', this.onWindowResize);
@@ -1231,7 +1242,7 @@ class App {
   }
 
   setSize(width: number, height: number, updateStyles: boolean) {
-    this.composer.setSize(width, height, updateStyles);
+    if (this.composer) this.composer.setSize(width, height, updateStyles);
   }
 
   tick() {
@@ -1244,7 +1255,7 @@ class App {
         this.renderer.setSize(w, h, false);
         this.camera.aspect = w / h;
         this.camera.updateProjectionMatrix();
-        this.composer.setSize(w, h);
+        if (this.composer) this.composer.setSize(w, h);
         this.hasValidSize = true;
       } else {
         requestAnimationFrame(this.tick);
@@ -1311,7 +1322,7 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = DEFAULT_EFFECT_OPTION
     };
   }, [effectOptions]);
 
-  return <div id="lights" className="w-full h-full" ref={hyperspeed}></div>;
+  return <div id="lights" className="w-full h-full overflow-hidden" ref={hyperspeed}></div>;
 };
 
 export default Hyperspeed;
