@@ -1,12 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import BlurText from "@/components/ui/BlurText";
+
+const FloatingLines = dynamic(() => import("@/components/ui/FloatingLines"), { ssr: false });
 
 export default function HeroSection() {
   return (
-    <section className="flex h-screen items-center justify-center px-6">
-      <div className="w-full max-w-[780px] text-center">
+    <section className="relative flex h-screen items-center justify-center overflow-hidden px-6">
+      {/* Floating Lines background */}
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <FloatingLines />
+      </div>
+
+      <div className="relative z-10 w-full max-w-[780px] text-center">
         <BlurText text="BMD Music School" delay={100} className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-[#08CB00] md:text-base" />
 
         <BlurText text="Sistem Penjadwalan Kursus Musik & Reservasi Studio" delay={80} className="mb-6 text-4xl font-bold leading-[1.15] tracking-tight text-white md:text-[3.5rem]" />
