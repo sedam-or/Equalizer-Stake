@@ -7,27 +7,53 @@ import BlurText from "@/components/ui/BlurText";
 const FloatingLines = dynamic(() => import("@/components/ui/FloatingLines"), { ssr: false });
 
 export default function HeroSection() {
-  const [webglFailed, setWebglFailed] = useState(false);
+  const [useCssFallback, setUseCssFallback] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check if canvas rendered after 2 seconds
-    const timer = setTimeout(() => {
-      if (containerRef.current) {
-        const canvas = containerRef.current.querySelector("canvas");
-        if (!canvas) {
-          setWebglFailed(true);
-        }
+    // Check WebGL support upfront
+    try {
+      const testCanvas = document.createElement("canvas");
+      const gl = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
+      if (!gl) {
+        setUseCssFallback(true);
+        return;
       }
-    }, 2000);
-    return () => clearTimeout(timer);
+      testCanvas.remove();
+    } catch {
+      setUseCssFallback(true);
+      return;
+    }
+
+    // Listen for context loss on any canvas inside our container
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new MutationObserver(() => {
+      const canvas = container.querySelector("canvas");
+      if (canvas) {
+        canvas.addEventListener("webglcontextlost", () => {
+          setUseCssFallback(true);
+        }, { once: true });
+        observer.disconnect();
+      }
+    });
+    observer.observe(container, { childList: true, subtree: true });
+
+    // Fallback timeout — if no canvas after 3s
+    const timer = setTimeout(() => {
+      const canvas = container.querySelector("canvas");
+      if (!canvas) setUseCssFallback(true);
+    }, 3000);
+
+    return () => { observer.disconnect(); clearTimeout(timer); };
   }, []);
 
   return (
     <section className="relative flex h-screen items-center justify-center px-6">
       {/* Background */}
       <div ref={containerRef} className="absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-        {webglFailed ? (
+        {useCssFallback ? (
           <div className="floating-lines-fallback" />
         ) : (
           <FloatingLines />
