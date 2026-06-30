@@ -2,13 +2,14 @@
 
 :root {
   --background: #000000;
-  --foreground: #0f4527;
+  --foreground: #FFFFFF;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
 }
 
 html {
@@ -22,12 +23,17 @@ html {
 .snap-section {
   scroll-snap-align: start;
   position: relative;
-  overflow: hidden;
 }
 
-/* Hero only — full screen */
+/* Hero only — no overflow hidden to allow FloatingLines canvas */
 .snap-section-hero {
   min-height: 100vh;
+  overflow: visible;
+}
+
+/* Other sections can clip */
+.snap-section:not(.snap-section-hero) {
+  overflow: hidden;
 }
 
 .scrollbar-hide::-webkit-scrollbar {

@@ -8,13 +8,14 @@ const FloatingLines = dynamic(() => import("@/components/ui/FloatingLines"), { s
 
 export default function HeroSection() {
   return (
-    <section className="relative flex h-screen items-center justify-center overflow-hidden px-6">
-      {/* Floating Lines background */}
-      <div className="absolute inset-0 z-0" aria-hidden="true">
+    <section className="relative flex h-screen items-center justify-center px-6">
+      {/* Floating Lines background — full bleed */}
+      <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
         <FloatingLines />
       </div>
 
-      <div className="relative z-10 w-full max-w-[780px] text-center">
+      {/* Content — centered */}
+      <div className="relative z-10 mx-auto w-full max-w-[780px] text-center">
         <BlurText text="BMD Music School" delay={100} className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-[#08CB00] md:text-base" />
 
         <BlurText text="Sistem Penjadwalan Kursus Musik & Reservasi Studio" delay={80} className="mb-6 text-4xl font-bold leading-[1.15] tracking-tight text-white md:text-[3.5rem]" />
