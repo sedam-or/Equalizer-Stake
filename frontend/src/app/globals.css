@@ -2,7 +2,7 @@
 
 :root {
   --background: #000000;
-  --foreground: #FFFFFF;
+  --foreground: #0f4527;
 }
 
 body {
@@ -16,9 +16,7 @@ html {
 }
 
 .snap-container {
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
-  height: 100vh;
+  /* Removed overflow-y: auto and height: 100vh to prevent footer scroll trap */
 }
 
 .snap-section {
