@@ -1,15 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import BlurText from "@/components/ui/BlurText";
+
+const FloatingLines = dynamic(() => import("@/components/ui/FloatingLines"), { ssr: false });
 
 export default function HeroSection() {
   return (
     <section className="relative flex h-screen items-center justify-center overflow-hidden px-6">
-      {/* CSS animated lines background — no WebGL */}
-      <div className="floating-lines-fallback" aria-hidden="true" />
+      {/* Floating Lines background — transparent overlay with mix-blend-mode screen */}
+      <div className="absolute inset-0 z-0" aria-hidden="true">
+        <FloatingLines
+          enabledWaves={['top', 'middle', 'bottom']}
+          lineCount={[10, 15, 20]}
+          lineDistance={[8, 6, 4]}
+          bendRadius={5.0}
+          bendStrength={-0.5}
+          interactive={true}
+          parallax={true}
+          linesGradient={['#08CB00', '#253900', '#000000']}
+        />
+      </div>
 
-      {/* Content — centered */}
+      {/* Content — forced center */}
       <div className="relative z-10 mx-auto w-full max-w-[780px] text-center">
         <BlurText text="BMD Music School" delay={100} className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-[#08CB00] md:text-base" />
 
