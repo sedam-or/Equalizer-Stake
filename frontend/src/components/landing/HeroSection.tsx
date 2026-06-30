@@ -47,7 +47,7 @@ export default function HeroSection() {
   }), []);
 
   return (
-    <section className="relative flex h-screen items-center justify-center overflow-hidden">
+    <section className="relative flex h-screen items-center justify-center overflow-hidden" style={{ isolation: "isolate" }}>
       {/* Hyperspeed background — hero only */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         <Hyperspeed effectOptions={hyperspeedOptions} />

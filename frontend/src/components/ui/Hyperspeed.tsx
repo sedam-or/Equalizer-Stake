@@ -1052,6 +1052,7 @@ class App {
 
   initPasses() {
     if (!this.composer) return;
+    try {
     this.renderPass = new RenderPass(this.scene, this.camera);
     this.bloomPass = new EffectPass(
       this.camera,
@@ -1075,6 +1076,10 @@ class App {
     this.composer.addPass(this.renderPass);
     this.composer.addPass(this.bloomPass);
     this.composer.addPass(smaaPass);
+    } catch (e) {
+      console.warn("Hyperspeed: initPasses failed, WebGL context lost", e);
+      this.composer = null as any;
+    }
   }
 
   loadAssets(): Promise<void> {
@@ -1322,7 +1327,7 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = DEFAULT_EFFECT_OPTION
     };
   }, [effectOptions]);
 
-  return <div id="lights" className="w-full h-full overflow-hidden" ref={hyperspeed}></div>;
+  return <div id="lights" className="w-full h-full overflow-hidden" style={{ clipPath: "inset(0)" }} ref={hyperspeed}></div>;
 };
 
 export default Hyperspeed;
