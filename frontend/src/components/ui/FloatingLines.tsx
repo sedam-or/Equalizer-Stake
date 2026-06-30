@@ -225,11 +225,20 @@ export default function FloatingLines({
     const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
     camera.position.z = 1;
 
-    const renderer = new WebGLRenderer({ antialias: true, alpha: false });
+    const renderer = new WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
     container.appendChild(renderer.domElement);
+
+    // Handle WebGL context loss/restoration
+    const handleContextLost = (e: Event) => { e.preventDefault(); };
+    const handleContextRestored = () => {
+      renderer.setSize(container.clientWidth, container.clientHeight, false);
+      uniforms.iResolution.value.set(renderer.domElement.width, renderer.domElement.height, 1);
+    };
+    renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
+    renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
 
     const uniforms = {
       iTime: { value: 0 },
@@ -330,6 +339,8 @@ export default function FloatingLines({
       }
       geometry.dispose();
       material.dispose();
+      renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
+      renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
       renderer.dispose();
       renderer.forceContextLoss();
       if (renderer.domElement.parentElement) renderer.domElement.parentElement.removeChild(renderer.domElement);
