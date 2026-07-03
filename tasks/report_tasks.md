@@ -958,3 +958,28 @@
 - **Notes**: Simple one-line change. Production deployments with default secret now fail fast.
 - **Dependencies affected**: None
 - **Rollback plan**: Revert config.py change
+
+### T-092: Refresh Token Endpoint — JWT Refresh Flow
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-01, SRS Entity User (refresh_token, token_expires_at)
+- **Files changed**:
+  - `backend/app/services/auth.py` — Added create_refresh_token() + REFRESH_TOKEN_EXPIRE_DAYS
+  - `backend/app/schemas/auth.py` — Added RefreshRequest, RefreshResponse, refresh_token to LoginResponse
+  - `backend/app/routers/auth.py` — Login stores refresh_token, added /refresh + /logout endpoints
+  - `backend/app/models/audit_log.py` — Added LOGOUT to audit_action enum
+- **Test results**:
+  - [x] TC1: Login → refresh_token returned + stored in DB: PASS
+  - [x] TC2: POST /refresh valid → new access_token: PASS
+  - [x] TC3: POST /refresh invalid → 401: PASS
+  - [x] TC4: POST /logout → refresh_token cleared in DB: PASS
+  - [x] TC5: POST /refresh after logout → 401: PASS
+- **Security findings**:
+  - Fixed: LOGOUT action missing from audit_action enum (was causing 500)
+- **Performance**: N/A (JWT operations are O(1))
+- **Notes**:
+  - Refresh token rotation: new refresh token issued on each /refresh call
+  - Guardian: 14-day refresh, others: 7-day refresh
+  - Access token: 30min (owner/admin/teacher), 60min (guardian)
+- **Dependencies affected**: None
+- **Rollback plan**: Revert auth.py changes + remove LOGOUT from enum

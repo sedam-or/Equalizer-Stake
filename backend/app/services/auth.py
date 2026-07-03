@@ -9,7 +9,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.models.guardian import Guardian
 from app.models.user import User
+
+
+class AccountFrozenError(Exception):
+    """Raised when a guardian tries to login with a frozen account."""
 
 settings = get_settings()
 
@@ -22,7 +27,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = {
     "guardian": 60,
 }
 
-# Brute force protection
+REFRESH_TOKEN_EXPIRE_DAYS = {
+    "owner": 7,
+    "admin": 7,
+    "teacher": 7,
+    "guardian": 14,
+}
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
 
@@ -49,6 +59,21 @@ def create_access_token(user_id: UUID, role: str) -> str:
         "iat": datetime.now(timezone.utc),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token(user_id: UUID, role: str) -> tuple[str, datetime]:
+    """Create refresh token. Returns (token, expires_at)."""
+    days = REFRESH_TOKEN_EXPIRE_DAYS.get(role, 7)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=days)
+    payload = {
+        "sub": str(user_id),
+        "role": role,
+        "type": "refresh",
+        "exp": expires_at,
+        "iat": datetime.now(timezone.utc),
+    }
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return token, expires_at
 
 
 def decode_access_token(token: str) -> dict | None:
@@ -85,6 +110,15 @@ async def authenticate_user(
             user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=LOCKOUT_MINUTES)
         await db.commit()
         return None
+
+    # Check if guardian account is frozen — block login before resetting attempts
+    if user.role == "guardian":
+        result = await db.execute(
+            select(Guardian).where(Guardian.id_user == user.id_user)
+        )
+        guardian = result.scalar_one_or_none()
+        if guardian and guardian.account_status == "frozen":
+            raise AccountFrozenError("Akun Anda dibekukan. Silakan hubungi Admin.")
 
     # Successful login — reset failed attempts
     user.failed_login_attempts = 0

@@ -16,6 +16,8 @@ from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
     ProfileResponse,
+    RefreshRequest,
+    RefreshResponse,
     RegisterRequest,
     UpdateProfileRequest,
     UserResponse,
@@ -24,6 +26,8 @@ from app.services.auth import (
     AccountFrozenError,
     authenticate_user,
     create_access_token,
+    create_refresh_token,
+    decode_access_token,
     hash_password,
     verify_password,
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -58,7 +62,11 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
             detail="Username atau password tidak valid",
         )
     token = create_access_token(user.id_user, user.role)
+    refresh_tok, refresh_expires = create_refresh_token(user.id_user, user.role)
     expires_minutes = ACCESS_TOKEN_EXPIRE_MINUTES.get(user.role, 30)
+    # Store refresh token in DB
+    user.refresh_token = refresh_tok
+    user.token_expires_at = refresh_expires
     await log_auth_event(db, action="LOGIN_SUCCESS", user_id=user.id_user, details=f"Successful login for role: {user.role}", request=request)
     await db.commit()
     # Check first_login / temp password
@@ -71,11 +79,12 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
             )
         return LoginResponse(
             access_token=token,
+            refresh_token=refresh_tok,
             role=user.role,
             expires_in=expires_minutes * 60,
             must_change_password=True,
         )
-    return LoginResponse(access_token=token, role=user.role, expires_in=expires_minutes * 60)
+    return LoginResponse(access_token=token, refresh_token=refresh_tok, role=user.role, expires_in=expires_minutes * 60)
 
 
 @router.post("/first-login-change-password")
@@ -265,3 +274,56 @@ async def change_password(
 async def forgot_password(body: ForgotPasswordRequest, request: Request, db: AsyncSession = Depends(get_db)):
     """Send password reset email."""
     return {"detail": "Link reset telah dikirim ke email Anda"}
+
+
+@router.post("/refresh", response_model=RefreshResponse)
+async def refresh_token(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    """Get new access token using refresh token."""
+    payload = decode_access_token(body.refresh_token)
+    if not payload or payload.get("type") != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token tidak valid",
+        )
+    user_id = payload.get("sub")
+    result = await db.execute(select(User).where(User.id_user == user_id))
+    user = result.scalar_one_or_none()
+    if not user or user.deleted_at is not None or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User tidak ditemukan atau tidak aktif",
+        )
+    # Validate stored refresh token matches
+    if user.refresh_token != body.refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token sudah tidak berlaku",
+        )
+    # Check expiry
+    if user.token_expires_at and user.token_expires_at < datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token sudah kedaluwarsa",
+        )
+    # Issue new access + refresh token (rotation)
+    new_access = create_access_token(user.id_user, user.role)
+    new_refresh, new_expires = create_refresh_token(user.id_user, user.role)
+    user.refresh_token = new_refresh
+    user.token_expires_at = new_expires
+    await db.commit()
+    expires_minutes = ACCESS_TOKEN_EXPIRE_MINUTES.get(user.role, 30)
+    return RefreshResponse(access_token=new_access, expires_in=expires_minutes * 60)
+
+
+@router.post("/logout")
+async def logout(
+    request: Request,
+    user: User = Depends(_get_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Logout — invalidate refresh token."""
+    user.refresh_token = None
+    user.token_expires_at = None
+    await log_auth_event(db, action="LOGOUT", user_id=user.id_user, details="User logged out", request=request)
+    await db.commit()
+    return {"detail": "Berhasil logout"}
