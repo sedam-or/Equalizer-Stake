@@ -1461,3 +1461,26 @@
   - Partial compliance — full audit recommended for production
 - **Dependencies affected**: None
 - **Rollback plan**: Revert changed files
+
+### T-119: GPS Radius Validation (UC-12)
+- **Status**: ✅ Selesai (sudah terimplementasi sebelumnya)
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-04, UC-12
+- **Files changed**:
+  - `backend/app/services/attendance.py` — GPS validation (sudah ada)
+  - `backend/app/models/attendance.py` — gps_distance_m field (sudah ada)
+- **Test results**:
+  - [x] TC1: GPS studio coords (0m) → valid=True: PASS
+  - [x] TC2: GPS 200m → valid=False, dist=222m: PASS
+  - [x] TC3: GPS 150m → valid=True, dist=156m: PASS
+  - [x] TC4: Status "pending_review" jika di luar radius: PASS
+  - [x] TC5: Error message Bahasa Indonesia: PASS
+- **Security findings**: None
+- **Performance**: Haversine calculation: <1ms
+- **Notes**:
+  - GPS validation sudah ada sebelum T-119 dibuat
+  - validate_gps() → haversine_distance() → GPS_RADIUS_M (150m)
+  - Jika di luar radius → raise ValueError → status "pending_review"
+  - gps_distance_m disimpan di DB untuk audit
+- **Dependencies affected**: None
+- **Rollback plan**: N/A (sudah ada)
