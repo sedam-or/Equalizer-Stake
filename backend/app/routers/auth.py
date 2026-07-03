@@ -34,6 +34,7 @@ from app.services.auth import (
 )
 from app.services.audit import log_auth_event
 from app.services.encryption import hash_pii
+from app.services.jwt_blacklist import blacklist_token, is_blacklisted
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -293,6 +294,12 @@ async def refresh_token(request: Request, body: RefreshRequest, db: AsyncSession
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token tidak valid",
         )
+    # Check blacklist
+    if is_blacklisted(body.refresh_token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token sudah tidak berlaku",
+        )
     user_id = payload.get("sub")
     result = await db.execute(select(User).where(User.id_user == user_id))
     user = result.scalar_one_or_none()
@@ -332,6 +339,9 @@ async def logout(
     db: AsyncSession = Depends(get_db),
 ):
     """Logout — invalidate refresh token."""
+    # Blacklist current refresh token in Redis
+    if user.refresh_token:
+        blacklist_token(user.refresh_token)
     user.refresh_token = None
     user.token_expires_at = None
     await log_auth_event(db, action="LOGOUT", user_id=user.id_user, details="User logged out", request=request)

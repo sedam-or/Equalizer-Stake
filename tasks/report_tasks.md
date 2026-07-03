@@ -1201,3 +1201,26 @@
   - Data preserved in DB for audit trail
 - **Dependencies affected**: None
 - **Rollback plan**: ALTER TABLE DROP COLUMN deleted_at
+
+### T-104: Redis Actual Usage — Rate Limit + Session Cache
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: NFR-SEC-04, NFR-REL-03
+- **Files changed**:
+  - `backend/app/core/limiter.py` — Rate limiter uses Redis storage backend
+  - `backend/app/services/jwt_blacklist.py` — New: JWT blacklist via Redis
+  - `backend/app/routers/auth.py` — Blacklist check in refresh + logout
+  - `backend/.env` — Fixed REDIS_URL port (6380→6379)
+- **Test results**:
+  - [x] TC1: Rate limit keys stored in Redis: PASS
+  - [x] TC2: JWT blacklist works: PASS
+  - [x] TC3: Keys persist across requests: PASS
+- **Security findings**: None
+- **Performance**: Redis O(1) lookup, no DB queries for rate limit/blacklist
+- **Notes**:
+  - Rate limit: slowapi with Redis storage_uri (persistent across restarts)
+  - JWT blacklist: Redis SET with TTL (7 days)
+  - Fallback: memory if Redis unavailable (fail-open)
+  - Fixed REDIS_URL port mismatch (6380→6379)
+- **Dependencies affected**: None
+- **Rollback plan**: Revert limiter.py, remove jwt_blacklist.py

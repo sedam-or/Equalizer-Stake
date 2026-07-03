@@ -956,10 +956,10 @@
 | Phase 15: Critical Fixes | T-078..T-085 | ✅ 8/8 |
 | Phase 16: Pagination | T-086..T-088 | ✅ 3/3 |
 | Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ✅ 12/12 |
-| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 3/14 |
+| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 4/14 |
 | Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
-| **Total** | **104 tasks** | **71/104 done** |
+| **Total** | **104 tasks** | **72/104 done** |
 
 ---
 
@@ -1289,7 +1289,7 @@
 - **Deps**: Alembic migration
 
 ### T-104: Redis Actual Usage — Rate Limit + Session Cache
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: NFR-SEC-04, NFR-REL-03
 - **Deskripsi**:
