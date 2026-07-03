@@ -959,7 +959,9 @@
 | Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ✅ 14/14 |
 | Phase 19: NICE TO HAVE | T-115 | ✅ 1/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
-| **Total** | **104 tasks** | **83/104 done** |
+| Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ⏳ 0/9 |
+| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-154 | ⏳ 0/27 |
+| **Total** | **154 tasks** | **83/154 done** |
 
 ---
 
@@ -1488,6 +1490,480 @@
 
 ---
 
+## 21. BACKEND CRITICAL FIXES
+
+### T-119: GPS Radius Validation (UC-12)
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-04, UC-12
+- **Deskripsi**:
+  - Server-side GPS radius check ≤150m dari studio
+  - Studio coords: -7.737428, 110.429669 (Seturan)
+  - Jika di luar radius → status "pending_verification"
+  - Haversine formula untuk hitung jarak
+- **Test**: Submit GPS 200m dari studio → status pending, bukan hadir
+- **Files**: `backend/app/services/attendance.py`, `backend/app/routers/attendance.py`
+
+### T-120: Unfreeze Account Endpoint (UC-10)
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-03, UC-10
+- **Deskripsi**:
+  - POST /api/billing/unfreeze/{guardian_id}
+  - Admin-only: unfreeze akun yang terkena denda
+  - Audit log: UNFREEZE action
+  - Validasi: akun harus dalam status frozen
+- **Test**: Freeze akun → unfreeze → status aktif kembali
+- **Files**: `backend/app/routers/billing.py`, `backend/app/services/billing.py`
+
+### T-121: Dashboard Stats API
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: UC-16
+- **Deskripsi**:
+  - GET /api/dashboard/stats (admin/owner)
+  - GET /api/dashboard/teacher (guru)
+  - GET /api/dashboard/guardian (wali murid)
+  - Return: real data, bukan dummy
+  - Include: greeting, KPI, recent items, pending actions
+- **Test**: Login admin → dashboard show real numbers
+- **Files**: `backend/app/routers/dashboard.py` (new), `backend/app/services/reports.py`
+
+### T-122: API Versioning (v1)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-SEC-01
+- **Deskripsi**:
+  - Semua router prefix: /api/v1/...
+  - Backward compatible: redirect /api/ → /api/v1/
+  - Version header: X-API-Version: 1
+  - Deprecation header untuk sunset endpoints
+- **Test**: GET /api/v1/auth/login → 200
+- **Files**: Semua router, `backend/app/main.py`
+
+### T-123: Self-Service Data Deletion Request (UC-19)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-07, UC-19
+- **Deskripsi**:
+  - POST /api/privacy/delete-request (guardian/teacher)
+  - Admin approve/reject: PUT /api/admin/deletion-requests/{id}
+  - Audit log: DELETE_REQUEST, DELETE_APPROVED, DELETE_REJECTED
+  - SRS: Wali murid/guru bisa request hapus data
+- **Test**: Guardian request delete → admin approve → soft delete + anonymize
+- **Files**: `backend/app/routers/privacy.py`, `backend/app/models/deletion_request.py` (new)
+
+### T-124: Export Laporan (UC-17)
+- **Status**: ⏳
+- **Priority**: 🟢 NICE
+- **FR/UC terkait**: UC-17
+- **Deskripsi**:
+  - GET /api/reports/export?format=csv&type=revenue
+  - GET /api/reports/export?format=csv&type=attendance
+  - GET /api/reports/export?format=csv&type=students
+  - CSV generation + download
+- **Test**: Owner → Laporan → Export → file download
+- **Files**: `backend/app/routers/reports.py`
+
+### T-125: Feedback Endpoint (T-072)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: UC-02
+- **Deskripsi**:
+  - POST /api/feedback (guru → wali murid)
+  - GET /api/my/feedback (wali murid lihat feedback)
+  - Fields: session_id, rating (1-5), comment, category
+  - Audit log: INSERT
+- **Test**: Guru kirim feedback → wali murid lihat di portal
+- **Files**: `backend/app/routers/feedback.py` (new), `backend/app/models/feedback.py` (new)
+
+### T-126: Rating Endpoint (T-073)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: UC-02
+- **Deskripsi**:
+  - POST /api/ratings (wali murid → guru)
+  - GET /api/teachers/{id}/ratings (admin lihat)
+  - Fields: teacher_id, rating (1-5), comment
+  - Audit log: INSERT
+- **Test**: Wali murid rate guru → admin lihat rata-rata
+- **Files**: `backend/app/routers/ratings.py` (new), `backend/app/models/rating.py` (new)
+
+### T-127: Data Migration Import
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR
+- **Deskripsi**:
+  - POST /api/admin/import/students (CSV upload)
+  - POST /api/admin/import/guardians (CSV upload)
+  - POST /api/admin/import/sessions (CSV upload)
+  - Validation + error report
+  - Preview sebelum import
+- **Test**: Upload CSV → preview → confirm → data masuk
+- **Files**: `backend/app/routers/import.py` (new), `backend/app/services/import_service.py` (new)
+
+---
+
+## 22. FRONTEND REDESIGN — LIGHT THEME + UX
+
+### T-128: Theme System — Light Default + Toggle
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: NFR-USA-01
+- **Deskripsi**:
+  - CSS variables untuk light/dark theme
+  - Tailwind dark: prefix
+  - Theme toggle component (🌙/☀️)
+  - Persist: localStorage
+  - Default: light
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §1
+- **Test**: Buka dashboard → light theme → toggle → dark → refresh → persist
+- **Files**: `frontend/src/lib/theme.ts` (new), `frontend/src/app/globals.css`, `frontend/tailwind.config.ts`
+
+### T-129: Typography Update — Plus Jakarta Sans
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-01
+- **Deskripsi**:
+  - Install Plus Jakarta Sans (Google Fonts)
+  - Heading: Plus Jakarta Sans
+  - Body: Inter (existing)
+  - Mono: JetBrains Mono
+  - Font scale: xs(12) sm(14) base(16) lg(18) xl(20) 2xl(24) 3xl(30) 4xl(36)
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §2
+- **Test**: Semua heading pakai Plus Jakarta Sans
+- **Files**: `frontend/src/app/layout.tsx`, `frontend/tailwind.config.ts`
+
+### T-130: Color Palette Update — Blue + Gold
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: NFR-USA-01
+- **Deskripsi**:
+  - Replace #08CB00 → #2563EB (primary blue)
+  - Add #F59E0B (accent gold)
+  - Add #7C3AED (secondary purple)
+  - Update: cards, buttons, sidebar, forms
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §1
+- **Test**: Semua halaman pakai palette baru
+- **Files**: Semua halaman frontend, `tailwind.config.ts`
+
+### T-131: Toast Component
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - components/Toast.tsx (success/error/warning/info)
+  - Position: bottom-right (mobile: top)
+  - Auto-dismiss: success 3s, error 5s
+  - Animation: slide in from right
+  - Replace semua alert() → toast
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §10
+- **Test**: Submit form → success toast muncul → auto-dismiss
+- **Files**: `frontend/src/components/Toast.tsx` (new), semua halaman
+
+### T-132: Form Validation System
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - lib/validation.ts (validateEmail, validatePhone, etc.)
+  - onChange: update status ✓/✗
+  - onBlur: tampilkan error message
+  - Visual: green ✓ / red ✗ + message
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §11
+- **Test**: Isi form → blur → error muncul → fix → error hilang
+- **Files**: `frontend/src/lib/validation.ts` (new), semua form
+
+### T-133: Confirmation Dialog Component
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - components/ConfirmDialog.tsx
+  - 4 severity: simple, destructive, financial, complex
+  - Replace window.confirm() → modal
+  - Animation: slide up + fade in
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §12
+- **Test**: Klik delete → modal muncul → konfirmasi → data terhapus
+- **Files**: `frontend/src/components/ConfirmDialog.tsx` (new)
+
+### T-134: Date/Time Formatter
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR
+- **Deskripsi**:
+  - Install dayjs + locale/id
+  - lib/date.ts: formatDate, formatRelative, formatDuration
+  - Replace semua hardcoded date format
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §13
+- **Test**: Tanggal tampil "3 Juli 2026" bukan "2026-07-03"
+- **Files**: `frontend/src/lib/date.ts` (new)
+
+### T-135: Currency Formatter
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR
+- **Deskripsi**:
+  - lib/currency.ts: formatRupiah, formatRupiahShort
+  - Full: "Rp 350.000" (tagihan, invoice)
+  - Short: "Rp 350rb" (dashboard cards)
+  - Replace semua hardcoded currency format
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §14
+- **Test**: Harga tampil "Rp 350.000" bukan "350000"
+- **Files**: `frontend/src/lib/currency.ts` (new)
+
+### T-136: Landing Page Redesign
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: NFR-USA-01
+- **Deskripsi**:
+  - Background: light (#F8FAFC)
+  - Hero: gradient biru-ungu + emotional copy
+  - Trust bar: angka social proof
+  - 9 sections sesuai design system
+  - Copywriting: emosional, benefit > fitur
+  - CTA: WhatsApp langsung
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §9
+- **Test**: Buka landing page → light theme → copy menjual → CTA WhatsApp
+- **Files**: `frontend/src/app/page.tsx`, semua landing components
+
+### T-137: Dashboard Real Data — Admin
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: UC-16
+- **Deskripsi**:
+  - Fetch dari GET /api/dashboard/stats (T-121)
+  - Greeting personal: "Selamat pagi, [Nama]"
+  - KPI cards: real data
+  - Jadwal hari ini: real data
+  - Perlu review: pending actions
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §8
+- **Test**: Login admin → dashboard → semua angka real
+- **Files**: `frontend/src/app/dashboard/page.tsx`
+
+### T-138: Dashboard Real Data — Guardian
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: UC-16
+- **Deskripsi**:
+  - Fetch dari GET /api/dashboard/guardian (T-121)
+  - Greeting: "Selamat pagi, Pak/Bu [Nama]"
+  - Jadwal minggu ini: real data
+  - Tagihan: real data + CTA bayar
+  - Absensi terakhir: real data
+  - Kelayakan ujian: progress bar
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §8
+- **Test**: Login wali murid → dashboard → semua data real
+- **Files**: `frontend/src/app/dashboard/page.tsx`
+
+### T-139: Dashboard Real Data — Teacher
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: UC-16
+- **Deskripsi**:
+  - Fetch dari GET /api/dashboard/teacher (T-121)
+  - Greeting: "Selamat pagi, [Nama]"
+  - Jadwal hari ini: real data + tombol absen
+  - Ringkasan minggu: real data
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §8
+- **Test**: Login guru → dashboard → jadwal real
+- **Files**: `frontend/src/app/dashboard/page.tsx`
+
+### T-140: Empty States + Loading Skeletons
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - components/EmptyState.tsx (icon + text + CTA)
+  - components/Skeleton.tsx (pulse animation)
+  - components/ErrorState.tsx (icon + message + retry)
+  - Apply ke semua halaman list
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §7
+- **Test**: Belum ada data → empty state → klik CTA → form
+- **Files**: `frontend/src/components/EmptyState.tsx`, `Skeleton.tsx`, `ErrorState.tsx`
+
+### T-141: Notification Badge
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-05
+- **Deskripsi**:
+  - Badge merah di sidebar icon
+  - Count: "3" (max 99+)
+  - Bounce animation on new
+  - Auto-clear saat notification page dibuka
+  - Fetch: GET /api/notifications/unread-count
+- **Test**: Ada notif baru → badge muncul → buka notif → badge hilang
+- **Files**: `frontend/src/components/Sidebar.tsx`, `frontend/src/components/BottomNav.tsx`
+
+### T-142: Search & Filter Components
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - components/SearchInput.tsx (debounced 300ms)
+  - components/FilterChips.tsx (multi-select)
+  - components/SortDropdown.tsx
+  - Apply ke: students, sessions, invoices, audit logs
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §19
+- **Test**: Ketik nama → filter muncul → sort → hasil berubah
+- **Files**: `frontend/src/components/SearchInput.tsx`, `FilterChips.tsx`, `SortDropdown.tsx`
+
+### T-143: Breadcrumbs Component
+- **Status**: ⏳
+- **Priority**: 🟢 NICE
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - components/Breadcrumbs.tsx
+  - Pattern: Dashboard > Jadwal > Detail Sesi
+  - Click navigates back
+  - Apply ke: detail pages
+- **Test**: Buka detail → breadcrumb tampil → klik "Jadwal" → back
+- **Files**: `frontend/src/components/Breadcrumbs.tsx`
+
+### T-144: Error Boundary + Error Pages
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - ErrorBoundary component (catch render errors)
+  - 401 page → redirect login
+  - 403 page → "Anda tidak memiliki akses"
+  - 404 page → "Halaman tidak ditemukan"
+  - 500 page → "Terjadi kesalahan"
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §10
+- **Test**: Akses /nonexistent → 404 page
+- **Files**: `frontend/src/app/not-found.tsx`, `error.tsx`
+
+### T-145: Frontend Upload Foto Profil (T-071)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: UC-02
+- **Deskripsi**:
+  - Upload form di halaman Profile
+  - Crop image sebelum upload
+  - Preview sebelum submit
+  - Backend sudah ada (POST /api/photos)
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §7
+- **Test**: Klik foto → upload → crop → preview → simpan
+- **Files**: `frontend/src/app/dashboard/profile/page.tsx`
+
+### T-146: Guru Feedback Page (T-072)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: UC-02
+- **Deskripsi**:
+  - Guru: form feedback ke wali murid
+  - Wali murid: lihat feedback dari guru
+  - Backend: T-125
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §7
+- **Test**: Guru kirim feedback → wali murid lihat
+- **Files**: `frontend/src/app/dashboard/feedback/page.tsx` (new)
+
+### T-147: Wali Murid Rating Page (T-073)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: UC-02
+- **Deskripsi**:
+  - Wali murid: rate guru (1-5 bintang)
+  - Admin: lihat rating rata-rata per guru
+  - Backend: T-126
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §7
+- **Test**: Wali murid rate → admin lihat average
+- **Files**: `frontend/src/app/dashboard/ratings/page.tsx` (new)
+
+### T-148: Instruments Public Page (T-074)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-01
+- **Deskripsi**:
+  - /instruments — public page (tanpa login)
+  - List semua instrumen + harga + deskripsi
+  - CTA: daftar via WhatsApp
+  - Backend: GET /api/pricing (sudah ada)
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §9
+- **Test**: Buka /instruments → lihat daftar → klik daftar
+- **Files**: `frontend/src/app/instruments/page.tsx` (new)
+
+### T-149: Help Page (T-075)
+- **Status**: ⏳
+- **Priority**: 🟢 NICE
+- **FR/UC terkait**: NFR-USA-01
+- **Deskripsi**:
+  - /help — public page
+  - FAQ accordion
+  - Contact info (WA, email, alamat)
+  - Cara daftar, cara bayar, jadwal
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §9
+- **Test**: Buka /help → lihat FAQ → expand → baca jawaban
+- **Files**: `frontend/src/app/help/page.tsx` (new)
+
+### T-150: Reset Password Pages (T-076)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-01
+- **Deskripsi**:
+  - /reset-password/success → "Link berhasil dikirim"
+  - /reset-password/error → "Link tidak valid/expired"
+  - /reset-password/[token] → form password baru
+  - Backend: sudah ada POST /api/auth/forgot-password
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §9
+- **Test**: Lupa password → email → klik link → reset sukses
+- **Files**: `frontend/src/app/reset-password/` (new pages)
+
+### T-151: Mobile-First Refactor (T-077)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - Audit semua halaman di 375px width
+  - Fix overflow, text truncation, touch targets
+  - Bottom nav: tambah badge notif
+  - Forms: full-width inputs
+  - Tables: convert ke card di mobile
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §4
+- **Test**: Buka di HP 375px → semua halaman usable
+- **Files**: Semua halaman frontend
+
+### T-152: Animation & Micro-interactions
+- **Status**: ⏳
+- **Priority**: 🟢 NICE
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - Page transition: fade (0.2s)
+  - Card hover: lift shadow
+  - Button click: scale 0.98
+  - Modal: slide up
+  - Toast: slide in
+  - Theme toggle: crossfade
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §17
+- **Test**: Hover card → shadow muncul → smooth
+- **Files**: `frontend/src/app/globals.css`, components
+
+### T-153: Pagination "Showing X of Y"
+- **Status**: ⏳
+- **Priority**: 🟢 NICE
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - Tambah text "Menampilkan 1-20 dari 45 data"
+  - Update Pagination component
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §20
+- **Test**: List page → pagination → text info muncul
+- **Files**: `frontend/src/components/Pagination.tsx`
+
+### T-154: Print Styles
+- **Status**: ⏳
+- **Priority**: 🟢 NICE
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - @media print CSS
+  - Hide: sidebar, nav, buttons
+  - Show: content only
+  - Black on white
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §21
+- **Test**: Ctrl+P → print preview → content only
+- **Files**: `frontend/src/app/globals.css`
+
+---
 
 ## ATURAN WAJIB (berlaku untuk SEMUA task)
 
