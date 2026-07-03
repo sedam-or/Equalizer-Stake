@@ -1135,3 +1135,26 @@
   - Impact: 50 invoices = 50 queries → 2 queries
 - **Dependencies affected**: None
 - **Rollback plan**: Revert my_portal.py changes
+
+### T-101: Background Job Queue — Email/WhatsApp
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-05, NFR-REL-01
+- **Files changed**:
+  - `backend/app/services/background_queue.py` — New: asyncio.Queue worker for notifications
+  - `backend/app/services/notification.py` — create_notification now enqueues instead of blocking
+  - `backend/app/main.py` — Start/stop worker in lifespan
+- **Test results**:
+  - [x] TC1: Queue enqueue/dequeue works: PASS
+  - [x] TC2: Queue size tracking: PASS
+  - [x] TC3: Worker lifecycle (start/stop): PASS
+  - [x] TC4: API endpoint still works: PASS
+- **Security findings**: None
+- **Performance**: Request returns immediately, notification sent async
+- **Notes**:
+  - asyncio.Queue (in-memory) — use Redis for production multi-worker
+  - Max queue size: 1000, overflow drops with warning
+  - Worker processes notifications with existing retry/circuit breaker logic
+  - SRS NFR-REL-01: retry 3x exponential backoff preserved
+- **Dependencies affected**: T-102 (Guardian Notification Grouping)
+- **Rollback plan**: Remove background_queue.py, revert notification.py and main.py

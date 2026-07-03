@@ -956,10 +956,10 @@
 | Phase 15: Critical Fixes | T-078..T-085 | ✅ 8/8 |
 | Phase 16: Pagination | T-086..T-088 | ✅ 3/3 |
 | Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ✅ 12/12 |
-| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 0/14 |
+| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 1/14 |
 | Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
-| **Total** | **104 tasks** | **68/104 done** |
+| **Total** | **104 tasks** | **69/104 done** |
 
 ---
 
@@ -1251,7 +1251,7 @@
 ## 18. IMPORTANT — Features & Performance
 
 ### T-101: Background Job Queue — Email/WhatsApp
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-05, NFR-REL-01
 - **Deskripsi**:

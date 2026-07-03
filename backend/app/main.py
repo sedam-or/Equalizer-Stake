@@ -12,6 +12,7 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import get_settings
 from app.core.limiter import limiter
 from app.services.scheduler import start_scheduler, shutdown_scheduler
+from app.services.background_queue import start_worker, stop_worker
 from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft, students, payments, my_portal, registrations, photos, cron_trigger
 
 settings = get_settings()
@@ -26,10 +27,12 @@ if settings.SECRET_KEY == "change-me-in-production":
 async def lifespan(app: FastAPI):
     """Application lifespan — startup and shutdown events."""
     # Startup
+    start_worker()
     start_scheduler()
     yield
     # Shutdown
     shutdown_scheduler()
+    stop_worker()
 
 
 app = FastAPI(

@@ -131,7 +131,7 @@ async def create_notification(
     related_entity_type: str | None = None,
     related_entity_id: UUID | None = None,
 ) -> Notification:
-    """Create a notification record."""
+    """Create a notification record and enqueue for background delivery."""
     notification = Notification(
         recipient_id=recipient_id,
         channel=channel,
@@ -145,6 +145,11 @@ async def create_notification(
     db.add(notification)
     await db.commit()
     await db.refresh(notification)
+
+    # Enqueue for background processing (non-blocking)
+    from app.services.background_queue import enqueue_notification
+    await enqueue_notification(notification.id_notification)
+
     return notification
 
 
