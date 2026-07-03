@@ -1,5 +1,7 @@
 """Privacy router — UU PDP data deletion endpoints."""
 
+from datetime import timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -58,4 +60,43 @@ async def verify_deletion(
     return {
         "message": "Data berhasil dihapus dan dianonimkan.",
         "result": result,
+    }
+
+
+@router.get("/delete-requests")
+async def list_deletion_requests(
+    status_filter: str | None = None,
+    user: User = Depends(require_role("admin", "owner")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Admin list pending deletion requests."""
+    from app.models.deletion_request import DeletionRequest
+    from sqlalchemy import select, func
+
+    base = select(DeletionRequest)
+    if status_filter:
+        base = base.where(DeletionRequest.status == status_filter)
+    else:
+        base = base.where(DeletionRequest.status == "pending")
+
+    count_q = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_q.scalar() or 0
+
+    result = await db.execute(base.order_by(DeletionRequest.created_at.desc()))
+    requests = result.scalars().all()
+
+    return {
+        "data": [
+            {
+                "id_request": str(r.id_request),
+                "entity_type": r.entity_type,
+                "entity_id": str(r.entity_id),
+                "reason": r.reason,
+                "status": r.status,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+                "deadline": (r.created_at + timedelta(days=14)).isoformat() if r.created_at else None,
+            }
+            for r in requests
+        ],
+        "total": total,
     }

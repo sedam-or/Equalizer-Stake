@@ -1554,3 +1554,31 @@
   - Frontend still uses /api/ (auto-redirected)
 - **Dependencies affected**: None
 - **Rollback plan**: Revert all router files + main.py
+
+### T-123: Self-Service Data Deletion Request (UC-19)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-07, UC-19
+- **Files changed**:
+  - `backend/app/models/deletion_request.py` — New model
+  - `backend/app/models/__init__.py` — Added DeletionRequest
+  - `backend/app/services/privacy.py` — Complete rewrite with DB
+  - `backend/app/routers/privacy.py` — Added list endpoint
+  - DB: Created deletion_requests table + enums
+- **Test results**:
+  - [x] TC1: Guardian submit deletion request → 200: PASS
+  - [x] TC2: Admin list pending requests → 200: PASS
+  - [x] TC3: Admin approve → data anonymized: PASS
+  - [x] TC4: Status changed to "approved": PASS
+  - [x] TC5: Active invoices rejection: PASS
+- **Security findings**: None
+- **Performance**: 2-3 queries per operation
+- **Notes**:
+  - UU PDP Pasal 19 compliance
+  - Guardian/teacher can request deletion
+  - Admin approve/reject
+  - PII anonymized with REDACTED-[hash]
+  - Active invoices block deletion
+  - 14 business day deadline
+- **Dependencies affected**: None
+- **Rollback plan**: DROP TABLE deletion_requests
