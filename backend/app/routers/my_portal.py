@@ -386,3 +386,56 @@ async def my_attendance(
         "limit": limit,
         "offset": offset,
     }
+
+
+@router.get("/invoices")
+async def my_invoices(
+    student_id: str | None = Query(None),
+    limit: int = Query(20, le=100),
+    offset: int = Query(0, ge=0),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List invoices for this guardian.
+    Guardian mode only. student_id param accepted for API consistency
+    (invoices are per-guardian, not per-student).
+    """
+    from app.models.guardian import Guardian
+    from app.models.invoice import Invoice
+    from app.models.payment import Payment
+
+    if user.role != "guardian":
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+
+    result = await db.execute(select(Guardian).where(Guardian.id_user == user.id_user))
+    guardian = result.scalar_one_or_none()
+    if not guardian:
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+
+    base = (
+        select(Invoice)
+        .where(Invoice.id_guardian == guardian.id_guardian, Invoice.deleted_at.is_(None))
+    )
+
+    count_q = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_q.scalar()
+    q = await db.execute(base.order_by(Invoice.created_at.desc()).offset(offset).limit(limit))
+    invoices = q.scalars().all()
+
+    return {
+        "data": [
+            {
+                "id_invoice": str(inv.id_invoice),
+                "billing_period": inv.billing_period,
+                "total_amount": float(inv.total_amount),
+                "due_date": str(inv.due_date),
+                "status": inv.status,
+                "unique_code": inv.unique_code,
+                "paid_at": inv.paid_at.isoformat() if inv.paid_at else None,
+            }
+            for inv in invoices
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }

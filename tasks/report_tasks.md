@@ -1324,3 +1324,23 @@
   - Teacher mode unchanged (backward compatible)
 - **Dependencies affected**: None
 - **Rollback plan**: Revert my_portal.py changes
+
+### T-110: Guardian Invoices Per Student (GET /api/my/invoices)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-03
+- **Files changed**:
+  - `backend/app/routers/my_portal.py` — Added GET /api/my/invoices endpoint
+- **Test results**:
+  - [x] TC1: GET /api/my/invoices → guardian invoices (200): PASS
+  - [x] TC2: Non-guardian → empty (0): PASS
+- **Security findings**: None
+- **Performance**: 1 query (invoices for guardian)
+- **Notes**:
+  - Invoices are per-guardian, not per-student (no id_student in model)
+  - student_id param accepted for API consistency
+  - Filters deleted_at IS NULL
+  - Returns: id, period, amount, due_date, status, unique_code, paid_at
+  - Existing my_payments endpoint provides invoices + payments
+- **Dependencies affected**: None
+- **Rollback plan**: Revert my_portal.py changes
