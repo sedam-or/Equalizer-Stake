@@ -17,6 +17,7 @@ from app.models.draft import Draft
 from app.models.registration import Registration
 from app.models.deletion_request import DeletionRequest
 from app.models.feedback import Feedback
+from app.models.rating import Rating
 
 __all__ = [
     "User",
@@ -36,4 +37,5 @@ __all__ = [
     "Registration",
     "DeletionRequest",
     "Feedback",
+    "Rating",
 ]

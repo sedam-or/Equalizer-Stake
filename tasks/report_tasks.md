@@ -1631,3 +1631,28 @@
   - Audit log with record_id (flush before audit)
 - **Dependencies affected**: T-146 (frontend feedback page)
 - **Rollback plan**: DROP TABLE feedbacks
+
+### T-126: Rating Endpoint (T-073)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: UC-02
+- **Files changed**:
+  - `backend/app/models/rating.py` — New model
+  - `backend/app/models/__init__.py` — Added Rating
+  - `backend/app/routers/ratings.py` — New router
+  - `backend/app/main.py` — Registered router
+  - DB: Created ratings table
+- **Test results**:
+  - [x] TC1: Guardian create rating → 200: PASS
+  - [x] TC2: Admin view teacher ratings → 200 + avg: PASS
+  - [x] TC3: Rating validation (1-5): PASS
+  - [x] TC4: Audit log created: PASS
+- **Security findings**: None
+- **Performance**: 2-3 queries per operation
+- **Notes**:
+  - Guardian: POST /api/v1/ratings/ (create)
+  - Admin: GET /api/v1/ratings/{teacher_id} (view + average)
+  - Fields: teacher_id, rating (1-5), comment
+  - Average rating calculated server-side
+- **Dependencies affected**: T-147 (frontend rating page)
+- **Rollback plan**: DROP TABLE ratings
