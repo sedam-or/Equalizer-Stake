@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.services.encryption import EncryptedString
 
 
 class Guardian(Base):
@@ -17,10 +18,11 @@ class Guardian(Base):
 
     id_guardian: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     id_user: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id_user"), unique=True, nullable=False)
-    full_name: Mapped[str] = mapped_column(Text, nullable=False)  # KRITIS: AES-256-GCM
-    phone_whatsapp: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)  # +62xxx
-    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    address: Mapped[str | None] = mapped_column(Text, nullable=True)
+    full_name: Mapped[str] = mapped_column(EncryptedString(500), nullable=False)  # AES-256-GCM
+    phone_whatsapp: Mapped[str] = mapped_column(EncryptedString(500), nullable=False)  # AES-256-GCM
+    phone_hash: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)  # blind index
+    email: Mapped[str | None] = mapped_column(EncryptedString(500), nullable=True)  # AES-256-GCM
+    address: Mapped[str | None] = mapped_column(EncryptedString(1000), nullable=True)  # AES-256-GCM
     account_status: Mapped[str] = mapped_column(
         Enum("active", "frozen", "inactive", "pending_deletion", name="account_status"),
         nullable=False, default="active"

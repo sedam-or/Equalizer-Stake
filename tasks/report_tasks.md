@@ -911,3 +911,34 @@
   - slowapi not in pyproject.toml — pre-existing issue, out of scope
 - **Dependencies affected**: None
 - **Rollback plan**: Remove @limiter.limit decorators from auth.py
+
+### T-090: PII Encryption — Email + Phone Fields
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: NFR-SEC-01, UU PDP No. 27/2022
+- **Files changed**:
+  - `backend/app/services/encryption.py` — Added hash_pii() for blind index
+  - `backend/app/models/user.py` — email → EncryptedString + email_hash column
+  - `backend/app/models/guardian.py` — email, phone_whatsapp → EncryptedString + phone_hash column
+  - `backend/app/models/registration.py` — email, phone_whatsapp → EncryptedString
+  - `backend/app/routers/auth.py` — Queries use blind index (email_hash, phone_hash)
+  - `backend/app/services/admin_mgmt.py` — Email lookup via email_hash
+  - `backend/app/routers/registrations.py` — User/Guardian creation includes hashes
+  - `backend/scripts/migrate_pii_encryption.py` — Migration: ALTER columns, encrypt existing data
+- **Test results**:
+  - [x] TC1: Register → email encrypted in DB: PASS
+  - [x] TC2: Duplicate email → 409 via blind index: PASS
+  - [x] TC3: Profile update duplicate email → 409: PASS
+  - [x] TC4: Profile update new email → 200 + encrypted: PASS
+  - [x] TC5: Direct DB query → encrypted blob, not plaintext: PASS
+- **Security findings**: None
+- **Performance**:
+  - SHA-256 hash: O(1) computation
+  - Unique index on email_hash/phone_hash: O(log n) lookup
+  - No additional DB queries per request
+- **Notes**:
+  - Blind index pattern: hash(value) → store hash + encrypted value → lookup by hash
+  - EncryptedString auto-encrypt/decrypt transparently via SQLAlchemy TypeDecorator
+  - Legacy unencrypted data handled by process_result_value fallback
+- **Dependencies affected**: None
+- **Rollback plan**: Revert model changes + migration (keep data, remove hash columns)

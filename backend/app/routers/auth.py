@@ -29,6 +29,7 @@ from app.services.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 from app.services.audit import log_auth_event
+from app.services.encryption import hash_pii
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -138,29 +139,29 @@ async def register(body: RegisterRequest, request: Request, db: AsyncSession = D
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username sudah digunakan")
 
-    # Check email uniqueness
-    existing = await db.execute(select(User).where(User.email == body.email))
+    # Check email uniqueness (blind index)
+    existing = await db.execute(select(User).where(User.email_hash == hash_pii(body.email)))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email sudah terdaftar")
 
-    # Check phone uniqueness
+    # Check phone uniqueness (blind index)
     from app.services.whatsapp import normalize_phone
     from app.models.guardian import Guardian
     normalized_phone = normalize_phone(body.phone)
     existing_phone = await db.execute(
-        select(Guardian).where(Guardian.phone_whatsapp == normalized_phone)
+        select(Guardian).where(Guardian.phone_hash == hash_pii(normalized_phone))
     )
     if existing_phone.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Nomor WhatsApp sudah terdaftar")
 
     # Create user
     pw_hash = hash_password(body.password)
-    user = User(username=body.username, email=body.email, password_hash=pw_hash, role="guardian", is_active=True)
+    user = User(username=body.username, email=body.email, email_hash=hash_pii(body.email), password_hash=pw_hash, role="guardian", is_active=True)
     db.add(user)
     await db.flush()
 
     # Create guardian profile
-    guardian = Guardian(id_user=user.id_user, full_name=body.full_name, phone_whatsapp=normalized_phone, email=body.email, address=body.address, account_status="active")
+    guardian = Guardian(id_user=user.id_user, full_name=body.full_name, phone_whatsapp=normalized_phone, phone_hash=hash_pii(normalized_phone), email=body.email, address=body.address, account_status="active")
     db.add(guardian)
     await log_auth_event(db, action="REGISTER", user_id=user.id_user, details=f"New guardian registered: {user.username}", request=request)
     await db.commit()
@@ -207,14 +208,15 @@ async def update_my_profile(
     db: AsyncSession = Depends(get_db),
 ):
     """Update profile (name, email, phone)."""
-    # Update email on user table
+    # Update email on user table (blind index)
     if body.email is not None:
         existing = await db.execute(
-            select(User).where(User.email == body.email, User.id_user != user.id_user)
+            select(User).where(User.email_hash == hash_pii(body.email), User.id_user != user.id_user)
         )
         if existing.scalar_one_or_none():
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email sudah digunakan")
         user.email = body.email
+        user.email_hash = hash_pii(body.email)
 
     # Update role-specific profile
     if user.role == "guardian":
@@ -228,11 +230,12 @@ async def update_my_profile(
             if body.phone is not None:
                 normalized = normalize_phone(body.phone)
                 existing_phone = await db.execute(
-                    select(Guardian).where(Guardian.phone_whatsapp == normalized, Guardian.id_guardian != g.id_guardian)
+                    select(Guardian).where(Guardian.phone_hash == hash_pii(normalized), Guardian.id_guardian != g.id_guardian)
                 )
                 if existing_phone.scalar_one_or_none():
                     raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Nomor WhatsApp sudah digunakan")
                 g.phone_whatsapp = normalized
+                g.phone_hash = hash_pii(normalized)
 
     await db.commit()
     return {"detail": "Profil berhasil diperbarui"}

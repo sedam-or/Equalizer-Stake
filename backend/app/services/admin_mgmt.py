@@ -8,6 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.services.auth import hash_password
+from app.services.encryption import hash_pii
+import secrets
+import string
+from datetime import timedelta
+
+
+def generate_temp_password(length: int = 8) -> str:
+    """Generate alphanumeric temporary password."""
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 
 async def list_admins(db: AsyncSession) -> list[User]:
@@ -24,9 +34,11 @@ async def create_admin(
     db: AsyncSession,
     username: str,
     email: str,
-    password: str,
-) -> User:
-    """Create new admin account. Raises ValueError on duplicate."""
+) -> tuple[User, str]:
+    """Create new admin with auto-generated temp password.
+
+    Returns (user, temp_password_plain).
+    """
     # Check duplicate username
     existing = await db.execute(
         select(User).where(User.username == username)
@@ -34,23 +46,60 @@ async def create_admin(
     if existing.scalar_one_or_none():
         raise ValueError("Username sudah digunakan")
 
-    # Check duplicate email
+    # Check duplicate email (blind index)
     existing_email = await db.execute(
-        select(User).where(User.email == email)
+        select(User).where(User.email_hash == hash_pii(email))
     )
     if existing_email.scalar_one_or_none():
         raise ValueError("Email sudah digunakan")
 
+    temp_pw = generate_temp_password()
+    now = datetime.now(timezone.utc)
     admin = User(
         username=username,
         email=email,
-        password_hash=hash_password(password),
+        email_hash=hash_pii(email),
+        password_hash=hash_password(temp_pw),
         role="admin",
         is_active=True,
+        first_login=True,
+        is_temp_password=True,
+        password_expires_at=now + timedelta(days=7),
     )
     db.add(admin)
     await db.flush()
-    return admin
+    return admin, temp_pw
+
+
+async def resend_onboarding(
+    db: AsyncSession, admin_id: UUID
+) -> tuple[User, str] | None:
+    """Regenerate temp password for admin if expired. Returns (user, new_temp_pw) or None."""
+    result = await db.execute(
+        select(User).where(
+            User.id_user == admin_id,
+            User.role == "admin",
+            User.deleted_at.is_(None),
+        )
+    )
+    admin = result.scalar_one_or_none()
+    if not admin:
+        return None
+
+    now = datetime.now(timezone.utc)
+
+    # Only allow resend if temp password expired or user never logged in
+    if admin.password_expires_at and admin.password_expires_at > now and not admin.first_login:
+        raise ValueError("Password sementara masih berlaku. Tidak perlu dikirim ulang.")
+
+    temp_pw = generate_temp_password()
+    admin.password_hash = hash_password(temp_pw)
+    admin.first_login = True
+    admin.is_temp_password = True
+    admin.password_expires_at = now + timedelta(days=7)
+    admin.updated_at = now
+    await db.flush()
+    return admin, temp_pw
 
 
 async def deactivate_admin(db: AsyncSession, admin_id: UUID) -> User | None:

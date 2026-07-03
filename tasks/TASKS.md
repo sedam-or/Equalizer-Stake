@@ -955,7 +955,7 @@
 | Phase 14: Fitur Baru | T-071..T-077 | ⏳ 0/7 |
 | Phase 15: Critical Fixes | T-078..T-085 | ✅ 8/8 |
 | Phase 16: Pagination | T-086..T-088 | ✅ 3/3 |
-| Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ⏳ 1/12 |
+| Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ⏳ 2/12 |
 | Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 0/14 |
 | Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
 | **Total** | **101 tasks** | **56/101 done** |
@@ -1118,7 +1118,7 @@
 - **Deps**: T-086 ✅
 
 ### T-090: PII Encryption — Email + Phone Fields
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **FR/UC terkait**: NFR-SEC-01, UU PDP No. 27/2022
 - **Deskripsi**:
