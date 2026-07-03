@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Geist } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const inter = Inter({ subsets: ["latin"] });
+
+// Plus Jakarta Sans — Heading font (loaded from Google Fonts via CSS)
+// JetBrains Mono — Mono font (loaded from Google Fonts via CSS)
 
 export const viewport: Viewport = {
   width: "device-width",
