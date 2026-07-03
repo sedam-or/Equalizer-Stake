@@ -1096,3 +1096,24 @@
   - Backup dir: /home/kepolu/bmdmusic/backups/
 - **Dependencies affected**: None
 - **Rollback plan**: Remove scheduler job + delete backup function
+
+### T-099: DR Plan — RTO ≤2h, RPO ≤1h
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: NFR-REL-05, NFR-REL-06
+- **Files changed**:
+  - `docs/DR_PLAN.md` — DR plan document with restore procedures
+  - `backend/scripts/restore_backup.py` — Database restore script
+  - `backend/scripts/verify_restore.py` — Post-restore integrity check
+- **Test results**:
+  - [x] TC1: DR plan document exists with procedures: PASS
+  - [x] TC2: verify_restore — 13 tables, FK constraints, no NULLs: PASS
+  - [x] TC3: RTO/RPO targets documented with gaps identified: PASS
+- **Security findings**: None
+- **Performance**: N/A (documentation + scripts)
+- **Notes**:
+  - RTO: ~30 min local restore, 2h full rebuild ✅
+  - RPO: Current 24h (daily backup), needs WAL archiving for true ≤1h
+  - Known gap: offsite backup (T-116), WAL archiving not implemented
+- **Dependencies affected**: T-098 (backup) ✅
+- **Rollback plan**: Remove DR_PLAN.md + restore/verify scripts

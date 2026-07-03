@@ -955,7 +955,7 @@
 | Phase 14: Fitur Baru | T-071..T-077 | ⏳ 0/7 |
 | Phase 15: Critical Fixes | T-078..T-085 | ✅ 8/8 |
 | Phase 16: Pagination | T-086..T-088 | ✅ 3/3 |
-| Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ⏳ 10/12 |
+| Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ⏳ 11/12 |
 | Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 0/14 |
 | Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
@@ -1223,7 +1223,7 @@
 - **Deps**: none
 
 ### T-099: DR Plan — RTO ≤2h, RPO ≤1h
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **FR/UC terkait**: NFR-REL-05, NFR-REL-06
 - **Deskripsi**:
