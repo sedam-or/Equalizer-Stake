@@ -956,10 +956,10 @@
 | Phase 15: Critical Fixes | T-078..T-085 | ✅ 8/8 |
 | Phase 16: Pagination | T-086..T-088 | ✅ 3/3 |
 | Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ✅ 12/12 |
-| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 6/14 |
+| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 7/14 |
 | Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
-| **Total** | **104 tasks** | **74/104 done** |
+| **Total** | **104 tasks** | **75/104 done** |
 
 ---
 
@@ -1326,7 +1326,7 @@
 - **Deps**: T-086 ✅
 
 ### T-107: Teacher Attendance List (GET /api/my/attendance)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-04
 - **Deskripsi**:

@@ -1263,3 +1263,24 @@
   - Returns: id, name, instrument, level, status, eligible_for_exam
 - **Dependencies affected**: None
 - **Rollback plan**: Revert my_portal.py changes
+
+### T-107: Teacher Attendance List (GET /api/my/attendance)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-04
+- **Files changed**:
+  - `backend/app/routers/my_portal.py` — Added GET /api/my/attendance endpoint
+- **Test results**:
+  - [x] TC1: GET /api/my/attendance → all attendance (3): PASS
+  - [x] TC2: GET /api/my/attendance?instrument=gitar → filtered (0): PASS
+  - [x] TC3: GET /api/my/attendance?status=verified → filtered (3): PASS
+  - [x] TC4: Non-teacher → empty (0): PASS
+- **Security findings**: None
+- **Performance**: JOIN attendance → session (1 query)
+- **Notes**:
+  - Filter by instrument via student join
+  - Filter by verification status
+  - Pagination: {data, total, limit, offset}
+  - Returns: id, session, gps, face_valid, status, created_at
+- **Dependencies affected**: None
+- **Rollback plan**: Revert my_portal.py changes

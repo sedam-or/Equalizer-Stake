@@ -270,3 +270,77 @@ async def my_students(
         "limit": limit,
         "offset": offset,
     }
+
+
+@router.get("/attendance")
+async def my_attendance(
+    instrument: str | None = Query(None),
+    status_filter: str | None = Query(None, alias="status"),
+    limit: int = Query(20, le=100),
+    offset: int = Query(0, ge=0),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List attendance records for this teacher.
+    Teacher mode only. Filter by ?instrument=piano (optional).
+    """
+    from app.models.teacher import Teacher
+    from app.models.student import Student
+    from app.models.session import Session
+    from app.models.attendance import Attendance
+
+    if user.role != "teacher":
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+
+    result = await db.execute(select(Teacher).where(Teacher.id_user == user.id_user))
+    teacher = result.scalar_one_or_none()
+    if not teacher:
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+
+    # Build base query: attendance → session (teacher's sessions)
+    base = (
+        select(Attendance)
+        .join(Session, Attendance.id_session == Session.id_session)
+        .where(Session.id_teacher == teacher.id_teacher)
+    )
+
+    # Filter by instrument via student
+    if instrument:
+        instrument_students = await db.execute(
+            select(Student.id_student).where(
+                Student.instrument == instrument, Student.deleted_at.is_(None)
+            )
+        )
+        instrument_ids = [row[0] for row in instrument_students.fetchall()]
+        if not instrument_ids:
+            return {"data": [], "total": 0, "limit": limit, "offset": offset}
+        base = base.where(Attendance.id_session.in_(
+            select(Session.id_session).where(Session.id_student.in_(instrument_ids))
+        ))
+
+    # Filter by verification status
+    if status_filter:
+        base = base.where(Attendance.verification_status == status_filter)
+
+    count_q = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_q.scalar()
+    q = await db.execute(base.order_by(Attendance.created_at.desc()).offset(offset).limit(limit))
+    records = q.scalars().all()
+
+    return {
+        "data": [
+            {
+                "id_attendance": str(a.id_attendance),
+                "id_session": str(a.id_session),
+                "gps_lat": float(a.gps_lat),
+                "gps_lng": float(a.gps_lng),
+                "face_valid": a.face_valid,
+                "verification_status": a.verification_status,
+                "created_at": a.created_at.isoformat() if a.created_at else None,
+            }
+            for a in records
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
