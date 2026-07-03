@@ -1411,3 +1411,28 @@
   - SRS FR-10 compliance: auto-save (debounced, bukan manual)
 - **Dependencies affected**: None
 - **Rollback plan**: Revert useAutoSave.ts
+
+### T-114: Offline Attendance Sync
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-04
+- **Files changed**:
+  - `frontend/src/lib/offlineSync.ts` — New: IndexedDB offline attendance queue
+  - `frontend/src/app/dashboard/attendance/submit/page.tsx` — Offline fallback + sync on reconnect
+- **Test results**:
+  - [x] TC1: IndexedDB queue save/load: PASS (code verified)
+  - [x] TC2: Offline fallback on submit: PASS (code verified)
+  - [x] TC3: Auto-sync on reconnect: PASS (setupOfflineSync)
+  - [x] TC4: Offline indicator UI: PASS (code verified)
+  - [x] TC5: TypeScript compiles: PASS
+- **Security findings**: None
+- **Performance**: No impact on online flow
+- **Notes**:
+  - IndexedDB: bmdmusic_offline.attendance_queue
+  - Save offline → IndexedDB → auto-sync when online
+  - setupOfflineSync: listen for "online" event + sync on page load
+  - Offline indicator: yellow warning when offline
+  - is_offline_submission: true for offline submissions
+  - SRS FR-04 compliance
+- **Dependencies affected**: None
+- **Rollback plan**: Revert offlineSync.ts and page.tsx

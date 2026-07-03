@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { saveOfflineAttendance, setupOfflineSync, isOnline } from "@/lib/offlineSync";
 
 interface Session {
   id_session: string;
@@ -25,6 +26,16 @@ export default function AttendanceSubmitPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [offlineCount, setOfflineCount] = useState(0);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) { router.push("/login"); return; }
+
+    // Setup offline sync
+    const cleanup = setupOfflineSync(token);
+    return cleanup;
+  }, [router]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -79,20 +90,39 @@ export default function AttendanceSubmitPage() {
     setSubmitting(true); setError(""); setSuccess("");
     const token = localStorage.getItem("token");
 
+    const attendanceData = {
+      id_session: selectedSession,
+      photo_base64: photo,
+      gps_lat: gps.lat,
+      gps_lng: gps.lng,
+      face_valid: true,
+      face_confidence: 0.85,
+      client_timestamp: new Date().toISOString(),
+      is_offline_submission: false,
+    };
+
+    // If offline, save to IndexedDB
+    if (!isOnline()) {
+      try {
+        await saveOfflineAttendance(attendanceData);
+        setSuccess("Absensi disimpan offline. Akan dikirim saat online.");
+        setPhoto(null);
+        setSelectedSession("");
+        setOfflineCount(c => c + 1);
+      } catch {
+        setError("Gagal menyimpan offline");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
+    // Online: send to server
     try {
       const res = await fetch("/api/attendance/", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `${B} ${token}` },
-        body: JSON.stringify({
-          id_session: selectedSession,
-          photo_base64: photo,
-          gps_lat: gps.lat,
-          gps_lng: gps.lng,
-          face_valid: true,
-          face_confidence: 0.85,
-          client_timestamp: new Date().toISOString(),
-          is_offline_submission: false,
-        }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(attendanceData),
       });
       if (!res.ok) {
         const d = await res.json();
@@ -103,7 +133,16 @@ export default function AttendanceSubmitPage() {
       setPhoto(null);
       setSelectedSession("");
     } catch {
-      setError("Gagal terhubung ke server");
+      // Offline fallback: save to IndexedDB
+      try {
+        await saveOfflineAttendance(attendanceData);
+        setSuccess("Gagal kirim, disimpan offline. Akan dikirim saat online.");
+        setPhoto(null);
+        setSelectedSession("");
+        setOfflineCount(c => c + 1);
+      } catch {
+        setError("Gagal menyimpan offline");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -127,6 +166,13 @@ export default function AttendanceSubmitPage() {
     <div className="min-h-screen bg-black p-6">
       <h1 className="text-2xl font-bold text-[#EEEEEE]">Absensi Hari Ini</h1>
       <p className="mt-1 text-sm text-gray-400">Submit kehadiran dengan foto + GPS</p>
+
+      {/* Offline indicator */}
+      {!isOnline() && (
+        <div className="mt-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 p-3 text-sm text-yellow-400">
+          ⚠ Mode offline — absensi akan disimpan dan dikirim saat online
+        </div>
+      )}
 
       {error && <div className="mt-3 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-400">{error}</div>}
       {success && <div className="mt-3 rounded-lg bg-[#08CB00]/10 border border-[#08CB00]/30 p-3 text-sm text-[#08CB00]">{success}</div>}
