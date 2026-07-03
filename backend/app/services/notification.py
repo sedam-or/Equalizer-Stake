@@ -1,7 +1,8 @@
-"""Notification service — multi-channel with retry, circuit breaker, fallback."""
+"""Notification service — multi-channel with retry, circuit breaker, fallback, grouping, audit."""
 
 import asyncio
 from datetime import datetime, timezone
+from collections import defaultdict
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -67,6 +68,59 @@ def get_channel_priority(category: str) -> list[str]:
         return ["whatsapp", "email"]  # WhatsApp primary for non-critical
 
 
+async def _log_notification_audit(
+    db: AsyncSession,
+    notification: Notification,
+    action: str,
+    changed_by: UUID | None = None,
+):
+    """Create audit log entry for notification send."""
+    from app.services.audit import create_audit_log
+    await create_audit_log(
+        db,
+        table_name="notifications",
+        record_id=notification.id_notification,
+        action=action,
+        changed_by=changed_by or notification.recipient_id,
+        after_state={
+            "channel": notification.channel,
+            "category": notification.category,
+            "status": notification.status,
+            "retry_count": notification.retry_count,
+            "error_message": notification.error_message,
+        },
+    )
+
+
+async def _alert_admin_critical_failure(db: AsyncSession, notification: Notification):
+    """Alert admin when critical notification fails on all channels (CRITICAL_FAILURE)."""
+    notification.status = "failed"
+    notification.error_message = (
+        f"CRITICAL_FAILURE: Gagal mengirim notifikasi kritis via semua channel. "
+        f"Recipient: {notification.recipient_id}"
+    )
+    await db.commit()
+
+    # Create admin notification for critical failure
+    from app.services.settings import get_setting
+    admin_alert = Notification(
+        recipient_id=notification.recipient_id,  # Will be overridden below if admin found
+        channel="email",
+        category="critical",
+        subject="PERINGATAN: Notifikasi Kritis Gagal",
+        body=(
+            f"Notifikasi kritis gagal dikirim ke semua channel.\n"
+            f"Notification ID: {notification.id_notification}\n"
+            f"Penerima: {notification.recipient_id}\n"
+            f"Error: {notification.error_message}"
+        ),
+        status="pending",
+    )
+    db.add(admin_alert)
+    await db.commit()
+    await _log_notification_audit(db, admin_alert, "CRITICAL_FAILURE_ALERT")
+
+
 async def create_notification(
     db: AsyncSession,
     recipient_id: UUID,
@@ -117,8 +171,9 @@ async def send_notification(
         alt_channel = next((c for c in channels if c != channel and not is_circuit_breaker_open(c)), None)
         if alt_channel:
             notification.channel = alt_channel
-            notification.status = "retrying"
+            notification.status = "fallback"
             await db.commit()
+            await _log_notification_audit(db, notification, "FALLBACK")
             return await send_notification(db, notification_id)
         return False
 
@@ -172,6 +227,7 @@ async def send_notification(
                 notification.retry_count = attempt
                 await db.commit()
                 _circuit_breaker_state[channel]["failures"] = 0
+                await _log_notification_audit(db, notification, "SENT")
                 return True
 
         except Exception:
@@ -186,18 +242,52 @@ async def send_notification(
     notification.error_message = f"Gagal mengirim via {channel} setelah {MAX_RETRIES} percobaan"
     await db.commit()
     record_circuit_breaker_failure(channel)
+    await _log_notification_audit(db, notification, "FAILED")
 
     # Fallback to alternative channel
     channels = get_channel_priority(category)
     alt_channel = next((c for c in channels if c != channel and not is_circuit_breaker_open(c)), None)
     if alt_channel:
         notification.channel = alt_channel
-        notification.status = "retrying"
+        notification.status = "fallback"
         notification.retry_count = 0
         await db.commit()
+        await _log_notification_audit(db, notification, "FALLBACK")
         return await send_notification(db, notification_id)
 
+    # No fallback available
+    if category == "critical":
+        await _alert_admin_critical_failure(db, notification)
+
     return False
+
+
+async def group_notification_by_guardian(
+    db: AsyncSession,
+    guardian_id: UUID,
+    channel: str,
+    category: str,
+    students: list[dict],
+    message_template: str,
+    subject: str | None = None,
+) -> Notification:
+    """Group notifications for a guardian with N students into single message.
+    
+    students: list of dicts with 'name' and any other fields needed by template.
+    message_template: format string with {student_names} placeholder.
+    """
+    student_names = ", ".join(s["name"] for s in students)
+    body = message_template.format(student_names=student_names)
+
+    notification = await create_notification(
+        db=db,
+        recipient_id=guardian_id,
+        channel=channel,
+        category=category,
+        body=body,
+        subject=subject,
+    )
+    return notification
 
 
 async def get_notifications(

@@ -4,15 +4,16 @@ import math
 from datetime import datetime, timezone, timedelta
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.attendance import Attendance
 from app.models.session import Session
+from app.models.teacher import Teacher
 
 # GPS constants
-STUDIO_LAT = -7.7265
-STUDIO_LNG = 110.4162
+STUDIO_LAT = -7.737428
+STUDIO_LNG = 110.429669
 GPS_RADIUS_M = 150
 GPS_TOLERANCE_M = 15  # jitter compensation
 
@@ -69,8 +70,20 @@ async def submit_attendance(
     if not session:
         raise ValueError("Sesi tidak ditemukan")
 
-    # Validate GPS
+    # Session ownership: verify teacher owns this session
+    ownership_q = (
+        select(Session)
+        .join(Teacher, Session.id_teacher == Teacher.id_teacher)
+        .where(and_(Session.id_session == id_session, Teacher.id_user == teacher_id))
+    )
+    ownership_result = await db.execute(ownership_q)
+    if ownership_result.scalar_one_or_none() is None:
+        raise ValueError("Guru bukan pemilik sesi ini")
+
+    # Validate GPS — reject if outside 150m
     gps_valid, gps_distance = validate_gps(gps_lat, gps_lng)
+    if not gps_valid:
+        raise ValueError(f"Anda di luar jangkauan studio ({gps_distance:.0f}m). Maksimal 150m dari studio.")
 
     # Validate server timestamp
     time_valid = validate_server_timestamp(client_timestamp, session.session_date, session.start_time)

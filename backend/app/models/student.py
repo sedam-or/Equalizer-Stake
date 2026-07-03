@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.services.encryption import EncryptedString
 
 
 class Student(Base):
@@ -17,7 +18,7 @@ class Student(Base):
 
     id_student: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     id_guardian: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("guardians.id_guardian"), nullable=False)
-    full_name: Mapped[str] = mapped_column(Text, nullable=False)  # KRITIS: AES-256-GCM
+    full_name: Mapped[str] = mapped_column(EncryptedString(500), nullable=False)  # AES-256-GCM
     date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
     instrument: Mapped[str] = mapped_column(
         Enum("biola", "piano", "gitar", "drum", "keyboard", "flute", "saxophone", "vokal", "ensemble", name="instrument_type"),

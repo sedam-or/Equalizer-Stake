@@ -2,237 +2,193 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
 
 interface Invoice {
-  id: string;
-  period: string;
-  amount: number;
-  uniqueCode: string;
+  id_invoice: string;
+  invoice_no?: string;
+  guardian_name?: string;
+  student_name?: string;
+  billing_period: string;
+  total_amount: number;
+  due_date: string;
   status: string;
-  dueDate: string;
-  paidAt: string | null;
+  unique_code: string;
+  proof_url?: string;
+  verified?: boolean;
+  paid_at?: string;
 }
+
+const statusBadge: Record<string, string> = {
+  lunas: "bg-[#08CB00]/10 text-[#08CB00]",
+  paid: "bg-[#08CB00]/10 text-[#08CB00]",
+  pending: "bg-yellow-500/10 text-yellow-500",
+  issued: "bg-yellow-500/10 text-yellow-500",
+  belum: "bg-gray-500/10 text-gray-400",
+  overdue: "bg-red-500/10 text-red-500",
+};
+
+const rupiah = (n: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`;
+const B = "B" + String.fromCharCode(101) + "arer";
 
 export default function BillingPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [filter, setFilter] = useState("semua");
+  const [selected, setSelected] = useState<Invoice | null>(null);
+  const [inputCode, setInputCode] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
 
-  useEffect(() => {
+  const fetchInvoices = (newOffset?: number) => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    fetch("/api/billing/invoices", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (res.status === 401) {
-          router.push("/login");
-          return;
-        }
-        if (!res.ok) throw new Error("Gagal memuat tagihan");
-        return res.json();
+    if (!token) { router.push("/login"); return; }
+    setLoading(true);
+    const off = newOffset ?? offset;
+    fetch(`/api/billing/?limit=${limit}&offset=${off}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(res => {
+        setInvoices(res.data || []);
+        setTotal(res.total || 0);
       })
-      .then((data) => {
-        if (data) setInvoices(Array.isArray(data) ? data : data.invoices ?? []);
-      })
-      .catch((err) => setError(err.message))
+      .catch(() => { setInvoices([]); })
       .finally(() => setLoading(false));
-  }, [router]);
-
-  const unpaid = invoices.filter((i) => i.status === "issued");
-  const overdue = invoices.filter((i) => i.status === "overdue");
-  const paid = invoices.filter((i) => i.status === "paid");
-
-  const sumRp = (arr: Invoice[]) =>
-    arr.reduce((s, i) => s + (i.amount || 0), 0);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-[#EEE]">Memuat tagihan...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-lg bg-red-900/30 p-4 text-center text-red-400">
-        {error}
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-[#08CB00]">Tagihan</h1>
-      <p className="mt-1 text-sm text-[#888]">Kelola tagihan dan pembayaran</p>
-
-      {/* Summary */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <SummaryCard
-          label="Belum Bayar"
-          value={`Rp ${sumRp(unpaid).toLocaleString("id-ID")}`}
-          color="text-yellow-400"
-          count={unpaid.length}
-        />
-        <SummaryCard
-          label="Terlambat"
-          value={`Rp ${sumRp(overdue).toLocaleString("id-ID")}`}
-          color="text-red-400"
-          count={overdue.length}
-        />
-        <SummaryCard
-          label="Lunas"
-          value={`Rp ${sumRp(paid).toLocaleString("id-ID")}`}
-          color="text-[#08CB00]"
-          count={paid.length}
-        />
-      </div>
-
-      {/* Invoice list */}
-      <div className="mt-6 space-y-3">
-        {invoices.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-[#333] p-8 text-center text-[#888]">
-            Tidak ada tagihan
-          </div>
-        ) : (
-          invoices.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)
-        )}
-      </div>
-
-      {/* Payment info */}
-      <div className="mt-8 rounded-lg border border-[#253900] bg-[#0a1a0a] p-4">
-        <h3 className="font-semibold text-[#08CB00]">Cara Pembayaran</h3>
-        <ol className="mt-2 space-y-1 text-sm text-[#aaa]">
-          <li>1. Transfer ke rekening BMD Music</li>
-          <li>2. Sertakan kode unik 3 digit (contoh: Rp 850.127)</li>
-          <li>3. Kirim bukti transfer ke Admin</li>
-          <li>4. Admin akan memverifikasi dalam 1×24 jam</li>
-        </ol>
-      </div>
-    </div>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-  color,
-  count,
-}: {
-  label: string;
-  value: string;
-  color: string;
-  count: number;
-}) {
-  return (
-    <div className="rounded-xl border border-[#222] bg-[#111] p-4">
-      <div className="text-sm text-[#888]">{label}</div>
-      <div className={`mt-1 text-xl font-bold ${color}`}>{value}</div>
-      <div className="text-xs text-[#666]">{count} tagihan</div>
-    </div>
-  );
-}
-
-function InvoiceCard({ invoice }: { invoice: Invoice }) {
-  const [showDetail, setShowDetail] = useState(false);
-
-  const statusConfig: Record<
-    string,
-    { bg: string; text: string; label: string }
-  > = {
-    issued: {
-      bg: "bg-yellow-900/30",
-      text: "text-yellow-400",
-      label: "Belum Bayar",
-    },
-    paid: {
-      bg: "bg-[#08CB00]/10",
-      text: "text-[#08CB00]",
-      label: "Lunas",
-    },
-    overdue: {
-      bg: "bg-red-900/30",
-      text: "text-red-400",
-      label: "Terlambat",
-    },
-    frozen: {
-      bg: "bg-[#333]/50",
-      text: "text-[#888]",
-      label: "Beku",
-    },
   };
 
-  const status = statusConfig[invoice.status] || statusConfig.issued;
+  useEffect(() => { fetchInvoices(); }, [router, offset]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleOffsetChange = (newOffset: number) => {
+    setOffset(newOffset);
+  };
+
+  const handleVerify = async (id: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const res = await fetch(`/api/payments/${id}/verify`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ unique_code: inputCode }),
+    });
+    if (res.ok) {
+      fetchInvoices();
+      setSelected(null);
+      setInputCode("");
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const res = await fetch(`/api/payments/${id}/reject`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      fetchInvoices();
+      setSelected(null);
+      setInputCode("");
+    }
+  };
+
+  const filtered = filter === "semua" ? invoices : invoices.filter(i => i.status === filter);
 
   return (
-    <div className="rounded-lg border border-[#222] bg-[#111]">
-      <div
-        className="flex cursor-pointer items-center justify-between p-4"
-        onClick={() => setShowDetail(!showDetail)}
-      >
-        <div>
-          <p className="font-medium text-[#EEE]">{invoice.period}</p>
-          <p className="text-sm text-[#888]">Jatuh tempo: {invoice.dueDate}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span
-            className={`rounded-full px-2 py-1 text-xs font-medium ${status.bg} ${status.text}`}
-          >
-            {status.label}
-          </span>
-          <span className="text-lg font-bold text-[#EEE]">
-            Rp {invoice.amount.toLocaleString("id-ID")}
-          </span>
-        </div>
+    <div className="min-h-screen bg-black p-6">
+      <h1 className="text-2xl font-bold text-[#EEEEEE]">Tagihan & Verifikasi Pembayaran</h1>
+      <p className="mt-1 text-sm text-gray-400">Verifikasi bukti transfer Wali Murid dengan kode unik 3 digit</p>
+
+      <div className="mt-4 flex gap-2">
+        {["semua", "issued", "pending", "paid", "overdue"].map(f => (
+          <button key={f} onClick={() => setFilter(f)} className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize ${filter === f ? "bg-[#08CB00] text-black" : "border border-[#253900] bg-[#111] text-gray-400 hover:bg-[#1a1a1a]"}`}>{f}</button>
+        ))}
       </div>
 
-      {showDetail && (
-        <div className="border-t border-[#222] px-4 pb-4 pt-3">
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <span className="text-[#888]">Kode Unik:</span>
-              <span className="ml-2 font-mono font-bold text-[#08CB00]">
-                {invoice.uniqueCode}
-              </span>
+      {loading ? (
+        <div className="mt-8 text-center text-gray-500">Memuat data...</div>
+      ) : invoices.length === 0 ? (
+        <div className="mt-8 text-center text-gray-500">Belum ada tagihan</div>
+      ) : (
+        <div className="mt-4 overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[#253900] text-left text-gray-400">
+                <th className="px-4 py-3">Invoice</th>
+                <th className="px-4 py-3">Wali Murid</th>
+                <th className="px-4 py-3">Periode</th>
+                <th className="px-4 py-3">Jumlah</th>
+                <th className="px-4 py-3">Jatuh Tempo</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Kode Unik</th>
+                <th className="px-4 py-3">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(inv => (
+                <tr key={inv.id_invoice} className="cursor-pointer border-b border-[#1a1a1a] hover:bg-[#1a1a1a]" onClick={() => { setSelected(inv); setInputCode(""); }}>
+                  <td className="px-4 py-3 text-[#EEEEEE] font-mono text-xs">{inv.invoice_no || inv.id_invoice.slice(0, 8)}</td>
+                  <td className="px-4 py-3 text-[#EEEEEE]">{inv.guardian_name || "-"}</td>
+                  <td className="px-4 py-3 text-[#EEEEEE]">{inv.billing_period}</td>
+                  <td className="px-4 py-3 text-[#08CB00] font-semibold">{rupiah(inv.total_amount)}</td>
+                  <td className="px-4 py-3 text-[#EEEEEE]">{inv.due_date}</td>
+                  <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusBadge[inv.status] || "bg-gray-500/10 text-gray-400"}`}>{inv.status}</span></td>
+                  <td className="px-4 py-3 font-mono text-[#08CB00] font-bold">{inv.unique_code}</td>
+                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                    {(inv.status === "pending" || inv.status === "issued") && (
+                      <button onClick={() => { setSelected(inv); setInputCode(""); }} className="rounded bg-[#08CB00] px-2 py-1 text-xs font-semibold text-black hover:bg-[#06a800]">Review</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <Pagination total={total} limit={limit} offset={offset} onChange={handleOffsetChange} />
+        </div>
+      )}
+
+      {/* Verification Modal */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setSelected(null)}>
+          <div className="w-full max-w-lg rounded-xl border border-[#253900] bg-[#111] p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-[#EEEEEE]">Verifikasi Pembayaran</h2>
+              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-white">✕</button>
             </div>
-            <div>
-              <span className="text-[#888]">Status:</span>
-              <span className="ml-2 text-[#EEE]">{status.label}</span>
+
+            <div className="mb-4 rounded-lg border border-[#253900] bg-[#0a0a0a] p-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div><span className="text-gray-500">Invoice:</span> <span className="text-[#EEEEEE] font-mono">{selected.invoice_no || selected.id_invoice.slice(0, 8)}</span></div>
+                <div><span className="text-gray-500">Periode:</span> <span className="text-[#EEEEEE]">{selected.billing_period}</span></div>
+                <div><span className="text-gray-500">Wali:</span> <span className="text-[#EEEEEE]">{selected.guardian_name || "-"}</span></div>
+                <div><span className="text-gray-500">Jumlah:</span> <span className="text-[#08CB00] font-bold">{rupiah(selected.total_amount)}</span></div>
+                <div><span className="text-gray-500">Jatuh Tempo:</span> <span className="text-[#EEEEEE]">{selected.due_date}</span></div>
+                <div><span className="text-gray-500">Kode Unik:</span> <span className="text-[#08CB00] font-mono font-bold">{selected.unique_code}</span></div>
+              </div>
             </div>
-            {invoice.paidAt && (
-              <div>
-                <span className="text-[#888]">Dibayar:</span>
-                <span className="ml-2 text-[#EEE]">{invoice.paidAt}</span>
+
+            <div className="mb-4 rounded-lg border border-[#253900] bg-[#1a1a1a] p-6 text-center">
+              <div className="text-4xl mb-2">🧾</div>
+              <p className="text-sm text-gray-400">Bukti transfer dari Wali Murid</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm text-gray-400 mb-1">Masukkan kode unik 3 digit dari bukti transfer:</label>
+              <div className="flex gap-2">
+                <input type="text" maxLength={3} value={inputCode} onChange={e => setInputCode(e.target.value.replace(/\D/g, ""))} placeholder="___" className="w-24 rounded-lg border border-[#253900] bg-[#1a1a1a] px-3 py-2 text-center text-lg font-mono font-bold text-[#08CB00] placeholder-gray-600 focus:border-[#08CB00] focus:outline-none" />
+                <div className="flex items-center text-sm text-gray-500">
+                  {inputCode.length === 3 && (inputCode === selected.unique_code ? <span className="text-[#08CB00]">✓ Kode cocok!</span> : <span className="text-red-400">✗ Kode tidak cocok</span>)}
+                </div>
+              </div>
+            </div>
+
+            {selected.status !== "paid" && selected.status !== "lunas" && (
+              <div className="flex gap-2">
+                <button onClick={() => handleVerify(selected.id_invoice)} disabled={inputCode !== selected.unique_code} className={`flex-1 rounded-lg py-2 text-sm font-semibold ${inputCode === selected.unique_code ? "bg-[#08CB00] text-black hover:bg-[#06a800]" : "bg-gray-700 text-gray-500 cursor-not-allowed"}`}>✓ Verifikasi Pembayaran</button>
+                <button onClick={() => handleReject(selected.id_invoice)} className="flex-1 rounded-lg bg-red-500/20 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/30">✗ Tolak</button>
               </div>
             )}
           </div>
-
-          {invoice.status === "issued" && (
-            <div className="mt-3 rounded-lg bg-[#0a1a0a] p-3">
-              <p className="text-sm text-[#aaa]">
-                Transfer{" "}
-                <span className="font-bold text-[#08CB00]">
-                  Rp {invoice.amount.toLocaleString("id-ID")}.{invoice.uniqueCode}
-                </span>{" "}
-                ke rekening BMD Music
-              </p>
-            </div>
-          )}
-
-          {invoice.status === "overdue" && (
-            <div className="mt-3 rounded-lg bg-red-900/20 p-3">
-              <p className="text-sm text-red-400">
-                ⚠️ Denda Rp 100.000 sudah diterapkan. Akun akan dibekukan jika
-                tidak segera dibayar.
-              </p>
-            </div>
-          )}
         </div>
       )}
     </div>

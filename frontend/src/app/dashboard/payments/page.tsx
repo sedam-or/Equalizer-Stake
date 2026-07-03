@@ -1,159 +1,118 @@
 "use client";
-/**
- * T-042: Payment Verification (Admin)
- * UC-08: Verifikasi Pembayaran Manual
- * - List payments with filters
- * - Verify payment with notes
- */
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
 
 interface Payment {
-  id_payment: string;
-  id_invoice: string;
+  id: number;
+  date: string;
+  invoice: string;
+  student: string;
+  guardian: string;
   amount: number;
   method: string;
-  payment_date: string;
-  is_verified: boolean;
-  verified_at: string | null;
-  notes: string | null;
-  unique_code_used: string;
+  status: "berhasil" | "pending" | "gagal";
 }
 
-const METHOD_LABELS: Record<string, string> = { transfer: "Transfer", cash: "Tunai", dp: "DP" };
+const badge: Record<string, string> = {
+  berhasil: "bg-[#08CB00]/10 text-[#08CB00]",
+  pending: "bg-yellow-500/10 text-yellow-500",
+  gagal: "bg-red-500/10 text-red-500",
+};
+
+const badgeLabel: Record<string, string> = {
+  berhasil: "Berhasil",
+  pending: "Pending",
+  gagal: "Gagal",
+};
+
+const rupiah = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
 
 export default function PaymentsPage() {
   const router = useRouter();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [verifiedFilter, setVerifiedFilter] = useState<string>("");
-  const [verifyModal, setVerifyModal] = useState<string | null>(null);
-  const [verifyNotes, setVerifyNotes] = useState("");
-  const [msg, setMsg] = useState("");
+  const [filter, setFilter] = useState("semua");
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
 
-  const fetchPayments = async () => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) { router.push("/login"); return; }
-    const params = new URLSearchParams({ limit: "200" });
-    if (verifiedFilter === "verified") params.set("verified", "true");
-    if (verifiedFilter === "unverified") params.set("verified", "false");
-    const res = await fetch(`/api/payments?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (res.ok) { const d = await res.json(); setPayments(Array.isArray(d) ? d : []); }
-    setLoading(false);
-  };
+    fetch(`/api/payments/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : { data: [], total: 0 })
+      .then(res => {
+        setPayments(res.data || []);
+        setTotal(res.total || 0);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [router, offset]);
 
-  useEffect(() => { fetchPayments(); }, [verifiedFilter]); // eslint-disable-line
-
-  const handleVerify = async (id: string) => {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`/api/payments/${id}/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ notes: verifyNotes || undefined }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setMsg("Pembayaran berhasil diverifikasi");
-      setVerifyModal(null);
-      setVerifyNotes("");
-      fetchPayments();
-    } else {
-      setMsg(data.detail || "Gagal verifikasi");
-    }
-  };
-
-  const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`;
+  const filtered = filter === "semua" ? payments : payments.filter((p) => p.status === filter);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#000000]">Verifikasi Pembayaran</h1>
-        <p className="text-sm text-gray-500">Kelola verifikasi pembayaran manual (UC-08)</p>
-      </div>
+    <div className="min-h-screen bg-black p-6">
+      <h1 className="text-2xl font-bold text-[#EEEEEE]">Pembayaran</h1>
+      <p className="mt-1 text-sm text-gray-400">Riwayat pembayaran siswa ({filtered.length} data)</p>
 
-      {msg && <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{msg}</div>}
-
-      {/* Filter */}
-      <div className="flex gap-2">
-        {["", "unverified", "verified"].map(v => (
-          <button key={v} onClick={() => setVerifiedFilter(v)}
-            className={`px-3 py-1 rounded-lg text-xs font-medium ${verifiedFilter === v ? "bg-[#08CB00] text-black" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-            {v === "" ? "Semua" : v === "unverified" ? "Belum Diverifikasi" : "Sudah Diverifikasi"}
+      <div className="mt-4 flex gap-2">
+        {["semua", "berhasil", "pending", "gagal"].map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize ${
+              filter === f ? "bg-[#08CB00] text-black" : "border border-[#253900] bg-[#111] text-gray-400 hover:bg-[#1a1a1a]"
+            }`}
+          >
+            {f}
           </button>
         ))}
-        <span className="text-xs text-gray-400 ml-auto self-center">{payments.length} pembayaran</span>
       </div>
 
-      {/* Payment List */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Memuat...</div>
-        ) : payments.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">Tidak ada pembayaran</div>
+          <div className="p-8 text-center text-gray-400">Memuat data pembayaran...</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Tanggal</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Jumlah</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Metode</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Kode Unik</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-600">Aksi</th>
+              <thead>
+                <tr className="border-b border-[#253900] text-left text-gray-400">
+                  <th className="px-4 py-3">No</th>
+                  <th className="px-4 py-3">Tanggal</th>
+                  <th className="px-4 py-3">Invoice</th>
+                  <th className="px-4 py-3">Siswa</th>
+                  <th className="px-4 py-3">Wali</th>
+                  <th className="px-4 py-3">Jumlah</th>
+                  <th className="px-4 py-3">Metode</th>
+                  <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {payments.map(p => (
-                  <tr key={p.id_payment} className="hover:bg-gray-50">
-                    <td className="px-4 py-2.5 text-gray-700">{new Date(p.payment_date).toLocaleDateString("id-ID")}</td>
-                    <td className="px-4 py-2.5 font-medium text-gray-900">{fmtRp(p.amount)}</td>
-                    <td className="px-4 py-2.5 text-gray-600">{METHOD_LABELS[p.method] || p.method}</td>
-                    <td className="px-4 py-2.5 font-mono text-xs text-gray-500">{p.unique_code_used}</td>
-                    <td className="px-4 py-2.5">
-                      {p.is_verified ? (
-                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Terverifikasi</span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">Menunggu</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      {!p.is_verified && (
-                        <button onClick={() => setVerifyModal(p.id_payment)}
-                          className="px-3 py-1 bg-[#08CB00] text-black text-xs font-medium rounded hover:bg-[#06a800]">
-                          Verifikasi
-                        </button>
-                      )}
+              <tbody>
+                {filtered.map((p, idx) => (
+                  <tr key={p.id} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
+                    <td className="px-4 py-3 text-gray-400">{offset + idx + 1}</td>
+                    <td className="px-4 py-3 text-[#EEEEEE]">{p.date}</td>
+                    <td className="px-4 py-3 text-[#EEEEEE]">{p.invoice}</td>
+                    <td className="px-4 py-3 text-[#EEEEEE]">{p.student}</td>
+                    <td className="px-4 py-3 text-gray-400">{p.guardian}</td>
+                    <td className="px-4 py-3 text-[#EEEEEE]">{rupiah(p.amount)}</td>
+                    <td className="px-4 py-3 text-[#EEEEEE]">{p.method}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${badge[p.status]}`}>
+                        {badgeLabel[p.status]}
+                      </span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+            <Pagination total={total} limit={limit} offset={offset} onChange={setOffset} />
+          </>
         )}
       </div>
-
-      {/* Verify Modal */}
-      {verifyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4">
-            <h3 className="font-semibold">Verifikasi Pembayaran</h3>
-            <textarea placeholder="Catatan (opsional)" value={verifyNotes} onChange={e => setVerifyNotes(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" rows={3} />
-            <div className="flex gap-2">
-              <button onClick={() => handleVerify(verifyModal)}
-                className="px-4 py-2 bg-[#08CB00] text-black text-sm font-medium rounded-lg hover:bg-[#06a800]">
-                Konfirmasi
-              </button>
-              <button onClick={() => { setVerifyModal(null); setVerifyNotes(""); }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300">
-                Batal
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

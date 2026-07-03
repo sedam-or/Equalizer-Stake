@@ -1,15 +1,16 @@
 """Settings router — system configuration (Owner only)."""
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.middleware.auth import require_role
 from app.models.user import User
+from app.models.system_setting import SystemSetting
 from app.services.audit import create_audit_log
 from app.services.settings import (
     ALLOWED_SETTINGS,
-    get_all_settings,
     get_setting,
     upsert_setting,
     validate_setting_value,
@@ -20,13 +21,19 @@ router = APIRouter(prefix="/api/settings", tags=["Settings"])
 
 @router.get("")
 async def list_settings(
+    limit: int = Query(20, le=100),
+    offset: int = Query(0, ge=0),
     user: User = Depends(require_role("owner")),
     db: AsyncSession = Depends(get_db),
 ):
     """List all system settings (Owner only)."""
-    settings = await get_all_settings(db)
+    base = select(SystemSetting)
+    count_q = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_q.scalar()
+    result = await db.execute(base.order_by(SystemSetting.setting_key).offset(offset).limit(limit))
+    settings = result.scalars().all()
     return {
-        "settings": [
+        "data": [
             {
                 "key": s.setting_key,
                 "value": s.setting_value,
@@ -36,6 +43,9 @@ async def list_settings(
             for s in settings
         ],
         "available_keys": list(ALLOWED_SETTINGS.keys()),
+        "total": total,
+        "limit": limit,
+        "offset": offset,
     }
 
 

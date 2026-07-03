@@ -3,7 +3,7 @@
 import uuid
 from datetime import date, datetime, time
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Text, Time, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Text, Time, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,6 +14,9 @@ class Session(Base):
     """Course or studio session schedule."""
 
     __tablename__ = "sessions"
+    __table_args__ = (
+        UniqueConstraint("id_room", "session_date", "start_time", name="uq_session_room_date_start"),
+    )
 
     id_session: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     id_teacher: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teachers.id_teacher"), nullable=False)
@@ -27,7 +30,7 @@ class Session(Base):
         nullable=False, default="reguler"
     )
     status: Mapped[str] = mapped_column(
-        Enum("draft", "pending", "locked", "completed", "cancelled", "rescheduled", name="session_status"),
+        Enum("draft", "pending", "locked", "completed", "cancelled", "rescheduled", "pending_approval", "approved", name="session_status"),
         nullable=False, default="draft"
     )
     rescheduled_to: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("sessions.id_session"), nullable=True)

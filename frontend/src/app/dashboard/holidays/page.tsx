@@ -2,16 +2,16 @@
 /**
  * T-042: Holiday Management (Admin)
  * UC-05: Kelola Libur & Minggu ke-5
- * - List holidays from system_settings
- * - Add/remove holidays
  */
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
 
 interface Holiday {
   date: string;
   name: string;
+  type: string;
 }
 
 export default function HolidaysPage() {
@@ -21,27 +21,30 @@ export default function HolidaysPage() {
   const [form, setForm] = useState({ date: "", name: "" });
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) { router.push("/login"); return; }
-    fetch("/api/settings/holidays", { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => {
-        if (Array.isArray(data)) setHolidays(data);
-        else if (data.holidays) setHolidays(data.holidays);
-        else setHolidays([]);
+    fetch(`/api/holidays/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : { data: [], total: 0 })
+      .then(res => {
+        const data = res.data || res.holidays || (Array.isArray(res) ? res : []);
+        setHolidays(data);
+        setTotal(res.total || 0);
       })
-      .catch(() => setHolidays([]))
+      .catch(() => {})
       .finally(() => setLoading(false));
-  }, [router]);
+  }, [router, offset]);
 
   const handleAdd = async () => {
     setErr(""); setMsg("");
     if (!form.date || !form.name.trim()) { setErr("Tanggal dan nama libur wajib diisi"); return; }
     const token = localStorage.getItem("token");
-    const updated = [...holidays, { date: form.date, name: form.name }];
-    const res = await fetch("/api/settings/holidays", {
+    const updated = [...holidays, { date: form.date, name: form.name, type: "Custom" }];
+    const res = await fetch("/api/holidays/", {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ holidays: updated }),
@@ -59,7 +62,7 @@ export default function HolidaysPage() {
   const handleRemove = async (idx: number) => {
     const updated = holidays.filter((_, i) => i !== idx);
     const token = localStorage.getItem("token");
-    await fetch("/api/settings/holidays", {
+    await fetch("/api/holidays/", {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ holidays: updated }),
@@ -70,49 +73,55 @@ export default function HolidaysPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#000000]">Libur Nasional</h1>
-        <p className="text-sm text-gray-500">Kelola hari libur untuk penjadwalan (UC-05)</p>
+        <h1 className="text-2xl font-bold text-[#EEEEEE]">Libur Nasional</h1>
+        <p className="text-sm text-gray-400">Kelola hari libur untuk penjadwalan</p>
       </div>
 
-      {msg && <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{msg}</div>}
-      {err && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{err}</div>}
+      {msg && <div className="p-3 bg-[#08CB00]/10 border border-[#253900] rounded-lg text-[#08CB00] text-sm">{msg}</div>}
+      {err && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{err}</div>}
 
       {/* Add Form */}
-      <div className="bg-white rounded-xl p-4 border border-gray-200 flex gap-3 items-end">
+      <div className="bg-[#111] rounded-xl p-4 border border-[#253900] flex gap-3 items-end">
         <div className="flex-1">
-          <label className="block text-xs text-gray-500 mb-1">Tanggal</label>
+          <label className="block text-xs text-gray-400 mb-1">Tanggal</label>
           <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" />
         </div>
         <div className="flex-1">
-          <label className="block text-xs text-gray-500 mb-1">Nama Libur</label>
+          <label className="block text-xs text-gray-400 mb-1">Nama Libur</label>
           <input placeholder="Contoh: Idul Fitri" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" />
         </div>
         <button onClick={handleAdd}
-          className="px-4 py-2 bg-[#08CB00] text-black text-sm font-medium rounded-lg hover:bg-[#06a800]">
+          className="px-4 py-2 bg-[#08CB00] text-black text-sm font-semibold rounded-lg hover:bg-[#06a800]">
           Tambah
         </button>
       </div>
 
       {/* Holiday List */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-[#111] rounded-xl border border-[#253900] overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Memuat...</div>
+          <div className="p-8 text-center text-gray-400">Memuat...</div>
         ) : holidays.length === 0 ? (
           <div className="p-8 text-center text-gray-400">Belum ada hari libur</div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <>
+          <div className="divide-y divide-[#1a1a1a]">
             {holidays.map((h, idx) => (
-              <div key={idx} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50">
-                <div>
-                  <span className="text-sm font-medium text-gray-900">{h.name}</span>
-                  <span className="text-xs text-gray-500 ml-3">{new Date(h.date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+              <div key={idx} className="flex items-center justify-between px-4 py-3 hover:bg-[#1a1a1a]">
+                <div className="flex items-center gap-4">
+                  <span className="rounded-full px-2 py-1 text-xs font-medium bg-[#08CB00]/10 text-[#08CB00]">{h.type || "Nasional"}</span>
+                  <div>
+                    <span className="text-sm font-medium text-[#EEEEEE]">{h.name}</span>
+                    <span className="text-xs text-gray-400 ml-3">{new Date(h.date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+                  </div>
                 </div>
-                <button onClick={() => handleRemove(idx)} className="text-xs text-red-500 hover:underline">Hapus</button>
+                <button onClick={() => handleRemove(idx)} className="text-xs text-red-400 hover:underline">Hapus</button>
               </div>
             ))}
           </div>
+          <Pagination total={total} limit={limit} offset={offset} onChange={setOffset} />
+          </>
         )}
       </div>
     </div>

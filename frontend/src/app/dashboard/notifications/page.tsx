@@ -1,144 +1,119 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
 
 interface Notification {
-  id: string;
-  channel: string;
-  category: string;
-  subject: string;
-  body: string;
-  status: string;
-  retryCount: number;
-  createdAt: string;
-  read: boolean;
+  id_notification: string;
+  guardian_name?: string;
+  guardian?: string;
+  students?: string[];
+  message: string;
+  time?: string;
+  created_at?: string;
+  unread_count?: number;
+  unreadCount?: number;
 }
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { id: "1", channel: "whatsapp", category: "non_critical", subject: "Pengingat Jadwal", body: "Andi Pratama les Gitar pukul 14:30", status: "sent", retryCount: 0, createdAt: "2026-01-15T13:30:00", read: false },
-    { id: "2", channel: "email", category: "critical", subject: "Tagihan Januari 2026", body: "Tagihan Rp 850.000 jatuh tempo 10 Januari", status: "sent", retryCount: 0, createdAt: "2026-01-05T00:00:00", read: true },
-    { id: "3", channel: "whatsapp", category: "critical", subject: "Akun Dibekukan", body: "Akun Anda dibekukan karena tagihan terlambat", status: "failed", retryCount: 3, createdAt: "2026-01-11T00:00:00", read: false },
-    { id: "4", channel: "email", category: "non_critical", subject: "Pembayaran Diverifikasi", body: "Pembayaran Rp 850.127 telah diverifikasi", status: "sent", retryCount: 0, createdAt: "2026-01-08T10:00:00", read: true },
-  ]);
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
 
-  const [filter, setFilter] = useState("all");
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) { router.push("/login"); return; }
+    fetch(`/api/notifications/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(res => {
+        setNotifications(res.data || []);
+        setTotal(res.total || 0);
+      })
+      .catch(() => setNotifications([]))
+      .finally(() => setLoading(false));
+  }, [router, offset]);
 
-  const filtered = notifications.filter((n) => {
-    if (filter === "all") return true;
-    if (filter === "unread") return !n.read;
-    if (filter === "critical") return n.category === "critical";
-    if (filter === "failed") return n.status === "failed";
-    return true;
-  });
-
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const channelIcons: Record<string, string> = {
-    whatsapp: "💬",
-    email: "📧",
-  };
-
-  const statusColors: Record<string, string> = {
-    sent: "text-[#08CB00]",
-    failed: "text-red-500",
-    pending: "text-yellow-600",
-    retrying: "text-yellow-600",
-  };
-
-  const statusLabels: Record<string, string> = {
-    sent: "Terkirim",
-    failed: "Gagal",
-    pending: "Menunggu",
-    retrying: "Retry",
-  };
+  const getName = (n: Notification) => n.guardian_name || n.guardian || "-";
+  const getStudents = (n: Notification) => n.students || [];
+  const getTime = (n: Notification) => n.time || (n.created_at ? new Date(n.created_at).toLocaleDateString("id-ID") : "");
+  const getUnread = (n: Notification) => n.unread_count ?? n.unreadCount ?? 0;
 
   return (
-    <div>
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-black p-6">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#000000]">Notifikasi</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            {unreadCount > 0 ? `${unreadCount} notifikasi belum dibaca` : "Semua sudah dibaca"}
+          <h1 className="text-2xl font-bold text-[#EEEEEE]">
+            Notifikasi
+          </h1>
+          <p className="text-sm text-gray-400 mt-1">
+            Notifikasi dikelompokkan per wali siswa
           </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => router.push("/dashboard/notification-settings")}
+            className="px-4 py-2 text-sm bg-[#253900] border border-[#253900] text-[#EEEEEE] rounded-lg hover:bg-[#355000]"
+          >
+            Pengaturan Notifikasi
+          </button>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#253900] text-gray-400 rounded-lg hover:bg-[#222]"
+          >
+            Kembali
+          </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mt-4 flex gap-2">
-        {["all", "unread", "critical", "failed"].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              filter === f
-                ? "bg-[#08CB00] text-black"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {f === "all" ? "Semua" : f === "unread" ? "Belum Dibaca" : f === "critical" ? "Kritis" : "Gagal"}
-          </button>
-        ))}
-      </div>
-
-      {/* Notification list */}
-      <div className="mt-4 space-y-2">
-        {filtered.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500">
-            Tidak ada notifikasi
-          </div>
-        ) : (
-          filtered.map((n) => (
+      {loading ? (
+        <div className="p-8 text-center text-gray-400">Memuat notifikasi...</div>
+      ) : notifications.length === 0 ? (
+        <div className="p-8 text-center text-gray-400">Belum ada notifikasi</div>
+      ) : (
+        <>
+        <div className="space-y-3">
+          {notifications.map((item, idx) => (
             <div
-              key={n.id}
-              onClick={() => markAsRead(n.id)}
-              className={`cursor-pointer rounded-lg border p-4 transition-colors ${
-                n.read
-                  ? "border-gray-200 bg-white"
-                  : "border-[#253900] bg-[#f0fff0]"
+              key={item.id_notification || idx}
+              className={`rounded-xl border p-4 ${
+                getUnread(item) > 0
+                  ? "border-[#253900] bg-[#111]"
+                  : "border-[#1a1a1a] bg-[#0a0a0a]"
               }`}
             >
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <span className="text-lg">{channelIcons[n.channel]}</span>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-[#000000]">{n.subject}</p>
-                      {!n.read && (
-                        <span className="h-2 w-2 rounded-full bg-[#08CB00]" />
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-sm text-gray-600">{n.body}</p>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-gray-400">
-                      <span>{new Date(n.createdAt).toLocaleString("id-ID")}</span>
-                      <span className={`font-medium ${statusColors[n.status]}`}>
-                        {statusLabels[n.status]}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-[#EEEEEE]">
+                      {getName(item)}
+                    </span>
+                    {getUnread(item) > 0 && (
+                      <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-red-600 text-white rounded-full">
+                        {getUnread(item)}
                       </span>
-                      {n.retryCount > 0 && (
-                        <span>Retry: {n.retryCount}x</span>
-                      )}
-                      <span className="capitalize">{n.channel}</span>
-                    </div>
+                    )}
                   </div>
+                  <p className="text-sm text-gray-400 mb-2">
+                    {getStudents(item).join(", ")}
+                  </p>
+                  <p className="text-sm text-[#EEEEEE]">{item.message}</p>
                 </div>
+                <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                  {getTime(item)}
+                </span>
               </div>
             </div>
-          ))
-        )}
-      </div>
-
-      {/* Info */}
-      <div className="mt-6 rounded-lg bg-gray-50 p-3 text-xs text-gray-500">
-        <p>• Notifikasi kritis: email utama, WhatsApp cadangan</p>
-        <p>• Notifikasi non-kritis: WhatsApp utama, email cadangan</p>
-        <p>• Retry otomatis 3x (10s → 20s → 40s) lalu fallback channel</p>
-      </div>
+          ))}
+        </div>
+        <div className="mt-4">
+          <Pagination total={total} limit={limit} offset={offset} onChange={setOffset} />
+        </div>
+        </>
+      )}
     </div>
   );
 }

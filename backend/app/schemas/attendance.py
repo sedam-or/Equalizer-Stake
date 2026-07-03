@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 class AttendanceSubmit(BaseModel):
     """Attendance submission request."""
     id_session: UUID
+    photo_base64: str | None = None  # base64 encoded photo, encrypted before storage
     gps_lat: float = Field(..., ge=-90, le=90)
     gps_lng: float = Field(..., ge=-180, le=180)
     face_valid: bool

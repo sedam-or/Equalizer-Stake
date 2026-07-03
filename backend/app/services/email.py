@@ -96,6 +96,32 @@ TEMPLATES = {
 <br><p>Salam,<br>BMD Musik Yogyakarta</p>
 """,
     },
+    "reset_password": {
+        "subject": "Reset Password — BMD Musik",
+        "body": """
+<h2>Reset Password</h2>
+<p>Halo {{name}},</p>
+<p>Kami menerima permintaan untuk mereset password Anda.</p>
+<p>Klik link di bawah untuk membuat password baru:</p>
+<p><a href="{{reset_url}}" style="display:inline-block;padding:12px 24px;background:#08CB00;color:#000;text-decoration:none;border-radius:8px;font-weight:bold;">Reset Password</a></p>
+<p>Link ini berlaku selama <strong>1 jam</strong>.</p>
+<p>Jika Anda tidak meminta reset password, abaikan email ini.</p>
+<br><p>Salam,<br>BMD Musik Yogyakarta</p>
+""",
+    },
+    "welcome": {
+        "subject": "Selamat Datang di BMD Musik!",
+        "body": """
+<h2>Selamat Datang!</h2>
+<p>Halo {{name}},</p>
+<p>Akun BMD Musik Anda sudah aktif.</p>
+<p><strong>Username:</strong> {{username}}</p>
+<p><strong>Password sementara:</strong> {{temp_password}}</p>
+<p>Silakan login dan ganti password Anda segera.</p>
+<p><a href="{{login_url}}" style="display:inline-block;padding:12px 24px;background:#08CB00;color:#000;text-decoration:none;border-radius:8px;font-weight:bold;">Login Sekarang</a></p>
+<br><p>Salam,<br>BMD Musik Yogyakarta</p>
+""",
+    },
 }
 
 

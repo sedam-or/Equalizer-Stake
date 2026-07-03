@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import Navbar from "@/components/landing/Navbar";
-import Footer from "@/components/landing/Footer";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -13,7 +11,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#000000",
+  themeColor: "#b70e0e",
 };
 
 export const metadata: Metadata = {
@@ -29,9 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-white focus:text-gray-900 focus:font-semibold focus:outline-none focus:ring-2 focus:ring-[#08CB00]">
           Lewati ke konten utama
         </a>
-        <Navbar />
         <main id="main-content">{children}</main>
-        <Footer />
       </body>
     </html>
   );

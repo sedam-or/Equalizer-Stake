@@ -6,12 +6,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from app.core.config import get_settings
-from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft, students, payments, my_portal
+from app.core.limiter import limiter
+from app.services.scheduler import start_scheduler, shutdown_scheduler
+from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft, students, payments, my_portal, registrations, photos, cron_trigger
 
 settings = get_settings()
 
@@ -20,16 +21,15 @@ logger = logging.getLogger(__name__)
 if settings.SECRET_KEY == "change-me-in-production":
     logger.warning("⚠️  SECRET_KEY is default! Set a strong key in .env for production!")
 
-# Rate limiter: 100 req/min per IP (NFR-SEC-04)
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan — startup and shutdown events."""
     # Startup
+    start_scheduler()
     yield
     # Shutdown
+    shutdown_scheduler()
 
 
 app = FastAPI(
@@ -43,6 +43,28 @@ app = FastAPI(
 # Rate limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Security headers middleware (FINDING 15)
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'"
+    )
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 # CORS
 app.add_middleware(
@@ -71,6 +93,9 @@ app.include_router(draft.router)
 app.include_router(students.router)
 app.include_router(payments.router)
 app.include_router(my_portal.router)
+app.include_router(registrations.router)
+app.include_router(photos.router, prefix="/api/photos", tags=["Photos"])
+app.include_router(cron_trigger.router, prefix="/api/admin/cron", tags=["Cron Trigger"])
 
 
 @app.get("/health")

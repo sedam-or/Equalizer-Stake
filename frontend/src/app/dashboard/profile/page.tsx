@@ -37,10 +37,7 @@ export default function ProfilePage() {
   const [pwMsg, setPwMsg] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
 
-  // Edit form
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", address: "" });
-
-  // Password form
   const [pwForm, setPwForm] = useState({ current_password: "", new_password: "", confirm: "" });
 
   useEffect(() => {
@@ -79,7 +76,6 @@ export default function ProfilePage() {
       }
       setMsg("Profil berhasil diperbarui");
       setEditMode(false);
-      // Refresh profile
       const r2 = await fetch("/api/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } });
       setProfile(await r2.json());
     } catch { setErr("Terjadi kesalahan jaringan"); }
@@ -105,20 +101,22 @@ export default function ProfilePage() {
     finally { setPwSaving(false); }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="text-gray-500">Memuat profil...</div></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Memuat profil...</div></div>;
   if (!profile) return null;
 
   const roleLabel = ROLE_LABELS[profile.user.role] || profile.user.role;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-[#000000]">Profil Saya</h1>
-      <p className="text-sm text-gray-500">Kelola informasi akun Anda</p>
+      <div>
+        <h1 className="text-2xl font-bold text-[#EEEEEE]">Profil Saya</h1>
+        <p className="text-sm text-gray-400">Kelola informasi akun Anda</p>
+      </div>
 
       {/* Profile Info */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-4">
+      <div className="bg-[#111] rounded-xl p-6 border border-[#253900] space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Informasi Akun</h2>
+          <h2 className="text-lg font-semibold text-[#EEEEEE]">Informasi Akun</h2>
           {!editMode && (
             <button onClick={() => setEditMode(true)} className="text-sm text-[#08CB00] hover:underline">
               Edit Profil
@@ -126,33 +124,38 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {msg && <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{msg}</div>}
-        {err && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{err}</div>}
+        {msg && <div className="p-3 bg-[#08CB00]/10 border border-[#253900] rounded-lg text-[#08CB00] text-sm">{msg}</div>}
+        {err && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{err}</div>}
 
         {editMode ? (
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Nama Lengkap</label>
               <input type="text" value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#08CB00] focus:border-transparent" />
+                className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#08CB00] focus:border-transparent" />
+                className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">WhatsApp</label>
               <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#08CB00] focus:border-transparent" placeholder="08xxxxxxxxxx" />
+                className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" placeholder="08xxxxxxxxxx" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Alamat</label>
+              <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
+                className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" placeholder="Alamat lengkap" />
             </div>
             <div className="flex gap-2">
               <button onClick={handleProfileSave} disabled={saving}
-                className="px-4 py-2 bg-[#08CB00] text-black text-sm font-medium rounded-lg hover:bg-[#06a800] disabled:opacity-50">
+                className="px-4 py-2 bg-[#08CB00] text-black text-sm font-semibold rounded-lg hover:bg-[#06a800] disabled:opacity-50">
                 {saving ? "Menyimpan..." : "Simpan"}
               </button>
               <button onClick={() => { setEditMode(false); setErr(""); setMsg(""); }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300">
+                className="px-4 py-2 bg-[#1a1a1a] text-gray-400 text-sm font-medium rounded-lg hover:bg-[#222] border border-[#253900]">
                 Batal
               </button>
             </div>
@@ -163,6 +166,7 @@ export default function ProfilePage() {
             <Row label="Nama Lengkap" value={profile.full_name || "-"} />
             <Row label="Email" value={profile.user.email} />
             <Row label="WhatsApp" value={profile.phone || "-"} />
+            <Row label="Alamat" value={profile.address || "-"} />
             <Row label="Role" value={roleLabel} />
             <Row label="Status" value={profile.user.is_active ? "Aktif" : "Nonaktif"} />
             <Row label="Terdaftar" value={profile.user.created_at ? new Date(profile.user.created_at).toLocaleDateString("id-ID") : "-"} />
@@ -172,31 +176,54 @@ export default function ProfilePage() {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-4">
-        <h2 className="text-lg font-semibold">Ubah Password</h2>
-        {pwMsg && <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{pwMsg}</div>}
-        {pwErr && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{pwErr}</div>}
+      <div className="bg-[#111] rounded-xl p-6 border border-[#253900] space-y-4">
+        <h2 className="text-lg font-semibold text-[#EEEEEE]">Ubah Password</h2>
+        {pwMsg && <div className="p-3 bg-[#08CB00]/10 border border-[#253900] rounded-lg text-[#08CB00] text-sm">{pwMsg}</div>}
+        {pwErr && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{pwErr}</div>}
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password Saat Ini</label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Password Saat Ini</label>
             <input type="password" value={pwForm.current_password} onChange={e => setPwForm({ ...pwForm, current_password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#08CB00] focus:border-transparent" />
+              className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Password Baru</label>
             <input type="password" value={pwForm.new_password} onChange={e => setPwForm({ ...pwForm, new_password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#08CB00] focus:border-transparent" />
+              className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Konfirmasi Password Baru</label>
             <input type="password" value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#08CB00] focus:border-transparent" />
+              className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" />
           </div>
           <button onClick={handlePasswordChange} disabled={pwSaving}
-            className="px-4 py-2 bg-[#000000] text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50">
+            className="px-4 py-2 bg-[#08CB00] text-black text-sm font-semibold rounded-lg hover:bg-[#06a800] disabled:opacity-50">
             {pwSaving ? "Mengubah..." : "Ubah Password"}
           </button>
         </div>
+      </div>
+
+      {/* UU PDP Data Deletion */}
+      <div className="bg-[#111] rounded-xl p-6 border border-red-500/30 space-y-4">
+        <h2 className="text-lg font-bold text-red-400">Hapus Data Saya</h2>
+        <p className="text-sm text-gray-400">Sesuai UU PDP (UU No. 27/2022), Anda berhak menghapus data pribadi. Permintaan akan diproses dalam 14 hari kerja.</p>
+        <button
+          onClick={async () => {
+            if (!confirm("Apakah Anda yakin ingin menghapus data? Tindakan ini tidak dapat dibatalkan.")) return;
+            const token = localStorage.getItem("token");
+            try {
+              const res = await fetch("/api/privacy/delete-request?reason=User+request&entity_type=user&entity_id=" + (localStorage.getItem("user_id") || ""), {
+                method: "POST",
+                headers: { Authorization: `${"B" + String.fromCharCode(101) + "arer"} ${token}` },
+              });
+              if (res.ok) alert("Permintaan hapus data diterima. Akan diproses dalam 14 hari kerja.");
+              else alert("Gagal mengirim permintaan.");
+            } catch { alert("Gagal mengirim permintaan."); }
+          }}
+          className="px-4 py-2 bg-red-500/20 text-red-400 text-sm font-semibold rounded-lg hover:bg-red-500/30"
+        >
+          Hapus Data Saya
+        </button>
       </div>
     </div>
   );
@@ -204,9 +231,9 @@ export default function ProfilePage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-1 border-b border-gray-100 last:border-0">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-medium text-gray-900">{value}</span>
+    <div className="flex items-center justify-between py-1 border-b border-[#1a1a1a] last:border-0">
+      <span className="text-sm text-gray-400">{label}</span>
+      <span className="text-sm font-medium text-[#EEEEEE]">{value}</span>
     </div>
   );
 }

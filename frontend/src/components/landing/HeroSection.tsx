@@ -4,23 +4,50 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import BlurText from "@/components/ui/BlurText";
 
-const FloatingLines = dynamic(() => import("@/components/ui/FloatingLines"), { ssr: false });
+const Hyperspeed = dynamic(() => import("@/components/ui/Hyperspeed"), { ssr: false });
+
+const highwayPreset = {
+  distortion: "turbulentDistortion",
+  length: 400,
+  roadWidth: 10,
+  islandWidth: 2,
+  lanesPerRoad: 3,
+  fov: 90,
+  fovSpeedUp: 150,
+  speedUp: 2,
+  carLightsFade: 0.4,
+  totalSideLightSticks: 20,
+  lightPairsPerRoadWay: 40,
+  shoulderLinesWidthPercentage: 0.05,
+  brokenLinesWidthPercentage: 0.1,
+  brokenLinesLengthPercentage: 0.5,
+  lightStickWidth: [0.12, 0.5] as [number, number],
+  lightStickHeight: [1.3, 1.7] as [number, number],
+  movingAwaySpeed: [60, 80] as [number, number],
+  movingCloserSpeed: [-120, -160] as [number, number],
+  carLightsLength: [400 * 0.03, 400 * 0.2] as [number, number],
+  carLightsRadius: [0.05, 0.14] as [number, number],
+  carWidthPercentage: [0.3, 0.5] as [number, number],
+  carShiftX: [-0.8, 0.8] as [number, number],
+  carFloorSeparation: [0, 5] as [number, number],
+  colors: {
+    roadColor: 0x080808,
+    islandColor: 0x0a0a0a,
+    background: 0x000000,
+    shoulderLines: 0x08cb00,
+    brokenLines: 0x08cb00,
+    leftCars: [0x08cb00, 0x253900, 0x0aad00],
+    rightCars: [0x03b3c3, 0x0e5ea5, 0x324555],
+    sticks: 0x08cb00,
+  },
+};
 
 export default function HeroSection() {
   return (
     <section className="relative flex h-screen items-center justify-center overflow-hidden px-6">
-      {/* Floating Lines background — transparent overlay with mix-blend-mode screen */}
+      {/* Hyperspeed highway background */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
-        <FloatingLines
-          enabledWaves={['top', 'middle', 'bottom']}
-          lineCount={[10, 15, 20]}
-          lineDistance={[8, 6, 4]}
-          bendRadius={5.0}
-          bendStrength={-0.5}
-          interactive={true}
-          parallax={true}
-          linesGradient={['#08CB00', '#253900', '#000000']}
-        />
+        <Hyperspeed effectOptions={highwayPreset} />
       </div>
 
       {/* Content — forced center */}

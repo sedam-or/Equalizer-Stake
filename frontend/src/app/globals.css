@@ -1,92 +1,52 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #FFFFFF;
+ --background: #000000;
+ --foreground: #FFFFFF;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: system-ui, -apple-system, sans-serif;
-  margin: 0;
+ color: var(--foreground);
+ background: var(--background);
+ font-family: system-ui, -apple-system, sans-serif;
+ margin: 0;
 }
 
 html {
-  scroll-behavior: smooth;
+ scroll-behavior: smooth;
 }
 
 .snap-container {
-  /* Removed overflow-y: auto and height: 100vh to prevent footer scroll trap */
+ /* Removed overflow-y: auto and height: 100vh to prevent footer scroll trap */
 }
 
 .snap-section {
-  scroll-snap-align: start;
-  position: relative;
+ scroll-snap-align: start;
+ position: relative;
 }
 
-/* Hero only — no overflow hidden to allow FloatingLines canvas */
+/* Hero only — no overflow hidden to allow Hyperspeed canvas */
 .snap-section-hero {
-  min-height: 100vh;
-  overflow: visible;
+ min-height: 100vh;
+ overflow: visible;
 }
 
 /* Other sections can clip */
 .snap-section:not(.snap-section-hero) {
-  overflow: hidden;
+ overflow: hidden;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;
+ display: none;
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+ -ms-overflow-style: none;
+ scrollbar-width: none;
 }
 
-/* CSS fallback for FloatingLines when WebGL fails */
-.floating-lines-fallback {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: linear-gradient(135deg, #000 0%, #0a0a0a 50%, #000 100%);
-}
-
-.floating-lines-fallback::before,
-.floating-lines-fallback::after {
-  content: '';
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  top: -50%;
-  left: -50%;
-  background: repeating-linear-gradient(
-    transparent,
-    transparent 40px,
-    rgba(8, 203, 0, 0.03) 40px,
-    rgba(8, 203, 0, 0.03) 41px
-  );
-  animation: float-lines 20s linear infinite;
-}
-
-.floating-lines-fallback::after {
-  background: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 60px,
-    rgba(8, 203, 0, 0.02) 60px,
-    rgba(8, 203, 0, 0.02) 61px
-  );
-  animation: float-lines-v 25s linear infinite;
-}
-
-@keyframes float-lines {
-  from { transform: translateY(0); }
-  to { transform: translateY(40px); }
-}
-
-@keyframes float-lines-v {
-  from { transform: translateX(0); }
-  to { transform: translateX(60px); }
+/* Hyperspeed container fills parent */
+#lights {
+ width: 100%;
+ height: 100%;
 }

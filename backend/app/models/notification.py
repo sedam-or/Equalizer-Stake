@@ -22,7 +22,7 @@ class Notification(Base):
     subject: Mapped[str | None] = mapped_column(String(255), nullable=True)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(
-        Enum("pending", "sent", "failed", "retrying", name="notif_status"),
+        Enum("pending", "sent", "delivered", "failed", "fallback", "retrying", name="notif_status"),
         nullable=False, default="pending"
     )
     retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

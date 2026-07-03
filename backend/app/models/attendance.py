@@ -3,11 +3,12 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Text, func
+from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Numeric, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.services.encryption import EncryptedString
 
 
 class Attendance(Base):
@@ -18,9 +19,9 @@ class Attendance(Base):
     id_attendance: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     id_session: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("sessions.id_session"), unique=True, nullable=False)
     id_teacher: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teachers.id_teacher"), nullable=False)
-    photo_url: Mapped[str] = mapped_column(Text, nullable=False)  # KRITIS: AES-256-GCM
-    gps_lat: Mapped[float] = mapped_column(Float, nullable=False)
-    gps_lng: Mapped[float] = mapped_column(Float, nullable=False)
+    photo_url: Mapped[str] = mapped_column(EncryptedString(1000), nullable=False)  # AES-256-GCM
+    gps_lat: Mapped[float] = mapped_column(Numeric(10, 7), nullable=False)  # SRS: DECIMAL(10,7)
+    gps_lng: Mapped[float] = mapped_column(Numeric(10, 7), nullable=False)  # SRS: DECIMAL(10,7)
     gps_distance_m: Mapped[float] = mapped_column(Float, nullable=False)
     face_valid: Mapped[bool] = mapped_column(Boolean, nullable=False)
     face_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)

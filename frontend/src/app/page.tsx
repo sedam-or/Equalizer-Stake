@@ -1,6 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
-
+import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/landing/Footer";
 
 const HeroSection = dynamic(() => import("@/components/landing/HeroSection"), { ssr: false });
 const ProgramKursusSection = dynamic(() => import("@/components/landing/ProgramKursusSection"), { ssr: false });
@@ -15,6 +16,8 @@ const GradualBlur = dynamic(() => import("@/components/ui/GradualBlur"), { ssr: 
 export default function LandingPage() {
   return (
     <div className="relative bg-[#000000]">
+      <Navbar />
+
       {/* Hero — full screen */}
       <div className="snap-section snap-section-hero relative">
         <HeroSection />
@@ -55,6 +58,8 @@ export default function LandingPage() {
       <div className="snap-section relative">
         <CtaSection />
       </div>
+
+      <Footer />
     </div>
   );
 }

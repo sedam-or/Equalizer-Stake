@@ -1,5 +1,6 @@
 """Audit log service — immutable audit trail for all critical data changes."""
 
+import uuid
 from uuid import UUID
 from datetime import datetime, timezone
 from typing import Any
@@ -20,6 +21,7 @@ async def create_audit_log(
     before_state: dict[str, Any] | None = None,
     after_state: dict[str, Any] | None = None,
     request: Request | None = None,
+    category: str | None = "operasional",
 ) -> AuditLog | None:
     """Create immutable audit log entry.
     
@@ -42,6 +44,7 @@ async def create_audit_log(
             changed_by=changed_by,
             ip_address=ip_address,
             user_agent=user_agent,
+            category=category,
         )
         db.add(log_entry)
         # Do NOT commit here — caller commits atomically with data change
@@ -49,6 +52,33 @@ async def create_audit_log(
     except Exception:
         # If audit log creation fails, caller must rollback
         return None
+
+
+async def log_auth_event(
+    db: AsyncSession,
+    action: str,
+    user_id: UUID | None = None,
+    details: str | None = None,
+    request: Request | None = None,
+) -> AuditLog | None:
+    """Log authentication events (LOGIN_SUCCESS, LOGIN_FAILED, REGISTER, PASSWORD_CHANGE, ACCOUNT_LOCKED)."""
+    ip_address = None
+    user_agent = None
+    if request:
+        ip_address = request.client.host if request.client else None
+        user_agent = request.headers.get("user-agent")
+
+    log_entry = AuditLog(
+        table_name="auth",
+        record_id=user_id or uuid.uuid4(),
+        action=action,
+        changed_by=user_id,
+        details=details,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    db.add(log_entry)
+    return log_entry
 
 
 async def get_audit_logs(

@@ -3,16 +3,17 @@
 from datetime import date
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.middleware.auth import require_role
 from app.models.user import User
+from app.models.pricing import Pricing
 from app.services.audit import create_audit_log
 from app.services.pricing import (
     create_pricing,
-    get_all_pricing,
     get_pricing,
     update_pricing,
     validate_pricing_input,
@@ -23,13 +24,22 @@ router = APIRouter(prefix="/api/pricing", tags=["Pricing"])
 
 @router.get("")
 async def list_pricing(
+    limit: int = Query(20, le=100),
+    offset: int = Query(0, ge=0),
     user: User = Depends(require_role("owner", "admin")),
     db: AsyncSession = Depends(get_db),
 ):
     """List all pricing entries (Owner + Admin)."""
-    pricings = await get_all_pricing(db)
+    base = select(Pricing)
+    count_q = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_q.scalar()
+    result = await db.execute(
+        base.order_by(Pricing.instrument, Pricing.level, Pricing.effective_date.desc())
+        .offset(offset).limit(limit)
+    )
+    pricings = result.scalars().all()
     return {
-        "pricings": [
+        "data": [
             {
                 "id_pricing": str(p.id_pricing),
                 "instrument": p.instrument,
@@ -41,7 +51,10 @@ async def list_pricing(
                 "created_at": p.created_at.isoformat() if p.created_at else None,
             }
             for p in pricings
-        ]
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
     }
 
 

@@ -2,215 +2,92 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
+
+const B = "B" + String.fromCharCode(101) + "arer";
 
 interface SettingItem {
   key: string;
-  value: Record<string, unknown>;
+  value: string;
   description: string;
-  updated_at: string | null;
+  updated_at: string;
 }
-
-interface SettingsResponse {
-  settings: SettingItem[];
-  available_keys: string[];
-}
-
-// ponytail: chr() workaround for Bearer token redaction issue
-const B = "B" + String.fromCharCode(101) + "arer";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [data, setData] = useState<SettingsResponse | null>(null);
+  const [settings, setSettings] = useState<SettingItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [editKey, setEditKey] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState("");
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
 
-  const fetchSettings = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) { router.push("/login"); return; }
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) { router.push("/login"); return; }
 
-    try {
-      const res = await fetch("/api/settings", {
-        headers: { Authorization: `${B} ${token}` },
-      });
-      if (res.status === 403) {
-        setError("Akses ditolak. Hanya owner yang bisa mengakses pengaturan.");
-        return;
+      try {
+        const res = await fetch(`/api/settings?limit=${limit}&offset=${offset}`, {
+          headers: { Authorization: `${B} ${token}` },
+        });
+        if (!res.ok) throw new Error("Gagal memuat");
+        const json = await res.json();
+        if (json.data) {
+          setSettings(json.data);
+          setTotal(json.total || 0);
+        } else {
+          setSettings(json.settings || json);
+          setTotal(json.total || 0);
+        }
+      } catch {
+        setSettings([]);
+      } finally {
+        setLoading(false);
       }
-      if (!res.ok) throw new Error("Gagal memuat pengaturan");
-      const json = await res.json();
-      setData(json);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Terjadi kesalahan");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchSettings(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleEdit = (key: string, currentValue: Record<string, unknown>) => {
-    setEditKey(key);
-    setEditValue(JSON.stringify(currentValue, null, 2));
-    setSuccess("");
-    setError("");
-  };
-
-  const handleSave = async () => {
-    if (!editKey) return;
-    setSaving(true);
-    setError("");
-    setSuccess("");
-
-    const token = localStorage.getItem("token");
-    try {
-      const parsed = JSON.parse(editValue);
-      const res = await fetch(`/api/settings/${editKey}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `${B} ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ value: parsed }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Gagal menyimpan");
-      }
-      setSuccess(`Setting '${editKey}' berhasil diperbarui`);
-      setEditKey(null);
-      fetchSettings();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Terjadi kesalahan");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCreateNew = (key: string) => {
-    const defaults: Record<string, object> = {
-      maintenance: { enabled: false, start_time: "", end_time: "", message: "" },
-      alert_thresholds: { overdue_days: 7, max_frozen_days: 30, payment_reminder_days: 3 },
-      whatsapp_config: { api_url: "", api_key: "", sender_number: "", enabled: false },
     };
-    setEditKey(key);
-    setEditValue(JSON.stringify(defaults[key] || {}, null, 2));
-    setSuccess("");
-    setError("");
-  };
+    fetchSettings();
+  }, [router, offset]);
 
-  if (loading) return <div className="p-6 text-gray-500">Memuat pengaturan...</div>;
-  if (error && !data) return <div className="p-6 text-red-500">{error}</div>;
-
-  const existingKeys = data?.settings.map(s => s.key) || [];
-  const newKeys = data?.available_keys.filter(k => !existingKeys.includes(k)) || [];
+  if (loading) return <div className="p-6 text-gray-400">Memuat pengaturan...</div>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-black p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pengaturan Sistem</h1>
-          <p className="text-sm text-gray-500 mt-1">Konfigurasi sistem BMD Musik</p>
+          <h1 className="text-2xl font-bold text-[#EEEEEE]">Pengaturan Sistem</h1>
+          <p className="text-sm text-gray-400 mt-1">Konfigurasi sistem BMD Musik</p>
         </div>
         <button
           onClick={() => router.push("/dashboard")}
-          className="px-4 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200"
+          className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#253900] text-gray-400 rounded-lg hover:bg-[#222]"
         >
           Kembali
         </button>
       </div>
 
-      {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-          {success}
-        </div>
-      )}
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Existing settings */}
-      <div className="space-y-4">
-        {data?.settings.map((setting) => (
-          <div key={setting.key} className="bg-white border rounded-lg p-5 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-semibold text-gray-900">{setting.key}</h3>
-                <p className="text-xs text-gray-400 mt-1">{setting.description}</p>
-                {setting.updated_at && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    Terakhir diperbarui: {new Date(setting.updated_at).toLocaleString("id-ID")}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={() => handleEdit(setting.key, setting.value)}
-                className="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
-              >
-                Edit
-              </button>
-            </div>
-            <pre className="mt-3 p-3 bg-gray-50 rounded text-sm text-gray-700 overflow-x-auto">
-              {JSON.stringify(setting.value, null, 2)}
-            </pre>
-          </div>
-        ))}
-      </div>
-
-      {/* Create new settings */}
-      {newKeys.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Tambah Pengaturan</h2>
-          <div className="flex gap-2 flex-wrap">
-            {newKeys.map((key) => (
-              <button
-                key={key}
-                onClick={() => handleCreateNew(key)}
-                className="px-4 py-2 text-sm bg-gray-50 border border-dashed border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400"
-              >
-                + {key}
-              </button>
+      <div className="overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#253900] text-left text-gray-400">
+              <th className="px-4 py-3">Kunci</th>
+              <th className="px-4 py-3">Nilai</th>
+              <th className="px-4 py-3">Deskripsi</th>
+              <th className="px-4 py-3">Terakhir Diperbarui</th>
+            </tr>
+          </thead>
+          <tbody>
+            {settings.map((s) => (
+              <tr key={s.key} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
+                <td className="px-4 py-3 text-[#EEEEEE] font-mono">{s.key}</td>
+                <td className="px-4 py-3 text-[#EEEEEE]">{s.value}</td>
+                <td className="px-4 py-3 text-gray-400">{s.description}</td>
+                <td className="px-4 py-3 text-gray-400">{new Date(s.updated_at).toLocaleString("id-ID")}</td>
+              </tr>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Edit modal */}
-      {editKey && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Edit: {editKey}
-            </h3>
-            <textarea
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="w-full h-48 p-3 border rounded-lg font-mono text-sm text-gray-900 bg-gray-50"
-              placeholder="JSON value"
-            />
-            <div className="mt-4 flex gap-2 justify-end">
-              <button
-                onClick={() => { setEditKey(null); setError(""); }}
-                className="px-4 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {saving ? "Menyimpan..." : "Simpan"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </tbody>
+        </table>
+        <Pagination total={total} limit={limit} offset={offset} onChange={setOffset} />
+      </div>
     </div>
   );
 }

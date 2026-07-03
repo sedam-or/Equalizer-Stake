@@ -14,6 +14,7 @@ from app.models.audit_log import AuditLog
 from app.models.system_setting import SystemSetting
 from app.models.pricing import Pricing
 from app.models.draft import Draft
+from app.models.registration import Registration
 
 __all__ = [
     "User",
@@ -30,4 +31,5 @@ __all__ = [
     "SystemSetting",
     "Pricing",
     "Draft",
+    "Registration",
 ]

@@ -1,25 +1,35 @@
 """Draft router — auto-save draft endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.middleware.auth import require_role
 from app.models.user import User
-from app.services.draft import delete_draft, get_draft, get_user_drafts, save_draft
+from app.models.draft import Draft
+from app.services.draft import DraftConflictError, delete_draft, get_draft, save_draft
 
 router = APIRouter(prefix="/api/drafts", tags=["Drafts"])
 
 
 @router.get("")
 async def list_my_drafts(
+    limit: int = Query(20, le=100),
+    offset: int = Query(0, ge=0),
     user: User = Depends(require_role("owner", "admin", "teacher")),
     db: AsyncSession = Depends(get_db),
 ):
     """List all drafts for current user."""
-    drafts = await get_user_drafts(db, user.id_user)
+    base = select(Draft).where(Draft.id_user == user.id_user)
+    count_q = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_q.scalar()
+    result = await db.execute(base.order_by(Draft.updated_at.desc()).offset(offset).limit(limit))
+    drafts = result.scalars().all()
     return {
-        "drafts": [
+        "data": [
             {
                 "id_draft": str(d.id_draft),
                 "form_key": d.form_key,
@@ -27,7 +37,10 @@ async def list_my_drafts(
                 "updated_at": d.updated_at.isoformat() if d.updated_at else None,
             }
             for d in drafts
-        ]
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
     }
 
 
@@ -68,7 +81,34 @@ async def save_form_draft(
             detail="Field 'draft_data' harus berupa object JSON",
         )
 
-    draft = await save_draft(db, user.id_user, form_key, draft_data)
+    # Parse optional client timestamp for conflict detection
+    client_updated_at = None
+    raw_ts = body.get("updated_at")
+    if raw_ts:
+        try:
+            client_updated_at = datetime.fromisoformat(raw_ts)
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Format 'updated_at' tidak valid, gunakan ISO 8601",
+            )
+
+    try:
+        draft = await save_draft(db, user.id_user, form_key, draft_data, client_updated_at)
+    except DraftConflictError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Draft konflik: versi server lebih baru",
+                "server_draft": {
+                    "draft_data": e.server_draft.draft_data,
+                    "updated_at": e.server_draft.updated_at.isoformat(),
+                },
+                "client_draft": {
+                    "draft_data": e.client_data,
+                },
+            },
+        )
     await db.commit()
 
     return {

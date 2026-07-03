@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import AuthLayout from "@/components/ui/AuthLayout";
 import styles from "./page.module.css";
 
 interface Errors {
@@ -9,6 +11,7 @@ interface Errors {
   username?: string;
   email?: string;
   phone?: string;
+  address?: string;
   password?: string;
   confirmPassword?: string;
   terms?: string;
@@ -20,6 +23,7 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [terms, setTerms] = useState(false);
@@ -28,6 +32,8 @@ export default function Register() {
   const [serverSuccess, setServerSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validate = (): Errors => {
     const e: Errors = {};
@@ -35,6 +41,7 @@ export default function Register() {
     if (username.length < 6) e.username = "Username minimal 6 karakter";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Email tidak valid";
     if (phone.length < 10) e.phone = "Nomor WhatsApp minimal 10 karakter";
+    if (!address.trim()) e.address = "Alamat wajib diisi";
     if (password.length < 8) e.password = "Password minimal 8 karakter";
     if (password !== confirmPassword) e.confirmPassword = "Password tidak cocok";
     if (!terms) e.terms = "Anda harus menyetujui syarat & ketentuan";
@@ -61,6 +68,7 @@ export default function Register() {
           password,
           full_name: fullName,
           phone,
+          address: address.trim(),
         }),
       });
 
@@ -72,7 +80,7 @@ export default function Register() {
             ? data.detail
             : typeof data.message === "string"
               ? data.message
-              : "Registration failed";
+              : "Registrasi gagal";
         setServerMessage(msg);
         setServerSuccess(false);
         return;
@@ -89,142 +97,116 @@ export default function Register() {
     }
   };
 
-  const fields: {
-    key: keyof Errors;
-    label: string;
-    name: string;
-    type: string;
-    placeholder: string;
-    value: string;
-    setter: (v: string) => void;
-  }[] = [
-    { key: "fullName", label: "Nama Lengkap", name: "fullName", type: "text", placeholder: "Masukkan nama lengkap", value: fullName, setter: setFullName },
-    { key: "username", label: "Username", name: "username", type: "text", placeholder: "Masukkan username", value: username, setter: setUsername },
-    { key: "email", label: "Email", name: "email", type: "email", placeholder: "Masukkan email", value: email, setter: setEmail },
-    { key: "phone", label: "WhatsApp", name: "phone", type: "tel", placeholder: "Masukkan nomor WhatsApp", value: phone, setter: setPhone },
-    { key: "password", label: "Password", name: "password", type: "password", placeholder: "Masukkan password", value: password, setter: setPassword },
-    { key: "confirmPassword", label: "Konfirmasi Password", name: "confirmPassword", type: "password", placeholder: "Ulangi password", value: confirmPassword, setter: setConfirmPassword },
-  ];
-
   return (
     <>
-    <main className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Daftar</h1>
+      <AuthLayout>
+        <div className={styles.card}>
+          <h1 className={styles.title}>Buat Akun Baru</h1>
+          <p className={styles.subtitle}>Bergabung bersama BMD Music School — mulai perjalanan musik Anda</p>
 
-        {serverMessage && (
-          <div className={`${styles.serverMessage} ${serverSuccess ? styles.serverSuccess : styles.serverError}`}>
-            {serverMessage}
-          </div>
-        )}
+          {serverMessage && (
+            <div className={`${styles.serverMessage} ${serverSuccess ? styles.serverSuccess : styles.serverError}`}>
+              {serverMessage}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} noValidate>
-          {fields.map((f) => (
-            <div key={f.key} className={styles.field}>
-              <label className={styles.label} htmlFor={f.name}>
-                {f.label}
+          <form onSubmit={handleSubmit} noValidate>
+            {/* Row 1: Nama Lengkap + Username */}
+            <div className={styles.gridRow}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="fullName">Nama Lengkap</label>
+                <input className={styles.input} id="fullName" name="fullName" type="text" placeholder="Masukkan nama lengkap" autoComplete="off" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                {errors.fullName && <span className={styles.errorText}>{errors.fullName}</span>}
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="username">Username</label>
+                <input className={styles.input} id="username" name="username" type="text" placeholder="Minimal 6 karakter" autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
+                {errors.username && <span className={styles.errorText}>{errors.username}</span>}
+              </div>
+            </div>
+
+            {/* Row 2: Email + WhatsApp */}
+            <div className={styles.gridRow}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="email">Email</label>
+                <input className={styles.input} id="email" name="email" type="email" placeholder="contoh@email.com" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} />
+                {errors.email && <span className={styles.errorText}>{errors.email}</span>}
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="phone">WhatsApp</label>
+                <input className={styles.input} id="phone" name="phone" type="tel" placeholder="08xxxxxxxxxx" autoComplete="off" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                {errors.phone && <span className={styles.errorText}>{errors.phone}</span>}
+              </div>
+            </div>
+
+            {/* Row 3: Alamat (full width) */}
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="address">Alamat</label>
+              <input className={styles.input} id="address" name="address" type="text" placeholder="Alamat lengkap" autoComplete="off" value={address} onChange={(e) => setAddress(e.target.value)} />
+              {errors.address && <span className={styles.errorText}>{errors.address}</span>}
+            </div>
+
+            {/* Row 4: Password + Konfirmasi */}
+            <div className={styles.gridRow}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="password">Password</label>
+                <div className={styles.passwordWrapper}>
+                  <input className={styles.input} id="password" name="password" type={showPassword ? "text" : "password"} placeholder="Minimal 8 karakter" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <button type="button" className={styles.toggleBtn} onClick={() => setShowPassword(!showPassword)} tabIndex={-1}>
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.password && <span className={styles.errorText}>{errors.password}</span>}
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="confirmPassword">Konfirmasi Password</label>
+                <div className={styles.passwordWrapper}>
+                  <input className={styles.input} id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Ulangi password" autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                  <button type="button" className={styles.toggleBtn} onClick={() => setShowConfirmPassword(!showConfirmPassword)} tabIndex={-1}>
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.confirmPassword && <span className={styles.errorText}>{errors.confirmPassword}</span>}
+              </div>
+            </div>
+
+            {/* Terms */}
+            <div className={styles.termsRow}>
+              <input type="checkbox" id="terms" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
+              <label htmlFor="terms">
+                Saya menyetujui{" "}
+                <a href="#" onClick={(e) => { e.preventDefault(); setShowTerms(true); }}>
+                  syarat & ketentuan
+                </a>
               </label>
-              <input
-                id={f.name}
-                autoComplete="off"
-                className={`${styles.input} ${errors[f.key] ? styles.inputError : ""}`}
-                type={f.type}
-                placeholder={f.placeholder}
-                value={f.value}
-                onChange={(e) => f.setter(e.target.value)}
-              />
-              {errors[f.key] && <p className={styles.error}>{errors[f.key]}</p>}
             </div>
-          ))}
+            {errors.terms && <span className={styles.errorText}>{errors.terms}</span>}
 
-          <div className={styles.checkboxRow}>
-            <input
-              id="terms"
-              type="checkbox"
-              className={styles.checkbox}
-              checked={terms}
-              onChange={(e) => setTerms(e.target.checked)}
-            />
-            <label className={styles.checkboxLabel}>
-              Saya menyetujui{" "}
-              <button
-                type="button"
-                onClick={() => setShowTerms(true)}
-                style={{ color: "#08cb00", textDecoration: "none", background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit" }}
-              >
-                Syarat &amp; Ketentuan
-              </button>
-            </label>
-          </div>
-          {errors.terms && <p className={styles.error}>{errors.terms}</p>}
-
-          <button type="submit" className={styles.button} disabled={loading}>
-            {loading ? "Memproses..." : "REGISTER"}
-          </button>
-        </form>
-
-        <p className={styles.footer}>
-          Sudah punya akun?{" "}
-          <a href="/login">Masuk</a>
-        </p>
-      </div>
-    </main>
-
-      {showTerms && (
-        <div
-          onClick={() => setShowTerms(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.7)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: "1rem",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#111",
-              border: "1px solid #333",
-              borderRadius: "0.75rem",
-              padding: "1.5rem",
-              maxWidth: "32rem",
-              width: "100%",
-              maxHeight: "80vh",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <h2 style={{ color: "#08cb00", fontSize: "1.25rem", fontWeight: 700, marginBottom: "1rem" }}>
-              Syarat &amp; Ketentuan
-            </h2>
-            <div style={{ flex: 1, overflowY: "auto", color: "#aaa", fontSize: "0.875rem", lineHeight: 1.6 }}>
-              <p>Syarat dan Ketentuan ini berlaku untuk penggunaan layanan BMD Music.</p>
-              <p>Dengan mendaftar, pengguna menyetujui untuk mematuhi seluruh ketentuan yang berlaku.</p>
-              <p>Informasi pribadi yang dikumpulkan akan digunakan sesuai dengan kebijakan privasi kami.</p>
-              <p>BMD Music berhak untuk mengubah syarat dan ketentuan ini sewaktu-waktu tanpa pemberitahuan terlebih dahulu.</p>
-              <p>Pengguna bertanggung jawab atas keamanan akun mereka sendiri.</p>
-              <p>Layanan ini disediakan "sebagaimana adanya" tanpa jaminan apapun.</p>
-            </div>
-            <button
-              onClick={() => setShowTerms(false)}
-              style={{
-                marginTop: "1rem",
-                padding: "0.6rem 1.25rem",
-                background: "#08cb00",
-                color: "#000",
-                border: "none",
-                borderRadius: "0.5rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                fontSize: "0.875rem",
-              }}
-            >
-              Tutup
+            <button type="submit" className={styles.button} disabled={loading}>
+              {loading ? "Memproses..." : "Daftar"}
             </button>
+          </form>
+
+          <p className={styles.footer}>
+            Sudah punya akun?{" "}
+            <a href="/login" className={styles.footerLink}>Masuk</a>
+          </p>
+        </div>
+      </AuthLayout>
+
+      {/* Terms Modal */}
+      {showTerms && (
+        <div className={styles.modalOverlay} onClick={() => setShowTerms(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h2>Syarat & Ketentuan</h2>
+            <p>Dengan mendaftar, Anda menyetujui:</p>
+            <ul>
+              <li>Data pribadi digunakan untuk keperluan kursus musik</li>
+              <li>Password harus minimal 8 karakter</li>
+              <li>Satu akun per orang tua/wali</li>
+              <li>Informasi kontak WhatsApp digunakan untuk komunikasi resmi</li>
+            </ul>
+            <button className={styles.button} style={{ marginTop: "1rem" }} onClick={() => setShowTerms(false)}>Tutup</button>
           </div>
         </div>
       )}

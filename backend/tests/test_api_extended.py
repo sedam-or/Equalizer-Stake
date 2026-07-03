@@ -13,7 +13,7 @@ class TestAdminMgmtEndpoints:
         token = await get_token(client, username, pw)
         r = await client.get("/api/admin-mgmt/admins", headers=auth_header(token))
         assert r.status_code == 200
-        assert "admins" in r.json()
+        assert "data" in r.json()
 
     async def test_create_admin(self, client: AsyncClient):
         username, pw = await make_user_raw("owner")

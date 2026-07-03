@@ -1,105 +1,177 @@
 "use client";
+/**
+ * Override Attendance (Owner only)
+ */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Pagination from "@/components/Pagination";
 
-type OverrideType = "unfreeze" | "cancel-invoice" | "revert-session";
-
-// ponytail: prefix defined once to avoid redaction tooling mangling literal
-const AUTH_PREFIX = ["B", "e", "a", "r", "e", "r", " "].join("");
+interface Session {
+  id_session: string;
+  student_name?: string;
+  teacher_name?: string;
+  date?: string;
+  time_start?: string;
+  status?: string;
+}
 
 export default function OverridePage() {
-  const [activeTab, setActiveTab] = useState<OverrideType>("unfreeze");
-  const [targetId, setTargetId] = useState("");
-  const [result, setResult] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [form, setForm] = useState({
+    session_id: "",
+    status: "present",
+    reason: "",
+  });
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const limit = 20;
 
   const getToken = () => localStorage.getItem("token");
 
-  const handleOverride = async () => {
-    if (!targetId.trim()) return;
-    setLoading(true);
-    setResult(null);
-    const token = getToken();
-    try {
-      const res = await fetch(`/api/override/${activeTab}/${targetId.trim()}`, {
-        method: "PUT",
-        headers: { Authorization: AUTH_PREFIX + (token || "") },
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setResult({ type: "error", message: data.detail || "Gagal" });
-      } else {
-        setResult({ type: "success", message: data.detail });
-        setTargetId("");
+  useEffect(() => {
+    const fetchSessions = async () => {
+      const token = getToken();
+      if (!token) { router.push("/login"); return; }
+      try {
+        const res = await fetch(`/api/sessions/?limit=${limit}&offset=${offset}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Gagal memuat sesi");
+        const data = await res.json();
+        setSessions(data.data || data.sessions || []);
+        setTotal(data.total || 0);
+      } catch {
+        setSessions([]);
+      } finally {
+        setLoadingSessions(false);
       }
-    } catch {
-      setResult({ type: "error", message: "Gagal terhubung ke server" });
+    };
+    fetchSessions();
+  }, [router, offset]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(""); setErr("");
+    if (!form.session_id.trim()) { setErr("ID Sesi wajib diisi"); return; }
+    if (!form.reason.trim()) { setErr("Alasan override wajib diisi"); return; }
+    const token = getToken();
+    if (!token) { router.push("/login"); return; }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/attendances/override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          session_id: form.session_id,
+          status: form.status,
+          reason: form.reason,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || "Gagal menyimpan override");
+      }
+      setMsg(`Override kehadiran sesi ${form.session_id} berhasil disimpan`);
+      setForm({ session_id: "", status: "present", reason: "" });
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Error");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  const tabs: { key: OverrideType; label: string; desc: string; placeholder: string }[] = [
-    { key: "unfreeze", label: "Unfreeze Akun", desc: "Buka freeze akun Guardian", placeholder: "ID Guardian" },
-    { key: "cancel-invoice", label: "Batalkan Tagihan", desc: "Batalkan invoice issued/overdue", placeholder: "ID Invoice" },
-    { key: "revert-session", label: "Revert Jadwal", desc: "Kembalikan sesi cancelled/rescheduled ke pending", placeholder: "ID Sesi" },
-  ];
-
-  const current = tabs.find((t) => t.key === activeTab)!;
-
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-[#000000]">Override Operasional</h1>
-      <p className="mt-1 text-sm text-gray-500">Override keputusan Admin — semua aksi tercatat di audit log</p>
-
-      {/* Tabs */}
-      <div className="mt-6 flex gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => { setActiveTab(tab.key); setTargetId(""); setResult(null); }}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? "bg-[#08CB00] text-black"
-                : "border border-gray-300 text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-[#EEEEEE]">Override Kehadiran</h1>
+        <p className="text-sm text-gray-400">Ubah status kehadiran sesi secara manual (Owner only)</p>
       </div>
 
-      {/* Form */}
-      <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-[#000000]">{current.label}</h2>
-        <p className="mt-1 text-sm text-gray-500">{current.desc}</p>
+      {msg && <div className="p-3 bg-[#08CB00]/10 border border-[#253900] rounded-lg text-[#08CB00] text-sm">{msg}</div>}
+      {err && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{err}</div>}
 
-        {result && (
-          <div className={`mt-4 rounded-lg p-3 text-sm ${result.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-            {result.message}
-          </div>
-        )}
-
-        <div className="mt-4 flex gap-3">
+      <form onSubmit={handleSubmit} className="bg-[#111] rounded-xl border border-[#253900] p-6 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-1">ID Sesi</label>
           <input
             type="text"
-            value={targetId}
-            onChange={(e) => setTargetId(e.target.value)}
-            placeholder={current.placeholder}
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#08CB00] focus:outline-none"
+            value={form.session_id}
+            onChange={e => setForm({ ...form, session_id: e.target.value })}
+            placeholder="Contoh: sess_abc123"
+            className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none"
           />
-          <button
-            onClick={handleOverride}
-            disabled={loading || !targetId.trim()}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
-          >
-            {loading ? "Memproses..." : "Override"}
-          </button>
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-1">Status Kehadiran</label>
+          <select
+            value={form.status}
+            onChange={e => setForm({ ...form, status: e.target.value })}
+            className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none"
+          >
+            <option value="present">Hadir</option>
+            <option value="absent">Tidak Hadir</option>
+            <option value="late">Terlambat</option>
+            <option value="excused">Izin</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-400 mb-1">Alasan Override</label>
+          <textarea
+            value={form.reason}
+            onChange={e => setForm({ ...form, reason: e.target.value })}
+            placeholder="Jelaskan alasan override..."
+            rows={3}
+            className="w-full px-3 py-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none resize-none"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full px-4 py-2 bg-[#08CB00] text-black text-sm font-semibold rounded-lg hover:bg-[#06a800] disabled:opacity-50"
+        >
+          {submitting ? "Menyimpan..." : "Simpan Override"}
+        </button>
+      </form>
 
-        <p className="mt-3 text-xs text-gray-400">
-          ⚠️ Tindakan ini akan tercatat di audit log kategori &quot;keamanan&quot; dan tidak dapat dibatalkan.
-        </p>
+      {/* Recent sessions */}
+      <div className="bg-[#111] rounded-xl border border-[#253900] p-6">
+        <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">Sesi Terbaru</h2>
+        {loadingSessions ? (
+          <p className="text-sm text-gray-500">Memuat sesi...</p>
+        ) : sessions.length === 0 ? (
+          <p className="text-sm text-gray-500">Tidak ada sesi ditemukan</p>
+        ) : (
+          <>
+          <div className="space-y-2">
+            {sessions.slice(0, 10).map((s) => (
+              <div
+                key={s.id_session}
+                className="flex items-center justify-between rounded-lg border border-[#253900] bg-black p-3 cursor-pointer hover:border-[#08CB00] transition-colors"
+                onClick={() => setForm({ ...form, session_id: s.id_session })}
+              >
+                <div>
+                  <p className="text-sm font-mono text-[#EEEEEE]">{s.id_session}</p>
+                  <p className="text-xs text-gray-400">
+                    {s.student_name || "-"} {s.teacher_name ? `· ${s.teacher_name}` : ""}
+                    {s.date ? ` · ${s.date}` : ""}
+                    {s.time_start ? ` ${s.time_start}` : ""}
+                  </p>
+                </div>
+                {s.status && (
+                  <span className="text-xs text-gray-500">{s.status}</span>
+                )}
+              </div>
+            ))}
+          </div>
+          <Pagination total={total} limit={limit} offset={offset} onChange={setOffset} />
+          </>
+        )}
       </div>
     </div>
   );

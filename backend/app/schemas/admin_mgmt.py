@@ -9,7 +9,25 @@ class CreateAdminRequest(BaseModel):
     """Request body for creating admin account."""
     username: str = Field(..., min_length=6, max_length=50)
     email: EmailStr
-    password: str = Field(..., min_length=8, max_length=128)
+
+
+class CreateAdminResponse(BaseModel):
+    """Response for admin creation — includes temp password."""
+    id_user: str
+    username: str
+    email: str
+    is_active: bool
+    created_at: str
+    temp_password: str
+
+
+class ResendOnboardingResponse(BaseModel):
+    """Response for resend onboarding."""
+    id_user: str
+    username: str
+    email: str
+    temp_password: str
+    password_expires_at: str
 
 
 class AdminResponse(BaseModel):

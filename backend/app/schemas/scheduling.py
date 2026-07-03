@@ -17,6 +17,30 @@ class SessionCreate(BaseModel):
     session_type: str = "reguler"
 
 
+class StudioBookingCreate(BaseModel):
+    """Guardian self-booking request for rehearsal studio."""
+    id_student: UUID
+    id_room: UUID
+    session_date: date
+    start_time: time
+    end_time: time
+
+
+class RecordingRequestCreate(BaseModel):
+    """Guardian recording session request."""
+    id_student: UUID
+    id_room: UUID
+    session_date: date
+    start_time: time
+    end_time: time
+
+
+class RecordingApproval(BaseModel):
+    """Admin approval for recording session."""
+    id_teacher: UUID
+    notes: str | None = None
+
+
 class SessionUpdate(BaseModel):
     """Update session request."""
     session_date: date | None = None
@@ -49,7 +73,6 @@ class SessionResponse(BaseModel):
 class ConflictDetail(BaseModel):
     """Conflict detail for slot validation."""
     conflict_type: str  # teacher, room, student
-    conflicting_session_id: UUID
     message: str
 
 

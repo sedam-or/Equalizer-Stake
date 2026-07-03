@@ -1,10 +1,13 @@
-"""WhatsApp Gateway client — REST API integration with retry + circuit breaker."""
+"""WhatsApp Gateway client — REST API integration with retry + circuit breaker + rate limiting."""
 
 import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import httpx
+
+# Rate limiting: max 100 msg/sec per SRS
+_rate_semaphore = asyncio.Semaphore(100)
 
 # Circuit breaker state (in-memory, use Redis in production)
 _cb_state: dict[str, Any] = {
@@ -90,24 +93,25 @@ async def send_whatsapp_message(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                f"{api_url.rstrip('/')}/api/v1/send-message",
-                json=payload,
-                headers=headers,
-            )
-            response.raise_for_status()
-            data = response.json()
+        async with _rate_semaphore:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    f"{api_url.rstrip('/')}/api/v1/send-message",
+                    json=payload,
+                    headers=headers,
+                )
+                response.raise_for_status()
+                data = response.json()
 
-            # Reset circuit breaker on success
-            _cb_state["failures"] = 0
-            _cb_state["open_until"] = None
+                # Reset circuit breaker on success
+                _cb_state["failures"] = 0
+                _cb_state["open_until"] = None
 
-            return {
-                "success": True,
-                "message_id": data.get("message_id") or data.get("id"),
-                "raw_response": data,
-            }
+                return {
+                    "success": True,
+                    "message_id": data.get("message_id") or data.get("id"),
+                    "raw_response": data,
+                }
 
     except httpx.TimeoutException:
         record_failure()

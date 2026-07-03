@@ -11,11 +11,21 @@ from app.models.draft import Draft
 DRAFT_TTL_DAYS = 7
 
 
+class DraftConflictError(Exception):
+    """Raised when draft save conflicts with a newer server version."""
+
+    def __init__(self, server_draft: Draft, client_data: dict):
+        self.server_draft = server_draft
+        self.client_data = client_data
+        super().__init__("Draft konflik: versi server lebih baru")
+
+
 async def save_draft(
     db: AsyncSession,
     user_id: UUID,
     form_key: str,
     draft_data: dict,
+    client_updated_at: datetime | None = None,
 ) -> Draft:
     """Save or update draft for user+form combination."""
     result = await db.execute(
@@ -27,6 +37,9 @@ async def save_draft(
     existing = result.scalar_one_or_none()
 
     if existing:
+        # Conflict check: if client has stale timestamp, reject
+        if client_updated_at and existing.updated_at and existing.updated_at > client_updated_at:
+            raise DraftConflictError(existing, draft_data)
         existing.draft_data = draft_data
         existing.updated_at = datetime.now(timezone.utc)
         return existing

@@ -21,6 +21,15 @@ ALLOWED_SETTINGS = {
         "description": "Konfigurasi WhatsApp Gateway",
         "fields": {"api_url": str, "api_key": str, "sender_number": str, "enabled": bool},
     },
+    "notification_toggle": {
+        "description": "Toggle on/off per channel dan kategori notifikasi",
+        "fields": {
+            "whatsapp_critical": bool,
+            "whatsapp_non_critical": bool,
+            "email_critical": bool,
+            "email_non_critical": bool,
+        },
+    },
 }
 
 
