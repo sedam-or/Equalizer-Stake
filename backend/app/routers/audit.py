@@ -11,7 +11,7 @@ from app.middleware.auth import require_role
 from app.models.user import User
 from app.models.audit_log import AuditLog
 
-router = APIRouter(prefix="/api/audit", tags=["Audit Log"])
+router = APIRouter(prefix="/api/v1/audit", tags=["Audit Log"])
 
 
 @router.get("")

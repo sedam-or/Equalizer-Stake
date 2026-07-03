@@ -26,7 +26,7 @@ from app.services.admin_mgmt import (
 from app.templates.emails import onboarding_credentials_email
 from app.services.audit import create_audit_log
 
-router = APIRouter(prefix="/api/admin-mgmt", tags=["Admin Management"])
+router = APIRouter(prefix="/api/v1/admin-mgmt", tags=["Admin Management"])
 
 
 def _to_response(admin: User) -> dict:

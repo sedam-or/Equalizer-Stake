@@ -1531,3 +1531,26 @@
   - Greeting personal dengan nama user
 - **Dependencies affected**: T-137, T-138, T-139 (frontend dashboard)
 - **Rollback plan**: Revert eligibility.py
+
+### T-122: API Versioning (v1)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: NFR-SEC-01
+- **Files changed**:
+  - `backend/app/routers/*.py` — 18 files: prefix /api/ → /api/v1/
+  - `backend/app/main.py` — Added redirect middleware + X-API-Version header
+- **Test results**:
+  - [x] TC1: GET /api/v1/auth/login → 200: PASS
+  - [x] TC2: POST /api/auth/login → 301 redirect to /api/v1/: PASS
+  - [x] TC3: X-API-Version: 1 header present: PASS
+  - [x] TC4: /api/v1/billing/invoices → 200: PASS
+  - [x] TC5: /api/v1/students → 200: PASS
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**:
+  - All 18 routers updated to /api/v1/ prefix
+  - Backward compatible: /api/ → 301 redirect to /api/v1/
+  - X-API-Version: 1 header on all responses
+  - Frontend still uses /api/ (auto-redirected)
+- **Dependencies affected**: None
+- **Rollback plan**: Revert all router files + main.py

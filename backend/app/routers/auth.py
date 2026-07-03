@@ -36,7 +36,7 @@ from app.services.audit import log_auth_event
 from app.services.encryption import hash_pii
 from app.services.jwt_blacklist import blacklist_token, is_blacklisted
 
-router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 
 @router.post("/login", response_model=LoginResponse)

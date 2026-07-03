@@ -14,7 +14,7 @@ from app.services.audit import create_audit_log
 from app.services.eligibility import check_eligibility
 from app.services.reports import get_owner_dashboard, render_dashboard_html
 
-router = APIRouter(prefix="/api/reports", tags=["Reports"])
+router = APIRouter(prefix="/api/v1/reports", tags=["Reports"])
 
 
 @router.get("/eligibility/{student_id}")

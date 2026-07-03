@@ -16,7 +16,7 @@ from app.services.notification import reset_circuit_breaker, group_notification_
 from app.services.whatsapp import get_circuit_status, send_with_retry
 from app.services.email import get_circuit_status as get_email_cb_status
 
-router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
+router = APIRouter(prefix="/api/v1/notifications", tags=["Notifications"])
 
 
 @router.get("/")

@@ -67,7 +67,24 @@ async def security_headers(request: Request, call_next):
         "form-action 'self'"
     )
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-API-Version"] = "1"
     return response
+
+
+@app.middleware("http")
+async def api_version_redirect(request: Request, call_next):
+    """Redirect /api/... to /api/v1/... for backward compatibility."""
+    from fastapi.responses import RedirectResponse
+    path = request.url.path
+    # Redirect /api/<something> → /api/v1/<something> (if not already /api/v1/)
+    if path.startswith("/api/") and not path.startswith("/api/v1/"):
+        new_path = path.replace("/api/", "/api/v1/", 1)
+        return RedirectResponse(
+            url=str(request.url).replace(path, new_path),
+            status_code=301,
+            headers={"X-API-Version": "1"},
+        )
+    return await call_next(request)
 
 # CORS
 app.add_middleware(

@@ -16,7 +16,7 @@ from app.schemas.billing import InvoiceResponse, PaymentResponse, PaymentVerifyR
 from app.services.billing import apply_fine, verify_payment
 from app.services.audit import create_audit_log
 
-router = APIRouter(prefix="/api/billing", tags=["Billing"])
+router = APIRouter(prefix="/api/v1/billing", tags=["Billing"])
 
 
 def _invoice_dict(inv: Invoice) -> dict:

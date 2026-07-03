@@ -19,7 +19,7 @@ from app.services.pricing import (
     validate_pricing_input,
 )
 
-router = APIRouter(prefix="/api/pricing", tags=["Pricing"])
+router = APIRouter(prefix="/api/v1/pricing", tags=["Pricing"])
 
 
 @router.get("")

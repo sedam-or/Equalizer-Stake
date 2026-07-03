@@ -16,7 +16,7 @@ from app.services.settings import (
     validate_setting_value,
 )
 
-router = APIRouter(prefix="/api/settings", tags=["Settings"])
+router = APIRouter(prefix="/api/v1/settings", tags=["Settings"])
 
 
 @router.get("")

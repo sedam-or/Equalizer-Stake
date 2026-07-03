@@ -17,7 +17,7 @@ from app.services.multi_student import (
     freeze_guardian_household,
 )
 
-router = APIRouter(prefix="/api/guardian", tags=["Multi-Student"])
+router = APIRouter(prefix="/api/v1/guardian", tags=["Multi-Student"])
 
 
 class AddStudentRequest(BaseModel):

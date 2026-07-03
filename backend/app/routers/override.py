@@ -11,7 +11,7 @@ from app.models.user import User
 from app.services.audit import create_audit_log
 from app.services.override import cancel_invoice, revert_session, unfreeze_guardian
 
-router = APIRouter(prefix="/api/override", tags=["Override"])
+router = APIRouter(prefix="/api/v1/override", tags=["Override"])
 
 
 @router.put("/unfreeze/{guardian_id}")

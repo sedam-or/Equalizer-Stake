@@ -12,7 +12,7 @@ from app.models.user import User
 from app.models.draft import Draft
 from app.services.draft import DraftConflictError, delete_draft, get_draft, save_draft
 
-router = APIRouter(prefix="/api/drafts", tags=["Drafts"])
+router = APIRouter(prefix="/api/v1/drafts", tags=["Drafts"])
 
 
 @router.get("")

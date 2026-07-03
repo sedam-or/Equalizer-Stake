@@ -8,7 +8,7 @@ from app.middleware.auth import require_role
 from app.models.user import User
 from app.services.privacy import create_deletion_request, complete_deletion
 
-router = APIRouter(prefix="/api/privacy", tags=["Privacy"])
+router = APIRouter(prefix="/api/v1/privacy", tags=["Privacy"])
 
 
 @router.post("/delete-request")

@@ -19,7 +19,7 @@ from app.services.auth import hash_password
 from app.services.audit import create_audit_log
 from app.services.encryption import hash_pii
 
-router = APIRouter(prefix="/api/registrations", tags=["Registrations"])
+router = APIRouter(prefix="/api/v1/registrations", tags=["Registrations"])
 
 
 # ── Public: visitor submits registration form ──────────────────────────

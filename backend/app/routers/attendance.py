@@ -14,7 +14,7 @@ from app.services.attendance import submit_attendance, review_attendance
 from app.services.audit import create_audit_log
 from app.models.attendance import Attendance
 
-router = APIRouter(prefix="/api/attendance", tags=["Attendance"])
+router = APIRouter(prefix="/api/v1/attendance", tags=["Attendance"])
 
 
 def _attendance_dict(a: Attendance) -> dict:

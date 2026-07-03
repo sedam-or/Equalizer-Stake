@@ -30,7 +30,7 @@ from app.services.scheduling import (
     validate_slot,
 )
 
-router = APIRouter(prefix="/api/sessions", tags=["Scheduling"])
+router = APIRouter(prefix="/api/v1/sessions", tags=["Scheduling"])
 
 
 @router.get("/", response_model=list[SessionResponse])

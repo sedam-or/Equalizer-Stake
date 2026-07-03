@@ -959,9 +959,9 @@
 | Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ✅ 14/14 |
 | Phase 19: NICE TO HAVE | T-115 | ✅ 1/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
-| Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ⏳ 3/9 |
+| Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ⏳ 4/9 |
 | Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 0/28 |
-| **Total** | **155 tasks** | **86/155 done** |
+| **Total** | **155 tasks** | **87/155 done** |
 
 ---
 
@@ -1530,7 +1530,7 @@
 - **Files**: `backend/app/routers/dashboard.py` (new), `backend/app/services/reports.py`
 
 ### T-122: API Versioning (v1)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: NFR-SEC-01
 - **Deskripsi**:

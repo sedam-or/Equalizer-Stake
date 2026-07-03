@@ -13,7 +13,7 @@ from app.models.student import Student
 from app.models.user import User
 from app.services.audit import create_audit_log
 
-router = APIRouter(prefix="/api/students", tags=["Students"])
+router = APIRouter(prefix="/api/v1/students", tags=["Students"])
 
 
 class StudentCreate(BaseModel):

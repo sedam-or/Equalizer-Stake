@@ -15,7 +15,7 @@ from app.models.payment import Payment
 from app.models.user import User
 from app.services.audit import create_audit_log
 
-router = APIRouter(prefix="/api/payments", tags=["Payments"])
+router = APIRouter(prefix="/api/v1/payments", tags=["Payments"])
 
 # Circuit breaker for payment verification: 5 consecutive failures → open 30 min
 _CB_THRESHOLD = 5
