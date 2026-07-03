@@ -959,9 +959,9 @@
 | Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ✅ 14/14 |
 | Phase 19: NICE TO HAVE | T-115 | ✅ 1/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
-| Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ⏳ 5/9 |
+| Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ⏳ 6/9 |
 | Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 0/28 |
-| **Total** | **155 tasks** | **88/155 done** |
+| **Total** | **155 tasks** | **89/155 done** |
 
 ---
 
@@ -1554,7 +1554,7 @@
 - **Files**: `backend/app/routers/privacy.py`, `backend/app/models/deletion_request.py` (new)
 
 ### T-124: Export Laporan (UC-17)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟢 NICE
 - **FR/UC terkait**: UC-17
 - **Deskripsi**:

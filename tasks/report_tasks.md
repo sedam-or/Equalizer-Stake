@@ -1582,3 +1582,26 @@
   - 14 business day deadline
 - **Dependencies affected**: None
 - **Rollback plan**: DROP TABLE deletion_requests
+
+### T-124: Export Laporan (UC-17)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: UC-17
+- **Files changed**:
+  - `backend/app/routers/eligibility.py` — Added CSV export endpoint
+- **Test results**:
+  - [x] TC1: Revenue CSV → 200, 12 rows: PASS
+  - [x] TC2: Attendance CSV → 200, 4 rows: PASS
+  - [x] TC3: Students CSV → 200, 53 rows: PASS
+  - [x] TC4: Invalid type → 400: PASS
+  - [x] TC5: Content-Type: text/csv: PASS
+- **Security findings**: None
+- **Performance**: StreamingResponse, minimal memory
+- **Notes**:
+  - GET /api/v1/reports/export/csv?report_type=revenue|attendance|students
+  - Optional date range filter
+  - Audit log created for each export
+  - StreamingResponse for large datasets
+  - Also existing: PDF export (HTML printable)
+- **Dependencies affected**: None
+- **Rollback plan**: Revert eligibility.py

@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -349,3 +349,114 @@ async def guardian_dashboard_stats(
         "date": today.isoformat(),
         "children": children_data,
     }
+
+
+# ═══════════════════════════════════════════════════════════════
+# CSV EXPORT (T-124) — Revenue, Attendance, Students
+# ═══════════════════════════════════════════════════════════════
+
+import csv
+import io
+from fastapi.responses import StreamingResponse
+
+
+@router.get("/export/csv")
+async def export_csv(
+    report_type: str = Query(..., description="revenue, attendance, students"),
+    start_date: str | None = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    end_date: str | None = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    user: User = Depends(require_role("admin", "owner")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Export laporan sebagai CSV download."""
+    from datetime import date
+    from app.models.invoice import Invoice
+    from app.models.attendance import Attendance
+    from app.models.student import Student
+    from app.models.session import Session
+    from sqlalchemy import and_
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+
+    if report_type == "revenue":
+        # Revenue report
+        writer.writerow(["Periode", "Jumlah Tagihan", "Total Amount", "Status"])
+        filters = [Invoice.deleted_at.is_(None)]
+        if start_date:
+            filters.append(Invoice.billing_period >= start_date)
+        if end_date:
+            filters.append(Invoice.billing_period <= end_date)
+
+        result = await db.execute(select(Invoice).where(and_(*filters)))
+        invoices = result.scalars().all()
+        for inv in invoices:
+            writer.writerow([
+                inv.billing_period or "",
+                inv.id_invoice,
+                float(inv.total_amount),
+                inv.status,
+            ])
+        filename = "laporan-revenue.csv"
+
+    elif report_type == "attendance":
+        # Attendance report
+        writer.writerow(["Tanggal Sesi", "Status", "Jarak GPS (m)", "Verifikasi"])
+        filters = []
+        if start_date:
+            filters.append(Session.session_date >= date.fromisoformat(start_date))
+        if end_date:
+            filters.append(Session.session_date <= date.fromisoformat(end_date))
+
+        q = select(Attendance).join(Session, Attendance.id_session == Session.id_session)
+        if filters:
+            q = q.where(and_(*filters))
+        result = await db.execute(q)
+        attendances = result.scalars().all()
+        for att in attendances:
+            writer.writerow([
+                str(att.created_at.date()) if att.created_at else "",
+                att.verification_status,
+                att.gps_distance_m,
+                att.verification_status,
+            ])
+        filename = "laporan-attendance.csv"
+
+    elif report_type == "students":
+        # Students report
+        writer.writerow(["Nama", "Instrument", "Level", "Status", "Kelayakan Ujian"])
+        result = await db.execute(
+            select(Student).where(Student.deleted_at.is_(None))
+        )
+        students = result.scalars().all()
+        for s in students:
+            writer.writerow([
+                s.full_name,
+                s.instrument,
+                s.level,
+                s.enrollment_status,
+                "Ya" if s.eligible_for_exam else "Belum",
+            ])
+        filename = "laporan-siswa.csv"
+
+    else:
+        raise HTTPException(status_code=400, detail="Tipe report tidak valid. Gunakan: revenue, attendance, students")
+
+    # Create audit log
+    await create_audit_log(
+        db,
+        table_name="reports_export",
+        record_id=user.id_user,
+        action="INSERT",
+        changed_by=user.id_user,
+        after_state={"action": f"export_csv_{report_type}", "format": "csv"},
+        category="keamanan",
+    )
+    await db.commit()
+
+    buf.seek(0)
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
