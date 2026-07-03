@@ -179,13 +179,15 @@ async def register(body: RegisterRequest, request: Request, db: AsyncSession = D
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(user: User = Depends(_get_user)):
+@limiter.limit("100/minute")
+async def get_me(request: Request, user: User = Depends(_get_user)):
     """Get current authenticated user info."""
     return user
 
 
 @router.get("/me/profile", response_model=ProfileResponse)
-async def get_my_profile(user: User = Depends(_get_user), db: AsyncSession = Depends(get_db)):
+@limiter.limit("60/minute")
+async def get_my_profile(request: Request, user: User = Depends(_get_user), db: AsyncSession = Depends(get_db)):
     """Get full profile with role-specific data."""
     full_name = None
     phone = None
@@ -211,7 +213,9 @@ async def get_my_profile(user: User = Depends(_get_user), db: AsyncSession = Dep
 
 
 @router.patch("/me/profile")
+@limiter.limit("20/minute")
 async def update_my_profile(
+    request: Request,
     body: UpdateProfileRequest,
     user: User = Depends(_get_user),
     db: AsyncSession = Depends(get_db),
@@ -277,7 +281,8 @@ async def forgot_password(body: ForgotPasswordRequest, request: Request, db: Asy
 
 
 @router.post("/refresh", response_model=RefreshResponse)
-async def refresh_token(body: RefreshRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("30/minute")
+async def refresh_token(request: Request, body: RefreshRequest, db: AsyncSession = Depends(get_db)):
     """Get new access token using refresh token."""
     payload = decode_access_token(body.refresh_token)
     if not payload or payload.get("type") != "refresh":
@@ -316,6 +321,7 @@ async def refresh_token(body: RefreshRequest, db: AsyncSession = Depends(get_db)
 
 
 @router.post("/logout")
+@limiter.limit("30/minute")
 async def logout(
     request: Request,
     user: User = Depends(_get_user),
