@@ -1,5 +1,6 @@
 """Billing router — invoice and payment endpoints. T-094: audit logs."""
 
+from datetime import datetime, timezone
 from decimal import Decimal
 from uuid import UUID
 
@@ -41,7 +42,7 @@ async def list_invoices(
     db: AsyncSession = Depends(get_db),
 ):
     """List invoices with optional filters."""
-    base = select(Invoice)
+    base = select(Invoice).where(Invoice.deleted_at.is_(None))
     if status_filter:
         base = base.where(Invoice.status == status_filter)
     if guardian_id:
@@ -141,3 +142,21 @@ async def apply_fine_endpoint(
     await db.commit()
 
     return {"message": f"Denda Rp 100.000 diterapkan, akun dibekukan"}
+
+
+@router.delete("/invoices/{invoice_id}")
+async def delete_invoice(
+    invoice_id: str,
+    user: User = Depends(require_role("admin", "owner")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Soft-delete invoice."""
+    result = await db.execute(
+        select(Invoice).where(Invoice.id_invoice == UUID(invoice_id), Invoice.deleted_at.is_(None))
+    )
+    invoice = result.scalar_one_or_none()
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Tagihan tidak ditemukan")
+    invoice.deleted_at = datetime.now(timezone.utc)
+    await db.commit()
+    return {"detail": "Tagihan berhasil dihapus"}

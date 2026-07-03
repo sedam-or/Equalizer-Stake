@@ -59,7 +59,7 @@ async def list_registrations(
     db: AsyncSession = Depends(get_db),
 ):
     """Admin/Owner: lihat semua pendaftaran."""
-    base = select(Registration)
+    base = select(Registration).where(Registration.deleted_at.is_(None))
     if status_filter:
         base = base.where(Registration.status == status_filter)
     count_q = await db.execute(select(func.count()).select_from(base.subquery()))
@@ -284,3 +284,21 @@ async def _get_pending_reg(db: AsyncSession, reg_id: str) -> Registration:
             detail=f"Pendaftaran sudah diproses (status: {reg.status}).",
         )
     return reg
+
+
+@router.delete("/{reg_id}")
+async def delete_registration(
+    reg_id: str,
+    user: User = Depends(require_role("owner", "admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Soft-delete registration."""
+    result = await db.execute(
+        select(Registration).where(Registration.id_registration == UUID(reg_id), Registration.deleted_at.is_(None))
+    )
+    reg = result.scalar_one_or_none()
+    if not reg:
+        raise HTTPException(status_code=404, detail="Pendaftaran tidak ditemukan")
+    reg.deleted_at = datetime.now(timezone.utc)
+    await db.commit()
+    return {"detail": "Pendaftaran berhasil dihapus"}

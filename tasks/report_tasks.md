@@ -1177,3 +1177,27 @@
   - group_notification_by_guardian function already existed in notification.py
 - **Dependencies affected**: None
 - **Rollback plan**: Revert scheduler.py changes
+
+### T-103: Soft Delete — Registration, Invoice, Payment
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-07, SRS Entities
+- **Files changed**:
+  - `backend/app/models/registration.py` — Added deleted_at column
+  - `backend/app/models/invoice.py` — Added deleted_at column
+  - `backend/app/models/payment.py` — Added deleted_at column
+  - `backend/app/routers/registrations.py` — Added DELETE endpoint + filter deleted_at
+  - `backend/app/routers/billing.py` — Added DELETE endpoint + filter deleted_at
+  - `backend/app/routers/payments.py` — Added DELETE endpoint + filter deleted_at + audit log
+- **Test results**:
+  - [x] TC1: Soft delete registration → deleted_at set, not in list: PASS
+  - [x] TC2: List queries filter deleted_at IS NULL: PASS
+  - [x] TC3: DB migration adds columns: PASS
+- **Security findings**: None
+- **Performance**: No impact (nullable column, no index needed)
+- **Notes**:
+  - SRS: "Semua entitas menggunakan soft-delete (deleted_at TIMESTAMP NULL)"
+  - Payment soft delete includes audit log
+  - Data preserved in DB for audit trail
+- **Dependencies affected**: None
+- **Rollback plan**: ALTER TABLE DROP COLUMN deleted_at

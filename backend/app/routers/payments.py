@@ -71,7 +71,7 @@ async def list_payments(
     db: AsyncSession = Depends(get_db),
 ):
     """List payments (admin/owner)."""
-    base = select(Payment)
+    base = select(Payment).where(Payment.deleted_at.is_(None))
     if verified is not None:
         base = base.where(Payment.is_verified == verified)
     if method:
@@ -218,3 +218,27 @@ async def create_payment(
     await db.commit()
 
     return {"message": "Pembayaran berhasil dikirim. Menunggu verifikasi admin.", "payment_id": str(payment.id_payment)}
+
+
+@router.delete("/{payment_id}")
+async def delete_payment(
+    payment_id: UUID,
+    request: Request,
+    user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Soft-delete payment."""
+    result = await db.execute(
+        select(Payment).where(Payment.id_payment == payment_id, Payment.deleted_at.is_(None))
+    )
+    payment = result.scalar_one_or_none()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Pembayaran tidak ditemukan")
+    payment.deleted_at = datetime.now(timezone.utc)
+    await create_audit_log(
+        db, table_name="payments", record_id=payment_id,
+        action="DELETE", changed_by=user.id_user,
+        before_state=_payment_dict(payment), request=request,
+    )
+    await db.commit()
+    return {"detail": "Pembayaran berhasil dihapus"}
