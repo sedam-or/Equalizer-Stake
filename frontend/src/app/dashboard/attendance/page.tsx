@@ -145,7 +145,7 @@ export default function AttendancePage() {
           <div className="w-full max-w-lg rounded-xl border border-[#253900] bg-[#111] p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#EEEEEE]">Detail Absensi</h2>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-white">✕</button>
+              <button onClick={() => setSelected(null)} aria-label="Tutup" className="text-gray-400 hover:text-white">✕</button>
             </div>
 
             <div className="mb-4 rounded-lg overflow-hidden border border-[#253900] bg-[#1a1a1a] p-8 text-center">

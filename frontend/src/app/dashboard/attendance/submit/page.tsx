@@ -201,7 +201,8 @@ export default function AttendanceSubmitPage() {
 
           <div className="rounded-xl border border-[#253900] bg-[#111] p-6">
             <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">2. Ambil Foto</h2>
-            <input type="file" accept="image/jpeg,image/png" onChange={handlePhoto} className="w-full text-sm text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-[#08CB00] file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-black hover:file:bg-[#06a800]" />
+            <label htmlFor="photo-upload" className="block text-xs text-gray-400 mb-1">Foto Kehadiran</label>
+            <input id="photo-upload" type="file" accept="image/jpeg,image/png" onChange={handlePhoto} aria-label="Unggah foto kehadiran" className="w-full text-sm text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-[#08CB00] file:px-3 file:py-1.5 file:text-sm file:text-black hover:file:bg-[#06a800]" />
             {photo && (
               <div className="mt-3 rounded-lg overflow-hidden border border-[#253900]">
                 <img src={photo} alt="Foto bukti" className="w-full h-48 object-cover" />

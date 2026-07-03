@@ -153,7 +153,7 @@ export default function BillingPage() {
           <div className="w-full max-w-lg rounded-xl border border-[#253900] bg-[#111] p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#EEEEEE]">Verifikasi Pembayaran</h2>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-white">✕</button>
+              <button onClick={() => setSelected(null)} aria-label="Tutup" className="text-gray-400 hover:text-white">✕</button>
             </div>
 
             <div className="mb-4 rounded-lg border border-[#253900] bg-[#0a0a0a] p-3">

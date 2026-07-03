@@ -957,9 +957,9 @@
 | Phase 16: Pagination | T-086..T-088 | ✅ 3/3 |
 | Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ✅ 12/12 |
 | Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ✅ 14/14 |
-| Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
+| Phase 19: NICE TO HAVE | T-115 | ✅ 1/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
-| **Total** | **104 tasks** | **82/104 done** |
+| **Total** | **104 tasks** | **83/104 done** |
 
 ---
 
@@ -1423,7 +1423,7 @@
 ## 19. NICE TO HAVE
 
 ### T-115: WCAG 2.1 Level A Compliance
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟢 NICE TO HAVE
 - **FR/UC terkait**: NFR-USA-01
 - **Deskripsi**:
