@@ -983,3 +983,23 @@
   - Access token: 30min (owner/admin/teacher), 60min (guardian)
 - **Dependencies affected**: None
 - **Rollback plan**: Revert auth.py changes + remove LOGOUT from enum
+
+### T-093: Audit Log — Students CRUD
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-07, SRS Audit Governance
+- **Files changed**:
+  - `backend/app/routers/students.py` — Added audit logs to all CRUD + restore endpoint
+- **Test results**:
+  - [x] TC1: Create student → audit INSERT + after_state: PASS
+  - [x] TC2: Update student → audit UPDATE + before/after: PASS
+  - [x] TC3: Delete student → audit DELETE + before_state: PASS
+  - [x] TC4: Restore student → audit UPDATE + after_state: PASS
+- **Security findings**: None
+- **Performance**: Audit log writes are in same transaction (no extra DB roundtrip)
+- **Notes**:
+  - Added restore endpoint: POST /api/students/{id}/restore
+  - Before state captured before mutation, after state after flush
+  - Audit logs are immutable — no UPDATE/DELETE on audit_logs table
+- **Dependencies affected**: None
+- **Rollback plan**: Revert students.py changes
