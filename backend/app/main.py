@@ -13,7 +13,7 @@ from app.core.config import get_settings
 from app.core.limiter import limiter
 from app.services.scheduler import start_scheduler, shutdown_scheduler
 from app.services.background_queue import start_worker, stop_worker
-from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft, students, payments, my_portal, registrations, photos, cron_trigger, feedback, ratings
+from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft, students, payments, my_portal, registrations, photos, cron_trigger, feedback, ratings, import_data
 
 settings = get_settings()
 
@@ -118,6 +118,7 @@ app.include_router(photos.router, prefix="/api/photos", tags=["Photos"])
 app.include_router(cron_trigger.router, prefix="/api/admin/cron", tags=["Cron Trigger"])
 app.include_router(feedback.router)
 app.include_router(ratings.router)
+app.include_router(import_data.router)
 
 
 @app.get("/health")

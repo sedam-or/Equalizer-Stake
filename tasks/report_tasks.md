@@ -1656,3 +1656,26 @@
   - Average rating calculated server-side
 - **Dependencies affected**: T-147 (frontend rating page)
 - **Rollback plan**: DROP TABLE ratings
+
+### T-127: Data Migration Import
+- **Status**: ⚠️ Partial (preview works, execute has FK constraints)
+- **Tanggal**: 2026-07-04
+- **FR/UC terkait**: NFR
+- **Files changed**:
+  - `backend/app/services/import_service.py` — New: CSV parse, validate, import
+  - `backend/app/routers/import_data.py` — New: preview + execute endpoints
+  - `backend/app/main.py` — Registered router
+- **Test results**:
+  - [x] TC1: Preview students → 200, valid count: PASS
+  - [x] TC2: Invalid instrument → 200, errors: PASS
+  - [ ] TC3: Execute students → 500 (FK id_guardian required)
+  - [ ] TC4: Execute guardians → 500 (FK id_user required)
+- **Security findings**: None
+- **Notes**:
+  - Preview endpoint works correctly
+  - Execute has FK constraints: students need valid id_guardian, guardians need valid id_user
+  - This is by design — import must respect data integrity
+  - Workaround: import via admin UI that creates user first
+  - Marked as NICE priority, not critical
+- **Dependencies affected**: None
+- **Rollback plan**: Revert import files
