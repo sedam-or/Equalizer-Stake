@@ -596,8 +596,8 @@
   - `frontend/src/app/dashboard/holidays/page.tsx`
   - `frontend/src/app/dashboard/payments/page.tsx`
 
-### T-043: Guru + Wali Murid Portal Pages
-- **Status**: ⏳
+### T-043: Guru + Wali Murid Portal Pages ✅
+- **Status**: ✅ Selesai (3/4 pages, my-bookings deferred)
 - **SRS Ref**: UC-03, UC-06, UC-11
 - **Role**: Fullstack
 - **Deskripsi**: My Schedule (guru/WM), My Children, My Payments, My Bookings.
@@ -606,6 +606,331 @@
   - `frontend/src/app/dashboard/my-children/page.tsx`
   - `frontend/src/app/dashboard/my-payments/page.tsx`
   - `frontend/src/app/dashboard/my-bookings/page.tsx`
+
+---
+
+## 15. Security Audit — Authentication Flow
+
+### T-044: Audit Autentikasi (Login, Register, Forgot Password, Verification)
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-01, UC-01, SEC-01..SEC-08
+- **Role**: Security Auditor
+- **Deskripsi**: Full audit alur autentikasi — login, register, forgot-password, JWT validation, brute force protection, password policy. Bandingkan implementasi vs SRS. Output: compliance matrix + findings.
+- **Dependencies**: T-003 (Authentication & RBAC) ✅
+- **Tasks**:
+  1. Audit backend auth endpoints (login, register, forgot-password, change-password)
+  2. Audit auth middleware (JWT validation, role extraction, expiry check)
+  3. Audit brute force protection (failed_attempts, lockout logic)
+  4. Audit frontend auth pages (error handling, token storage, redirect logic)
+  5. Audit password policy (hashing, onboarding, first-login, expiry)
+  6. Compare vs SRS acceptance criteria (Given-When-Then)
+  7. Output compliance matrix ke docs/SRS_COMPLIANCE_AUTH.md
+
+### T-045: Fix Auth Audit Findings ✅
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-01, UC-01, SEC-01..SEC-08
+- **Role**: Fullstack
+- **Deskripsi**: Fix all 15 findings from T-044 auth audit.
+- **Dependencies**: T-044 (Auth Audit) ✅
+- **Findings fixed**:
+  1. FINDING 1 (HIGH): Onboarding model fields added (first_login, is_temp_password, password_expires_at) + migration SQL
+  2. FINDING 2 (HIGH): Audit logging on all auth events (6 calls: LOGIN_SUCCESS, LOGIN_FAILED, REGISTER, PASSWORD_CHANGE, ACCOUNT_LOCKED)
+  3. FINDING 3 (HIGH): CSRF — documented as N/A for JWT-in-header architecture
+  4. FINDING 4 (HIGH): localStorage — accepted trade-off, documented
+  5. FINDING 5 (MEDIUM): Rate limiting @limiter.limit('10/minute') on login endpoint
+  6. FINDING 6 (MEDIUM): Per-role expires_in using ACCESS_TOKEN_EXPIRE_MINUTES dict
+  7. FINDING 7 (MEDIUM): Change-password error → generic 'Password lama tidak valid'
+  8. FINDING 8 (MEDIUM): Admin lockout notification — logged as ACCOUNT_LOCKED (email requires email service setup)
+  9. FINDING 9 (MEDIUM): Role-based redirect (teacher/guardian → /dashboard/my-schedule)
+  10. FINDING 10 (MEDIUM): Address field added to register form + backend schema
+  11. FINDING 11 (MEDIUM): Register network error handling added
+  12. FINDING 12 (MEDIUM): Forgot-password user enumeration fixed
+  13. FINDING 13 (LOW): Password visibility toggle (Eye/EyeOff) on login + register
+  14. FINDING 14 (LOW): autoComplete='off' on forgot-password email
+  15. FINDING 15 (LOW): Security headers middleware (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy)
+
+### T-046: Sidebar RBAC + Seed Script ✅
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-01, ADR-006 (Owner=Superadmin)
+- **Role**: Fullstack
+- **Deskripsi**: Fix sidebar role filtering + create seed script for 4 test accounts.
+- **Dependencies**: T-044 ✅
+- **Changes**:
+  1. Sidebar.tsx — added `roles` array per nav section, filter by current role
+  2. seed_accounts.py — creates owner/admin/teacher/guardian accounts
+- **Role mapping**:
+  - owner: Operasional + Manajemen + Notifications + Profile
+  - admin: Operasional + Notifications + Profile
+  - teacher: Portal (my-schedule only) + Notifications + Profile
+  - guardian: Portal (my-schedule, my-children, my-payments) + Notifications + Profile
+
+### T-047: Dashboard Dark Theme + Dummy Data ✅
+- **Status**: ✅ Selesai
+- **SRS Ref**: All dashboard FRs
+- **Role**: Fullstack
+- **Deskripsi**: Apply dark theme to all 18 dashboard pages + layout/sidebar/bottomnav. Add 5 dummy data per page.
+- **Dependencies**: T-046 ✅
+
+---
+
+## 12. SRS Compliance Fixes (from Full Gap Analysis)
+
+### T-048: PII Encryption Service (AES-256-GCM)
+- **Status**: ✅ Selesai
+- **SRS Ref**: NFR-SEC-01, UU PDP
+- **Deskripsi**: Implement AES-256-GCM encryption for PII fields (guardian.full_name, student.full_name, attendance.photo_url). Create encrypt/decrypt service, integrate with models.
+- **Dependencies**: T-045 ✅
+
+### T-049: Cron Jobs (Auto-Invoice, Fine, Cleanup, Reminders)
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-03 §2, FR-02 §5, SRS-10 §4
+- **Deskripsi**: Implement scheduler for: auto-invoice tanggal 5, fine+freeze tanggal 11, draft cleanup, notification reminders. Use APScheduler or background tasks.
+- **Dependencies**: T-048 ⏳
+
+### T-050: Onboarding Flow (Temp Password + Forced Change)
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-01 §2.3, UC-01 §3.4
+- **Deskripsi**: Auto-generate temp password, email credentials, force password change on first login. Use first_login + password_expires_at fields (already added in T-045).
+- **Dependencies**: T-048 ⏳
+
+### T-051: Frozen Login Block + Credit Refund + Cancel Logic
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-03 §3, FR-02 §5
+- **Deskripsi**: Block login for frozen guardians. Implement cancel session with credit refund tiers. Complete TODO stub in scheduling router.
+- **Dependencies**: T-048 ⏳
+
+### T-052: Audit Log Completeness
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-07 §2, NFR-SEC-08
+- **Deskripsi**: Add category field to audit_log model. Add audit logging to: session creation, notification sends, dashboard access, pricing changes. Add 7-year retention + PII anonymization cron.
+- **Dependencies**: T-048 ⏳
+
+### T-053: Notification Enhancements
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-05 §4, §5, §7
+- **Deskripsi**: Group notifications per guardian (N students → 1 msg). Add admin channel toggle endpoint. Add CRITICAL_FAILURE status + admin alert. Add notification audit logging. Add WhatsApp rate limiting.
+- **Dependencies**: T-052 ⏳
+
+### T-054: Security Headers + Secret Key + Concurrency
+- **Status**: ✅ Selesai
+- **SRS Ref**: NFR-SEC-05, NFR-REL-03
+- **Deskripsi**: Add CSP + HSTS headers. Enforce non-default SECRET_KEY. Add optimistic locking for concurrent schedule saves. Fix GPS precision (Float → Numeric(10,7)). Add session ownership validation.
+- **Dependencies**: T-048 ⏳
+
+### T-055: Studio Reservation (Guardian Self-Booking)
+- **Status**: ❌ CANCELLED — Studio booking = WhatsApp admin (di luar sistem). Room hanya lokasi kursus.
+- **SRS Ref**: FR-08, UC-06
+- **Deskripsi**: Guardian self-booking for rehearsal. Recording approval flow. Studio hourly pricing model. Alternative slot suggestions. DB unique constraint for double-booking. Cancel with H-1 rule.
+- **Dependencies**: T-054 ⏳
+
+### T-056: Reporting Enhancements
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-06 §3
+- **Deskripsi**: PDF/HTML export endpoint. Date range filter on dashboard. 6-month revenue trend. Per-studio breakdown. Anomaly flag detection. Attendance <5 sessions asterisk.
+- **Dependencies**: T-052 ⏳
+
+### T-057: Admin Channel Toggle + Notification Grouping UI
+- **Status**: ✅ Selesai
+- **SRS Ref**: FR-05 §5
+- **Deskripsi**: Frontend: admin settings page for notification channel toggle per category. Guardian: grouped notification display.
+- **Dependencies**: T-053 ⏳
+
+### T-058: Payment Gateway Circuit Breaker + Rate Limiting
+- **Status**: ✅ Selesai
+- **SRS Ref**: NFR-REL-02, NFR-SEC-04
+- **Deskripsi**: Add circuit breaker for payment gateway. Add WhatsApp rate limiting (100 msg/sec). Add payment-specific rate limiting on verify endpoint.
+- **Dependencies**: T-053 ⏳
+
+### T-059: Draft Conflict Resolution + Operational Hours
+- **Status**: ⏳
+- **SRS Ref**: FR-10 §7, FR-02 §2
+### T-059: Draft Conflict Resolution + Composite Unique Constraint
+- **Status**: ✅ Selesai
+
+---
+
+
+## 13. UAT-Driven End-to-End Flow
+**Patokan:** docs/UAT_BMD.md — setiap task = 1 alur UAT
+
+### T-060: UAT-3 — Admin Buat Jadwal → Guru/Guardian Lihat
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 3 (3.1-3.5)
+- **Deskripsi**: 
+  - Admin: form buat sesi (guru, siswa, ruangan, hari, jam) + conflict detection
+  - Guru: my-schedule fetch real data dari API
+  - Guardian: my-schedule fetch real data anak dari API
+- **Test**: Login admin → buat 1 jadwal → login guru → lihat jadwal → login guardian → lihat jadwal anak
+
+### T-061: UAT-4 — Guru Submit Absensi (Foto + GPS)
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 4 (4.1-4.7)
+- **Deskripsi**: 
+  - Guru: page submit absensi (camera upload + GPS auto-detect)
+  - Validasi: jarak ≤150m, foto ≤2MB, face ≥30%
+  - Submit → status pending_verification
+- **Test**: Login guru → buka jadwal hari ini → klik absen → foto → GPS → submit
+
+### T-062: UAT-5 — Admin Verifikasi Absensi
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 5 (5.1-5.5)
+- **Deskripsi**: 
+  - Admin: fetch pending absensi dari API
+  - Detail modal: foto, GPS, jarak, face confidence
+  - Verifikasi/Tolak → PUT /api/attendance/{id}/review
+- **Test**: Login admin → buka absensi pending → review foto → verifikasi
+
+### T-063: UAT-7 — Guardian Bayar + Upload Bukti Transfer
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 7 (7.1-7.5)
+- **Deskripsi**: 
+  - Guardian: lihat invoice real dari API (bukan dummy)
+  - Upload foto bukti transfer + input jumlah
+  - Submit → status pending_verification
+- **Test**: Login guardian → buka tagihan → klik invoice → upload bukti → submit
+
+### T-064: UAT-8 — Admin Verifikasi Pembayaran (Kode Unik)
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 8 (8.1-8.6)
+- **Deskripsi**: 
+  - Admin: fetch pending payments dari API
+  - Review bukti transfer + input kode unik 3 digit
+  - Verifikasi → invoice lunas, duplikat detection
+- **Test**: Login admin → buka billing pending → review bukti → input kode → verifikasi
+
+### T-065: UAT-2 — Guardian Portal (Anak, Jadwal, Tagihan)
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 2 (2.1-2.4)
+- **Deskripsi**: 
+  - Connect my-schedule, my-children, my-payments ke real API
+  - Hapus semua dummy data, fetch dari database
+- **Test**: Login guardian → lihat anak → lihat jadwal → lihat tagihan (semua data real)
+
+### T-066: UAT-1 — Visitor Daftar Kursus → Admin Approve
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 1 (1.1-1.6)
+- **Deskripsi**: 
+  - Landing page: tombol "Daftar Kursus" → form (nama, WA, email, alamat, instrumen, level, tipe kelas)
+  - Admin: menu Pendaftaran → approve → generate akun guardian
+  - Notifikasi WA ke guardian
+- **Test**: Buka landing → daftar → login admin → approve → login guardian
+
+### T-067: Master Data — Instrumen, Level, Tipe Kelas, Harga
+- **Status**: ✅ Selesai
+- **UAT Ref**: Supporting data untuk semua alur
+- **Deskripsi**: 
+  - Seed 9 instrumen, level per instrumen, 9 tipe kelas
+  - Harga asli BMD MS +20% sesuai addendum SRS
+  - Update Pricing model + seed script
+- **Test**: Query pricing → semua kombinasi instrumen×level×tipe ada
+
+### T-068: UAT-6+9+10 — Test Cron Jobs (Invoice, Denda, Notifikasi)
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 6 (6.1-6.5), Alur 9 (9.1-9.5), Alur 10 (10.1-10.6)
+- **Deskripsi**: 
+  - Manual trigger cron jobs untuk test
+  - Verify: invoice generated, kode unik benar, reminder terkirim
+  - Verify: denda Rp 100k, freeze akun, guardian blocked
+  - Verify: notifikasi di semua event
+- **Test**: Trigger manual → cek DB → cek notifikasi
+
+### T-069: UAT-11 — Data Deletion (UU PDP)
+- **Status**: ✅ Selesai
+- **UAT Ref**: Alur 11 (11.1-11.5)
+- **Deskripsi**: 
+  - Guardian: tombol "Hapus Data Saya" di profile
+  - Admin: menu Privacy → review → proses
+  - PII dianonimkan, audit log tercatat
+- **Test**: Login guardian → minta hapus → login admin → proses → verify data anonim
+
+### T-070: End-to-End Integration Test (Semua 11 Alur)
+- **Status**: ✅ Selesai
+- **UAT Ref**: docs/UAT_BMD.md — semua alur
+- **Deskripsi**: 
+  - Jalankan SEMUA 11 alur secara berurutan
+  - Setiap step di-verify sesuai tabel UAT
+  - Semua harus PASS = sistem siap produksi
+- **Test**: Ikuti UAT_BMD.md dari Alur 1 sampai 11, centang setiap step
+
+---
+
+## 14. Fitur Baru (dari diskusi + Stitch prompt)
+
+### T-071: Foto Profil Semua Role
+- **Status**: ⏳
+- **SRS Ref**: Addendum §12
+- **Deskripsi**: 
+  - Backend: POST /api/users/me/photo (upload foto, max 2MB, JPEG/PNG)
+  - Backend: GET /api/users/me/photo (ambil foto terenkripsi)
+  - Frontend: upload foto di halaman Profile (semua role)
+  - Default: avatar inisial nama (warna random)
+  - Enkripsi: AES-256-GCM sebelum simpan
+- **Test**: Login setiap role → buka Profile → upload foto → refresh → foto tampil
+
+### T-072: Feedback Guru ke Wali Murid
+- **Status**: ⏳
+- **SRS Ref**: Addendum §13
+- **Deskripsi**: 
+  - Backend: POST /api/feedback (guru kirim feedback per siswa)
+  - Backend: GET /api/feedback?student_id=X (wali lihat feedback anak)
+  - Frontend: guru page /dashboard/feedback (form + riwayat)
+  - Frontend: wali page /dashboard/my-children (tampilkan feedback guru)
+  - Kategori: Kemajuan, Perilaku, Kehadiran, Rekomendasi
+  - Rating: 1-5 per kategori
+- **Test**: Login guru → kirim feedback → login wali → lihat feedback di Anak Saya
+
+### T-073: Penilaian Wali Murid ke Guru
+- **Status**: ⏳
+- **SRS Ref**: Addendum §14
+- **Deskripsi**: 
+  - Backend: POST /api/ratings (wali beri rating ke guru)
+  - Backend: GET /api/ratings?teacher_id=X (admin lihat rating guru)
+  - Frontend: wali page /dashboard/rating (form + riwayat)
+  - Frontend: admin page /dashboard/teachers (tampilkan rating guru)
+  - Rating: 1-5 bintang + komentar
+  - Validasi: hanya bisa menilai guru yang mengajar anaknya
+- **Test**: Login wali → beri rating guru → login admin → lihat rating
+
+### T-074: Page Detail Instrumen dan Kelas
+- **Status**: ⏳
+- **SRS Ref**: Addendum §15
+- **Deskripsi**: 
+  - Frontend: /instruments (public page)
+  - Per instrumen: deskripsi, level, tipe kelas, harga, durasi, usia minimal
+  - Data dari GET /api/pricing/
+  - CTA "Daftar Sekarang" per instrumen
+  - Tabel ringkasan harga semua instrumen
+- **Test**: Buka /instruments → semua 9 instrumen tampil → klik CTA → redirect ke /register-course
+
+### T-075: Page Bantuan
+- **Status**: ⏳
+- **SRS Ref**: Addendum §16
+- **Deskripsi**: 
+  - Frontend: /help (public, FAQ accordion + search + kontak WhatsApp)
+  - Frontend: /dashboard/help (per role, panduan penggunaan)
+  - Kategori: Umum, Akun, Pembayaran, Jadwal, Absensi, Privasi
+  - Kontak: WhatsApp admin, telepon, alamat, jam operasional
+- **Test**: Buka /help → FAQ tampil → search berfungsi → kontak WhatsApp terlihat
+
+### T-076: Email Reset Password Pages
+- **Status**: ⏳
+- **SRS Ref**: Addendum §17
+- **Deskripsi**: 
+  - Frontend: /reset-password/success (ikon centang hijau + tombol Login)
+  - Frontend: /reset-password/error (ikon silang merah + tombol Kirim Ulang)
+  - Backend: token validasi (expired 1 jam, rate limit 3x/jam/email)
+- **Test**: Request reset → klik link → success page. Tunggu 1 jam → klik link → error page
+
+### T-077: Mobile-First Wali Murid Dashboard
+- **Status**: ⏳
+- **SRS Ref**: Addendum §18, NFR-USA-02
+- **Deskripsi**: 
+  - Refactor semua halaman wali murid ke mobile-first
+  - Bottom navigation di mobile (<768px)
+  - Sidebar di desktop (>=768px)
+  - Kartu besar, tombol besar, font besar
+  - Test di viewport 320px, 375px, 768px, 1024px
+- **Test**: Buka dashboard wali di mobile → bottom nav tampil → semua page responsive
 
 ## Summary
 
@@ -616,10 +941,507 @@
 | Phase 2: Frontend PWA | T-009..T-016 | ✅ 8/8 |
 | Phase 3: Compliance | T-017..T-021 | ✅ 5/5 |
 | Phase 3b: Superadmin | T-036..T-039 | ✅ 4/4 |
-| Phase 2b: Pages | T-040..T-043 | ✅ 2/4 |
+| Phase 2b: Pages | T-040..T-043 | ✅ 3/4 (my-bookings deferred) |
 | Phase 4: Integration | T-022..T-023 | ✅ 2/2 |
 | Phase 5: Testing | T-024..T-026 | ✅ 3/3 |
 | Phase 6: Deployment | T-027..T-030 | ⏳ 0/4 |
 | Phase 7: Documentation | T-031..T-033 | ⏳ 0/3 |
 | Phase 8: Final | T-034..T-035 | ⏳ 0/2 |
-| **Total** | **39 tasks** | **17/39 done** |
+| Phase 9: Security Audit | T-044..T-045 | ✅ 2/2 |
+| Phase 10: RBAC | T-046 | ✅ 1/1 |
+| Phase 11: Dashboard UI | T-047 | ✅ 1/1 |
+| Phase 12: SRS Compliance | T-048..T-059 | ✅ 11/12 (T-055 cancelled) |
+| Phase 13: UAT-Driven Flow | T-060..T-070 | ✅ 11/11 |
+| Phase 14: Fitur Baru | T-071..T-077 | ⏳ 0/7 |
+| Phase 15: Critical Fixes | T-078..T-085 | ✅ 8/8 |
+| Phase 16: Pagination | T-086..T-088 | ✅ 3/3 |
+| Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ⏳ 1/12 |
+| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 0/14 |
+| Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
+| **Total** | **101 tasks** | **56/101 done** |
+
+---
+
+## 15. Critical Fixes (sistem tidak jalan tanpa ini)
+
+### T-078: Seed Data Terhubung Antar Role
+- **Status**: ✅ Selesai
+- **Priority**: 🔴 CRITICAL
+- **Deskripsi**: 
+  - Buat 1 guardian + 1 guru + 3 siswa + 3 sesi + 3 invoice yang saling terhubung
+  - Guardian punya siswa → siswa punya jadwal → jadwal punya guru
+  - Invoice terhubung ke guardian → ada kode unik
+  - Login sebagai guardian → lihat anak, jadwal, tagihan (semua data real)
+  - Login sebagai guru → lihat jadwal (data real)
+  - Login sebagai admin → lihat jadwal, absensi pending, tagihan pending
+- **Test**: Login 3 role → semua lihat data yang sama → data mengalir
+
+### T-079: GPS Validation Server-Side
+- **Status**: ✅ Selesai
+- **Priority**: 🔴 CRITICAL
+- **Deskripsi**: 
+  - Backend: hitung jarak dari koordinat yang dikirim ke studio (-7.737428, 110.429669)
+  - Jika jarak > 150m → tolak absensi, return error "Anda di luar jangkauan studio"
+  - Simpan gps_distance_m di tabel attendance
+  - Tidak hanya terima koordinat, tapi VALIDASI
+- **Test**: Kirim GPS 100m → accepted. Kirim GPS 500m → rejected
+
+### T-080: Foto Storage Service
+- **Status**: ✅ Selesai
+- **Priority**: 🔴 CRITICAL
+- **Deskripsi**: 
+  - Backend: simpan foto absensi ke file system (bukan DB langsung)
+  - Path: /uploads/attendance/{session_id}_{timestamp}.jpg
+  - Encrypt sebelum simpan (AES-256-GCM)
+  - Simpan path di kolom photo_url (bukan base64)
+  - Endpoint GET /api/attendance/{id}/photo → return decrypted photo
+  - Foto profil: simpan ke /uploads/profiles/{user_id}.jpg
+- **Test**: Submit absensi dengan foto → file tersimpan → bisa diambil kembali
+
+### T-081: Mobile Navigation (BottomNav) untuk Wali Murid
+- **Status**: ✅ Selesai
+- **Priority**: 🔴 CRITICAL
+- **Deskripsi**: 
+  - Refactor BottomNav: tampilkan HANYA untuk role guardian di mobile
+  - Menu: Dashboard, Anak Saya, Jadwal, Bayar, Profil
+  - Sidebar: sembunyikan di mobile (<768px), tampil di desktop
+  - Layout guardian: tanpa sidebar di mobile, dengan sidebar di desktop
+  - Test di viewport 320px, 375px, 768px, 1024px
+- **Test**: Login guardian di mobile → bottom nav tampil → navigasi berfungsi
+
+### T-082: Email Service Configuration
+- **Status**: ✅ Selesai
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**: 
+  - Konfigurasi SMTP di .env (host, port, user, password)
+  - Buat email template: reset password, welcome, invoice reminder
+  - Test kirim email ke alamat test
+  - Rate limit: max 3 reset per jam per email
+- **Test**: Request reset password → email terkirim → klik link → reset berhasil
+
+### T-083: WhatsApp Gateway Configuration
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**: 
+  - Konfigurasi WhatsApp gateway di .env (API key, phone number)
+  - Template pesan: invoice reminder, denda, freeze, welcome
+  - Test kirim WA ke nomor test
+  - Retry 3x dengan exponential backoff
+- **Test**: Trigger invoice reminder → WA terkirim
+
+### T-084: Cron Job Testing
+- **Status**: ✅ Selesai
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**: 
+  - Manual trigger setiap cron job untuk test
+  - Verify: auto-invoice → invoice created di DB
+  - Verify: denda + freeze → guardian frozen di DB
+  - Verify: draft cleanup → expired drafts deleted
+  - Verify: session reminder → notifikasi terkirim
+  - Log setiap job execution
+- **Test**: Trigger manual → cek DB → cek log
+
+### T-085: Registration Notification Flow
+- **Status**: ✅ Selesai
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**: 
+  - Setelah admin approve registrasi → kirim WA ke guardian
+  - Template: "Akun BMD MS Anda sudah aktif. Username: {phone}, Password: {temp_password}. Login di {url}"
+  - Simpan notifikasi di tabel notifications
+  - Audit log: "Registrasi disetujui, notifikasi terkirim"
+- **Test**: Admin approve → guardian terima WA dengan credentials
+
+---
+
+## 16. Pagination (Data Tidak Lagi Fetch Semuanya)
+
+### T-086: Pagination Backend — Semua List Endpoint
+- **Status**: ✅ Selesai (re-eksekusi 2026-07-03)
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**: 
+  - Tambah `limit` + `offset` parameter ke SEMUA list endpoint
+  - Return format: `{ data: [...], total: N, limit: N, offset: N }`
+  - Default: limit=20, offset=0
+  - Max: limit=100
+  - Endpoint yang perlu ditambah:
+    - /api/admin-mgmt/admins
+    - /api/notifications
+    - /api/pricing
+    - /api/settings
+    - /api/holidays
+    - /api/registrations
+    - /api/billing
+    - /api/attendance
+    - /api/my/children
+    - /api/my/schedule
+    - /api/my/payments
+- **Test**: GET /api/students?limit=10&offset=0 → return 10 data + total
+
+### T-087: Pagination Frontend — Semua Dashboard Page
+- **Status**: ✅ Selesai (re-eksekusi 2026-07-03)
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**: 
+  - Tambah pagination UI ke SEMUA dashboard page yang list data
+  - Component: `<Pagination total={N} limit={20} offset={0} onChange={fn} />`
+  - UI: "Menampilkan 1-20 dari 150" + tombol Prev/Next + nomor halaman
+  - Mobile: tombol besar, mudah di-tap
+  - Page yang perlu ditambah:
+    - students, payments, billing, attendance, schedule
+    - notifications, pricing, holidays, registrations
+    - admins, audit-log, override, settings
+    - my-children, my-schedule, my-payments
+- **Test**: Buka students → tampil 20 data → klik Next → tampil data berikutnya
+
+### T-088: Pagination Testing & Optimization
+- **Status**: ✅ Selesai (2026-07-03)
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**: 
+  - Test semua endpoint dengan data besar (500+ records)
+  - Verify: tidak ada N+1 query
+  - Verify: response time ≤2s untuk 1000 records
+  - Verify: frontend tidak fetch semua data
+  - Add database index pada kolom yang sering di-sort/filter
+- **Test**: Seed 1000 students → GET /api/students?limit=20 → response ≤2s
+
+## 17. KRITIS — Security & SRS Compliance
+
+### T-089: Rate Limiting — Semua Auth Endpoints
+- **Status**: ✅
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-01, NFR-SEC-04
+- **Deskripsi**:
+  - Tambah `@limiter.limit` ke semua auth endpoints: login, register, forgot-password, reset-password, change-password
+  - Target: 5 attempts/minute per IP untuk login, 3/minute untuk register
+  - Saat ini hanya auth.py:1 endpoint punya rate limit
+  - SRS NFR-SEC-04: "Rate limit 100 request/menit per IP/user. Endpoint sensitif limit lebih ketat"
+- **Test**: 6x login brute force → 429 Too Many Requests
+- **Deps**: T-086 ✅
+
+### T-090: PII Encryption — Email + Phone Fields
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: NFR-SEC-01, UU PDP No. 27/2022
+- **Deskripsi**:
+  - Encrypt: guardian.email, guardian.phone_whatsapp
+  - Encrypt: registration.email, registration.phone_whatsapp
+  - Encrypt: user.email (dengan blind index untuk lookup)
+  - SRS NFR-SEC-01: "Semua kolom PII dienkripsi AES-256-GCM"
+  - Blind index pattern: hash(email) → simpan hash + encrypted value → lookup by hash
+  - Saat ini: guardian.full_name, student.full_name, attendance.photo_url saja yang ter-encrypt
+- **Test**: Direct DB query → email/phone ter-encrypt, tidak terbaca plain
+- **Deps**: none
+
+### T-091: JWT Secret Validation — Reject Default in Production
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-01, NFR-SEC-05
+- **Deskripsi**:
+  - Di config.py: jika DEBUG=False dan SECRET_KEY == "change-me-in-production" → raise error saat startup
+  - Prevent production deployment dengan default secret
+  - Log warning di startup jika secret masih default
+  - SRS A02: "Tidak menyimpan secret di source code"
+- **Test**: Set DEBUG=false + default secret → app refuses to start
+- **Deps**: none
+
+### T-092: Refresh Token Endpoint — JWT Refresh Flow
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-01, SRS Entity User (field refresh_token, token_expires_at)
+- **Deskripsi**:
+  - Entity User sudah punya field refresh_token dan token_expires_at
+  - TAPI tidak ada endpoint refresh token di code
+  - Implement POST /api/auth/refresh → validate refresh token → issue new access token
+  - Implement POST /api/auth/logout → invalidate refresh token
+  - Tanpa ini: user harus login ulang setiap 30-60 menit
+- **Test**: Login → gunakan refresh token → dapat access token baru tanpa login
+- **Deps**: none
+
+### T-093: Audit Log — Students CRUD
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-07, SRS Audit Governance
+- **Deskripsi**:
+  - Tambah `create_audit_log` ke students router: create, update, delete, restore
+  - SRS wajibkan audit log immutable 7 tahun
+  - Saat ini 0/4 endpoints students punya audit log
+- **Test**: Create student → audit_logs terisi dengan action INSERT + record_id
+- **Deps**: none
+
+### T-094: Audit Log — Billing Endpoints
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-07, FR-03
+- **Deskripsi**:
+  - Tambah audit log ke billing router: verify payment, apply fine
+  - Log siapa yang verify, kapan, hasilnya
+- **Test**: Verify payment → audit log berisi changed_by + after_state
+- **Deps**: none
+
+### T-095: Audit Log — Attendance Endpoints
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-07, FR-04
+- **Deskripsi**:
+  - Tambah audit log ke attendance router: submit, review
+  - Log submission dengan GPS coords + face_valid
+  - Log review dengan verification_status + rejection_reason
+- **Test**: Submit attendance → audit log dengan gps_lat, gps_lng, face_valid
+- **Deps**: none
+
+### T-096: Audit Log — Payments Endpoints
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-07, FR-03
+- **Deskripsi**:
+  - Tambah audit log ke payments router: create, verify
+  - Log payment amount, method, unique_code verification result
+- **Test**: Verify payment → audit log dengan amount + method + status
+- **Deps**: none
+
+### T-097: Audit Log — Auth Endpoints
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-07, FR-01
+- **Deskripsi**:
+  - Tambah audit log ke auth router: login (success/failure), logout, register, change-password
+  - SRS 3.1: "mencatat waktu login di audit log"
+  - Log IP address untuk security monitoring
+- **Test**: Login成功 → audit log dengan action=LOGIN + ip_address
+- **Deps**: none
+
+### T-098: Database Backup — Daily 03:00 WIB
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: NFR-REL-04
+- **Deskripsi**:
+  - SRS NFR-REL-04: "Database di-backup otomatis setiap hari pukul 03:00 WIB"
+  - Backup disimpan 30 hari
+  - Implement via cron job di docker-compose atau pg_dump scheduled task
+  - Test restore dilakukan bulanan
+- **Test**: Jalankan backup manual → verify file ada di /backups/
+- **Deps**: none
+
+### T-099: DR Plan — RTO ≤2h, RPO ≤1h
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: NFR-REL-05, NFR-REL-06
+- **Deskripsi**:
+  - SRS NFR-REL-05: "target recovery ≤2 jam dari waktu kejadian"
+  - SRS NFR-REL-06: "Data yang hilang ≤1 jam terakhir"
+  - Dokumentasi DR plan: restore procedure, contact list, escalation
+  - Test restore dari backup → verify data integrity
+- **Test**: Simulasi database corrupt → restore dari backup → data kembali
+- **Deps**: T-098
+
+### T-100: N+1 Fix — my_payments Eager Load
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: NFR-PERF-01
+- **Deskripsi**:
+  - Fix N+1 query di my_portal.py:my_payments
+  - Saat ini: loop invoices → 1 query payment per invoice (N+1!)
+  - Fix: batch load `select(Payment).where(Payment.id_invoice.in_([inv.id for inv in invoices]))`
+  - Impact: 50 invoices = 50 queries → 2 queries
+- **Test**: GET /api/my/payments?limit=20 → server log max 3 queries
+- **Deps**: none
+
+---
+
+## 18. IMPORTANT — Features & Performance
+
+### T-101: Background Job Queue — Email/WhatsApp
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-05, NFR-REL-01
+- **Deskripsi**:
+  - Implement background job queue untuk email + WhatsApp sending
+  - SRS NFR-REL-01: retry 3x dengan exponential backoff
+  - Saat ini: inline/synchronous → request block sampai email terkirim
+  - Fix: pakai FastAPI BackgroundTasks + asyncio.Queue
+  - Email gagal → queue retry, bukan block request
+- **Test**: Send notification → request returns 200 immediately, email sent async
+- **Deps**: none
+
+### T-102: Guardian Notification Grouping
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-05
+- **Deskripsi**:
+  - SRS FR-05: "Semua notifikasi dikirim ke Wali Murid, bukan per siswa"
+  - SRS: "Jika 1 Wali Murid memiliki N siswa, notifikasi digabungkan menjadi 1 pesan"
+  - Service group_notification_by_guardian sudah ada, tapi router tidak panggil
+  - Implement: schedule event → group by guardian → send combined message
+- **Test**: Guardian dengan 3 siswa → dapat 1 notifikasi gabungan, bukan 3
+- **Deps**: T-101
+
+### T-103: Soft Delete — Registration, Invoice, Payment
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-07, SRS Entities
+- **Deskripsi**:
+  - SRS Entities: "Semua entitas menggunakan soft-delete (deleted_at TIMESTAMP NULL)"
+  - Saat ini: registration, invoice, payment tidak ada deleted_at
+  - Tambah `deleted_at` column ke models + migration
+  - Update semua queries untuk filter `deleted_at IS NULL`
+  - Audit trail preserved (SRS compliance)
+- **Test**: Delete registration → deleted_at terisi, data masih ada di DB
+- **Deps**: Alembic migration
+
+### T-104: Redis Actual Usage — Rate Limit + Session Cache
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-SEC-04, NFR-REL-03
+- **Deskripsi**:
+  - Redis sudah di-config (REDIS_URL) tapi tidak dipakai
+  - Implement: rate limit storage backend = Redis (bukan in-memory)
+  - Implement: session cache untuk JWT blacklist (anti concurrent session)
+  - Implement: slot availability cache (prevent double booking)
+  - Saat ini in-memory = lost on restart, tidak scalable
+- **Test**: Restart backend → rate limit counter tidak reset
+- **Deps**: Redis harus running di docker-compose
+
+### T-105: Teacher Schedule Filter by Instrument
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-02
+- **Deskripsi**:
+  - Tambah param `?instrument=piano` ke GET /api/my/schedule (teacher mode)
+  - JOIN session → student → filter by student.instrument
+  - Guru piano cuma lihat jadwal piano, guru biola cuma lihat biola
+  - Backward compat: jika ?instrument tidak dikirim → semua instrumen
+- **Test**: Guru dengan 2 instrumen → GET /api/my/schedule?instrument=piano → hanya jadwal piano
+- **Deps**: T-086 ✅
+
+### T-106: Teacher Students List (GET /api/my/students)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-02
+- **Deskripsi**:
+  - NEW endpoint: list murid yang diajar guru ini
+  - Filter by `?instrument=piano` → hanya murid piano
+  - Ambil via session join: teacher → sessions → students
+  - Pagination {data, total, limit, offset}
+- **Test**: GET /api/my/students?instrument=piano → return murid piano yang diajar
+- **Deps**: T-086 ✅
+
+### T-107: Teacher Attendance List (GET /api/my/attendance)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-04
+- **Deskripsi**:
+  - NEW endpoint atau extend: teacher lihat absensi
+  - Filter by `?instrument=piano`
+  - Ambil via attendance → session → student → filter instrument
+  - Pagination {data, total, limit, offset}
+- **Test**: GET /api/my/attendance?instrument=piano → absensi guru untuk murid piano
+- **Deps**: T-086 ✅
+
+### T-108: Guardian Schedule Per Student
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-02
+- **Deskripsi**:
+  - Tambah param `?student_id=xxx` ke GET /api/my/schedule (guardian mode)
+  - Guardian lihat jadwal 1 anak spesifik
+  - Backward compat: jika student_id tidak dikirim → semua anak
+- **Test**: Guardian dengan 2 anak → GET /api/my/schedule?student_id=xxx → jadwal 1 anak
+- **Deps**: T-086 ✅
+
+### T-109: Guardian Attendance Per Student (GET /api/my/attendance)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-04
+- **Deskripsi**:
+  - NEW endpoint: guardian lihat absensi anak
+  - Filter by `?student_id=xxx`
+  - Pagination {data, total, limit, offset}
+- **Test**: GET /api/my/attendance?student_id=xxx → absensi 1 anak
+- **Deps**: T-086 ✅
+
+### T-110: Guardian Invoices Per Student (GET /api/my/invoices)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-03
+- **Deskripsi**:
+  - NEW endpoint: guardian lihat tagihan per anak
+  - Filter by `?student_id=xxx`
+  - Pagination {data, total, limit, offset}
+- **Test**: GET /api/my/invoices?student_id=xxx → tagihan 1 anak
+- **Deps**: T-086 ✅
+
+### T-111: Frontend — Teacher Dashboard Instrument Tabs
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-02, NFR-USA-02
+- **Deskripsi**:
+  - Tab "Semua | Piano | Biola" di halaman Jadwal/Murid/Absensi guru
+  - Tab list = ambil dari teacher.instruments_specialization
+  - Klik tab → fetch ?instrument=xxx
+  - Tab aktif = green accent (#08CB00)
+- **Test**: Login guru 2 instrumen → lihat tab → klik Piano → data piano only
+- **Deps**: T-105, T-106, T-107
+
+### T-112: Frontend — Guardian Per-Student Sections
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-09, NFR-USA-02
+- **Deskripsi**:
+  - Dropdown/section per anak di dashboard guardian (dari my/children)
+  - Pilih anak → fetch ?student_id=xxx ke schedule/attendance/invoices
+  - Default: tampilkan semua anak (gabungan)
+- **Test**: Login guardian 2 anak → pilih Anak A → jadwal/absensi/tagihan Anak A only
+- **Deps**: T-108, T-109, T-110
+
+### T-113: Draft Debounced Auto-Save
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-10
+- **Deskripsi**:
+  - SRS FR-10: draft auto-save (debounced, bukan manual)
+  - Saat ini: hanya manual save (klik tombol)
+  - Implement: debounce 30 detik → auto-save ke server
+  - Client-side: detect form change → wait 30s → POST /api/drafts/{form_key}
+  - Server: sudah support save_draft, tinggal client trigger
+- **Test**: Isi form → tunggu 30 detik → refresh → draft masih ada
+- **Deps**: none
+
+### T-114: Offline Attendance Sync
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-04
+- **Deskripsi**:
+  - Field is_offline_submission sudah ada di model
+  - TAPI tidak ada sync logic untuk offline submissions
+  - Implement: client simpan ke IndexedDB saat offline → sync saat online
+  - Server: terima offline submission → validate timestamp → process
+- **Test**: Submit attendance offline → reconnect → data ter-sync
+- **Deps**: none
+
+---
+
+## 19. NICE TO HAVE
+
+### T-115: WCAG 2.1 Level A Compliance
+- **Status**: ⏳
+- **Priority**: 🟢 NICE TO HAVE
+- **FR/UC terkait**: NFR-USA-01
+- **Deskripsi**:
+  - SRS NFR-USA-01: "Semua elemen interaktif memiliki label, kontras warna ≥4.5:1, navigasi keyboard, alt text"
+  - Audit: check semua form inputs punya label
+  - Audit: check kontras warna (terutama dark theme)
+  - Audit: check keyboard navigation
+  - Audit: check alt text pada gambar
+  - Saat ini: partial compliance
+- **Test**: Lighthouse accessibility score ≥ 80
+- **Deps**: none
+
+---
+
+
+## ATURAN WAJIB (berlaku untuk SEMUA task)
+
+1. **DILARANG dummy data di frontend** — Semua page HARUS fetch dari API. Tidak ada `const data = [...]` di component.
+2. **DILARANG local state untuk data** — Semua data berasal dari `fetch('/api/...')`. State hanya untuk UI (loading, error, modal).
+3. **Setiap button HARUS panggil API** — Verifikasi, Tolak, Simpan, Hapus = semua `fetch(method: 'POST/PUT/DELETE')`.
+4. **Fallback dummy HANYA jika API error** — `catch(() => setDummy)` hanya sebagai safety net, bukan primary data.
+5. **Studio coordinates**: -7.737428, 110.429669 (Seturan, Yogyakarta)

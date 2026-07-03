@@ -5,11 +5,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.limiter import limiter
 from app.middleware.auth import get_current_user as _get_user
 from app.models.user import User
+from datetime import datetime, timezone
 from app.schemas.auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
+    FirstLoginChangePasswordRequest,
     LoginRequest,
     LoginResponse,
     ProfileResponse,
@@ -18,29 +21,116 @@ from app.schemas.auth import (
     UserResponse,
 )
 from app.services.auth import (
+    AccountFrozenError,
     authenticate_user,
     create_access_token,
     hash_password,
     verify_password,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
 )
+from app.services.audit import log_auth_event
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 
 @router.post("/login", response_model=LoginResponse)
+@limiter.limit("5/minute")
 async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
     """Login and get JWT token."""
-    user = await authenticate_user(db, body.username, body.password)
+    try:
+        user = await authenticate_user(db, body.username, body.password)
+    except AccountFrozenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e),
+        )
     if not user:
+        # Check if account was just locked by brute force logic
+        result = await db.execute(select(User).where(User.username == body.username))
+        locked_user = result.scalar_one_or_none()
+        if locked_user and locked_user.locked_until:
+            await log_auth_event(db, action="ACCOUNT_LOCKED", user_id=locked_user.id_user, details=f"Account locked after failed attempts for username: {body.username}", request=request)
+        await log_auth_event(db, action="LOGIN_FAILED", user_id=None, details=f"Failed login attempt for username: {body.username}", request=request)
+        await db.commit()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Username atau password tidak valid",
         )
     token = create_access_token(user.id_user, user.role)
-    return LoginResponse(access_token=token, role=user.role, expires_in=30 * 60)
+    expires_minutes = ACCESS_TOKEN_EXPIRE_MINUTES.get(user.role, 30)
+    await log_auth_event(db, action="LOGIN_SUCCESS", user_id=user.id_user, details=f"Successful login for role: {user.role}", request=request)
+    await db.commit()
+    # Check first_login / temp password
+    if user.first_login or user.is_temp_password:
+        # Check temp password expiry
+        if user.password_expires_at and user.password_expires_at < datetime.now(timezone.utc):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Password sementara telah kedaluwarsa. Hubungi Admin untuk mengirim ulang.",
+            )
+        return LoginResponse(
+            access_token=token,
+            role=user.role,
+            expires_in=expires_minutes * 60,
+            must_change_password=True,
+        )
+    return LoginResponse(access_token=token, role=user.role, expires_in=expires_minutes * 60)
+
+
+@router.post("/first-login-change-password")
+@limiter.limit("10/minute")
+async def first_login_change_password(
+    body: FirstLoginChangePasswordRequest,
+    request: Request,
+    user: User = Depends(_get_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Change password on first login. Resets first_login and is_temp_password flags."""
+    if not user.first_login and not user.is_temp_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Akun ini tidak memerlukan pergantian password pertama.",
+        )
+
+    # Check temp password expiry
+    if user.password_expires_at and user.password_expires_at < datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Password sementara telah kedaluwarsa. Hubungi Admin untuk mengirim ulang.",
+        )
+
+    # Verify current (temp) password
+    if not verify_password(body.current_password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password lama tidak valid",
+        )
+
+    if body.current_password == body.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password baru harus berbeda dari password sementara",
+        )
+
+    # Set new password and reset flags
+    user.password_hash = hash_password(body.new_password)
+    user.first_login = False
+    user.is_temp_password = False
+    user.password_expires_at = None
+
+    await log_auth_event(
+        db,
+        action="PASSWORD_CHANGE",
+        user_id=user.id_user,
+        details="First login password change completed",
+        request=request,
+    )
+    await db.commit()
+    return {"detail": "Password berhasil diubah. Silakan login dengan password baru."}
 
 
 @router.post("/register", status_code=201)
+@limiter.limit("3/minute")
 async def register(body: RegisterRequest, request: Request, db: AsyncSession = Depends(get_db)):
     """Register new guardian account."""
     # Check username uniqueness
@@ -70,8 +160,9 @@ async def register(body: RegisterRequest, request: Request, db: AsyncSession = D
     await db.flush()
 
     # Create guardian profile
-    guardian = Guardian(id_user=user.id_user, full_name=body.full_name, phone_whatsapp=normalized_phone, email=body.email, account_status="active")
+    guardian = Guardian(id_user=user.id_user, full_name=body.full_name, phone_whatsapp=normalized_phone, email=body.email, address=body.address, account_status="active")
     db.add(guardian)
+    await log_auth_event(db, action="REGISTER", user_id=user.id_user, details=f"New guardian registered: {user.username}", request=request)
     await db.commit()
 
     return {"detail": "Registrasi berhasil. Silakan login.", "username": user.username, "role": user.role}
@@ -148,22 +239,26 @@ async def update_my_profile(
 
 
 @router.post("/change-password")
+@limiter.limit("10/minute")
 async def change_password(
     body: ChangePasswordRequest,
+    request: Request,
     user: User = Depends(_get_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Change password (requires current password)."""
     if not verify_password(body.current_password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password saat ini salah")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password lama tidak valid")
     if body.current_password == body.new_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password baru harus berbeda")
     user.password_hash = hash_password(body.new_password)
+    await log_auth_event(db, action="PASSWORD_CHANGE", user_id=user.id_user, details="Password changed successfully", request=request)
     await db.commit()
     return {"detail": "Password berhasil diubah"}
 
 
 @router.post("/forgot-password")
-async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def forgot_password(body: ForgotPasswordRequest, request: Request, db: AsyncSession = Depends(get_db)):
     """Send password reset email."""
     return {"detail": "Link reset telah dikirim ke email Anda"}
