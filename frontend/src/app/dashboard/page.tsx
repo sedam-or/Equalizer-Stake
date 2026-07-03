@@ -244,66 +244,83 @@ function OwnerDashboard() {
 
 /* ─── TeacherDashboard ─── */
 function TeacherDashboard() {
-  const dummySchedule = [
-    { id: 1, jam: "09:00", siswa: "Andi Pratama", instrumen: "Gitar", ruang: "A1", status: "Selesai" },
-    { id: 2, jam: "11:00", siswa: "Rina Wulandari", instrumen: "Piano", ruang: "B2", status: "Selesai" },
-    { id: 3, jam: "14:30", siswa: "Budi Santoso", instrumen: "Drum", ruang: "C1", status: "Berlangsung" },
-    { id: 4, jam: "15:30", siswa: "Dewi Lestari", instrumen: "Vokal", ruang: "A2", status: "Menunggu" },
-    { id: 5, jam: "16:30", siswa: "Fajar Nugroho", instrumen: "Biola", ruang: "B1", status: "Menunggu" },
-  ];
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch("/api/v1/reports/teacher-stats", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
+        <div className="grid grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-xl bg-gray-200" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const kpi = data?.kpi || {};
+  const sessions = data?.today_sessions || [];
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-[#EEEEEE]">Dashboard Guru</h1>
-      <p className="mt-1 text-sm text-gray-400">Jadwal dan absensi hari ini</p>
+    <div className="space-y-6">
+      <h1 className="font-heading text-2xl font-bold text-gray-900">
+        {data?.greeting || "Selamat datang, Guru"}
+      </h1>
+      <p className="text-sm text-gray-500">{data?.date || ""}</p>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <KpiCard label="Sesi Hari Ini" value="5" />
-        <KpiCard label="Menunggu Verifikasi" value="2" />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <KpiCard label="Sesi Hari Ini" value={String(kpi.sessions_today ?? 0)} />
+        <KpiCard label="Minggu Ini" value={String(kpi.week_total ?? 0)} />
+        <KpiCard label="Terverifikasi" value={String(kpi.week_verified ?? 0)} />
+        <KpiCard label="Pending" value={String(kpi.week_pending ?? 0)} />
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-[#EEEEEE]">Jadwal Hari Ini</h2>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
-                <th className="px-4 py-3">Jam</th>
-                <th className="px-4 py-3">Siswa</th>
-                <th className="px-4 py-3">Instrumen</th>
-                <th className="px-4 py-3">Ruang</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dummySchedule.map((s) => (
-                <tr key={s.id} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
-                  <td className="px-4 py-3 text-[#2563EB] font-medium">{s.jam}</td>
-                  <td className="px-4 py-3 text-[#EEEEEE]">{s.siswa}</td>
-                  <td className="px-4 py-3 text-gray-400">{s.instrumen}</td>
-                  <td className="px-4 py-3 text-gray-400">{s.ruang}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${
-                      s.status === "Selesai"
-                        ? "bg-[#2563EB]/10 text-[#2563EB]"
-                        : s.status === "Berlangsung"
-                        ? "bg-blue-500/10 text-blue-400"
-                        : "bg-yellow-500/10 text-yellow-400"
-                    }`}>
-                      {s.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Today's Sessions */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5">
+        <h2 className="mb-3 font-heading text-lg font-bold text-gray-900">Jadwal Hari Ini</h2>
+        {sessions.length > 0 ? (
+          <div className="space-y-2">
+            {sessions.map((s: any) => (
+              <div key={s.id_session} className="flex items-center justify-between rounded-lg border border-gray-100 p-3">
+                <div>
+                  <span className="font-medium text-gray-900">{s.start_time} - {s.end_time}</span>
+                  <span className="ml-2 text-sm text-gray-500">{s.session_type}</span>
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                  s.status === "completed" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                }`}>
+                  {s.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">Tidak ada sesi hari ini</p>
+        )}
+      </div>
+
+      {/* Quick links */}
+      <div className="grid grid-cols-2 gap-3">
+        <ActionButton href="/dashboard/my-schedule" label="Lihat Jadwal" />
+        <ActionButton href="/dashboard/attendance" label="Absensi" />
       </div>
     </div>
   );
 }
-
-/* ─── GuardianDashboard ─── */
 function GuardianDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
