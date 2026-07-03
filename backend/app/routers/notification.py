@@ -19,6 +19,19 @@ from app.services.email import get_circuit_status as get_email_cb_status
 router = APIRouter(prefix="/api/v1/notifications", tags=["Notifications"])
 
 
+@router.get("/unread-count")
+async def get_unread_count(
+    user: User = Depends(require_role("admin", "owner", "teacher", "guardian")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get unread notification count."""
+    from sqlalchemy import func
+    from app.models.notification import Notification
+    count_q = await db.execute(select(func.count()).select_from(Notification).where(Notification.status != "sent"))
+    count = count_q.scalar() or 0
+    return {"count": count}
+
+
 @router.get("/")
 async def list_notifications(
     limit: int = Query(20, le=100),

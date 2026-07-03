@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NotificationBadge } from "@/components/NotificationBadge";
 import { useEffect, useState } from "react";
 
 const guardianItems = [
@@ -54,7 +55,7 @@ export default function BottomNav() {
                   : "text-gray-500 hover:text-gray-300"
               }`}
             >
-              <span className="text-lg">{item.icon}</span>
+              <span className="relative text-lg">{item.icon}{item.label === "Notif" && <NotificationBadge />}</span>
               <span className="text-[10px]">{item.label}</span>
             </Link>
           );

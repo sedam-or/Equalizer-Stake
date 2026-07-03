@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NotificationBadge } from "@/components/NotificationBadge";
 import { useEffect, useState } from "react";
 
 type Role = "owner" | "admin" | "teacher" | "guardian";
@@ -135,7 +136,7 @@ export default function Sidebar() {
                 : "text-gray-400 hover:bg-[#111] hover:text-[#EEEEEE]"
             }`}
           >
-            <span className="mr-3 text-lg">🔔</span>
+            <span className="relative mr-3 text-lg">🔔<NotificationBadge /></span>
             Notifikasi
           </Link>
         </div>
