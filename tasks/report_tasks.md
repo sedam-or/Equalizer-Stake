@@ -1117,3 +1117,21 @@
   - Known gap: offsite backup (T-116), WAL archiving not implemented
 - **Dependencies affected**: T-098 (backup) ✅
 - **Rollback plan**: Remove DR_PLAN.md + restore/verify scripts
+
+### T-100: N+1 Fix — my_payments Eager Load
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: NFR-PERF-01
+- **Files changed**:
+  - `backend/app/routers/my_portal.py` — Batch load payments for invoices (N+1 fix)
+- **Test results**:
+  - [x] TC1: GET /api/my/payments → 200 OK: PASS
+  - [x] TC2: N+1 eliminated — 1 batch query instead of N per-invoice queries: PASS
+- **Security findings**: None
+- **Performance**: N queries → 2 queries (1 batch payment load + 1 invoice list)
+- **Notes**:
+  - Before: for each invoice → SELECT payment WHERE id_invoice = X (N queries)
+  - After: SELECT payment WHERE id_invoice IN (...) + dict lookup (1 query)
+  - Impact: 50 invoices = 50 queries → 2 queries
+- **Dependencies affected**: None
+- **Rollback plan**: Revert my_portal.py changes

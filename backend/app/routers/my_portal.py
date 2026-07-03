@@ -158,9 +158,21 @@ async def my_payments(
     total = count_q.scalar()
     invoices_q = await db.execute(base.order_by(Invoice.created_at.desc()).offset(offset).limit(limit))
     results = []
-    for inv in invoices_q.scalars().all():
-        pay_q = await db.execute(select(Payment).where(Payment.id_invoice == inv.id_invoice))
-        payments = pay_q.scalars().all()
+    # Batch load all payments for these invoices (N+1 fix)
+    invoices_list = invoices_q.scalars().all()
+    invoice_ids = [inv.id_invoice for inv in invoices_list]
+    invoices_map = {inv.id_invoice: inv for inv in invoices_list}
+    all_payments = []
+    if invoice_ids:
+        pay_q = await db.execute(select(Payment).where(Payment.id_invoice.in_(invoice_ids)))
+        all_payments = pay_q.scalars().all()
+    payments_by_invoice = {}
+    for p in all_payments:
+        payments_by_invoice.setdefault(p.id_invoice, []).append(p)
+
+    for inv_id in invoice_ids:
+        inv = invoices_map[inv_id]
+        payments = payments_by_invoice.get(inv_id, [])
         results.append({
             "id_invoice": str(inv.id_invoice),
             "status": inv.status,
