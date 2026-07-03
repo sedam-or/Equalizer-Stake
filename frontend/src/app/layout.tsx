@@ -3,6 +3,7 @@ import { Inter, Geist } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { ToastProvider } from "@/components/Toast";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-white focus:text-gray-900 focus:font-semibold focus:outline-none focus:ring-2 focus:ring-[#2563EB]">
           Lewati ke konten utama
         </a>
-        <main id="main-content">{children}</main>
+        <ToastProvider><main id="main-content">{children}</main></ToastProvider>
       </body>
     </html>
   );
