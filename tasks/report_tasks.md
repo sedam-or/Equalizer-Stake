@@ -1304,3 +1304,23 @@
   - Backward compatible: no param = all children
 - **Dependencies affected**: None
 - **Rollback plan**: Revert my_portal.py changes
+
+### T-109: Guardian Attendance Per Student (GET /api/my/attendance)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-04
+- **Files changed**:
+  - `backend/app/routers/my_portal.py` — Extended my_attendance for guardian mode + student_id filter
+- **Test results**:
+  - [x] TC1: Guardian GET /api/my/attendance → works (200): PASS
+  - [x] TC2: Teacher mode still works: PASS (3 records)
+  - [x] TC3: student_id filter (code verified): PASS
+- **Security findings**: None
+- **Performance**: Same query pattern as teacher mode
+- **Notes**:
+  - Extended existing endpoint (not new endpoint)
+  - Guardian mode: filter by ?student_id (optional)
+  - Validates student belongs to guardian
+  - Teacher mode unchanged (backward compatible)
+- **Dependencies affected**: None
+- **Rollback plan**: Revert my_portal.py changes

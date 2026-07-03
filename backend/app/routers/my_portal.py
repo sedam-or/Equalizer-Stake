@@ -287,48 +287,78 @@ async def my_students(
 @router.get("/attendance")
 async def my_attendance(
     instrument: str | None = Query(None),
+    student_id: str | None = Query(None),
     status_filter: str | None = Query(None, alias="status"),
     limit: int = Query(20, le=100),
     offset: int = Query(0, ge=0),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List attendance records for this teacher.
-    Teacher mode only. Filter by ?instrument=piano (optional).
+    """List attendance records for teacher or guardian.
+    Teacher: filter by ?instrument. Guardian: filter by ?student_id.
     """
     from app.models.teacher import Teacher
+    from app.models.guardian import Guardian
     from app.models.student import Student
     from app.models.session import Session
     from app.models.attendance import Attendance
 
-    if user.role != "teacher":
-        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+    if user.role == "teacher":
+        result = await db.execute(select(Teacher).where(Teacher.id_user == user.id_user))
+        teacher = result.scalar_one_or_none()
+        if not teacher:
+            return {"data": [], "total": 0, "limit": limit, "offset": offset}
+        base = (
+            select(Attendance)
+            .join(Session, Attendance.id_session == Session.id_session)
+            .where(Session.id_teacher == teacher.id_teacher)
+        )
+        if instrument:
+            instrument_students = await db.execute(
+                select(Student.id_student).where(
+                    Student.instrument == instrument, Student.deleted_at.is_(None)
+                )
+            )
+            instrument_ids = [row[0] for row in instrument_students.fetchall()]
+            if not instrument_ids:
+                return {"data": [], "total": 0, "limit": limit, "offset": offset}
+            base = base.where(Attendance.id_session.in_(
+                select(Session.id_session).where(Session.id_student.in_(instrument_ids))
+            ))
 
-    result = await db.execute(select(Teacher).where(Teacher.id_user == user.id_user))
-    teacher = result.scalar_one_or_none()
-    if not teacher:
-        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+    elif user.role == "guardian":
+        result = await db.execute(select(Guardian).where(Guardian.id_user == user.id_user))
+        guardian = result.scalar_one_or_none()
+        if not guardian:
+            return {"data": [], "total": 0, "limit": limit, "offset": offset}
 
-    # Build base query: attendance → session (teacher's sessions)
-    base = (
-        select(Attendance)
-        .join(Session, Attendance.id_session == Session.id_session)
-        .where(Session.id_teacher == teacher.id_teacher)
-    )
-
-    # Filter by instrument via student
-    if instrument:
-        instrument_students = await db.execute(
+        students_q = await db.execute(
             select(Student.id_student).where(
-                Student.instrument == instrument, Student.deleted_at.is_(None)
+                Student.id_guardian == guardian.id_guardian, Student.deleted_at.is_(None)
             )
         )
-        instrument_ids = [row[0] for row in instrument_students.fetchall()]
-        if not instrument_ids:
+        student_ids = [row[0] for row in students_q.fetchall()]
+        if not student_ids:
             return {"data": [], "total": 0, "limit": limit, "offset": offset}
-        base = base.where(Attendance.id_session.in_(
-            select(Session.id_session).where(Session.id_student.in_(instrument_ids))
-        ))
+
+        # Filter by specific student (optional)
+        if student_id:
+            from uuid import UUID as _UUID
+            try:
+                sid = _UUID(student_id)
+                if sid not in student_ids:
+                    return {"data": [], "total": 0, "limit": limit, "offset": offset}
+                student_ids = [sid]
+            except ValueError:
+                return {"data": [], "total": 0, "limit": limit, "offset": offset}
+
+        base = (
+            select(Attendance)
+            .join(Session, Attendance.id_session == Session.id_session)
+            .where(Session.id_student.in_(student_ids))
+        )
+    else:
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
 
     # Filter by verification status
     if status_filter:
