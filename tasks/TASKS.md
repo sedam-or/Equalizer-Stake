@@ -960,8 +960,8 @@
 | Phase 19: NICE TO HAVE | T-115 | ✅ 1/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
 | Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ✅ 9/9 |
-| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 3/28 |
-| **Total** | **155 tasks** | **95/155 done** |
+| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 4/28 |
+| **Total** | **155 tasks** | **96/155 done** |
 
 ---
 
@@ -1662,7 +1662,7 @@
 - **Files**: `frontend/src/components/Toast.tsx` (new), semua halaman
 
 ### T-132: Form Validation System
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: NFR-USA-02
 - **Deskripsi**:
