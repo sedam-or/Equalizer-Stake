@@ -71,9 +71,9 @@ export default function Sidebar() {
   const currentRole: Role = role ?? "admin";
 
   return (
-    <aside className="hidden w-64 flex-shrink-0 border-r border-[#253900] bg-[#0a0a0a] md:flex md:flex-col">
-      <div className="flex h-16 items-center border-b border-[#253900] px-6">
-        <span className="text-lg font-bold text-[#08CB00]">BMD</span>
+    <aside className="hidden w-64 flex-shrink-0 border-r border-[#CBD5E1] bg-[#0a0a0a] md:flex md:flex-col">
+      <div className="flex h-16 items-center border-b border-[#CBD5E1] px-6">
+        <span className="text-lg font-bold text-[#2563EB]">BMD</span>
         <span className="ml-2 text-xs capitalize text-gray-400">{currentRole}</span>
       </div>
       <nav className="mt-4 flex-1 space-y-1 overflow-y-auto px-3">
@@ -81,7 +81,7 @@ export default function Sidebar() {
           href="/dashboard"
           className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
             pathname === "/dashboard"
-              ? "bg-[#08CB00] text-black"
+              ? "bg-[#2563EB] text-black"
               : "text-gray-400 hover:bg-[#111] hover:text-[#EEEEEE]"
           }`}
         >
@@ -110,7 +110,7 @@ export default function Sidebar() {
                     href={item.href}
                     className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-[#08CB00] text-black"
+                        ? "bg-[#2563EB] text-black"
                         : "text-gray-400 hover:bg-[#111] hover:text-[#EEEEEE]"
                     }`}
                   >
@@ -131,7 +131,7 @@ export default function Sidebar() {
             href="/dashboard/notifications"
             className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
               pathname === "/dashboard/notifications"
-                ? "bg-[#08CB00] text-black"
+                ? "bg-[#2563EB] text-black"
                 : "text-gray-400 hover:bg-[#111] hover:text-[#EEEEEE]"
             }`}
           >
@@ -141,12 +141,12 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      <div className="border-t border-[#253900] p-3">
+      <div className="border-t border-[#CBD5E1] p-3">
         <Link
           href={profileItem.href}
           className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
             pathname === profileItem.href
-              ? "bg-[#08CB00] text-black"
+              ? "bg-[#2563EB] text-black"
               : "text-gray-400 hover:bg-[#111] hover:text-[#EEEEEE]"
           }`}
         >

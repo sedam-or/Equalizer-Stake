@@ -28,7 +28,7 @@ interface Child {
 
 const STATUS_COLORS: Record<string, string> = {
   scheduled: "bg-blue-500/10 text-blue-400",
-  completed: "bg-[#08CB00]/10 text-[#08CB00]",
+  completed: "bg-[#2563EB]/10 text-[#2563EB]",
   cancelled: "bg-red-500/10 text-red-400",
   "no-show": "bg-gray-500/10 text-gray-400",
   rescheduled: "bg-yellow-500/10 text-yellow-500",
@@ -113,7 +113,7 @@ export default function MySchedulePage() {
         <select
           value={activeStudentId}
           onChange={e => { setActiveStudentId(e.target.value); setOffset(0); }}
-          className="bg-[#1a1a1a] border border-[#253900] rounded-lg px-3 py-2 text-sm text-[#EEEEEE] focus:outline-none focus:border-[#08CB00]"
+          className="bg-[#1a1a1a] border border-[#CBD5E1] rounded-lg px-3 py-2 text-sm text-[#EEEEEE] focus:outline-none focus:border-[#2563EB]"
         >
           <option value="">Semua Anak</option>
           {children.map(c => (
@@ -131,7 +131,7 @@ export default function MySchedulePage() {
             onClick={() => { setActiveInstrument(""); setOffset(0); }}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               activeInstrument === ""
-                ? "bg-[#08CB00] text-black"
+                ? "bg-[#2563EB] text-black"
                 : "bg-[#1a1a1a] text-gray-400 hover:text-[#EEEEEE]"
             }`}
           >
@@ -143,7 +143,7 @@ export default function MySchedulePage() {
               onClick={() => { setActiveInstrument(inst); setOffset(0); }}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 activeInstrument === inst
-                  ? "bg-[#08CB00] text-black"
+                  ? "bg-[#2563EB] text-black"
                   : "bg-[#1a1a1a] text-gray-400 hover:text-[#EEEEEE]"
               }`}
             >
@@ -153,7 +153,7 @@ export default function MySchedulePage() {
         </div>
       )}
 
-      <div className="bg-[#111] rounded-xl border border-[#253900] overflow-hidden">
+      <div className="bg-[#111] rounded-xl border border-[#CBD5E1] overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Memuat jadwal...</div>
         ) : sessions.length === 0 ? (

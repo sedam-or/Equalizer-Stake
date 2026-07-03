@@ -16,7 +16,7 @@ interface Payment {
 }
 
 const badge: Record<string, string> = {
-  berhasil: "bg-[#08CB00]/10 text-[#08CB00]",
+  berhasil: "bg-[#2563EB]/10 text-[#2563EB]",
   pending: "bg-yellow-500/10 text-yellow-500",
   gagal: "bg-red-500/10 text-red-500",
 };
@@ -64,7 +64,7 @@ export default function PaymentsPage() {
             key={f}
             onClick={() => setFilter(f)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize ${
-              filter === f ? "bg-[#08CB00] text-black" : "border border-[#253900] bg-[#111] text-gray-400 hover:bg-[#1a1a1a]"
+              filter === f ? "bg-[#2563EB] text-black" : "border border-[#CBD5E1] bg-[#111] text-gray-400 hover:bg-[#1a1a1a]"
             }`}
           >
             {f}
@@ -72,14 +72,14 @@ export default function PaymentsPage() {
         ))}
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Memuat data pembayaran...</div>
         ) : (
           <>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#253900] text-left text-gray-400">
+                <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
                   <th className="px-4 py-3">No</th>
                   <th className="px-4 py-3">Tanggal</th>
                   <th className="px-4 py-3">Invoice</th>

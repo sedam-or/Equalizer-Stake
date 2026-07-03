@@ -175,20 +175,20 @@ export default function AttendanceSubmitPage() {
       )}
 
       {error && <div className="mt-3 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-400">{error}</div>}
-      {success && <div className="mt-3 rounded-lg bg-[#08CB00]/10 border border-[#08CB00]/30 p-3 text-sm text-[#08CB00]">{success}</div>}
+      {success && <div className="mt-3 rounded-lg bg-[#2563EB]/10 border border-[#2563EB]/30 p-3 text-sm text-[#2563EB]">{success}</div>}
 
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left: Session Selection + Photo */}
         <div className="space-y-4">
-          <div className="rounded-xl border border-[#253900] bg-[#111] p-6">
+          <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
             <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">1. Pilih Sesi</h2>
             {sessions.length === 0 ? (
               <p className="text-gray-500 text-sm">Tidak ada sesi hari ini</p>
             ) : (
               <div className="space-y-2">
                 {sessions.map(s => (
-                  <label key={s.id_session} className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${selectedSession === s.id_session ? "border-[#08CB00] bg-[#08CB00]/5" : "border-[#253900] hover:bg-[#1a1a1a]"}`}>
-                    <input type="radio" name="session" value={s.id_session} checked={selectedSession === s.id_session} onChange={() => setSelectedSession(s.id_session)} className="accent-[#08CB00]" />
+                  <label key={s.id_session} className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${selectedSession === s.id_session ? "border-[#2563EB] bg-[#2563EB]/5" : "border-[#CBD5E1] hover:bg-[#1a1a1a]"}`}>
+                    <input type="radio" name="session" value={s.id_session} checked={selectedSession === s.id_session} onChange={() => setSelectedSession(s.id_session)} className="accent-[#2563EB]" />
                     <div>
                       <p className="text-sm font-medium text-[#EEEEEE]">{s.student_name}</p>
                       <p className="text-xs text-gray-400">{s.start_time} - {s.end_time} • {s.room_name}</p>
@@ -199,12 +199,12 @@ export default function AttendanceSubmitPage() {
             )}
           </div>
 
-          <div className="rounded-xl border border-[#253900] bg-[#111] p-6">
+          <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
             <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">2. Ambil Foto</h2>
             <label htmlFor="photo-upload" className="block text-xs text-gray-400 mb-1">Foto Kehadiran</label>
-            <input id="photo-upload" type="file" accept="image/jpeg,image/png" onChange={handlePhoto} aria-label="Unggah foto kehadiran" className="w-full text-sm text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-[#08CB00] file:px-3 file:py-1.5 file:text-sm file:text-black hover:file:bg-[#06a800]" />
+            <input id="photo-upload" type="file" accept="image/jpeg,image/png" onChange={handlePhoto} aria-label="Unggah foto kehadiran" className="w-full text-sm text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-[#2563EB] file:px-3 file:py-1.5 file:text-sm file:text-black hover:file:bg-[#1d4ed8]" />
             {photo && (
-              <div className="mt-3 rounded-lg overflow-hidden border border-[#253900]">
+              <div className="mt-3 rounded-lg overflow-hidden border border-[#CBD5E1]">
                 <img src={photo} alt="Foto bukti" className="w-full h-48 object-cover" />
               </div>
             )}
@@ -214,7 +214,7 @@ export default function AttendanceSubmitPage() {
 
         {/* Right: GPS + Submit */}
         <div className="space-y-4">
-          <div className="rounded-xl border border-[#253900] bg-[#111] p-6">
+          <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
             <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">3. Validasi GPS</h2>
             {gpsError ? (
               <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-400">{gpsError}</div>
@@ -224,9 +224,9 @@ export default function AttendanceSubmitPage() {
                   <div><span className="text-gray-500">Latitude:</span> <span className="text-[#EEEEEE]">{gps.lat.toFixed(6)}</span></div>
                   <div><span className="text-gray-500">Longitude:</span> <span className="text-[#EEEEEE]">{gps.lng.toFixed(6)}</span></div>
                 </div>
-                <div className={`rounded-lg p-3 text-sm ${withinRange ? "bg-[#08CB00]/10 border border-[#08CB00]/30" : "bg-red-500/10 border border-red-500/30"}`}>
+                <div className={`rounded-lg p-3 text-sm ${withinRange ? "bg-[#2563EB]/10 border border-[#2563EB]/30" : "bg-red-500/10 border border-red-500/30"}`}>
                   {withinRange ? (
-                    <span className="text-[#08CB00]">✓ Jarak {distance}m dari studio (≤150m)</span>
+                    <span className="text-[#2563EB]">✓ Jarak {distance}m dari studio (≤150m)</span>
                   ) : (
                     <span className="text-red-400">✗ Jarak {distance}m dari studio (harus ≤150m)</span>
                   )}
@@ -243,7 +243,7 @@ export default function AttendanceSubmitPage() {
             className={`w-full rounded-lg py-3 text-sm font-semibold ${
               submitting || !selectedSession || !photo || !gps || !withinRange
                 ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                : "bg-[#08CB00] text-black hover:bg-[#06a800]"
+                : "bg-[#2563EB] text-black hover:bg-[#1d4ed8]"
             }`}
           >
             {submitting ? "Mengirim..." : "Kirim Absensi"}

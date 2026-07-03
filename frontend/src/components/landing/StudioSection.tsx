@@ -11,7 +11,7 @@ export default function StudioSection() {
         <BlurText text="Fasilitas terbaik untuk belajar musik" delay={100} className="mt-3 text-base text-gray-400 md:text-lg" />
         <div className="mt-12 flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
           {studios.map((name, i) => (
-            <div key={i} className="flex h-48 w-64 flex-shrink-0 items-center justify-center rounded-2xl border border-[#253900]/50 bg-transparent text-base font-semibold text-gray-400 transition-all duration-300 hover:border-[#08CB00] hover:text-[#08CB00]">{name}</div>
+            <div key={i} className="flex h-48 w-64 flex-shrink-0 items-center justify-center rounded-2xl border border-[#CBD5E1]/50 bg-transparent text-base font-semibold text-gray-400 transition-all duration-300 hover:border-[#2563EB] hover:text-[#2563EB]">{name}</div>
           ))}
         </div>
       </div>

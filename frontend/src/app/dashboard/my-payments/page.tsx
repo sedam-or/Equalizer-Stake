@@ -21,7 +21,7 @@ interface Invoice {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  paid: "bg-[#08CB00]/10 text-[#08CB00]",
+  paid: "bg-[#2563EB]/10 text-[#2563EB]",
   unpaid: "bg-yellow-500/10 text-yellow-500",
   overdue: "bg-red-500/10 text-red-400",
 };
@@ -65,7 +65,7 @@ export default function MyPaymentsPage() {
         <p className="text-sm text-gray-400">Riwayat tagihan dan status pembayaran</p>
       </div>
 
-      <div className="bg-[#111] rounded-xl border border-[#253900] overflow-hidden">
+      <div className="bg-[#111] rounded-xl border border-[#CBD5E1] overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Memuat tagihan...</div>
         ) : invoices.length === 0 ? (
@@ -74,7 +74,7 @@ export default function MyPaymentsPage() {
           <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#0a0a0a] border-b border-[#253900]">
+              <thead className="bg-[#0a0a0a] border-b border-[#CBD5E1]">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-gray-400">No. Invoice</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-400">Periode</th>
@@ -100,7 +100,7 @@ export default function MyPaymentsPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {(inv.status === "issued" || inv.status === "unpaid") && (
-                        <button onClick={() => alert(`Bayar invoice ${inv.id_invoice}\nKode unik: ${inv.unique_code}\nJumlah: ${fmtRp(getAmount(inv))}\n\nUpload bukti transfer via WhatsApp admin:\n0812-XXXX-XXXX`)} className="rounded bg-[#08CB00] px-3 py-1 text-xs font-semibold text-black hover:bg-[#06a800]">Bayar</button>
+                        <button onClick={() => alert(`Bayar invoice ${inv.id_invoice}\nKode unik: ${inv.unique_code}\nJumlah: ${fmtRp(getAmount(inv))}\n\nUpload bukti transfer via WhatsApp admin:\n0812-XXXX-XXXX`)} className="rounded bg-[#2563EB] px-3 py-1 text-xs font-semibold text-black hover:bg-[#1d4ed8]">Bayar</button>
                       )}
                     </td>
                   </tr>

@@ -82,7 +82,7 @@ const CLASS_TYPES = [
 ] as const;
 
 const selectClass =
-  "w-full rounded-lg border border-[#253900] bg-[#111] px-4 py-3 text-[#EEEEEE] placeholder-gray-500 outline-none transition-colors focus:border-[#08CB00]";
+  "w-full rounded-lg border border-[#CBD5E1] bg-[#111] px-4 py-3 text-[#EEEEEE] placeholder-gray-500 outline-none transition-colors focus:border-[#2563EB]";
 
 export default function RegisterCoursePage() {
   const [form, setForm] = useState({
@@ -133,10 +133,10 @@ export default function RegisterCoursePage() {
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black px-4">
-        <div className="w-full max-w-md rounded-2xl border border-[#253900] bg-[#111] p-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#08CB00]/10">
+        <div className="w-full max-w-md rounded-2xl border border-[#CBD5E1] bg-[#111] p-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#2563EB]/10">
             <svg
-              className="h-8 w-8 text-[#08CB00]"
+              className="h-8 w-8 text-[#2563EB]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -157,7 +157,7 @@ export default function RegisterCoursePage() {
           </p>
           <a
             href="/"
-            className="mt-6 inline-block rounded-full bg-[#08CB00] px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-[#0aad00]"
+            className="mt-6 inline-block rounded-full bg-[#2563EB] px-6 py-3 text-sm font-semibold text-black transition-all hover:bg-[#0aad00]"
           >
             Kembali ke Beranda
           </a>
@@ -175,10 +175,10 @@ export default function RegisterCoursePage() {
     <div className="min-h-screen bg-black px-4 py-16">
       <div className="mx-auto max-w-xl">
         <div className="mb-8 text-center">
-          <a href="/" className="text-[#08CB00] text-sm hover:underline">
+          <a href="/" className="text-[#2563EB] text-sm hover:underline">
             &larr; Kembali ke Beranda
           </a>
-          <h1 className="mt-4 text-3xl font-bold text-[#08CB00]">
+          <h1 className="mt-4 text-3xl font-bold text-[#2563EB]">
             Daftar Kursus
           </h1>
           <p className="mt-2 text-gray-400">
@@ -188,7 +188,7 @@ export default function RegisterCoursePage() {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-2xl border border-[#253900] bg-[#111] p-6"
+          className="space-y-5 rounded-2xl border border-[#CBD5E1] bg-[#111] p-6"
         >
           {/* Nama Lengkap */}
           <div>
@@ -355,7 +355,7 @@ export default function RegisterCoursePage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-full bg-[#08CB00] py-3.5 text-base font-semibold text-black transition-all hover:bg-[#0aad00] hover:shadow-[0_0_30px_rgba(8,203,0,0.4)] disabled:opacity-50"
+            className="w-full rounded-full bg-[#2563EB] py-3.5 text-base font-semibold text-black transition-all hover:bg-[#0aad00] hover:shadow-[0_0_30px_rgba(8,203,0,0.4)] disabled:opacity-50"
           >
             {submitting ? "Mengirim..." : "Daftar Sekarang"}
           </button>

@@ -57,11 +57,11 @@ export default function StudioPage() {
         <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {rooms.map(room => (
-            <div key={room.id_room} className="bg-[#111] rounded-xl border border-[#253900] p-5 space-y-3">
+            <div key={room.id_room} className="bg-[#111] rounded-xl border border-[#CBD5E1] p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-[#EEEEEE]">{room.name}</h3>
                 <span className={`rounded-full px-2 py-1 text-xs font-medium ${
-                  room.status === "available" ? "bg-[#08CB00]/10 text-[#08CB00]" :
+                  room.status === "available" ? "bg-[#2563EB]/10 text-[#2563EB]" :
                   room.status === "in_use" ? "bg-yellow-500/10 text-yellow-500" :
                   "bg-red-500/10 text-red-400"
                 }`}>

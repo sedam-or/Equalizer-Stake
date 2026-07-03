@@ -25,8 +25,8 @@ export default function GlowButton({
   const base = "relative inline-block rounded-full px-8 py-3.5 text-base font-semibold transition-all duration-300 overflow-hidden";
 
   const variants = {
-    primary: "bg-[#08CB00] text-black hover:bg-[#0aad00] hover:shadow-[0_0_30px_rgba(8,203,0,0.4)]",
-    secondary: "border-2 border-[#08CB00] text-[#08CB00] hover:bg-[#08CB00] hover:text-black hover:shadow-[0_0_30px_rgba(8,203,0,0.3)]",
+    primary: "bg-[#2563EB] text-black hover:bg-[#0aad00] hover:shadow-[0_0_30px_rgba(8,203,0,0.4)]",
+    secondary: "border-2 border-[#2563EB] text-[#2563EB] hover:bg-[#2563EB] hover:text-black hover:shadow-[0_0_30px_rgba(8,203,0,0.3)]",
   };
 
   return (
@@ -38,7 +38,7 @@ export default function GlowButton({
       {/* Glow ripple on click */}
       {clicked && (
         <span
-          className="absolute inset-0 animate-ping rounded-full bg-[#08CB00]/30"
+          className="absolute inset-0 animate-ping rounded-full bg-[#2563EB]/30"
           style={{ animationDuration: "0.6s" }}
         />
       )}

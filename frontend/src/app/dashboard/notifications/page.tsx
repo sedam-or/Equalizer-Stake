@@ -56,13 +56,13 @@ export default function NotificationsPage() {
         <div className="flex gap-2">
           <button
             onClick={() => router.push("/dashboard/notification-settings")}
-            className="px-4 py-2 text-sm bg-[#253900] border border-[#253900] text-[#EEEEEE] rounded-lg hover:bg-[#355000]"
+            className="px-4 py-2 text-sm bg-[#CBD5E1] border border-[#CBD5E1] text-[#EEEEEE] rounded-lg hover:bg-[#355000]"
           >
             Pengaturan Notifikasi
           </button>
           <button
             onClick={() => router.push("/dashboard")}
-            className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#253900] text-gray-400 rounded-lg hover:bg-[#222]"
+            className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]"
           >
             Kembali
           </button>
@@ -81,7 +81,7 @@ export default function NotificationsPage() {
               key={item.id_notification || idx}
               className={`rounded-xl border p-4 ${
                 getUnread(item) > 0
-                  ? "border-[#253900] bg-[#111]"
+                  ? "border-[#CBD5E1] bg-[#111]"
                   : "border-[#1a1a1a] bg-[#0a0a0a]"
               }`}
             >

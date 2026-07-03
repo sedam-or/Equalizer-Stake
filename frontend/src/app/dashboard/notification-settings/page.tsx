@@ -24,7 +24,7 @@ function Toggle({
     <button
       onClick={onToggle}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? "bg-[#253900]" : "bg-gray-600"
+        enabled ? "bg-[#CBD5E1]" : "bg-gray-600"
       }`}
     >
       <span
@@ -63,10 +63,10 @@ export default function NotificationSettingsPage() {
   const renderGroup = (title: string, items: NotificationSetting[]) => (
     <div className="mb-8">
       <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">{title}</h2>
-      <div className="overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+      <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#253900] text-left text-gray-400">
+            <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
               <th className="px-4 py-3">Notifikasi</th>
               <th className="px-4 py-3 text-center">WhatsApp</th>
               <th className="px-4 py-3 text-center">Email</th>
@@ -116,7 +116,7 @@ export default function NotificationSettingsPage() {
         </div>
         <button
           onClick={() => router.push("/dashboard")}
-          className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#253900] text-gray-400 rounded-lg hover:bg-[#222]"
+          className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]"
         >
           Kembali
         </button>

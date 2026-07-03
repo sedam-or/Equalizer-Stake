@@ -52,21 +52,21 @@ export default function HeroSection() {
 
       {/* Content — forced center */}
       <div className="relative z-10 mx-auto w-full max-w-[780px] text-center">
-        <BlurText text="BMD Music School" delay={100} className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-[#08CB00] md:text-base" />
+        <BlurText text="BMD Music School" delay={100} className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-[#2563EB] md:text-base" />
 
         <BlurText text="Sistem Penjadwalan Kursus Musik & Reservasi Studio" delay={80} className="mb-6 text-4xl font-bold leading-[1.15] tracking-tight text-white md:text-[3.5rem]" />
 
         <p className="mb-10 text-lg leading-relaxed text-gray-400 md:text-xl">
           Belajar{" "}
-          <span className="font-semibold text-[#08CB00]">
+          <span className="font-semibold text-[#2563EB]">
             <RotatingText texts={["Gitar", "Piano", "Vokal", "Drum", "Bass", "Keyboard"]} />
           </span>{" "}
           jadi lebih mudah
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4">
-          <a href="#layanan" className="rounded-full bg-[#08CB00] px-8 py-3.5 text-base font-semibold text-black transition-all duration-300 hover:bg-[#0aad00]">Mulai Sekarang</a>
-          <a href="/login" className="rounded-full border-2 border-[#08CB00] px-8 py-3.5 text-base font-semibold text-[#08CB00] transition-all duration-300 hover:bg-[#08CB00] hover:text-black">Masuk</a>
+          <a href="#layanan" className="rounded-full bg-[#2563EB] px-8 py-3.5 text-base font-semibold text-black transition-all duration-300 hover:bg-[#0aad00]">Mulai Sekarang</a>
+          <a href="/login" className="rounded-full border-2 border-[#2563EB] px-8 py-3.5 text-base font-semibold text-[#2563EB] transition-all duration-300 hover:bg-[#2563EB] hover:text-black">Masuk</a>
         </div>
       </div>
     </section>
@@ -79,5 +79,5 @@ function RotatingText({ texts }: { texts: string[] }) {
     const id = setInterval(() => setIndex((p) => (p + 1) % texts.length), 2000);
     return () => clearInterval(id);
   }, [texts.length]);
-  return <span className="font-semibold text-[#08CB00]">{texts[index]}</span>;
+  return <span className="font-semibold text-[#2563EB]">{texts[index]}</span>;
 }

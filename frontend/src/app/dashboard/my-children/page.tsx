@@ -18,7 +18,7 @@ interface Child {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  active: "bg-[#08CB00]/10 text-[#08CB00]",
+  active: "bg-[#2563EB]/10 text-[#2563EB]",
   trial: "bg-blue-500/10 text-blue-400",
   cuti: "bg-yellow-500/10 text-yellow-500",
   inactive: "bg-gray-500/10 text-gray-400",
@@ -67,7 +67,7 @@ export default function MyChildrenPage() {
         <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {children.map(child => (
-            <div key={child.id_student} className="bg-[#111] rounded-xl border border-[#253900] p-5 space-y-3">
+            <div key={child.id_student} className="bg-[#111] rounded-xl border border-[#CBD5E1] p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-[#EEEEEE]">{child.full_name}</h3>
                 <span className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[child.enrollment_status] || STATUS_COLORS.inactive}`}>
@@ -77,7 +77,7 @@ export default function MyChildrenPage() {
               <div className="space-y-1.5">
                 <p className="text-sm text-gray-400">Instrumen: <span className="text-[#EEEEEE]">{child.instrument}</span></p>
                 <p className="text-sm text-gray-400">Level: <span className="text-[#EEEEEE] capitalize">{child.level}</span></p>
-                <p className="text-sm text-gray-400">Ujian: <span className={child.eligible_for_exam ? "text-[#08CB00]" : "text-gray-500"}>
+                <p className="text-sm text-gray-400">Ujian: <span className={child.eligible_for_exam ? "text-[#2563EB]" : "text-gray-500"}>
                   {child.eligible_for_exam ? "Memenuhi Syarat" : "Belum Memenuhi Syarat"}
                 </span></p>
               </div>

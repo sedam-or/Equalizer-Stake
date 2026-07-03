@@ -19,14 +19,14 @@ export default function ProgramKursusSection() {
         <BlurText text="Pilih instrumen yang ingin kamu pelajari" delay={100} className="mt-3 text-base text-gray-400 md:text-lg" />
         <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {programs.map((p, i) => (
-            <div key={i} className="group rounded-2xl border border-[#253900]/50 bg-transparent p-6 text-left transition-all duration-300 hover:border-[#08CB00] hover:bg-[#08CB00]/5 hover:shadow-[0_0_30px_rgba(8,203,0,0.1)]">
+            <div key={i} className="group rounded-2xl border border-[#CBD5E1]/50 bg-transparent p-6 text-left transition-all duration-300 hover:border-[#2563EB] hover:bg-[#2563EB]/5 hover:shadow-[0_0_30px_rgba(8,203,0,0.1)]">
               <div className="text-3xl">{p.icon}</div>
               <h3 className="mt-3 text-xl font-bold text-white">{p.name}</h3>
               <p className="mt-1 text-sm text-gray-400">{p.desc}</p>
               <p className="mt-1 text-xs text-gray-500">{p.level}</p>
               <div className="mt-4 flex items-center justify-between">
-                <span className="text-lg font-bold text-[#08CB00]">{p.price}</span>
-                <a href="/login" className="rounded-full border border-[#08CB00]/50 px-4 py-1.5 text-xs font-semibold text-[#08CB00] transition-all hover:bg-[#08CB00] hover:text-black">Daftar</a>
+                <span className="text-lg font-bold text-[#2563EB]">{p.price}</span>
+                <a href="/login" className="rounded-full border border-[#2563EB]/50 px-4 py-1.5 text-xs font-semibold text-[#2563EB] transition-all hover:bg-[#2563EB] hover:text-black">Daftar</a>
               </div>
             </div>
           ))}

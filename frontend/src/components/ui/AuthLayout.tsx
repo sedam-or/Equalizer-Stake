@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 const ColorBends = dynamic(() => import("@/components/ui/ColorBends"), { ssr: false });
 
-const AUTH_COLORS = ["#08cb00", "#253900", "#00ffd1", "#0a0a0a"];
+const AUTH_COLORS = ["#08cb00", "#CBD5E1", "#00ffd1", "#0a0a0a"];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

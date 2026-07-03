@@ -13,7 +13,7 @@ interface ShinyTextProps {
 export default function ShinyText({
   text,
   color = "#EEEEEE",
-  shineColor = "#08CB00",
+  shineColor = "#2563EB",
   speed = 3,
   className = "",
 }: ShinyTextProps) {

@@ -10,7 +10,7 @@ interface SplashCursorProps {
 }
 
 export default function SplashCursor({
-  COLOR = "#08CB00",
+  COLOR = "#2563EB",
   RAINBOW_MODE = false,
   SPLAT_RADIUS = 0.15,
   SPLAT_FORCE = 4000,

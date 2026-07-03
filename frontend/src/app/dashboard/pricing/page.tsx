@@ -145,22 +145,22 @@ export default function PricingPage() {
           <p className="text-sm text-gray-400 mt-1">Atur tarif kursus per instrumen dan level</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 text-sm bg-[#08CB00] text-black font-semibold rounded-lg hover:bg-[#06a800]">
+          <button onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 text-sm bg-[#2563EB] text-black font-semibold rounded-lg hover:bg-[#1d4ed8]">
             + Tambah Tarif
           </button>
-          <button onClick={() => router.push("/dashboard")} className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#253900] text-gray-400 rounded-lg hover:bg-[#222]">
+          <button onClick={() => router.push("/dashboard")} className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]">
             Kembali
           </button>
         </div>
       </div>
 
-      {success && <div className="p-3 bg-[#08CB00]/10 border border-[#253900] rounded-lg text-[#08CB00] text-sm">{success}</div>}
+      {success && <div className="p-3 bg-[#2563EB]/10 border border-[#CBD5E1] rounded-lg text-[#2563EB] text-sm">{success}</div>}
       {error && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>}
 
       {/* Pricing table */}
-      <div className="bg-[#111] border border-[#253900] rounded-xl overflow-hidden">
+      <div className="bg-[#111] border border-[#CBD5E1] rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#0a0a0a] border-b border-[#253900]">
+          <thead className="bg-[#0a0a0a] border-b border-[#CBD5E1]">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-gray-400">Instrumen</th>
               <th className="px-4 py-3 text-left font-medium text-gray-400">Level</th>
@@ -181,13 +181,13 @@ export default function PricingPage() {
                 <td className="px-4 py-3 text-gray-400">{new Date(p.effective_date).toLocaleDateString("id-ID")}</td>
                 <td className="px-4 py-3 text-center">
                   {p.is_active ? (
-                    <span className="px-2 py-1 text-xs bg-[#08CB00]/10 text-[#08CB00] rounded-full">Aktif</span>
+                    <span className="px-2 py-1 text-xs bg-[#2563EB]/10 text-[#2563EB] rounded-full">Aktif</span>
                   ) : (
                     <span className="px-2 py-1 text-xs bg-gray-500/10 text-gray-400 rounded-full">Nonaktif</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <button onClick={() => handleEdit(p)} className="text-[#08CB00] hover:underline text-xs mr-2">Edit</button>
+                  <button onClick={() => handleEdit(p)} className="text-[#2563EB] hover:underline text-xs mr-2">Edit</button>
                   {p.is_active && (
                     <button onClick={() => handleDeactivate(p.id_pricing)} className="text-red-400 hover:underline text-xs">Nonaktifkan</button>
                   )}
@@ -202,39 +202,39 @@ export default function PricingPage() {
       {/* Form modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#111] border border-[#253900] rounded-xl p-6 w-full max-w-md shadow-xl">
+          <div className="bg-[#111] border border-[#CBD5E1] rounded-xl p-6 w-full max-w-md shadow-xl">
             <h3 className="text-lg font-bold text-[#EEEEEE] mb-4">
               {editItem ? "Edit Tarif" : "Tambah Tarif"}
             </h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Instrumen</label>
-                <select value={instrument} onChange={(e) => setInstrument(e.target.value)} className="w-full p-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none">
+                <select value={instrument} onChange={(e) => setInstrument(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none">
                   {INSTRUMENTS.map((i) => <option key={i} value={i}>{INSTRUMENT_LABELS[i]}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Level</label>
-                <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full p-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none">
+                <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none">
                   {LEVELS.map((l) => <option key={l} value={l}>{LEVEL_LABELS[l]}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Harga (Rp)</label>
-                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full p-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" placeholder="500000" />
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" placeholder="500000" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Berlaku Mulai</label>
-                <input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="w-full p-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" />
+                <input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Deskripsi (opsional)</label>
-                <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none" placeholder="Tarif reguler bulanan" />
+                <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" placeholder="Tarif reguler bulanan" />
               </div>
             </div>
             <div className="mt-5 flex gap-2 justify-end">
-              <button onClick={resetForm} className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#253900] text-gray-400 rounded-lg hover:bg-[#222]">Batal</button>
-              <button onClick={handleSubmit} disabled={saving || !price || !effectiveDate} className="px-4 py-2 text-sm bg-[#08CB00] text-black font-semibold rounded-lg hover:bg-[#06a800] disabled:opacity-50">
+              <button onClick={resetForm} className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]">Batal</button>
+              <button onClick={handleSubmit} disabled={saving || !price || !effectiveDate} className="px-4 py-2 text-sm bg-[#2563EB] text-black font-semibold rounded-lg hover:bg-[#1d4ed8] disabled:opacity-50">
                 {saving ? "Menyimpan..." : "Simpan"}
               </button>
             </div>

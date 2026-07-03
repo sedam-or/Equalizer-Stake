@@ -11,7 +11,7 @@
   text-align: center;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #08CB00;
+  color: #2563EB;
   margin-bottom: 0.25rem;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .input:focus {
-  border-color: #08CB00;
+  border-color: #2563EB;
 }
 
 .input::placeholder {
@@ -93,7 +93,7 @@
 }
 
 .toggleBtn:hover {
-  color: #08CB00;
+  color: #2563EB;
 }
 
 .errorText {
@@ -112,7 +112,7 @@
 
 .serverSuccess {
   background: rgba(8, 203, 0, 0.1);
-  color: #08CB00;
+  color: #2563EB;
   border: 1px solid rgba(8, 203, 0, 0.3);
 }
 
@@ -131,7 +131,7 @@
 
 .termsRow input[type="checkbox"] {
   margin-top: 0.25rem;
-  accent-color: #08CB00;
+  accent-color: #2563EB;
 }
 
 .termsRow label {
@@ -141,14 +141,14 @@
 }
 
 .termsRow label a {
-  color: #08CB00;
+  color: #2563EB;
   text-decoration: underline;
 }
 
 .button {
   width: 100%;
   padding: 0.75rem;
-  background: #08CB00;
+  background: #2563EB;
   color: #000;
   font-weight: 600;
   font-size: 1rem;
@@ -175,7 +175,7 @@
 }
 
 .footerLink {
-  color: #08CB00;
+  color: #2563EB;
   text-decoration: none;
   font-weight: 500;
 }
@@ -197,7 +197,7 @@
 
 .modalContent {
   background: #111;
-  border: 1px solid #253900;
+  border: 1px solid #CBD5E1;
   border-radius: 0.75rem;
   padding: 2rem;
   max-width: 500px;
@@ -210,7 +210,7 @@
 }
 
 .modalContent h2 {
-  color: #08CB00;
+  color: #2563EB;
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;

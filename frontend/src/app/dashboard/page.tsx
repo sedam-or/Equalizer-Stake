@@ -55,10 +55,10 @@ function AdminDashboard() {
       {/* Recent sessions table */}
       <div className="mt-8">
         <h2 className="text-lg font-semibold text-[#EEEEEE]">Sesi Terbaru</h2>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#253900] text-left text-gray-400">
+              <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
                 <th className="px-4 py-3">Jam</th>
                 <th className="px-4 py-3">Siswa</th>
                 <th className="px-4 py-3">Guru</th>
@@ -70,7 +70,7 @@ function AdminDashboard() {
             <tbody>
               {dummySessions.map((s) => (
                 <tr key={s.id} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
-                  <td className="px-4 py-3 text-[#08CB00] font-medium">{s.jam}</td>
+                  <td className="px-4 py-3 text-[#2563EB] font-medium">{s.jam}</td>
                   <td className="px-4 py-3 text-[#EEEEEE]">{s.siswa}</td>
                   <td className="px-4 py-3 text-gray-400">{s.guru}</td>
                   <td className="px-4 py-3 text-gray-400">{s.instrumen}</td>
@@ -78,7 +78,7 @@ function AdminDashboard() {
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-1 text-xs font-medium ${
                       s.status === "Selesai"
-                        ? "bg-[#08CB00]/10 text-[#08CB00]"
+                        ? "bg-[#2563EB]/10 text-[#2563EB]"
                         : s.status === "Berlangsung"
                         ? "bg-blue-500/10 text-blue-400"
                         : "bg-yellow-500/10 text-yellow-400"
@@ -169,7 +169,7 @@ function OwnerDashboard() {
         </div>
         <button
           onClick={() => window.print()}
-          className="rounded-lg border border-[#253900] bg-[#111] px-4 py-2 text-sm font-medium text-[#EEEEEE] hover:bg-[#1a1a1a] print:hidden"
+          className="rounded-lg border border-[#CBD5E1] bg-[#111] px-4 py-2 text-sm font-medium text-[#EEEEEE] hover:bg-[#1a1a1a] print:hidden"
         >
           🖨️ Cetak Laporan
         </button>
@@ -191,7 +191,7 @@ function OwnerDashboard() {
 
       {/* Detail section */}
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-[#253900] bg-[#111] p-6">
+        <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
           <h2 className="text-lg font-semibold text-[#EEEEEE]">Kehadiran</h2>
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-gray-400">Terverifikasi</span><span className="font-medium text-[#EEEEEE]">{String(data.verified_attendance)}</span></div>
@@ -201,7 +201,7 @@ function OwnerDashboard() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#253900] bg-[#111] p-6">
+        <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
           <h2 className="text-lg font-semibold text-[#EEEEEE]">Audit Log Terbaru</h2>
           <div className="mt-4 space-y-2">
             {Array.isArray(data.recent_audit) && data.recent_audit.length > 0 ? (
@@ -232,7 +232,7 @@ function OwnerDashboard() {
       </div>
 
       {/* Print-only summary */}
-      <div className="hidden print:block mt-8 border-t border-[#253900] pt-4 text-xs text-gray-500">
+      <div className="hidden print:block mt-8 border-t border-[#CBD5E1] pt-4 text-xs text-gray-500">
         <p>Dicetak: {new Date().toLocaleString("id-ID")} — BMD Music School Equalizer-Stake</p>
       </div>
     </div>
@@ -261,10 +261,10 @@ function TeacherDashboard() {
 
       <div className="mt-8">
         <h2 className="text-lg font-semibold text-[#EEEEEE]">Jadwal Hari Ini</h2>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#253900] text-left text-gray-400">
+              <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
                 <th className="px-4 py-3">Jam</th>
                 <th className="px-4 py-3">Siswa</th>
                 <th className="px-4 py-3">Instrumen</th>
@@ -275,14 +275,14 @@ function TeacherDashboard() {
             <tbody>
               {dummySchedule.map((s) => (
                 <tr key={s.id} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
-                  <td className="px-4 py-3 text-[#08CB00] font-medium">{s.jam}</td>
+                  <td className="px-4 py-3 text-[#2563EB] font-medium">{s.jam}</td>
                   <td className="px-4 py-3 text-[#EEEEEE]">{s.siswa}</td>
                   <td className="px-4 py-3 text-gray-400">{s.instrumen}</td>
                   <td className="px-4 py-3 text-gray-400">{s.ruang}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-1 text-xs font-medium ${
                       s.status === "Selesai"
-                        ? "bg-[#08CB00]/10 text-[#08CB00]"
+                        ? "bg-[#2563EB]/10 text-[#2563EB]"
                         : s.status === "Berlangsung"
                         ? "bg-blue-500/10 text-blue-400"
                         : "bg-yellow-500/10 text-yellow-400"
@@ -329,10 +329,10 @@ function GuardianDashboard() {
       {/* Schedule table */}
       <div className="mt-8">
         <h2 className="text-lg font-semibold text-[#EEEEEE]">Jadwal Hari Ini</h2>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#253900] text-left text-gray-400">
+              <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
                 <th className="px-4 py-3">Jam</th>
                 <th className="px-4 py-3">Anak</th>
                 <th className="px-4 py-3">Instrumen</th>
@@ -343,7 +343,7 @@ function GuardianDashboard() {
             <tbody>
               {schedule.map((s) => (
                 <tr key={s.id} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
-                  <td className="px-4 py-3 text-[#08CB00] font-medium">{s.jam}</td>
+                  <td className="px-4 py-3 text-[#2563EB] font-medium">{s.jam}</td>
                   <td className="px-4 py-3 text-[#EEEEEE]">{s.anak}</td>
                   <td className="px-4 py-3 text-gray-400">{s.instrumen}</td>
                   <td className="px-4 py-3 text-gray-400">{s.guru}</td>
@@ -383,9 +383,9 @@ function GuardianDashboard() {
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[#253900] bg-[#111] p-6">
+    <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
       <div className="text-sm text-gray-400">{label}</div>
-      <div className="mt-1 text-3xl font-bold text-[#08CB00]">{value}</div>
+      <div className="mt-1 text-3xl font-bold text-[#2563EB]">{value}</div>
     </div>
   );
 }
@@ -394,7 +394,7 @@ function ActionButton({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
-      className="rounded-xl border border-[#253900] bg-[#111] p-4 text-center text-sm font-medium text-[#EEEEEE] transition-colors hover:border-[#08CB00] hover:bg-[#1a1a1a]"
+      className="rounded-xl border border-[#CBD5E1] bg-[#111] p-4 text-center text-sm font-medium text-[#EEEEEE] transition-colors hover:border-[#2563EB] hover:bg-[#1a1a1a]"
     >
       {label}
     </a>
@@ -405,9 +405,9 @@ function SessionCard({ time, student, instrument, status }: {
   time: string; student: string; instrument: string; status: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-[#253900] bg-[#111] p-4">
+    <div className="flex items-center justify-between rounded-xl border border-[#CBD5E1] bg-[#111] p-4">
       <div className="flex items-center gap-3">
-        <div className="text-lg font-bold text-[#08CB00]">{time}</div>
+        <div className="text-lg font-bold text-[#2563EB]">{time}</div>
         <div>
           <p className="font-medium text-[#EEEEEE]">{student}</p>
           <p className="text-sm text-gray-400">{instrument}</p>
@@ -416,7 +416,7 @@ function SessionCard({ time, student, instrument, status }: {
       <span
         className={`rounded-full px-2 py-1 text-xs font-medium ${
           status === "aktif"
-            ? "bg-[#08CB00]/10 text-[#08CB00]"
+            ? "bg-[#2563EB]/10 text-[#2563EB]"
             : "bg-yellow-500/10 text-yellow-400"
         }`}
       >
@@ -430,12 +430,12 @@ function StudentCard({ name, instrument, level, jadwal, status }: {
   name: string; instrument: string; level: string; jadwal: string; status: string;
 }) {
   return (
-    <div className="rounded-xl border border-[#253900] bg-[#111] p-6">
+    <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
       <div className="flex items-center justify-between">
         <p className="font-semibold text-[#EEEEEE]">{name}</p>
         <span className={`rounded-full px-2 py-1 text-xs font-medium ${
           status === "Aktif"
-            ? "bg-[#08CB00]/10 text-[#08CB00]"
+            ? "bg-[#2563EB]/10 text-[#2563EB]"
             : "bg-red-500/10 text-red-400"
         }`}>
           {status}

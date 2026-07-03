@@ -59,7 +59,7 @@ const CLASS_TYPE_LABELS: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   menunggu_konfirmasi: "bg-yellow-500/10 text-yellow-400",
-  disetujui: "bg-[#08CB00]/10 text-[#08CB00]",
+  disetujui: "bg-[#2563EB]/10 text-[#2563EB]",
   ditolak: "bg-red-500/10 text-red-400",
 };
 
@@ -150,7 +150,7 @@ export default function RegistrationsPage() {
     });
 
   const inputClass =
-    "w-full rounded-lg border border-[#253900] bg-black px-3 py-2 text-sm text-[#EEEEEE] outline-none focus:border-[#08CB00]";
+    "w-full rounded-lg border border-[#CBD5E1] bg-black px-3 py-2 text-sm text-[#EEEEEE] outline-none focus:border-[#2563EB]";
 
   if (loading) return <div className="p-8 text-center text-gray-400">Memuat...</div>;
 
@@ -164,14 +164,14 @@ export default function RegistrationsPage() {
       </p>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+      <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
         {registrations.length === 0 ? (
           <div className="p-8 text-center text-gray-400">Tidak ada pendaftaran</div>
         ) : (
           <>
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#253900] text-xs uppercase tracking-wider text-gray-500">
+              <tr className="border-b border-[#CBD5E1] text-xs uppercase tracking-wider text-gray-500">
                 <th className="px-4 py-3">Nama</th>
                 <th className="px-4 py-3">WhatsApp</th>
                 <th className="hidden px-4 py-3 md:table-cell">Instrumen</th>
@@ -186,7 +186,7 @@ export default function RegistrationsPage() {
               {registrations.map((r) => (
                 <tr
                   key={r.id}
-                  className="border-b border-[#253900]/50 transition-colors hover:bg-white/[0.02]"
+                  className="border-b border-[#CBD5E1]/50 transition-colors hover:bg-white/[0.02]"
                 >
                   <td className="px-4 py-3 font-medium text-[#EEEEEE]">
                     {r.full_name}
@@ -219,7 +219,7 @@ export default function RegistrationsPage() {
                         setScheduleDay("");
                         setScheduleTime("");
                       }}
-                      className="rounded-lg border border-[#253900] px-3 py-1.5 text-xs font-medium text-[#EEEEEE] transition-colors hover:border-[#08CB00] hover:text-[#08CB00]"
+                      className="rounded-lg border border-[#CBD5E1] px-3 py-1.5 text-xs font-medium text-[#EEEEEE] transition-colors hover:border-[#2563EB] hover:text-[#2563EB]"
                     >
                       Detail
                     </button>
@@ -240,7 +240,7 @@ export default function RegistrationsPage() {
           onClick={() => setSelected(null)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl border border-[#253900] bg-[#111] p-6"
+            className="w-full max-w-lg rounded-2xl border border-[#CBD5E1] bg-[#111] p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
@@ -283,7 +283,7 @@ export default function RegistrationsPage() {
             </div>
 
             {selected.status === "menunggu_konfirmasi" && (
-              <div className="mt-5 border-t border-[#253900] pt-5">
+              <div className="mt-5 border-t border-[#CBD5E1] pt-5">
                 <h3 className="mb-3 text-sm font-semibold text-[#EEEEEE]">
                   Setujui Pendaftaran
                 </h3>
@@ -336,7 +336,7 @@ export default function RegistrationsPage() {
                   <button
                     onClick={handleApprove}
                     disabled={!teacher || !scheduleDay || !scheduleTime}
-                    className="flex-1 rounded-full bg-[#08CB00] py-2.5 text-sm font-semibold text-black transition-all hover:bg-[#0aad00] disabled:opacity-40"
+                    className="flex-1 rounded-full bg-[#2563EB] py-2.5 text-sm font-semibold text-black transition-all hover:bg-[#0aad00] disabled:opacity-40"
                   >
                     Setujui
                   </button>
@@ -354,7 +354,7 @@ export default function RegistrationsPage() {
               <div className="mt-4 flex justify-end">
                 <button
                   onClick={() => setSelected(null)}
-                  className="rounded-full border border-[#253900] px-6 py-2 text-sm text-gray-400 hover:border-[#08CB00] hover:text-[#EEEEEE]"
+                  className="rounded-full border border-[#CBD5E1] px-6 py-2 text-sm text-gray-400 hover:border-[#2563EB] hover:text-[#EEEEEE]"
                 >
                   Tutup
                 </button>

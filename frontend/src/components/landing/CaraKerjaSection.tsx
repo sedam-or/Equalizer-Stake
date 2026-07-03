@@ -14,8 +14,8 @@ export default function CaraKerjaSection() {
         <BlurText text="Mulai dalam 3 Langkah" delay={120} className="text-3xl font-bold tracking-tight text-white md:text-4xl" />
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
           {steps.map((s, i) => (
-            <div key={i} className="rounded-2xl border border-[#08CB00]/30 bg-transparent p-6 text-center">
-              <div className="text-4xl font-bold text-[#08CB00]">{s.num}</div>
+            <div key={i} className="rounded-2xl border border-[#2563EB]/30 bg-transparent p-6 text-center">
+              <div className="text-4xl font-bold text-[#2563EB]">{s.num}</div>
               <h3 className="mt-4 text-lg font-semibold text-white">{s.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-300">{s.desc}</p>
             </div>

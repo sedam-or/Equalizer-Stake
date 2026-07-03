@@ -119,7 +119,7 @@ export default function AdminsPage() {
         </div>
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="rounded-lg bg-[#08CB00] px-4 py-2 text-sm font-semibold text-black hover:bg-[#0aad00]"
+          className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-black hover:bg-[#0aad00]"
         >
           + Tambah Admin
         </button>
@@ -129,7 +129,7 @@ export default function AdminsPage() {
 
       {/* Create form */}
       {showCreate && (
-        <form onSubmit={handleCreate} className="mt-6 rounded-xl border border-[#253900] bg-[#111] p-6">
+        <form onSubmit={handleCreate} className="mt-6 rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
           <h2 className="text-lg font-semibold text-[#EEEEEE]">Buat Admin Baru</h2>
           {createError && <div className="mt-2 rounded bg-red-500/10 p-2 text-sm text-red-400">{createError}</div>}
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -137,29 +137,29 @@ export default function AdminsPage() {
               type="text" placeholder="Username" required minLength={6}
               value={createForm.username}
               onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })}
-              className="rounded-lg bg-black border border-[#253900] px-3 py-2 text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none"
+              className="rounded-lg bg-black border border-[#CBD5E1] px-3 py-2 text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none"
             />
             <input
               type="email" placeholder="Email" required
               value={createForm.email}
               onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-              className="rounded-lg bg-black border border-[#253900] px-3 py-2 text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none"
+              className="rounded-lg bg-black border border-[#CBD5E1] px-3 py-2 text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none"
             />
             <input
               type="password" placeholder="Password" required minLength={8}
               value={createForm.password}
               onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-              className="rounded-lg bg-black border border-[#253900] px-3 py-2 text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none"
+              className="rounded-lg bg-black border border-[#CBD5E1] px-3 py-2 text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none"
             />
           </div>
           <div className="mt-4 flex gap-2">
             <button
               type="submit" disabled={createLoading}
-              className="rounded-lg bg-[#08CB00] px-4 py-2 text-sm font-semibold text-black hover:bg-[#0aad00] disabled:opacity-50"
+              className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-black hover:bg-[#0aad00] disabled:opacity-50"
             >
               {createLoading ? "Membuat..." : "Buat Admin"}
             </button>
-            <button type="button" onClick={() => setShowCreate(false)} className="rounded-lg border border-[#253900] px-4 py-2 text-sm text-gray-400 hover:bg-[#1a1a1a]">
+            <button type="button" onClick={() => setShowCreate(false)} className="rounded-lg border border-[#CBD5E1] px-4 py-2 text-sm text-gray-400 hover:bg-[#1a1a1a]">
               Batal
             </button>
           </div>
@@ -172,19 +172,19 @@ export default function AdminsPage() {
           <p className="text-sm text-gray-400">Belum ada akun Admin</p>
         ) : (
           admins.map((admin) => (
-            <div key={admin.id_user} className="flex items-center justify-between rounded-xl border border-[#253900] bg-[#111] p-4">
+            <div key={admin.id_user} className="flex items-center justify-between rounded-xl border border-[#CBD5E1] bg-[#111] p-4">
               <div>
                 <p className="font-medium text-[#EEEEEE]">{admin.username}</p>
                 <p className="text-sm text-gray-400">{admin.email}</p>
                 <p className="text-xs text-gray-500">Dibuat: {new Date(admin.created_at).toLocaleDateString("id-ID")}</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`rounded-full px-2 py-1 text-xs font-medium ${admin.is_active ? "bg-[#08CB00]/10 text-[#08CB00]" : "bg-red-500/10 text-red-400"}`}>
+                <span className={`rounded-full px-2 py-1 text-xs font-medium ${admin.is_active ? "bg-[#2563EB]/10 text-[#2563EB]" : "bg-red-500/10 text-red-400"}`}>
                   {admin.is_active ? "Aktif" : "Nonaktif"}
                 </span>
                 <button
                   onClick={() => handleToggle(admin)}
-                  className="rounded-lg border border-[#253900] px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-[#1a1a1a]"
+                  className="rounded-lg border border-[#CBD5E1] px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-[#1a1a1a]"
                 >
                   {admin.is_active ? "Nonaktifkan" : "Aktifkan"}
                 </button>
@@ -208,7 +208,7 @@ export default function AdminsPage() {
       {/* Delete confirmation modal */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="w-full max-w-md rounded-xl bg-[#111] border border-[#253900] p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-xl bg-[#111] border border-[#CBD5E1] p-6 shadow-xl">
             <h2 className="text-lg font-bold text-red-400">Hapus Admin</h2>
             <p className="mt-2 text-sm text-gray-400">
               Tindakan ini tidak dapat dibatalkan. Data PII akan dianonimkan. Ketik <strong className="text-[#EEEEEE]">{deleteTarget.username}</strong> untuk konfirmasi.
@@ -219,7 +219,7 @@ export default function AdminsPage() {
               value={deleteConfirm}
               onChange={(e) => setDeleteConfirm(e.target.value)}
               placeholder={`Ketik "${deleteTarget.username}"`}
-              className="mt-4 w-full rounded-lg bg-black border border-[#253900] px-3 py-2 text-sm text-[#EEEEEE] focus:border-red-500 focus:outline-none"
+              className="mt-4 w-full rounded-lg bg-black border border-[#CBD5E1] px-3 py-2 text-sm text-[#EEEEEE] focus:border-red-500 focus:outline-none"
             />
             <div className="mt-4 flex gap-2">
               <button
@@ -231,7 +231,7 @@ export default function AdminsPage() {
               </button>
               <button
                 onClick={() => { setDeleteTarget(null); setDeleteConfirm(""); setDeleteError(""); }}
-                className="rounded-lg border border-[#253900] px-4 py-2 text-sm text-gray-400 hover:bg-[#1a1a1a]"
+                className="rounded-lg border border-[#CBD5E1] px-4 py-2 text-sm text-gray-400 hover:bg-[#1a1a1a]"
               >
                 Batal
               </button>

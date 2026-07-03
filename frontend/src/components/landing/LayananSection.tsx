@@ -18,7 +18,7 @@ export default function LayananSection() {
         <BlurText text="Solusi lengkap untuk kursus musik Anda" delay={100} className="mt-3 text-base text-gray-400 md:text-lg" />
         <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s, i) => (
-            <div key={i} className="group rounded-2xl border border-[#253900]/50 bg-transparent p-6 text-center transition-all duration-300 hover:border-[#08CB00] hover:bg-[#08CB00]/5">
+            <div key={i} className="group rounded-2xl border border-[#CBD5E1]/50 bg-transparent p-6 text-center transition-all duration-300 hover:border-[#2563EB] hover:bg-[#2563EB]/5">
               <div className="text-3xl">{s.icon}</div>
               <h3 className="mt-4 text-lg font-semibold text-white">{s.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-400">{s.desc}</p>

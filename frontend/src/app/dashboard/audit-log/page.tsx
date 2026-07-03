@@ -25,7 +25,7 @@ const TABLE_OPTIONS = [
 ];
 
 const ACTION_COLORS: Record<string, string> = {
-  INSERT: "bg-[#08CB00]/10 text-[#08CB00]",
+  INSERT: "bg-[#2563EB]/10 text-[#2563EB]",
   UPDATE: "bg-yellow-500/10 text-yellow-500",
   DELETE: "bg-red-500/10 text-red-400",
 };
@@ -78,18 +78,18 @@ export default function AuditLogPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111] rounded-xl p-4 border border-[#253900] flex flex-wrap gap-3 items-end">
+      <div className="bg-[#111] rounded-xl p-4 border border-[#CBD5E1] flex flex-wrap gap-3 items-end">
         <div>
           <label className="block text-xs font-medium text-gray-400 mb-1">Tabel</label>
           <select value={table} onChange={e => setTable(e.target.value)}
-            className="px-3 py-1.5 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none">
+            className="px-3 py-1.5 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none">
             {TABLE_OPTIONS.map(t => <option key={t} value={t}>{t || "Semua"}</option>)}
           </select>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-400 mb-1">Aksi</label>
           <select value={action} onChange={e => setAction(e.target.value)}
-            className="px-3 py-1.5 bg-black border border-[#253900] rounded-lg text-sm text-[#EEEEEE] focus:border-[#08CB00] focus:outline-none">
+            className="px-3 py-1.5 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none">
             <option value="">Semua</option>
             <option value="INSERT">INSERT</option>
             <option value="UPDATE">UPDATE</option>
@@ -97,14 +97,14 @@ export default function AuditLogPage() {
           </select>
         </div>
         <button onClick={handleFilter}
-          className="px-4 py-1.5 bg-[#08CB00] text-black text-sm font-semibold rounded-lg hover:bg-[#06a800]">
+          className="px-4 py-1.5 bg-[#2563EB] text-black text-sm font-semibold rounded-lg hover:bg-[#1d4ed8]">
           Filter
         </button>
         <span className="text-xs text-gray-500 ml-auto">{displayLogs.length} entri</span>
       </div>
 
       {/* Log Table */}
-      <div className="bg-[#111] rounded-xl border border-[#253900] overflow-hidden">
+      <div className="bg-[#111] rounded-xl border border-[#CBD5E1] overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Memuat audit log...</div>
         ) : displayLogs.length === 0 ? (
@@ -112,7 +112,7 @@ export default function AuditLogPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#0a0a0a] border-b border-[#253900]">
+              <thead className="bg-[#0a0a0a] border-b border-[#CBD5E1]">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-gray-400">Waktu</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-400">Tabel</th>

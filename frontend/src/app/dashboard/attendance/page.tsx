@@ -22,7 +22,7 @@ interface AttendanceRecord {
 }
 
 const statusBadge: Record<string, string> = {
-  verified: "bg-[#08CB00]/10 text-[#08CB00]",
+  verified: "bg-[#2563EB]/10 text-[#2563EB]",
   pending: "bg-yellow-500/10 text-yellow-500",
   rejected: "bg-red-500/10 text-red-500",
 };
@@ -92,7 +92,7 @@ export default function AttendancePage() {
 
       <div className="mt-4 flex gap-2">
         {["semua", "pending", "verified", "rejected"].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize ${filter === f ? "bg-[#08CB00] text-black" : "border border-[#253900] bg-[#111] text-gray-400 hover:bg-[#1a1a1a]"}`}>{f}</button>
+          <button key={f} onClick={() => setFilter(f)} className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize ${filter === f ? "bg-[#2563EB] text-black" : "border border-[#CBD5E1] bg-[#111] text-gray-400 hover:bg-[#1a1a1a]"}`}>{f}</button>
         ))}
       </div>
 
@@ -101,10 +101,10 @@ export default function AttendancePage() {
       ) : records.length === 0 ? (
         <div className="mt-8 text-center text-gray-500">Belum ada data absensi</div>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-xl border border-[#253900] bg-[#111]">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#253900] text-left text-gray-400">
+              <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
                 <th className="px-4 py-3">Tanggal</th>
                 <th className="px-4 py-3">Jam</th>
                 <th className="px-4 py-3">Siswa</th>
@@ -126,7 +126,7 @@ export default function AttendancePage() {
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     {r.verification_status === "pending" && (
                       <div className="flex gap-1">
-                        <button onClick={() => handleVerify(r.id_attendance)} className="rounded bg-[#08CB00] px-2 py-1 text-xs font-semibold text-black hover:bg-[#06a800]">Verifikasi</button>
+                        <button onClick={() => handleVerify(r.id_attendance)} className="rounded bg-[#2563EB] px-2 py-1 text-xs font-semibold text-black hover:bg-[#1d4ed8]">Verifikasi</button>
                         <button onClick={() => handleReject(r.id_attendance, "Ditolak admin")} className="rounded bg-red-500/20 px-2 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/30">Tolak</button>
                       </div>
                     )}
@@ -142,13 +142,13 @@ export default function AttendancePage() {
       {/* Detail Modal */}
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setSelected(null)}>
-          <div className="w-full max-w-lg rounded-xl border border-[#253900] bg-[#111] p-6" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-xl border border-[#CBD5E1] bg-[#111] p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#EEEEEE]">Detail Absensi</h2>
               <button onClick={() => setSelected(null)} aria-label="Tutup" className="text-gray-400 hover:text-white">✕</button>
             </div>
 
-            <div className="mb-4 rounded-lg overflow-hidden border border-[#253900] bg-[#1a1a1a] p-8 text-center">
+            <div className="mb-4 rounded-lg overflow-hidden border border-[#CBD5E1] bg-[#1a1a1a] p-8 text-center">
               <div className="text-4xl mb-2">📷</div>
               <p className="text-sm text-gray-400">Foto bukti kehadiran</p>
               <p className="text-xs text-gray-600">Terenkripsi AES-256-GCM</p>
@@ -164,13 +164,13 @@ export default function AttendancePage() {
             </div>
 
             {selected.gps_lat && (
-              <div className="mt-4 rounded-lg border border-[#253900] bg-[#0a0a0a] p-3">
+              <div className="mt-4 rounded-lg border border-[#CBD5E1] bg-[#0a0a0a] p-3">
                 <h3 className="text-xs font-semibold text-gray-400 mb-2">Validasi GPS</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div><span className="text-gray-500">Lat:</span> <span className="text-[#EEEEEE]">{selected.gps_lat}</span></div>
                   <div><span className="text-gray-500">Lng:</span> <span className="text-[#EEEEEE]">{selected.gps_lng}</span></div>
                   <div><span className="text-gray-500">Jarak:</span> <span className="text-[#EEEEEE]">{selected.gps_distance_m || "?"}m</span></div>
-                  <div><span className="text-gray-500">Face:</span> <span className={selected.face_confidence && selected.face_confidence >= 0.3 ? "text-[#08CB00]" : "text-red-400"}>{selected.face_confidence ? `${(selected.face_confidence * 100).toFixed(0)}%` : "N/A"}</span></div>
+                  <div><span className="text-gray-500">Face:</span> <span className={selected.face_confidence && selected.face_confidence >= 0.3 ? "text-[#2563EB]" : "text-red-400"}>{selected.face_confidence ? `${(selected.face_confidence * 100).toFixed(0)}%` : "N/A"}</span></div>
                 </div>
               </div>
             )}
@@ -179,7 +179,7 @@ export default function AttendancePage() {
 
             {selected.verification_status === "pending" && (
               <div className="mt-4 flex gap-2">
-                <button onClick={() => handleVerify(selected.id_attendance)} className="flex-1 rounded-lg bg-[#08CB00] py-2 text-sm font-semibold text-black hover:bg-[#06a800]">✓ Verifikasi</button>
+                <button onClick={() => handleVerify(selected.id_attendance)} className="flex-1 rounded-lg bg-[#2563EB] py-2 text-sm font-semibold text-black hover:bg-[#1d4ed8]">✓ Verifikasi</button>
                 <button onClick={() => handleReject(selected.id_attendance, "Foto tidak jelas")} className="flex-1 rounded-lg bg-red-500/20 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/30">✗ Tolak</button>
               </div>
             )}

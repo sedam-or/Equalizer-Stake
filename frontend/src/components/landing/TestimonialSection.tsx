@@ -14,8 +14,8 @@ export default function TestimonialSection() {
         <BlurText text="Apa Kata Mereka" delay={120} className="text-3xl font-bold tracking-tight text-white md:text-4xl" />
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
           {items.map((t, i) => (
-            <div key={i} className="rounded-2xl border border-[#253900]/30 bg-transparent p-6 text-center">
-              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-[#08CB00]/30 text-sm font-bold text-[#08CB00]">{t.name[0]}</div>
+            <div key={i} className="rounded-2xl border border-[#CBD5E1]/30 bg-transparent p-6 text-center">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-[#2563EB]/30 text-sm font-bold text-[#2563EB]">{t.name[0]}</div>
               <blockquote className="mt-4 text-sm leading-relaxed text-gray-300">&ldquo;{t.quote}&rdquo;</blockquote>
               <div className="mt-4"><p className="text-sm font-semibold text-white">{t.name}</p><p className="text-xs text-gray-500">{t.role}</p></div>
             </div>
