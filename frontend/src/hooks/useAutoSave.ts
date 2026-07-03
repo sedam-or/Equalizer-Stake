@@ -64,7 +64,7 @@ async function syncToServer(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const res = await fetch(`http://localhost:8001/api/drafts/${formKey}`, {
+      const res = await fetch(`/api/drafts/${formKey}`, {
         method: "POST",
         headers: {
           Authorization: `${B} ${token}`,
@@ -145,7 +145,7 @@ export function useAutoSave({
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        const res = await fetch(`http://localhost:8001/api/drafts/${formKey}`, {
+        const res = await fetch(`/api/drafts/${formKey}`, {
           headers: { Authorization: `${B} ${token}` },
         });
         if (res.ok) {
@@ -166,7 +166,7 @@ export function useAutoSave({
     removeFromLocalStorage(formKey);
     const token = localStorage.getItem("token");
     if (token) {
-      fetch(`http://localhost:8001/api/drafts/${formKey}`, {
+      fetch(`/api/drafts/${formKey}`, {
         method: "DELETE",
         headers: { Authorization: `${B} ${token}` },
       }).catch(() => {});

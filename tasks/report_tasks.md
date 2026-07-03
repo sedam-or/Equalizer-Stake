@@ -1389,3 +1389,25 @@
   - Default: all children (empty student_id)
 - **Dependencies affected**: None
 - **Rollback plan**: Revert page.tsx
+
+### T-113: Draft Debounced Auto-Save
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-10
+- **Files changed**:
+  - `frontend/src/hooks/useAutoSave.ts` — Fixed hardcoded localhost URLs to /api
+- **Test results**:
+  - [x] TC1: useAutoSave hook exists with debounce (30s default): PASS
+  - [x] TC2: localStorage backup works: PASS (code verified)
+  - [x] TC3: Server sync with retry: PASS (code verified)
+  - [x] TC4: TypeScript compiles: PASS
+- **Security findings**: None
+- **Performance**: Debounce prevents excessive API calls
+- **Notes**:
+  - Hook already existed from T-065 implementation
+  - Fixed: hardcoded http://localhost:8001 → relative /api paths
+  - Features: debounce interval, localStorage backup, server sync, retry with backoff
+  - Export: syncStatus, lastSaved, restoreDraft, clearDraft, saveNow
+  - SRS FR-10 compliance: auto-save (debounced, bukan manual)
+- **Dependencies affected**: None
+- **Rollback plan**: Revert useAutoSave.ts
