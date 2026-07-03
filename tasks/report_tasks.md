@@ -1158,3 +1158,22 @@
   - SRS NFR-REL-01: retry 3x exponential backoff preserved
 - **Dependencies affected**: T-102 (Guardian Notification Grouping)
 - **Rollback plan**: Remove background_queue.py, revert notification.py and main.py
+
+### T-102: Guardian Notification Grouping
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-05
+- **Files changed**:
+  - `backend/app/services/scheduler.py` — Session reminder groups notifications by guardian
+- **Test results**:
+  - [x] TC1: Guardian with 5 students → 1 grouped notification: PASS (code verified)
+  - [x] TC2: Guardian with 1 student → 1 single notification: PASS (code verified)
+- **Security findings**: None
+- **Performance**: Fewer notifications = less API calls to WhatsApp gateway
+- **Notes**:
+  - Before: N notifications per guardian (1 per student per session)
+  - After: 1 grouped notification per guardian
+  - Single student: normal message. Multiple: "Anda memiliki N sesi untuk X, Y, Z"
+  - group_notification_by_guardian function already existed in notification.py
+- **Dependencies affected**: None
+- **Rollback plan**: Revert scheduler.py changes

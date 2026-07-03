@@ -222,8 +222,12 @@ async def job_session_reminder():
                 return
 
             sent = 0
+            # Group sessions by guardian for consolidated notifications (SRS FR-05)
+            guardian_sessions: dict[UUID, list] = {}
+            guardian_map: dict[UUID, Guardian] = {}
+            student_map: dict[UUID, Student] = {}
+
             for session in sessions:
-                # Get student -> guardian -> user
                 student_result = await db.execute(
                     select(Student).where(Student.id_student == session.id_student)
                 )
@@ -238,22 +242,47 @@ async def job_session_reminder():
                 if not guardian or guardian.account_status == "frozen":
                     continue
 
-                body = (
-                    f"Pengingat: Sesi {session.session_type} untuk {student.full_name} "
-                    f"akan dimulai pukul {session.start_time.strftime('%H:%M')} WIB. "
-                    f"Harap hadir tepat waktu.\n"
-                    f"Phone: {guardian.phone_whatsapp}\n"
-                )
+                gid = guardian.id_user
+                if gid not in guardian_sessions:
+                    guardian_sessions[gid] = []
+                    guardian_map[gid] = guardian
+                guardian_sessions[gid].append({
+                    "session": session,
+                    "student_name": student.full_name,
+                })
+                student_map[session.id_student] = student
+
+            # Send one grouped notification per guardian
+            for gid, items in guardian_sessions.items():
+                guardian = guardian_map[gid]
+                if len(items) == 1:
+                    s = items[0]
+                    body = (
+                        f"Pengingat: Sesi {s['session'].session_type} untuk {s['student_name']} "
+                        f"akan dimulai pukul {s['session'].start_time.strftime('%H:%M')} WIB. "
+                        f"Harap hadir tepat waktu.\n"
+                        f"Phone: {guardian.phone_whatsapp}\n"
+                    )
+                else:
+                    student_names = ", ".join(i["student_name"] for i in items)
+                    times = ", ".join(i["session"].start_time.strftime("%H:%M") for i in items)
+                    body = (
+                        f"Pengingat: Anda memiliki {len(items)} sesi hari ini "
+                        f"untuk {student_names} "
+                        f"pukul {times} WIB. "
+                        f"Harap hadir tepat waktu.\n"
+                        f"Phone: {guardian.phone_whatsapp}\n"
+                    )
 
                 notif = await create_notification(
                     db,
-                    recipient_id=guardian.id_user,
+                    recipient_id=gid,
                     channel="whatsapp",
                     category="non_critical",
                     body=body,
                     subject="Pengingat Sesi",
                     related_entity_type="session",
-                    related_entity_id=session.id_session,
+                    related_entity_id=items[0]["session"].id_session,
                 )
                 await send_notification(db, notif.id_notification)
                 sent += 1
