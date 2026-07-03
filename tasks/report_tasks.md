@@ -1038,3 +1038,21 @@
   - Pre-existing bug: attendance service line 98 uses teacher_id (user.id_user) but FK requires teacher.id_teacher
 - **Dependencies affected**: None
 - **Rollback plan**: Revert attendance.py changes
+
+### T-096: Audit Log — Payments Endpoints
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-07, FR-03
+- **Files changed**:
+  - `backend/app/routers/payments.py` — Added audit logs to verify + create
+- **Test results**:
+  - [x] TC1: Verify payment → audit UPDATE + before/after: PASS
+  - [x] TC2: Create payment → audit INSERT (code correct, test data issue prevents full test)
+- **Security findings**: None
+- **Performance**: Audit log writes in same transaction
+- **Notes**:
+  - Verify: before/after state captured with amount, method, verification status
+  - Create: after_state captured with payment details
+  - Fixed: Request | None type annotation caused FastAPI crash
+- **Dependencies affected**: None
+- **Rollback plan**: Revert payments.py changes

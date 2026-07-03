@@ -1,4 +1,4 @@
-"""Payment router — list + verify payments (admin)."""
+"""Payment router — list + verify + create payments. T-096: audit logs."""
 
 from uuid import UUID
 from datetime import datetime, timedelta, timezone
@@ -13,6 +13,7 @@ from app.core.limiter import limiter
 from app.middleware.auth import require_role
 from app.models.payment import Payment
 from app.models.user import User
+from app.services.audit import create_audit_log
 
 router = APIRouter(prefix="/api/payments", tags=["Payments"])
 
@@ -40,6 +41,19 @@ def _record_cb_failure():
 def _reset_cb():
     _cb_state["failures"] = 0
     _cb_state["open_until"] = None
+
+
+def _payment_dict(p: Payment) -> dict:
+    """Serialize payment for audit log."""
+    return {
+        "id_payment": str(p.id_payment),
+        "id_invoice": str(p.id_invoice),
+        "amount": float(p.amount),
+        "method": p.method,
+        "is_verified": p.is_verified,
+        "verified_by": str(p.verified_by) if p.verified_by else None,
+        "notes": p.notes,
+    }
 
 
 class PaymentVerify(BaseModel):
@@ -109,19 +123,28 @@ async def verify_payment(
             raise HTTPException(status_code=404, detail="Pembayaran tidak ditemukan")
         if payment.is_verified:
             raise HTTPException(status_code=400, detail="Pembayaran sudah diverifikasi")
-        
+
+        before_state = _payment_dict(payment)
+
         # Validate unique code from invoice
         from app.models.invoice import Invoice
         invoice_result = await db.execute(select(Invoice).where(Invoice.id_invoice == payment.id_invoice))
         invoice = invoice_result.scalar_one_or_none()
         if invoice and invoice.unique_code != body.unique_code:
             raise HTTPException(status_code=400, detail="Kode unik tidak cocok. Periksa kembali bukti transfer.")
-        
+
         payment.is_verified = True
         payment.verified_by = user.id_user
         payment.verified_at = datetime.now(timezone.utc)
         if body.notes:
             payment.notes = body.notes
+
+        after_state = _payment_dict(payment)
+        await create_audit_log(
+            db, table_name="payments", record_id=payment_id,
+            action="UPDATE", changed_by=user.id_user,
+            before_state=before_state, after_state=after_state, request=request,
+        )
         await db.commit()
         _reset_cb()
         return {"detail": "Pembayaran berhasil diverifikasi"}
@@ -140,6 +163,7 @@ async def create_payment(
     proof_base64: str | None = None,
     user: User = Depends(require_role("guardian")),
     db: AsyncSession = Depends(get_db),
+    request: Request = Depends(),
 ):
     """Guardian submits payment with optional proof photo."""
     from app.models.invoice import Invoice
@@ -147,13 +171,13 @@ async def create_payment(
     from app.models.guardian import Guardian
     from app.services.photo_storage import validate_photo, save_attendance_photo
     from datetime import datetime, timezone
-    
+
     # Get guardian from user
     guardian_result = await db.execute(select(Guardian).where(Guardian.id_user == user.id_user))
     guardian = guardian_result.scalar_one_or_none()
     if not guardian:
         raise HTTPException(status_code=403, detail="Hanya wali murid yang bisa membayar")
-    
+
     # Verify invoice belongs to guardian
     result = await db.execute(
         select(Invoice).where(
@@ -164,7 +188,7 @@ async def create_payment(
     invoice = result.scalar_one_or_none()
     if not invoice:
         raise HTTPException(status_code=404, detail="Tagihan tidak ditemukan")
-    
+
     # Save proof photo if provided
     proof_url = None
     if proof_base64:
@@ -172,7 +196,7 @@ async def create_payment(
         if not valid:
             raise HTTPException(status_code=400, detail=error)
         proof_url = save_attendance_photo(proof_base64, str(invoice.id_invoice))
-    
+
     payment = Payment(
         id_invoice=id_invoice,
         amount=amount,
@@ -181,10 +205,16 @@ async def create_payment(
         status="pending",
     )
     db.add(payment)
-    
+
     # Update invoice status
     invoice.status = "pending"
-    
+
+    await db.flush()
+    await create_audit_log(
+        db, table_name="payments", record_id=payment.id_payment,
+        action="INSERT", changed_by=user.id_user,
+        after_state=_payment_dict(payment), request=request,
+    )
     await db.commit()
-    
+
     return {"message": "Pembayaran berhasil dikirim. Menunggu verifikasi admin.", "payment_id": str(payment.id_payment)}
