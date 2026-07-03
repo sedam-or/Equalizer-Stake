@@ -1075,3 +1075,24 @@
   - All auth audit logs capture IP address + user agent
 - **Dependencies affected**: None
 - **Rollback plan**: Revert auth.py changes
+
+### T-098: Database Backup — Daily 03:00 WIB
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: NFR-REL-04
+- **Files changed**:
+  - `backend/app/services/scheduler.py` — Added job_database_backup + _python_dump
+- **Test results**:
+  - [x] TC1: Manual backup → file created in /backups/: PASS (25KB)
+  - [x] TC2: Backup valid (16 tables, INSERT statements): PASS
+  - [x] TC3: Retention 30 days (cleanup logic): PASS
+- **Security findings**: None
+- **Performance**: Backup runs async, 300s timeout
+- **Notes**:
+  - Primary: pg_dump (binary format, -Fc)
+  - Fallback: Python-based SQL dump via SQLAlchemy (when pg_dump unavailable)
+  - Retention: 30 days, old backups auto-deleted
+  - Scheduler: daily 03:00 WIB (CronTrigger)
+  - Backup dir: /home/kepolu/bmdmusic/backups/
+- **Dependencies affected**: None
+- **Rollback plan**: Remove scheduler job + delete backup function

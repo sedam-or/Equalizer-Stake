@@ -267,6 +267,101 @@ async def job_session_reminder():
 
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# 5. Database backup — daily 03:00 WIB
+# ---------------------------------------------------------------------------
+BACKUP_DIR = "/home/kepolu/bmdmusic/backups"
+BACKUP_RETENTION_DAYS = 30
+
+
+async def job_database_backup():
+    """Daily database backup via pg_dump or Python fallback. Retention: 30 days."""
+    import os
+    import subprocess
+    import gzip
+    from glob import glob
+    from urllib.parse import urlparse
+
+    os.makedirs(BACKUP_DIR, exist_ok=True)
+
+    db_url = os.getenv("DATABASE_URL", "")
+    parsed = urlparse(db_url.replace("+asyncpg", ""))
+    host = parsed.hostname or "localhost"
+    port = parsed.port or 5432
+    dbname = parsed.path.lstrip("/")
+    username = parsed.username or "postgres"
+    password = parsed.password or ""
+
+    now = datetime.now(WIB)
+    filename = f"backup_{now.strftime('%Y%m%d_%H%M%S')}.sql.gz"
+    filepath = os.path.join(BACKUP_DIR, filename)
+
+    # Try pg_dump first, fall back to Python-based dump
+    env = os.environ.copy()
+    env["PGPASSWORD"] = password
+
+    try:
+        result = subprocess.run(
+            ["pg_dump", "-h", host, "-p", str(port), "-U", username, "-d", dbname,
+             "--no-owner", "--no-acl", "-Fc"],
+            capture_output=True, timeout=300, env=env,
+        )
+
+        if result.returncode == 0 and result.stdout:
+            with gzip.open(filepath, "wb") as f:
+                f.write(result.stdout)
+        else:
+            # Fallback: SQL text dump via Python
+            await _python_dump(db_url, filepath)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        await _python_dump(db_url, filepath)
+    except Exception as e:
+        logger.error(f"Backup failed: {e}")
+        return
+
+    if os.path.exists(filepath):
+        size_mb = os.path.getsize(filepath) / (1024 * 1024)
+        logger.info(f"Database backup completed: {filename} ({size_mb:.1f} MB)")
+
+        # Cleanup old backups
+        cutoff = now - timedelta(days=BACKUP_RETENTION_DAYS)
+        for old_file in glob(os.path.join(BACKUP_DIR, "backup_*.sql.gz")):
+            if os.path.getmtime(old_file) < cutoff.timestamp():
+                os.remove(old_file)
+                logger.info(f"Removed old backup: {os.path.basename(old_file)}")
+
+
+async def _python_dump(db_url: str, filepath: str):
+    """Python-based SQL dump fallback using SQLAlchemy."""
+    import gzip
+    from sqlalchemy import text
+    from app.core.database import async_session_maker
+
+    try:
+        async with async_session_maker() as db:
+            # Get all table names
+            result = await db.execute(text(
+                "SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema = 'public' ORDER BY table_name"
+            ))
+            tables = [row[0] for row in result.fetchall()]
+
+            with gzip.open(filepath, "wt") as f:
+                f.write("-- Database backup\\n")
+                f.write(f"-- Tables: {len(tables)}\\n\\n")
+                for table in tables:
+                    f.write(f"\\n-- Table: {table}\\n")
+                    f.write(f"TRUNCATE TABLE {table} CASCADE;\\n")
+                    # Dump data as INSERT statements
+                    rows = await db.execute(text(f"SELECT * FROM {table}"))
+                    for row in rows:
+                        vals = ", ".join(repr(str(v)) if v is not None else "NULL" for v in row)
+                        f.write(f"INSERT INTO {table} VALUES ({vals});\\n")
+            logger.info(f"Python-based backup completed: {len(tables)} tables")
+    except Exception as e:
+        logger.error(f"Python dump failed: {e}")
+
+
 # Scheduler setup
 # ---------------------------------------------------------------------------
 scheduler = AsyncIOScheduler(timezone="Asia/Jakarta")
@@ -298,6 +393,14 @@ def start_scheduler():
         replace_existing=True,
     )
 
+    # Database backup: daily 03:00 WIB
+    scheduler.add_job(
+        job_database_backup,
+        CronTrigger(hour=3, minute=0, timezone="Asia/Jakarta"),
+        id="database_backup",
+        replace_existing=True,
+    )
+
     # Session reminder: every 15 minutes
     scheduler.add_job(
         job_session_reminder,
@@ -307,7 +410,7 @@ def start_scheduler():
     )
 
     scheduler.start()
-    logger.info("Scheduler started with 4 jobs")
+    logger.info("Scheduler started with 5 jobs")
 
 
 def shutdown_scheduler():
