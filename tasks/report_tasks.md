@@ -1605,3 +1605,29 @@
   - Also existing: PDF export (HTML printable)
 - **Dependencies affected**: None
 - **Rollback plan**: Revert eligibility.py
+
+### T-125: Feedback Endpoint (T-072)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: UC-02
+- **Files changed**:
+  - `backend/app/models/feedback.py` — New model
+  - `backend/app/models/__init__.py` — Added Feedback
+  - `backend/app/routers/feedback.py` — New router
+  - `backend/app/main.py` — Registered router
+  - DB: Created feedbacks table + enum
+- **Test results**:
+  - [x] TC1: Guru create feedback → 200: PASS
+  - [x] TC2: Guardian view feedback → 200: PASS
+  - [x] TC3: Validation (rating 1-5): PASS
+  - [x] TC4: Audit log created: PASS
+- **Security findings**: None
+- **Performance**: 3 queries per operation
+- **Notes**:
+  - Guru: POST /api/v1/feedback/ (create)
+  - Guardian: GET /api/v1/feedback/ (view)
+  - Fields: session_id, rating (1-5), comment, category
+  - Categories: progress, behavior, recommendation, general
+  - Audit log with record_id (flush before audit)
+- **Dependencies affected**: T-146 (frontend feedback page)
+- **Rollback plan**: DROP TABLE feedbacks

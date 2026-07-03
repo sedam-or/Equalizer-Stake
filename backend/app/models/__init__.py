@@ -16,6 +16,7 @@ from app.models.pricing import Pricing
 from app.models.draft import Draft
 from app.models.registration import Registration
 from app.models.deletion_request import DeletionRequest
+from app.models.feedback import Feedback
 
 __all__ = [
     "User",
@@ -34,4 +35,5 @@ __all__ = [
     "Draft",
     "Registration",
     "DeletionRequest",
+    "Feedback",
 ]
