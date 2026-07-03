@@ -960,8 +960,8 @@
 | Phase 19: NICE TO HAVE | T-115 | ✅ 1/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
 | Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ✅ 9/9 |
-| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 5/28 |
-| **Total** | **155 tasks** | **97/155 done** |
+| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 6/28 |
+| **Total** | **155 tasks** | **98/155 done** |
 
 ---
 
@@ -1688,7 +1688,7 @@
 - **Files**: `frontend/src/components/ConfirmDialog.tsx` (new)
 
 ### T-134: Date/Time Formatter
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: NFR
 - **Deskripsi**:
