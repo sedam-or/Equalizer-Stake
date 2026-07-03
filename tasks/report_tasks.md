@@ -1367,3 +1367,25 @@
   - Teacher only (guardian mode unchanged)
 - **Dependencies affected**: None
 - **Rollback plan**: Revert auth.py, schemas/auth.py, page.tsx
+
+### T-112: Frontend — Guardian Per-Student Sections
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-09, NFR-USA-02
+- **Files changed**:
+  - `frontend/src/app/dashboard/my-schedule/page.tsx` — Added student dropdown for guardian mode
+- **Test results**:
+  - [x] TC1: Student dropdown renders for guardian: PASS (code verified)
+  - [x] TC2: Student dropdown hidden for teacher: PASS (code verified)
+  - [x] TC3: Select student → fetch ?student_id=xxx: PASS (code verified)
+  - [x] TC4: TypeScript compiles: PASS
+- **Security findings**: None
+- **Performance**: No additional API calls (children fetched once)
+- **Notes**:
+  - Guardian mode: dropdown "Semua Anak | Anak A (gitar) | Anak B (piano)"
+  - Teacher mode: unchanged (instrument tabs)
+  - Dropdown only shows if >1 child (single child = no need)
+  - Fetches /api/my/children on mount for dropdown options
+  - Default: all children (empty student_id)
+- **Dependencies affected**: None
+- **Rollback plan**: Revert page.tsx

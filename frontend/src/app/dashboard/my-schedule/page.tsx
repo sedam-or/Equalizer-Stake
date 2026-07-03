@@ -1,7 +1,7 @@
 "use client";
 /**
- * T-065/T-111: My Schedule — connected to real API with instrument tabs
- * GET /api/my/schedule?instrument=xxx
+ * T-065/T-111/T-112: My Schedule — connected to real API
+ * GET /api/my/schedule?instrument=xxx&student_id=xxx
  */
 
 import { useEffect, useState } from "react";
@@ -18,6 +18,12 @@ interface Session {
   student_name?: string;
   instrument?: string;
   student_id?: string;
+}
+
+interface Child {
+  id_student: string;
+  full_name: string;
+  instrument: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -45,20 +51,31 @@ export default function MySchedulePage() {
   const [offset, setOffset] = useState(0);
   const [instruments, setInstruments] = useState<string[]>([]);
   const [activeInstrument, setActiveInstrument] = useState<string>("");
+  const [children, setChildren] = useState<Child[]>([]);
+  const [activeStudentId, setActiveStudentId] = useState<string>("");
   const limit = 20;
 
-  // Fetch teacher instruments from profile
+  // Fetch teacher instruments or guardian children
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    fetch("/api/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then(profile => {
-        if (profile?.instruments?.length) {
-          setInstruments(profile.instruments);
-        }
-      })
-      .catch(() => {});
+    const r = localStorage.getItem("role") || "";
+
+    if (r === "teacher") {
+      fetch("/api/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(profile => {
+          if (profile?.instruments?.length) setInstruments(profile.instruments);
+        })
+        .catch(() => {});
+    } else if (r === "guardian") {
+      fetch("/api/my/children?limit=50", { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(res => {
+          if (res?.data) setChildren(res.data);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   // Fetch schedule
@@ -70,6 +87,7 @@ export default function MySchedulePage() {
 
     let url = `/api/my/schedule?limit=${limit}&offset=${offset}`;
     if (activeInstrument) url += `&instrument=${activeInstrument}`;
+    if (activeStudentId) url += `&student_id=${activeStudentId}`;
 
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : Promise.reject())
@@ -79,7 +97,7 @@ export default function MySchedulePage() {
       })
       .catch(() => setSessions([]))
       .finally(() => setLoading(false));
-  }, [router, offset, activeInstrument]);
+  }, [router, offset, activeInstrument, activeStudentId]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -89,6 +107,22 @@ export default function MySchedulePage() {
           {role === "teacher" ? "Jadwal mengajar Anda" : "Jadwal kursus anak-anak Anda"}
         </p>
       </div>
+
+      {/* Student Dropdown (guardian only) */}
+      {role === "guardian" && children.length > 1 && (
+        <select
+          value={activeStudentId}
+          onChange={e => { setActiveStudentId(e.target.value); setOffset(0); }}
+          className="bg-[#1a1a1a] border border-[#253900] rounded-lg px-3 py-2 text-sm text-[#EEEEEE] focus:outline-none focus:border-[#08CB00]"
+        >
+          <option value="">Semua Anak</option>
+          {children.map(c => (
+            <option key={c.id_student} value={c.id_student}>
+              {c.full_name} ({c.instrument})
+            </option>
+          ))}
+        </select>
+      )}
 
       {/* Instrument Tabs (teacher only) */}
       {role === "teacher" && instruments.length > 0 && (
