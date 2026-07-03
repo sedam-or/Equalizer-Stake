@@ -205,3 +205,68 @@ async def my_payments(
             ],
         })
     return {"data": results, "total": total, "limit": limit, "offset": offset}
+
+
+@router.get("/students")
+async def my_students(
+    instrument: str | None = Query(None),
+    limit: int = Query(20, le=100),
+    offset: int = Query(0, ge=0),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List students that this teacher teaches.
+    Teacher mode only. Filter by ?instrument=piano (optional).
+    """
+    from app.models.teacher import Teacher
+    from app.models.student import Student
+    from app.models.session import Session
+
+    if user.role != "teacher":
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+
+    result = await db.execute(select(Teacher).where(Teacher.id_user == user.id_user))
+    teacher = result.scalar_one_or_none()
+    if not teacher:
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+
+    # Get student IDs from sessions this teacher teaches
+    sessions_q = await db.execute(
+        select(Session.id_student).where(
+            Session.id_teacher == teacher.id_teacher,
+            Session.status.notin_(["cancelled"]),
+        ).distinct()
+    )
+    student_ids = [row[0] for row in sessions_q.fetchall()]
+    if not student_ids:
+        return {"data": [], "total": 0, "limit": limit, "offset": offset}
+
+    # Build query with optional instrument filter
+    base = select(Student).where(
+        Student.id_student.in_(student_ids),
+        Student.deleted_at.is_(None),
+    )
+    if instrument:
+        base = base.where(Student.instrument == instrument)
+
+    count_q = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_q.scalar()
+    q = await db.execute(base.order_by(Student.created_at.desc()).offset(offset).limit(limit))
+    students = q.scalars().all()
+
+    return {
+        "data": [
+            {
+                "id_student": str(s.id_student),
+                "full_name": s.full_name,
+                "instrument": s.instrument,
+                "level": s.level,
+                "enrollment_status": s.enrollment_status,
+                "eligible_for_exam": s.eligible_for_exam,
+            }
+            for s in students
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }

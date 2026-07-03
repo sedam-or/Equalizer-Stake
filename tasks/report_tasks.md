@@ -1243,3 +1243,23 @@
   - 8 valid instruments: gitar, piano, biola, drum, keyboard, flute, saxophone, vokal
 - **Dependencies affected**: None
 - **Rollback plan**: Revert my_portal.py changes
+
+### T-106: Teacher Students List (GET /api/my/students)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-02
+- **Files changed**:
+  - `backend/app/routers/my_portal.py` — Added GET /api/my/students endpoint
+- **Test results**:
+  - [x] TC1: GET /api/my/students → all students teacher teaches (5): PASS
+  - [x] TC2: GET /api/my/students?instrument=gitar → filtered (1): PASS
+  - [x] TC3: Non-teacher → empty (0): PASS
+- **Security findings**: None
+- **Performance**: 2 queries (sessions + students)
+- **Notes**:
+  - Returns students via session join: teacher → sessions → students
+  - Filter by instrument (optional)
+  - Pagination: {data, total, limit, offset}
+  - Returns: id, name, instrument, level, status, eligible_for_exam
+- **Dependencies affected**: None
+- **Rollback plan**: Revert my_portal.py changes
