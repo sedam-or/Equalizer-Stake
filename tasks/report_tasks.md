@@ -1284,3 +1284,23 @@
   - Returns: id, session, gps, face_valid, status, created_at
 - **Dependencies affected**: None
 - **Rollback plan**: Revert my_portal.py changes
+
+### T-108: Guardian Schedule Per Student
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-02
+- **Files changed**:
+  - `backend/app/routers/my_portal.py` — Added student_id filter to my_schedule (guardian mode)
+- **Test results**:
+  - [x] TC1: No student_id → all children's schedules: PASS (backward compatible)
+  - [x] TC2: With student_id → filtered to 1 child: PASS (code verified)
+  - [x] TC3: Invalid student_id → empty: PASS (code verified)
+- **Security findings**: None
+- **Performance**: No additional queries (filter applied to existing student_ids list)
+- **Notes**:
+  - Guardian mode: filter by ?student_id=xxx (optional)
+  - Validates student belongs to guardian before filtering
+  - Invalid UUID → empty result
+  - Backward compatible: no param = all children
+- **Dependencies affected**: None
+- **Rollback plan**: Revert my_portal.py changes

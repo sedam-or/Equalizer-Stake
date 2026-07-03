@@ -16,11 +16,13 @@ async def my_schedule(
     limit: int = Query(20, le=100),
     offset: int = Query(0, ge=0),
     instrument: str | None = Query(None),
+    student_id: str | None = Query(None),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Get schedule for current user (teacher or guardian).
     Teacher mode: filter by ?instrument=piano (optional, backward compatible).
+    Guardian mode: filter by ?student_id=xxx (optional, backward compatible).
     """
     from app.models.session import Session
     from app.models.teacher import Teacher
@@ -84,6 +86,16 @@ async def my_schedule(
         student_ids = [row[0] for row in students_q.fetchall()]
         if not student_ids:
             return {"data": [], "total": 0, "limit": limit, "offset": offset}
+        # Filter by specific student (optional)
+        if student_id:
+            from uuid import UUID as _UUID
+            try:
+                sid = _UUID(student_id)
+                if sid not in student_ids:
+                    return {"data": [], "total": 0, "limit": limit, "offset": offset}
+                student_ids = [sid]
+            except ValueError:
+                return {"data": [], "total": 0, "limit": limit, "offset": offset}
         base = select(Session).where(Session.id_student.in_(student_ids))
         count_q = await db.execute(select(func.count()).select_from(base.subquery()))
         total = count_q.scalar()
