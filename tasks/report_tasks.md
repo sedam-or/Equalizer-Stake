@@ -1003,3 +1003,20 @@
   - Audit logs are immutable — no UPDATE/DELETE on audit_logs table
 - **Dependencies affected**: None
 - **Rollback plan**: Revert students.py changes
+
+### T-094: Audit Log — Billing Endpoints
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-07, FR-03
+- **Files changed**:
+  - `backend/app/routers/billing.py` — Added audit logs to verify_payment + apply_fine
+- **Test results**:
+  - [x] TC1: Verify payment → audit INSERT + after_state: PASS
+  - [x] TC2: Apply fine → audit UPDATE + before/after: PASS
+- **Security findings**: None
+- **Performance**: Audit log writes in same transaction
+- **Notes**:
+  - verify_payment: logs INSERT with invoice before/after state
+  - apply_fine: logs UPDATE with invoice before/after state
+- **Dependencies affected**: None
+- **Rollback plan**: Revert billing.py changes
