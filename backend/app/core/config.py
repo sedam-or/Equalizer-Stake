@@ -1,8 +1,11 @@
 """Equalizer-Stake — Application Settings."""
 
+import logging
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -55,4 +58,10 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    s = Settings()
+    if not s.DEBUG and s.SECRET_KEY == "change-me-in-production":
+        raise ValueError(
+            "SECRET_KEY is default! Cannot start in production mode. "
+            "Set a strong SECRET_KEY in .env for production!"
+        )
+    return s

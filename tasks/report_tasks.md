@@ -942,3 +942,19 @@
   - Legacy unencrypted data handled by process_result_value fallback
 - **Dependencies affected**: None
 - **Rollback plan**: Revert model changes + migration (keep data, remove hash columns)
+
+### T-091: JWT Secret Validation — Reject Default in Production
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-01, NFR-SEC-05
+- **Files changed**:
+  - `backend/app/core/config.py` — get_settings() raises ValueError when DEBUG=False + default secret
+- **Test results**:
+  - [x] TC1: DEBUG=False + default secret → ValueError: PASS
+  - [x] TC2: DEBUG=False + custom secret → OK: PASS
+  - [x] TC3: DEBUG=True + default secret → OK (warning): PASS
+- **Security findings**: None
+- **Performance**: N/A (startup check only)
+- **Notes**: Simple one-line change. Production deployments with default secret now fail fast.
+- **Dependencies affected**: None
+- **Rollback plan**: Revert config.py change
