@@ -1056,3 +1056,22 @@
   - Fixed: Request | None type annotation caused FastAPI crash
 - **Dependencies affected**: None
 - **Rollback plan**: Revert payments.py changes
+
+### T-097: Audit Log — Auth Endpoints
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-07, FR-01
+- **Files changed**:
+  - `backend/app/routers/auth.py` — Added audit logs to forgot-password, refresh, profile update
+- **Test results**:
+  - [x] TC1: Forgot password → audit PASSWORD_CHANGE + IP: PASS
+  - [x] TC2: Profile update → audit UPDATE + IP: PASS
+  - [x] TC3: Refresh token → audit LOGIN_SUCCESS + IP: PASS
+- **Security findings**: None
+- **Performance**: Audit log writes in same transaction
+- **Notes**:
+  - Pre-existing: login, logout, register, change-password already had audit logs
+  - Added: forgot-password, refresh, profile update
+  - All auth audit logs capture IP address + user agent
+- **Dependencies affected**: None
+- **Rollback plan**: Revert auth.py changes

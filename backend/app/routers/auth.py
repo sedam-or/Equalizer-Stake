@@ -250,6 +250,7 @@ async def update_my_profile(
                 g.phone_whatsapp = normalized
                 g.phone_hash = hash_pii(normalized)
 
+    await log_auth_event(db, action="UPDATE", user_id=user.id_user, details="Profile updated", request=request)
     await db.commit()
     return {"detail": "Profil berhasil diperbarui"}
 
@@ -277,6 +278,8 @@ async def change_password(
 @limiter.limit("5/minute")
 async def forgot_password(body: ForgotPasswordRequest, request: Request, db: AsyncSession = Depends(get_db)):
     """Send password reset email."""
+    await log_auth_event(db, action="PASSWORD_CHANGE", details=f"Password reset requested for: {body.email}", request=request)
+    await db.commit()
     return {"detail": "Link reset telah dikirim ke email Anda"}
 
 
@@ -315,6 +318,7 @@ async def refresh_token(request: Request, body: RefreshRequest, db: AsyncSession
     new_refresh, new_expires = create_refresh_token(user.id_user, user.role)
     user.refresh_token = new_refresh
     user.token_expires_at = new_expires
+    await log_auth_event(db, action="LOGIN_SUCCESS", user_id=user.id_user, details="Token refreshed", request=request)
     await db.commit()
     expires_minutes = ACCESS_TOKEN_EXPIRE_MINUTES.get(user.role, 30)
     return RefreshResponse(access_token=new_access, expires_in=expires_minutes * 60)
