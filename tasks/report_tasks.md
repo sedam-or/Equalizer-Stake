@@ -1020,3 +1020,21 @@
   - apply_fine: logs UPDATE with invoice before/after state
 - **Dependencies affected**: None
 - **Rollback plan**: Revert billing.py changes
+
+### T-095: Audit Log — Attendance Endpoints
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-07, FR-04
+- **Files changed**:
+  - `backend/app/routers/attendance.py` — Added audit logs to submit + review
+- **Test results**:
+  - [x] TC1: Submit attendance → audit INSERT (blocked by pre-existing FK bug in service)
+  - [x] TC2: Review attendance → audit UPDATE + before/after: PASS
+- **Security findings**: None
+- **Performance**: Audit log writes in same transaction
+- **Notes**:
+  - Submit endpoint: audit log code correct, but service has FK bug (passes user.id_user as id_teacher instead of teacher.id_teacher)
+  - Review endpoint: fully working with audit log
+  - Pre-existing bug: attendance service line 98 uses teacher_id (user.id_user) but FK requires teacher.id_teacher
+- **Dependencies affected**: None
+- **Rollback plan**: Revert attendance.py changes

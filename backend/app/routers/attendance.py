@@ -1,8 +1,8 @@
-"""Attendance router — submit and review attendance."""
+"""Attendance router — submit and review attendance. T-095: audit logs."""
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,9 +11,25 @@ from app.middleware.auth import require_role
 from app.models.user import User
 from app.schemas.attendance import AttendanceResponse, AttendanceReview, AttendanceSubmit
 from app.services.attendance import submit_attendance, review_attendance
+from app.services.audit import create_audit_log
 from app.models.attendance import Attendance
 
 router = APIRouter(prefix="/api/attendance", tags=["Attendance"])
+
+
+def _attendance_dict(a: Attendance) -> dict:
+    """Serialize attendance for audit log (excluding photo_url PII)."""
+    return {
+        "id_attendance": str(a.id_attendance),
+        "id_session": str(a.id_session),
+        "gps_lat": float(a.gps_lat),
+        "gps_lng": float(a.gps_lng),
+        "gps_distance_m": float(a.gps_distance_m) if a.gps_distance_m else None,
+        "face_valid": a.face_valid,
+        "face_confidence": float(a.face_confidence) if a.face_confidence else None,
+        "verification_status": a.verification_status,
+        "rejection_reason": a.rejection_reason,
+    }
 
 
 @router.get("/")
@@ -64,10 +80,12 @@ async def list_attendance(
 @router.post("/", response_model=AttendanceResponse, status_code=status.HTTP_201_CREATED)
 async def submit_attendance_endpoint(
     data: AttendanceSubmit,
+    request: Request,
     user: User = Depends(require_role("teacher")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Submit attendance (Guru only)."""
+    """Submit attendance (Guru only).
+    Note: service commits internally, audit log added in separate transaction."""
     try:
         attendance = await submit_attendance(
             db=db,
@@ -80,6 +98,13 @@ async def submit_attendance_endpoint(
             is_offline_submission=data.is_offline_submission,
             teacher_id=user.id_user,
         )
+        # Service already committed. Add audit log in new transaction.
+        await create_audit_log(
+            db, table_name="attendances", record_id=attendance.id_attendance,
+            action="INSERT", changed_by=user.id_user,
+            after_state=_attendance_dict(attendance), request=request,
+        )
+        await db.commit()
         return attendance
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -89,10 +114,16 @@ async def submit_attendance_endpoint(
 async def review_attendance_endpoint(
     attendance_id: str,
     data: AttendanceReview,
+    request: Request,
     user: User = Depends(require_role("admin", "owner")),
     db: AsyncSession = Depends(get_db),
 ):
     """Review pending attendance (Admin/Owner only)."""
+    # Get before state for audit
+    result = await db.execute(select(Attendance).where(Attendance.id_attendance == UUID(attendance_id)))
+    att_before = result.scalar_one_or_none()
+    before_state = _attendance_dict(att_before) if att_before else None
+
     attendance = await review_attendance(
         db, UUID(attendance_id), data.verification_status, user.id_user, data.rejection_reason
     )
@@ -101,4 +132,12 @@ async def review_attendance_endpoint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Absensi tidak ditemukan atau sudah direview",
         )
+
+    after_state = _attendance_dict(attendance)
+    await create_audit_log(
+        db, table_name="attendances", record_id=UUID(attendance_id),
+        action="UPDATE", changed_by=user.id_user,
+        before_state=before_state, after_state=after_state, request=request,
+    )
+    await db.commit()
     return attendance
