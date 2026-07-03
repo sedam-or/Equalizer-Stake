@@ -1484,3 +1484,26 @@
   - gps_distance_m disimpan di DB untuk audit
 - **Dependencies affected**: None
 - **Rollback plan**: N/A (sudah ada)
+
+### T-120: Unfreeze Account Endpoint (UC-10)
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-03, UC-10
+- **Files changed**:
+  - `backend/app/routers/billing.py` — Added POST /api/billing/unfreeze/{guardian_id}
+  - DB: Added UNFREEZE to audit_action enum
+- **Test results**:
+  - [x] TC1: Unfreeze frozen account → 200: PASS
+  - [x] TC2: Status changed to "active": PASS
+  - [x] TC3: Unfreeze again → 400 (not frozen): PASS
+  - [x] TC4: Audit log created with UNFREEZE action: PASS
+  - [x] TC5: Admin-only access: PASS
+- **Security findings**: None
+- **Performance**: 2 queries (select + update)
+- **Notes**:
+  - Admin-only endpoint
+  - Validates account must be "frozen" before unfreeze
+  - Audit log: before_state (frozen) + after_state (active)
+  - Clears frozen_at and frozen_reason
+- **Dependencies affected**: None
+- **Rollback plan**: Revert billing.py, remove UNFREEZE from enum

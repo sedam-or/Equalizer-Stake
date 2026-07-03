@@ -160,3 +160,58 @@ async def delete_invoice(
     invoice.deleted_at = datetime.now(timezone.utc)
     await db.commit()
     return {"detail": "Tagihan berhasil dihapus"}
+
+
+@router.post("/unfreeze/{guardian_id}")
+async def unfreeze_account(
+    guardian_id: str,
+    request: Request,
+    user: User = Depends(require_role("admin", "owner")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Unfreeze guardian account (UC-10). Admin-only."""
+    from app.models.guardian import Guardian
+    from app.services.audit import create_audit_log
+
+    result = await db.execute(
+        select(Guardian).where(Guardian.id_guardian == UUID(guardian_id))
+    )
+    guardian = result.scalar_one_or_none()
+    if not guardian:
+        raise HTTPException(status_code=404, detail="Wali murid tidak ditemukan")
+
+    if guardian.account_status != "frozen":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Akun tidak dalam status frozen (status: {guardian.account_status})",
+        )
+
+    before_state = {
+        "account_status": guardian.account_status,
+        "frozen_at": guardian.frozen_at.isoformat() if guardian.frozen_at else None,
+        "frozen_reason": guardian.frozen_reason,
+    }
+
+    guardian.account_status = "active"
+    guardian.frozen_at = None
+    guardian.frozen_reason = None
+
+    after_state = {
+        "account_status": "active",
+        "frozen_at": None,
+        "frozen_reason": None,
+    }
+
+    await create_audit_log(
+        db,
+        table_name="guardians",
+        record_id=guardian.id_guardian,
+        action="UNFREEZE",
+        changed_by=user.id_user,
+        before_state=before_state,
+        after_state=after_state,
+        request=request,
+    )
+
+    await db.commit()
+    return {"detail": "Akun berhasil diaktifkan kembali"}
