@@ -1507,3 +1507,27 @@
   - Clears frozen_at and frozen_reason
 - **Dependencies affected**: None
 - **Rollback plan**: Revert billing.py, remove UNFREEZE from enum
+
+### T-121: Dashboard Stats API
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: UC-16
+- **Files changed**:
+  - `backend/app/routers/eligibility.py` — Added admin-stats, teacher-stats, guardian-stats endpoints
+- **Test results**:
+  - [x] TC1: GET /api/reports/admin-stats → 200 + KPI: PASS
+  - [x] TC2: GET /api/reports/teacher-stats → 200 + KPI: PASS
+  - [x] TC3: GET /api/reports/guardian-stats → 200 + children: PASS
+  - [x] TC4: Admin-only access enforced: PASS
+  - [x] TC5: Teacher-only access enforced: PASS
+  - [x] TC6: Guardian-only access enforced: PASS
+- **Security findings**: None
+- **Performance**: 3-5 queries per endpoint
+- **Notes**:
+  - Admin: sessions_today, pending_attendance, overdue_invoices, failed_notifications
+  - Teacher: sessions_today, week_total, week_verified, week_pending
+  - Guardian: children list with sessions, attendance, pending invoice
+  - Real data from DB (bukan dummy)
+  - Greeting personal dengan nama user
+- **Dependencies affected**: T-137, T-138, T-139 (frontend dashboard)
+- **Rollback plan**: Revert eligibility.py
