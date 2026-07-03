@@ -1,18 +1,28 @@
 "use client";
 
-import BlurText from "@/components/ui/BlurText";
-import GlowButton from "@/components/ui/GlowButton";
-
 export default function CtaSection() {
   return (
-    <section className="px-6 py-24 md:px-8">
+    <section className="bg-gradient-to-br from-[#2563EB] to-[#7C3AED] px-6 py-24 md:px-8">
       <div className="mx-auto max-w-3xl text-center">
-        <BlurText text="Siap Belajar Musik?" delay={120} className="text-3xl font-bold tracking-tight text-[#2563EB] md:text-5xl" />
-        <BlurText text="Daftar sekarang dan mulai perjalanan musikmu bersama BMD Music School" delay={100} className="mt-4 text-base text-gray-400 md:text-lg" />
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <GlowButton href="/register-course" variant="primary">Daftar Kursus</GlowButton>
-          <GlowButton href="#hubungi" variant="secondary">Hubungi Kami</GlowButton>
+        <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">
+          Mulai Gratis — Kuota Trial Terbatas
+        </h2>
+        <p className="mt-4 text-lg text-white/80">
+          Hanya 5 slot trial gratis tersisa bulan ini. Jangan sampai kehabisan.
+        </p>
+        <div className="mt-8">
+          <a
+            href="https://wa.me/6281234567890?text=Halo%2C%20saya%20mau%20daftar%20trial%20gratis"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block rounded-full bg-[#F59E0B] px-10 py-4 text-lg font-bold text-black shadow-lg transition-all hover:bg-[#D97706] hover:shadow-xl"
+          >
+            Daftar via WhatsApp
+          </a>
         </div>
+        <p className="mt-6 text-sm text-white/60">
+          Atau hubungi langsung: +62 812-3456-7890 (Balasan dalam 5 menit)
+        </p>
       </div>
     </section>
   );

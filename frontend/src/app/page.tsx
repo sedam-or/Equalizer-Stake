@@ -1,63 +1,66 @@
 "use client";
-import dynamic from "next/dynamic";
+/**
+ * Landing Page — T-136 Redesign
+ * Light theme, emotional copy, no snap scroll
+ */
+
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-
-const HeroSection = dynamic(() => import("@/components/landing/HeroSection"), { ssr: false });
-const ProgramKursusSection = dynamic(() => import("@/components/landing/ProgramKursusSection"), { ssr: false });
-const KenapaBMDSection = dynamic(() => import("@/components/landing/KenapaBMDSection"), { ssr: false });
-const StudioTourSection = dynamic(() => import("@/components/landing/StudioTourSection"), { ssr: false });
-const TestimonialSection = dynamic(() => import("@/components/landing/TestimonialSection"), { ssr: false });
-const PaketHargaSection = dynamic(() => import("@/components/landing/PaketHargaSection"), { ssr: false });
-const CtaSection = dynamic(() => import("@/components/landing/CtaSection"), { ssr: false });
-
-const GradualBlur = dynamic(() => import("@/components/ui/GradualBlur"), { ssr: false });
+import HeroSection from "@/components/landing/HeroSection";
+import ProgramKursusSection from "@/components/landing/ProgramKursusSection";
+import KenapaBMDSection from "@/components/landing/KenapaBMDSection";
+import StudioTourSection from "@/components/landing/StudioTourSection";
+import TestimonialSection from "@/components/landing/TestimonialSection";
+import PaketHargaSection from "@/components/landing/PaketHargaSection";
+import CtaSection from "@/components/landing/CtaSection";
 
 export default function LandingPage() {
   return (
-    <div className="relative bg-[#000000]">
+    <div className="relative bg-[#F8FAFC]">
       <Navbar />
 
-      {/* Hero — full screen */}
-      <div className="snap-section snap-section-hero relative">
-        <HeroSection />
-        <GradualBlur position="bottom" height="8rem" strength={2} divCount={5} curve="bezier" exponential={true} opacity={1} />
-      </div>
+      {/* Hero */}
+      <HeroSection />
 
-      {/* Program Kursus — auto height */}
-      <div className="snap-section relative">
-        <ProgramKursusSection />
-        <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
-      </div>
+      {/* Trust bar — social proof */}
+      <section className="border-y border-gray-200 bg-white py-8">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-8 text-center">
+          <div>
+            <div className="font-heading text-3xl font-bold text-[#2563EB]">150+</div>
+            <div className="text-sm text-gray-500">Siswa Aktif</div>
+          </div>
+          <div>
+            <div className="font-heading text-3xl font-bold text-[#2563EB]">9</div>
+            <div className="text-sm text-gray-500">Instrumen</div>
+          </div>
+          <div>
+            <div className="font-heading text-3xl font-bold text-[#2563EB]">10+</div>
+            <div className="text-sm text-gray-500">Tahun Pengalaman</div>
+          </div>
+          <div>
+            <div className="font-heading text-3xl font-bold text-[#2563EB]">4.9★</div>
+            <div className="text-sm text-gray-500">Rating Google</div>
+          </div>
+        </div>
+      </section>
 
-      {/* Kenapa BMD — auto height */}
-      <div className="snap-section relative">
-        <KenapaBMDSection />
-        <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
-      </div>
+      {/* Program Kursus */}
+      <ProgramKursusSection />
 
-      {/* Studio Tour — auto height */}
-      <div className="snap-section relative">
-        <StudioTourSection />
-        <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
-      </div>
+      {/* Kenapa BMD */}
+      <KenapaBMDSection />
 
-      {/* Testimonial — auto height */}
-      <div className="snap-section relative">
-        <TestimonialSection />
-        <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
-      </div>
+      {/* Studio Tour */}
+      <StudioTourSection />
 
-      {/* Paket & Harga — auto height */}
-      <div className="snap-section relative">
-        <PaketHargaSection />
-        <GradualBlur position="bottom" height="6rem" strength={1.5} divCount={5} curve="bezier" exponential={true} opacity={1} />
-      </div>
+      {/* Testimonial */}
+      <TestimonialSection />
 
-      {/* CTA — auto height */}
-      <div className="snap-section relative">
-        <CtaSection />
-      </div>
+      {/* Paket & Harga */}
+      <PaketHargaSection />
+
+      {/* CTA */}
+      <CtaSection />
 
       <Footer />
     </div>
