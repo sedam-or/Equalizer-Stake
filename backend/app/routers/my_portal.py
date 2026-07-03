@@ -15,10 +15,13 @@ router = APIRouter(prefix="/api/my", tags=["My Portal"])
 async def my_schedule(
     limit: int = Query(20, le=100),
     offset: int = Query(0, ge=0),
+    instrument: str | None = Query(None),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get schedule for current user (teacher or guardian)."""
+    """Get schedule for current user (teacher or guardian).
+    Teacher mode: filter by ?instrument=piano (optional, backward compatible).
+    """
     from app.models.session import Session
     from app.models.teacher import Teacher
     from app.models.guardian import Guardian
@@ -31,6 +34,16 @@ async def my_schedule(
             return {"data": [], "total": 0, "limit": limit, "offset": offset}
         from app.models.room import Room
         base = select(Session).where(Session.id_teacher == teacher.id_teacher, Session.status.notin_(["cancelled"]))
+
+        # Filter by instrument (SRS FR-02): join student → filter by instrument
+        if instrument:
+            instrument_students = await db.execute(
+                select(Student.id_student).where(Student.instrument == instrument, Student.deleted_at.is_(None))
+            )
+            instrument_ids = [row[0] for row in instrument_students.fetchall()]
+            if not instrument_ids:
+                return {"data": [], "total": 0, "limit": limit, "offset": offset}
+            base = base.where(Session.id_student.in_(instrument_ids))
         count_q = await db.execute(select(func.count()).select_from(base.subquery()))
         total = count_q.scalar()
         q = await db.execute(base.order_by(Session.session_date.desc()).offset(offset).limit(limit))

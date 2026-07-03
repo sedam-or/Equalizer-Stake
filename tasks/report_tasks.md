@@ -1224,3 +1224,22 @@
   - Fixed REDIS_URL port mismatch (6380→6379)
 - **Dependencies affected**: None
 - **Rollback plan**: Revert limiter.py, remove jwt_blacklist.py
+
+### T-105: Teacher Schedule Filter by Instrument
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-02
+- **Files changed**:
+  - `backend/app/routers/my_portal.py` — Added instrument filter to my_schedule
+- **Test results**:
+  - [x] TC1: GET /api/my/schedule → all sessions (no filter): PASS (5 total)
+  - [x] TC2: GET /api/my/schedule?instrument=gitar → filtered sessions: PASS (1 total)
+  - [x] TC3: Backward compatible — no param = all instruments: PASS
+- **Security findings**: None
+- **Performance**: Additional query only when instrument param provided
+- **Notes**:
+  - Filter: JOIN student → WHERE instrument = X
+  - Backward compatible: no param = all instruments
+  - 8 valid instruments: gitar, piano, biola, drum, keyboard, flute, saxophone, vokal
+- **Dependencies affected**: None
+- **Rollback plan**: Revert my_portal.py changes
