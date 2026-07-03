@@ -958,7 +958,8 @@
 | Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ⏳ 4/12 |
 | Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 0/14 |
 | Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
-| **Total** | **101 tasks** | **56/101 done** |
+| Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
+| **Total** | **104 tasks** | **56/104 done** |
 
 ---
 
@@ -1434,6 +1435,56 @@
   - Saat ini: partial compliance
 - **Test**: Lighthouse accessibility score ≥ 80
 - **Deps**: none
+
+---
+
+## 20. INFRASTRUCTURE — External Services Integration
+
+### T-116: Object Storage — MinIO/S3 for File Uploads
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-SEC-01, NFR-REL-01
+- **Deskripsi**:
+  - Saat ini: photo_storage.py pakai local filesystem (`/backend/uploads/`)
+  - Ganti dengan MinIO (S3-compatible) untuk production-ready object storage
+  - Config: MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET
+  - Update photo_storage.py: upload/download/delete via MinIO client
+  - Update privacy.py: hapus dari object storage (saat ini ada `# TODO`)
+  - Backup: local filesystem tetap sebagai fallback jika MinIO down
+  - Migration: upload existing local files ke MinIO
+- **Test**: Upload foto → tersimpan di MinIO → bisa di-download → bisa dihapus
+- **Deps**: none
+
+### T-117: WhatsApp Gateway — Real API Integration
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-05, FR-06, NFR-REL-01
+- **Deskripsi**:
+  - Service wrapper sudah ada (whatsapp.py: retry, circuit breaker, rate limiting)
+  - TAPI: WHATSAPP_API_URL dan WHATSAPP_API_KEY masih kosong
+  - Pilih provider: Wablas, Fonnte, atau official WhatsApp Business API
+  - Configure .env: WHATSAPP_API_URL, WHATSAPP_API_KEY, WHATSAPP_PHONE_ID
+  - Test kirim pesan actual ke nomor HP real
+  - Handle webhook untuk incoming messages (delivery status, reply)
+  - SRS: retry 3x (10/20/40s), circuit breaker 5 failures → 30min cooldown
+- **Test**: Kirim pesan WhatsApp actual → diterima → status delivered
+- **Deps**: none
+
+### T-118: SMTP Email Service — Real Email Delivery
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-05, NFR-REL-01
+- **Deskripsi**:
+  - Notification service sudah punya circuit breaker untuk email channel
+  - TAPI: tidak ada actual SMTP sending implementation
+  - Pilih provider: Gmail SMTP, Mailgun, SendGrid, atau AWS SES
+  - Configure .env: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM
+  - Implement email sending: welcome, forgot-password, invoice, reminder
+  - HTML email templates untuk setiap tipe notifikasi
+  - Test deliverability: pastikan tidak masuk spam
+  - SRS: retry 3x (10/20/40s), circuit breaker
+- **Test**: Kirim email actual → diterima → isi benar → tidak spam
+- **Deps**: T-101 (Background Job Queue)
 
 ---
 
