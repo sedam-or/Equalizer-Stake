@@ -960,8 +960,8 @@
 | Phase 19: NICE TO HAVE | T-115 | ✅ 1/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
 | Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ⏳ 0/9 |
-| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-154 | ⏳ 0/27 |
-| **Total** | **154 tasks** | **83/154 done** |
+| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 0/28 |
+| **Total** | **155 tasks** | **83/155 done** |
 
 ---
 
@@ -1896,6 +1896,24 @@
   - Referensi: design/UI_UX_DESIGN_SYSTEM.md §9
 - **Test**: Buka /help → lihat FAQ → expand → baca jawaban
 - **Files**: `frontend/src/app/help/page.tsx` (new)
+
+### T-155: About Page (/about)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-01
+- **Deskripsi**:
+  - /about — public page
+  - Hero: "Tentang BMD Music School"
+  - Visi & Misi
+  - Cerita Kami (founding story)
+  - Guru-Guru Kami (foto + nama + spesialisasi)
+  - Studio Kami (foto + deskripsi)
+  - Prestasi (angka social proof)
+  - CTA: Daftar via WhatsApp
+  - Background: light, warm, professional
+  - Referensi: design/UI_UX_DESIGN_SYSTEM.md §9
+- **Test**: Buka /about → baca cerita → lihat guru → klik daftar
+- **Files**: `frontend/src/app/about/page.tsx` (new)
 
 ### T-150: Reset Password Pages (T-076)
 - **Status**: ⏳
