@@ -1344,3 +1344,26 @@
   - Existing my_payments endpoint provides invoices + payments
 - **Dependencies affected**: None
 - **Rollback plan**: Revert my_portal.py changes
+
+### T-111: Frontend — Teacher Dashboard Instrument Tabs
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-03
+- **FR/UC terkait**: FR-02, NFR-USA-02
+- **Files changed**:
+  - `backend/app/schemas/auth.py` — Added instruments to ProfileResponse
+  - `backend/app/routers/auth.py` — /me/profile returns teacher instruments
+  - `frontend/src/app/dashboard/my-schedule/page.tsx` — Added instrument tabs UI
+- **Test results**:
+  - [x] TC1: /me/profile returns instruments: PASS (["gitar"])
+  - [x] TC2: Frontend renders instrument tabs: PASS (code verified)
+  - [x] TC3: Tab click fetches ?instrument=xxx: PASS (code verified)
+- **Security findings**: None
+- **Performance**: 1 additional query for teacher profile
+- **Notes**:
+  - Backend: ProfileResponse includes instruments list
+  - Backend: Extracts from instruments_specialization dict {"primary": "gitar"}
+  - Frontend: "Semua | Piano | Biola" tabs with green accent (#08CB00)
+  - Tab click → fetch with ?instrument=xxx
+  - Teacher only (guardian mode unchanged)
+- **Dependencies affected**: None
+- **Rollback plan**: Revert auth.py, schemas/auth.py, page.tsx

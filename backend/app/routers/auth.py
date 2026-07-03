@@ -193,6 +193,7 @@ async def get_my_profile(request: Request, user: User = Depends(_get_user), db: 
     full_name = None
     phone = None
     address = None
+    instruments = None
 
     if user.role == "guardian":
         from app.models.guardian import Guardian
@@ -209,8 +210,16 @@ async def get_my_profile(request: Request, user: User = Depends(_get_user), db: 
         t = result.scalar_one_or_none()
         if t:
             full_name = t.full_name
+            # Extract instrument list from dict format {"primary": "gitar"}
+            spec = t.instruments_specialization
+            if isinstance(spec, dict):
+                instruments = list(set(spec.values()))
+            elif isinstance(spec, list):
+                instruments = spec
+            else:
+                instruments = None
 
-    return ProfileResponse(user=UserResponse.model_validate(user), full_name=full_name, phone=phone, address=address)
+    return ProfileResponse(user=UserResponse.model_validate(user), full_name=full_name, phone=phone, address=address, instruments=instruments)
 
 
 @router.patch("/me/profile")

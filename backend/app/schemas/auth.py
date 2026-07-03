@@ -73,6 +73,7 @@ class ProfileResponse(BaseModel):
     full_name: str | None = None
     phone: str | None = None
     address: str | None = None
+    instruments: list[str] | None = None  # Teacher: instruments_specialization
 
     model_config = {"from_attributes": True}
 

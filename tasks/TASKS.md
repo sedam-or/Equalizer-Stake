@@ -956,10 +956,10 @@
 | Phase 15: Critical Fixes | T-078..T-085 | ✅ 8/8 |
 | Phase 16: Pagination | T-086..T-088 | ✅ 3/3 |
 | Phase 17: KRITIS — Security & SRS Compliance | T-089..T-100 | ✅ 12/12 |
-| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 10/14 |
+| Phase 18: IMPORTANT — Features & Performance | T-101..T-114 | ⏳ 11/14 |
 | Phase 19: NICE TO HAVE | T-115 | ⏳ 0/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
-| **Total** | **104 tasks** | **78/104 done** |
+| **Total** | **104 tasks** | **79/104 done** |
 
 ---
 
@@ -1371,7 +1371,7 @@
 - **Deps**: T-086 ✅
 
 ### T-111: Frontend — Teacher Dashboard Instrument Tabs
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-02, NFR-USA-02
 - **Deskripsi**:
