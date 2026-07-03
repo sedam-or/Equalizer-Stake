@@ -305,83 +305,96 @@ function TeacherDashboard() {
 
 /* ─── GuardianDashboard ─── */
 function GuardianDashboard() {
-  const children = [
-    { id: 1, nama: "Andi Pratama", instrumen: "Gitar", level: "Pemula", jadwal: "Senin & Rabu 14:00", status: "Aktif" },
-    { id: 2, nama: "Siti Rahma", instrumen: "Piano", level: "Menengah", jadwal: "Selasa & Kamis 15:00", status: "Aktif" },
-    { id: 3, nama: "Rizky Aditya", instrumen: "Drum", level: "Pemula", jadwal: "Jumat 16:00", status: "Beku" },
-  ];
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const schedule = [
-    { id: 1, jam: "14:00", anak: "Andi Pratama", instrumen: "Gitar", guru: "Pak Dimas", status: "Berlangsung" },
-    { id: 2, jam: "15:00", anak: "Siti Rahma", instrumen: "Piano", guru: "Mbak Sari", status: "Menunggu" },
-    { id: 3, jam: "16:00", anak: "Rizky Aditya", instrumen: "Drum", guru: "Pak Dimas", status: "Dibatalkan" },
-  ];
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch("/api/v1/reports/guardian-stats", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-32 animate-pulse rounded-xl bg-gray-200" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const children = data?.children || [];
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-[#EEEEEE]">Dashboard Wali Murid</h1>
-      <p className="mt-1 text-sm text-gray-400">Monitoring anak-anak Anda</p>
+    <div className="space-y-6">
+      <h1 className="font-heading text-2xl font-bold text-gray-900">
+        {data?.greeting || "Selamat datang, Wali Murid"}
+      </h1>
+      <p className="text-sm text-gray-500">{data?.date || ""}</p>
 
       {/* Children cards */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {children.map((c) => (
-          <StudentCard key={c.id} name={c.nama} instrument={c.instrumen} level={c.level} jadwal={c.jadwal} status={c.status} />
-        ))}
-      </div>
+      {children.length > 0 ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {children.map((child: any) => (
+            <div key={child.id_student} className="rounded-xl border border-gray-200 bg-white p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+                  {child.instrument === "guitar" ? "🎸" : child.instrument === "piano" ? "🎹" : "🎵"}
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-gray-900">{child.full_name}</h3>
+                  <p className="text-xs text-gray-500">{child.instrument} • {child.level}</p>
+                </div>
+              </div>
 
-      {/* Schedule table */}
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-[#EEEEEE]">Jadwal Hari Ini</h2>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
-                <th className="px-4 py-3">Jam</th>
-                <th className="px-4 py-3">Anak</th>
-                <th className="px-4 py-3">Instrumen</th>
-                <th className="px-4 py-3">Guru</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {schedule.map((s) => (
-                <tr key={s.id} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
-                  <td className="px-4 py-3 text-[#2563EB] font-medium">{s.jam}</td>
-                  <td className="px-4 py-3 text-[#EEEEEE]">{s.anak}</td>
-                  <td className="px-4 py-3 text-gray-400">{s.instrumen}</td>
-                  <td className="px-4 py-3 text-gray-400">{s.guru}</td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${
-                      s.status === "Berlangsung"
-                        ? "bg-blue-500/10 text-blue-400"
-                        : s.status === "Menunggu"
-                        ? "bg-yellow-500/10 text-yellow-400"
-                        : "bg-red-500/10 text-red-400"
-                    }`}>
-                      {s.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              {/* Upcoming sessions */}
+              {child.upcoming_sessions?.length > 0 && (
+                <div className="mb-3 space-y-1">
+                  <p className="text-xs font-medium text-gray-400">Jadwal Mendatang</p>
+                  {child.upcoming_sessions.slice(0, 2).map((s: any, i: number) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{s.session_date} {s.start_time}</span>
+                      <span className="text-[#2563EB]">{s.session_type}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Pending invoice */}
+              {child.pending_invoice && (
+                <div className="rounded-lg bg-amber-50 p-2 text-xs">
+                  <span className="font-medium text-amber-700">Tagihan: Rp {child.pending_invoice.total_amount?.toLocaleString("id-ID")}</span>
+                  <span className="ml-2 text-amber-600">Jatuh tempo: {child.pending_invoice.due_date}</span>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-      </div>
+      ) : (
+        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
+          <p className="text-gray-500">Belum ada data anak</p>
+        </div>
+      )}
 
       {/* Quick links */}
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold text-[#EEEEEE]">Menu Cepat</h2>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <ActionButton href="/dashboard/my-children" label="👨‍🎓 Anak Saya" />
-          <ActionButton href="/dashboard/my-schedule" label="📅 Jadwal" />
-          <ActionButton href="/dashboard/my-payments" label="💰 Tagihan" />
-          <ActionButton href="/dashboard/profile" label="👤 Profil" />
-        </div>
+      <div className="grid grid-cols-2 gap-3">
+        <ActionButton href="/dashboard/my-children" label="Anak Saya" />
+        <ActionButton href="/dashboard/my-schedule" label="Jadwal" />
+        <ActionButton href="/dashboard/my-payments" label="Tagihan" />
+        <ActionButton href="/dashboard/profile" label="Profil" />
       </div>
     </div>
   );
 }
-
 /* ─── Shared Components ─── */
 
 function KpiCard({ label, value }: { label: string; value: string }) {
