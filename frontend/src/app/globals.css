@@ -126,3 +126,13 @@ button:active, [role="button"]:active {
 .fade-in {
   animation: fade-in 0.2s ease-out;
 }
+
+/* T-154: Print Styles */
+@media print {
+  nav, aside, .no-print, button, [role="button"] { display: none !important; }
+  body { background: white; color: black; font-size: 12pt; }
+  .card-hover:hover { transform: none; box-shadow: none; }
+  a { color: black; text-decoration: underline; }
+  table { border: 1px solid #ccc; }
+  th, td { border: 1px solid #ccc; padding: 4pt; }
+}
