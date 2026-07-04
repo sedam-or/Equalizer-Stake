@@ -33,30 +33,39 @@ export default function FaqSection() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section className="bg-[#F8FAFC] px-6 py-24 md:px-8">
-      <div className="mx-auto max-w-3xl text-center">
-        <h2 className="font-heading text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-          Pertanyaan yang Sering Diajukan
-        </h2>
-        <p className="mt-3 text-base text-gray-500 md:text-lg">
-          Belum menemukan jawaban? Hubungi kami via WhatsApp
-        </p>
+    <section className="bg-[#F8FAFC] px-6 py-32 md:px-8">
+      <div className="mx-auto max-w-3xl">
+        {/* Section header */}
+        <div className="text-center">
+          <h2 className="font-heading text-4xl font-extrabold uppercase tracking-tighter text-gray-900 sm:text-5xl md:text-6xl">
+            FAQ
+          </h2>
+          <p className="mt-4 text-lg text-gray-500 md:text-xl">
+            Pertanyaan yang Sering Diajukan
+          </p>
+        </div>
 
-        <div className="mt-12 space-y-3 text-left">
+        {/* FAQ accordion */}
+        <div className="mt-16 space-y-4">
           {faqs.map((faq, i) => (
             <div key={i} className="rounded-xl border border-gray-200 bg-white">
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="flex w-full items-center justify-between p-4 text-left"
+                className="flex w-full items-center justify-between p-6 text-left"
               >
-                <span className="font-medium text-gray-900">{faq.q}</span>
-                <span className="ml-4 flex-shrink-0 text-gray-400">{open === i ? "−" : "+"}</span>
+                <span className="font-heading text-base font-bold text-gray-900">{faq.q}</span>
+                <span className="ml-4 flex-shrink-0 text-2xl text-gray-400 transition-transform duration-200" style={{ transform: open === i ? "rotate(45deg)" : "rotate(0deg)" }}>
+                  +
+                </span>
               </button>
-              {open === i && (
-                <div className="border-t border-gray-100 px-4 pb-4 pt-3">
-                  <p className="text-sm text-gray-600">{faq.a}</p>
+              <div
+                className="overflow-hidden transition-all duration-300"
+                style={{ maxHeight: open === i ? "200px" : "0px" }}
+              >
+                <div className="border-t border-gray-100 px-6 pb-6 pt-4">
+                  <p className="text-sm leading-relaxed text-gray-600">{faq.a}</p>
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
