@@ -1885,7 +1885,7 @@
 - **Files**: `frontend/src/app/instruments/page.tsx` (new)
 
 ### T-149: Help Page (T-075)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟢 NICE
 - **FR/UC terkait**: NFR-USA-01
 - **Deskripsi**:
@@ -1916,7 +1916,7 @@
 - **Files**: `frontend/src/app/about/page.tsx` (new)
 
 ### T-150: Reset Password Pages (T-076)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-01
 - **Deskripsi**:
