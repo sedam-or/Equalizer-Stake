@@ -106,3 +106,23 @@ html {
     min-width: 44px;
   }
 }
+
+/* T-152: Animation & Micro-interactions */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+button, [role="button"] {
+  transition: transform 0.1s ease, background-color 0.2s ease;
+}
+button:active, [role="button"]:active {
+  transform: scale(0.98);
+}
+
+.fade-in {
+  animation: fade-in 0.2s ease-out;
+}
