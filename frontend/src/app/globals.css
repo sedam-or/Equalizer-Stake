@@ -93,3 +93,16 @@ html {
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
+
+/* T-151: Mobile-first responsive */
+@media (max-width: 768px) {
+  input[type="text"], input[type="email"], input[type="password"], input[type="number"],
+  select, textarea {
+    font-size: 16px; /* Prevent iOS zoom */
+    min-height: 44px; /* Touch target */
+  }
+  button, a[role="button"], [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
