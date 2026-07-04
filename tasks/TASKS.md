@@ -960,8 +960,8 @@
 | Phase 19: NICE TO HAVE | T-115 | ✅ 1/1 |
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
 | Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ✅ 9/9 |
-| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 14/28 |
-| **Total** | **155 tasks** | **106/155 done** |
+| Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 21/28 |
+| **Total** | **155 tasks** | **114/155 done** |
 
 ---
 
@@ -1809,7 +1809,7 @@
 - **Files**: `frontend/src/components/SearchInput.tsx`, `FilterChips.tsx`, `SortDropdown.tsx`
 
 ### T-143: Breadcrumbs Component
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟢 NICE
 - **FR/UC terkait**: NFR-USA-02
 - **Deskripsi**:
@@ -1821,7 +1821,7 @@
 - **Files**: `frontend/src/components/Breadcrumbs.tsx`
 
 ### T-144: Error Boundary + Error Pages
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: NFR-USA-02
 - **Deskripsi**:
@@ -1835,7 +1835,7 @@
 - **Files**: `frontend/src/app/not-found.tsx`, `error.tsx`
 
 ### T-145: Frontend Upload Foto Profil (T-071)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: UC-02
 - **Deskripsi**:
