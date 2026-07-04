@@ -1860,7 +1860,7 @@
 - **Files**: `frontend/src/app/dashboard/feedback/page.tsx` (new)
 
 ### T-147: Wali Murid Rating Page (T-073)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: UC-02
 - **Deskripsi**:
