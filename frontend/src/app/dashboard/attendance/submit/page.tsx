@@ -163,9 +163,9 @@ export default function AttendanceSubmitPage() {
   const withinRange = distance !== null && distance <= 150;
 
   return (
-    <div className="min-h-screen bg-black p-6">
-      <h1 className="text-2xl font-bold text-[#EEEEEE]">Absensi Hari Ini</h1>
-      <p className="mt-1 text-sm text-gray-400">Submit kehadiran dengan foto + GPS</p>
+    <div className="min-h-screen bg-[#F8FAFC] p-6">
+      <h1 className="text-2xl font-bold text-gray-900">Absensi Hari Ini</h1>
+      <p className="mt-1 text-sm text-gray-500">Submit kehadiran dengan foto + GPS</p>
 
       {/* Offline indicator */}
       {!isOnline() && (
@@ -180,18 +180,18 @@ export default function AttendanceSubmitPage() {
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left: Session Selection + Photo */}
         <div className="space-y-4">
-          <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
-            <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">1. Pilih Sesi</h2>
+          <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">1. Pilih Sesi</h2>
             {sessions.length === 0 ? (
               <p className="text-gray-500 text-sm">Tidak ada sesi hari ini</p>
             ) : (
               <div className="space-y-2">
                 {sessions.map(s => (
-                  <label key={s.id_session} className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${selectedSession === s.id_session ? "border-[#2563EB] bg-[#2563EB]/5" : "border-[#CBD5E1] hover:bg-[#1a1a1a]"}`}>
+                  <label key={s.id_session} className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${selectedSession === s.id_session ? "border-[#2563EB] bg-[#2563EB]/5" : "border-gray-200 hover:bg-gray-50"}`}>
                     <input type="radio" name="session" value={s.id_session} checked={selectedSession === s.id_session} onChange={() => setSelectedSession(s.id_session)} className="accent-[#2563EB]" />
                     <div>
-                      <p className="text-sm font-medium text-[#EEEEEE]">{s.student_name}</p>
-                      <p className="text-xs text-gray-400">{s.start_time} - {s.end_time} • {s.room_name}</p>
+                      <p className="text-sm font-medium text-gray-900">{s.student_name}</p>
+                      <p className="text-xs text-gray-500">{s.start_time} - {s.end_time} • {s.room_name}</p>
                     </div>
                   </label>
                 ))}
@@ -199,12 +199,12 @@ export default function AttendanceSubmitPage() {
             )}
           </div>
 
-          <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
-            <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">2. Ambil Foto</h2>
-            <label htmlFor="photo-upload" className="block text-xs text-gray-400 mb-1">Foto Kehadiran</label>
-            <input id="photo-upload" type="file" accept="image/jpeg,image/png" onChange={handlePhoto} aria-label="Unggah foto kehadiran" className="w-full text-sm text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-[#2563EB] file:px-3 file:py-1.5 file:text-sm file:text-black hover:file:bg-[#1d4ed8]" />
+          <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">2. Ambil Foto</h2>
+            <label htmlFor="photo-upload" className="block text-xs text-gray-500 mb-1">Foto Kehadiran</label>
+            <input id="photo-upload" type="file" accept="image/jpeg,image/png" onChange={handlePhoto} aria-label="Unggah foto kehadiran" className="w-full text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-[#2563EB] file:px-3 file:py-1.5 file:text-sm file:text-black hover:file:bg-[#1d4ed8]" />
             {photo && (
-              <div className="mt-3 rounded-lg overflow-hidden border border-[#CBD5E1]">
+              <div className="mt-3 rounded-lg overflow-hidden border border-gray-200">
                 <img src={photo} alt="Foto bukti" className="w-full h-48 object-cover" />
               </div>
             )}
@@ -214,15 +214,15 @@ export default function AttendanceSubmitPage() {
 
         {/* Right: GPS + Submit */}
         <div className="space-y-4">
-          <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
-            <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">3. Validasi GPS</h2>
+          <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">3. Validasi GPS</h2>
             {gpsError ? (
               <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-sm text-red-400">{gpsError}</div>
             ) : gps ? (
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-gray-500">Latitude:</span> <span className="text-[#EEEEEE]">{gps.lat.toFixed(6)}</span></div>
-                  <div><span className="text-gray-500">Longitude:</span> <span className="text-[#EEEEEE]">{gps.lng.toFixed(6)}</span></div>
+                  <div><span className="text-gray-500">Latitude:</span> <span className="text-gray-900">{gps.lat.toFixed(6)}</span></div>
+                  <div><span className="text-gray-500">Longitude:</span> <span className="text-gray-900">{gps.lng.toFixed(6)}</span></div>
                 </div>
                 <div className={`rounded-lg p-3 text-sm ${withinRange ? "bg-[#2563EB]/10 border border-[#2563EB]/30" : "bg-red-500/10 border border-red-500/30"}`}>
                   {withinRange ? (

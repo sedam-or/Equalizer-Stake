@@ -48,27 +48,27 @@ export default function SettingsPage() {
     fetchSettings();
   }, [router, offset]);
 
-  if (loading) return <div className="p-6 text-gray-400">Memuat pengaturan...</div>;
+  if (loading) return <div className="p-6 text-gray-500">Memuat pengaturan...</div>;
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-[#F8FAFC] p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#EEEEEE]">Pengaturan Sistem</h1>
-          <p className="text-sm text-gray-400 mt-1">Konfigurasi sistem BMD Musik</p>
+          <h1 className="text-2xl font-bold text-gray-900">Pengaturan Sistem</h1>
+          <p className="text-sm text-gray-500 mt-1">Konfigurasi sistem BMD Musik</p>
         </div>
         <button
           onClick={() => router.push("/dashboard")}
-          className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]"
+          className="px-4 py-2 text-sm bg-gray-50 border border-gray-200 text-gray-500 rounded-lg hover:bg-[#222]"
         >
           Kembali
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
+            <tr className="border-b border-gray-200 text-left text-gray-500">
               <th className="px-4 py-3">Kunci</th>
               <th className="px-4 py-3">Nilai</th>
               <th className="px-4 py-3">Deskripsi</th>
@@ -77,11 +77,11 @@ export default function SettingsPage() {
           </thead>
           <tbody>
             {settings.map((s) => (
-              <tr key={s.key} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
-                <td className="px-4 py-3 text-[#EEEEEE] font-mono">{s.key}</td>
-                <td className="px-4 py-3 text-[#EEEEEE]">{s.value}</td>
-                <td className="px-4 py-3 text-gray-400">{s.description}</td>
-                <td className="px-4 py-3 text-gray-400">{new Date(s.updated_at).toLocaleString("id-ID")}</td>
+              <tr key={s.key} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="px-4 py-3 text-gray-900 font-mono">{s.key}</td>
+                <td className="px-4 py-3 text-gray-900">{s.value}</td>
+                <td className="px-4 py-3 text-gray-500">{s.description}</td>
+                <td className="px-4 py-3 text-gray-500">{new Date(s.updated_at).toLocaleString("id-ID")}</td>
               </tr>
             ))}
           </tbody>

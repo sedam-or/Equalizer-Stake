@@ -49,9 +49,9 @@ export default function StudentsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-black p-6">
-      <h1 className="text-2xl font-bold text-[#EEEEEE]">Siswa</h1>
-      <p className="mt-1 text-sm text-gray-400">Daftar siswa terdaftar</p>
+    <div className="min-h-screen bg-[#F8FAFC] p-6">
+      <h1 className="text-2xl font-bold text-gray-900">Siswa</h1>
+      <p className="mt-1 text-sm text-gray-500">Daftar siswa terdaftar</p>
 
       <div className="mt-4">
         <input
@@ -59,18 +59,18 @@ export default function StudentsPage() {
           placeholder="Cari nama atau instrumen..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-sm rounded-lg border border-[#CBD5E1] bg-[#111] px-4 py-2 text-sm text-[#EEEEEE] placeholder-gray-500 outline-none focus:border-[#2563EB]"
+          className="w-full max-w-sm rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#2563EB]"
         />
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Memuat data siswa...</div>
+          <div className="p-8 text-center text-gray-500">Memuat data siswa...</div>
         ) : (
           <>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
+                <tr className="border-b border-gray-200 text-left text-gray-500">
                   <th className="px-4 py-3">Nama</th>
                   <th className="px-4 py-3">Instrumen</th>
                   <th className="px-4 py-3">Level</th>
@@ -79,10 +79,10 @@ export default function StudentsPage() {
               </thead>
               <tbody>
                 {filtered.map((s) => (
-                  <tr key={s.id_student} className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]">
-                    <td className="px-4 py-3 text-[#EEEEEE]">{s.full_name}</td>
-                    <td className="px-4 py-3 text-[#EEEEEE]">{s.instrument}</td>
-                    <td className="px-4 py-3 text-[#EEEEEE]">{s.level}</td>
+                  <tr key={s.id_student} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-900">{s.full_name}</td>
+                    <td className="px-4 py-3 text-gray-900">{s.instrument}</td>
+                    <td className="px-4 py-3 text-gray-900">{s.level}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-2 py-1 text-xs font-medium ${badge[s.enrollment_status]}`}>
                         {s.enrollment_status}

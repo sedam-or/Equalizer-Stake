@@ -61,38 +61,38 @@ export default function MyPaymentsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#EEEEEE]">Tagihan & Pembayaran</h1>
-        <p className="text-sm text-gray-400">Riwayat tagihan dan status pembayaran</p>
+        <h1 className="text-2xl font-bold text-gray-900">Tagihan & Pembayaran</h1>
+        <p className="text-sm text-gray-500">Riwayat tagihan dan status pembayaran</p>
       </div>
 
-      <div className="bg-[#111] rounded-xl border border-[#CBD5E1] overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Memuat tagihan...</div>
+          <div className="p-8 text-center text-gray-500">Memuat tagihan...</div>
         ) : invoices.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">Belum ada tagihan</div>
+          <div className="p-8 text-center text-gray-500">Belum ada tagihan</div>
         ) : (
           <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#0a0a0a] border-b border-[#CBD5E1]">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">No. Invoice</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">Periode</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-400">Jumlah</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">Jatuh Tempo</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-400">Kode Unik</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-400">Status</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-400">Aksi</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">No. Invoice</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Periode</th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500">Jumlah</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Jatuh Tempo</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-500">Kode Unik</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-500">Status</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-500">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1a1a1a]">
                 {invoices.map(inv => (
-                  <tr key={inv.id_invoice} className="hover:bg-[#1a1a1a]">
-                    <td className="px-4 py-3 font-mono text-[#EEEEEE]">{inv.id_invoice}</td>
-                    <td className="px-4 py-3 text-[#EEEEEE]">{getPeriod(inv)}</td>
-                    <td className="px-4 py-3 text-right font-mono text-[#EEEEEE]">{fmtRp(getAmount(inv))}</td>
-                    <td className="px-4 py-3 text-gray-400">{new Date(inv.due_date).toLocaleDateString("id-ID")}</td>
-                    <td className="px-4 py-3 text-center font-mono text-[#EEEEEE]">{inv.unique_code || "-"}</td>
+                  <tr key={inv.id_invoice} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-mono text-gray-900">{inv.id_invoice}</td>
+                    <td className="px-4 py-3 text-gray-900">{getPeriod(inv)}</td>
+                    <td className="px-4 py-3 text-right font-mono text-gray-900">{fmtRp(getAmount(inv))}</td>
+                    <td className="px-4 py-3 text-gray-500">{new Date(inv.due_date).toLocaleDateString("id-ID")}</td>
+                    <td className="px-4 py-3 text-center font-mono text-gray-900">{inv.unique_code || "-"}</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[inv.status] || STATUS_COLORS.unpaid}`}>
                         {STATUS_LABELS[inv.status] || inv.status}

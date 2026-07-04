@@ -56,7 +56,7 @@ export function ConfirmDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 animate-fade-in"
+        className="absolute inset-0 bg-[#F8FAFC]/50 animate-fade-in"
         onClick={onCancel}
         aria-label="Tutup"
       />

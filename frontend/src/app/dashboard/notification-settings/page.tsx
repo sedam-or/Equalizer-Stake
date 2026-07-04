@@ -62,11 +62,11 @@ export default function NotificationSettingsPage() {
 
   const renderGroup = (title: string, items: NotificationSetting[]) => (
     <div className="mb-8">
-      <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">{title}</h2>
-      <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
+      <h2 className="text-lg font-semibold text-gray-900 mb-3">{title}</h2>
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
+            <tr className="border-b border-gray-200 text-left text-gray-500">
               <th className="px-4 py-3">Notifikasi</th>
               <th className="px-4 py-3 text-center">WhatsApp</th>
               <th className="px-4 py-3 text-center">Email</th>
@@ -76,9 +76,9 @@ export default function NotificationSettingsPage() {
             {items.map((item) => (
               <tr
                 key={item.id}
-                className="border-b border-[#1a1a1a] hover:bg-[#1a1a1a]"
+                className="border-b border-gray-100 hover:bg-gray-50"
               >
-                <td className="px-4 py-3 text-[#EEEEEE]">{item.label}</td>
+                <td className="px-4 py-3 text-gray-900">{item.label}</td>
                 <td className="px-4 py-3 text-center">
                   <div className="inline-flex">
                     <Toggle
@@ -104,19 +104,19 @@ export default function NotificationSettingsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-[#F8FAFC] p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#EEEEEE]">
+          <h1 className="text-2xl font-bold text-gray-900">
             Pengaturan Notifikasi
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Atur kanal notifikasi per kategori
           </p>
         </div>
         <button
           onClick={() => router.push("/dashboard")}
-          className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]"
+          className="px-4 py-2 text-sm bg-gray-50 border border-gray-200 text-gray-500 rounded-lg hover:bg-[#222]"
         >
           Kembali
         </button>

@@ -24,7 +24,7 @@ const statusBadge: Record<string, string> = {
   paid: "bg-[#2563EB]/10 text-[#2563EB]",
   pending: "bg-yellow-500/10 text-yellow-500",
   issued: "bg-yellow-500/10 text-yellow-500",
-  belum: "bg-gray-500/10 text-gray-400",
+  belum: "bg-gray-500/10 text-gray-500",
   overdue: "bg-red-500/10 text-red-500",
 };
 
@@ -95,13 +95,13 @@ export default function BillingPage() {
   const filtered = filter === "semua" ? invoices : invoices.filter(i => i.status === filter);
 
   return (
-    <div className="min-h-screen bg-black p-6">
-      <h1 className="text-2xl font-bold text-[#EEEEEE]">Tagihan & Verifikasi Pembayaran</h1>
-      <p className="mt-1 text-sm text-gray-400">Verifikasi bukti transfer Wali Murid dengan kode unik 3 digit</p>
+    <div className="min-h-screen bg-[#F8FAFC] p-6">
+      <h1 className="text-2xl font-bold text-gray-900">Tagihan & Verifikasi Pembayaran</h1>
+      <p className="mt-1 text-sm text-gray-500">Verifikasi bukti transfer Wali Murid dengan kode unik 3 digit</p>
 
       <div className="mt-4 flex gap-2">
         {["semua", "issued", "pending", "paid", "overdue"].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize ${filter === f ? "bg-[#2563EB] text-black" : "border border-[#CBD5E1] bg-[#111] text-gray-400 hover:bg-[#1a1a1a]"}`}>{f}</button>
+          <button key={f} onClick={() => setFilter(f)} className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize ${filter === f ? "bg-[#2563EB] text-black" : "border border-gray-200 bg-white text-gray-500 hover:bg-gray-50"}`}>{f}</button>
         ))}
       </div>
 
@@ -110,10 +110,10 @@ export default function BillingPage() {
       ) : invoices.length === 0 ? (
         <div className="mt-8 text-center text-gray-500">Belum ada tagihan</div>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#CBD5E1] text-left text-gray-400">
+              <tr className="border-b border-gray-200 text-left text-gray-500">
                 <th className="px-4 py-3">Invoice</th>
                 <th className="px-4 py-3">Wali Murid</th>
                 <th className="px-4 py-3">Periode</th>
@@ -126,13 +126,13 @@ export default function BillingPage() {
             </thead>
             <tbody>
               {filtered.map(inv => (
-                <tr key={inv.id_invoice} className="cursor-pointer border-b border-[#1a1a1a] hover:bg-[#1a1a1a]" onClick={() => { setSelected(inv); setInputCode(""); }}>
-                  <td className="px-4 py-3 text-[#EEEEEE] font-mono text-xs">{inv.invoice_no || inv.id_invoice.slice(0, 8)}</td>
-                  <td className="px-4 py-3 text-[#EEEEEE]">{inv.guardian_name || "-"}</td>
-                  <td className="px-4 py-3 text-[#EEEEEE]">{inv.billing_period}</td>
+                <tr key={inv.id_invoice} className="cursor-pointer border-b border-gray-100 hover:bg-gray-50" onClick={() => { setSelected(inv); setInputCode(""); }}>
+                  <td className="px-4 py-3 text-gray-900 font-mono text-xs">{inv.invoice_no || inv.id_invoice.slice(0, 8)}</td>
+                  <td className="px-4 py-3 text-gray-900">{inv.guardian_name || "-"}</td>
+                  <td className="px-4 py-3 text-gray-900">{inv.billing_period}</td>
                   <td className="px-4 py-3 text-[#2563EB] font-semibold">{rupiah(inv.total_amount)}</td>
-                  <td className="px-4 py-3 text-[#EEEEEE]">{inv.due_date}</td>
-                  <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusBadge[inv.status] || "bg-gray-500/10 text-gray-400"}`}>{inv.status}</span></td>
+                  <td className="px-4 py-3 text-gray-900">{inv.due_date}</td>
+                  <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusBadge[inv.status] || "bg-gray-500/10 text-gray-500"}`}>{inv.status}</span></td>
                   <td className="px-4 py-3 font-mono text-[#2563EB] font-bold">{inv.unique_code}</td>
                   <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     {(inv.status === "pending" || inv.status === "issued") && (
@@ -149,33 +149,33 @@ export default function BillingPage() {
 
       {/* Verification Modal */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setSelected(null)}>
-          <div className="w-full max-w-lg rounded-xl border border-[#CBD5E1] bg-[#111] p-6" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#F8FAFC]/70 p-4" onClick={() => setSelected(null)}>
+          <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-[#EEEEEE]">Verifikasi Pembayaran</h2>
-              <button onClick={() => setSelected(null)} aria-label="Tutup" className="text-gray-400 hover:text-white">✕</button>
+              <h2 className="text-lg font-bold text-gray-900">Verifikasi Pembayaran</h2>
+              <button onClick={() => setSelected(null)} aria-label="Tutup" className="text-gray-500 hover:text-white">✕</button>
             </div>
 
-            <div className="mb-4 rounded-lg border border-[#CBD5E1] bg-[#0a0a0a] p-3">
+            <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div><span className="text-gray-500">Invoice:</span> <span className="text-[#EEEEEE] font-mono">{selected.invoice_no || selected.id_invoice.slice(0, 8)}</span></div>
-                <div><span className="text-gray-500">Periode:</span> <span className="text-[#EEEEEE]">{selected.billing_period}</span></div>
-                <div><span className="text-gray-500">Wali:</span> <span className="text-[#EEEEEE]">{selected.guardian_name || "-"}</span></div>
+                <div><span className="text-gray-500">Invoice:</span> <span className="text-gray-900 font-mono">{selected.invoice_no || selected.id_invoice.slice(0, 8)}</span></div>
+                <div><span className="text-gray-500">Periode:</span> <span className="text-gray-900">{selected.billing_period}</span></div>
+                <div><span className="text-gray-500">Wali:</span> <span className="text-gray-900">{selected.guardian_name || "-"}</span></div>
                 <div><span className="text-gray-500">Jumlah:</span> <span className="text-[#2563EB] font-bold">{rupiah(selected.total_amount)}</span></div>
-                <div><span className="text-gray-500">Jatuh Tempo:</span> <span className="text-[#EEEEEE]">{selected.due_date}</span></div>
+                <div><span className="text-gray-500">Jatuh Tempo:</span> <span className="text-gray-900">{selected.due_date}</span></div>
                 <div><span className="text-gray-500">Kode Unik:</span> <span className="text-[#2563EB] font-mono font-bold">{selected.unique_code}</span></div>
               </div>
             </div>
 
-            <div className="mb-4 rounded-lg border border-[#CBD5E1] bg-[#1a1a1a] p-6 text-center">
+            <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
               <div className="text-4xl mb-2">🧾</div>
-              <p className="text-sm text-gray-400">Bukti transfer dari Wali Murid</p>
+              <p className="text-sm text-gray-500">Bukti transfer dari Wali Murid</p>
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm text-gray-400 mb-1">Masukkan kode unik 3 digit dari bukti transfer:</label>
+              <label className="block text-sm text-gray-500 mb-1">Masukkan kode unik 3 digit dari bukti transfer:</label>
               <div className="flex gap-2">
-                <input type="text" maxLength={3} value={inputCode} onChange={e => setInputCode(e.target.value.replace(/\D/g, ""))} placeholder="___" className="w-24 rounded-lg border border-[#CBD5E1] bg-[#1a1a1a] px-3 py-2 text-center text-lg font-mono font-bold text-[#2563EB] placeholder-gray-600 focus:border-[#2563EB] focus:outline-none" />
+                <input type="text" maxLength={3} value={inputCode} onChange={e => setInputCode(e.target.value.replace(/\D/g, ""))} placeholder="___" className="w-24 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-center text-lg font-mono font-bold text-[#2563EB] placeholder-gray-600 focus:border-[#2563EB] focus:outline-none" />
                 <div className="flex items-center text-sm text-gray-500">
                   {inputCode.length === 3 && (inputCode === selected.unique_code ? <span className="text-[#2563EB]">✓ Kode cocok!</span> : <span className="text-red-400">✗ Kode tidak cocok</span>)}
                 </div>

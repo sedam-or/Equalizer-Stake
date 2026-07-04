@@ -73,24 +73,24 @@ export default function HolidaysPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#EEEEEE]">Libur Nasional</h1>
-        <p className="text-sm text-gray-400">Kelola hari libur untuk penjadwalan</p>
+        <h1 className="text-2xl font-bold text-gray-900">Libur Nasional</h1>
+        <p className="text-sm text-gray-500">Kelola hari libur untuk penjadwalan</p>
       </div>
 
-      {msg && <div className="p-3 bg-[#2563EB]/10 border border-[#CBD5E1] rounded-lg text-[#2563EB] text-sm">{msg}</div>}
+      {msg && <div className="p-3 bg-[#2563EB]/10 border border-gray-200 rounded-lg text-[#2563EB] text-sm">{msg}</div>}
       {err && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{err}</div>}
 
       {/* Add Form */}
-      <div className="bg-[#111] rounded-xl p-4 border border-[#CBD5E1] flex gap-3 items-end">
+      <div className="bg-white rounded-xl p-4 border border-gray-200 flex gap-3 items-end">
         <div className="flex-1">
-          <label className="block text-xs text-gray-400 mb-1">Tanggal</label>
+          <label className="block text-xs text-gray-500 mb-1">Tanggal</label>
           <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
-            className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
+            className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" />
         </div>
         <div className="flex-1">
-          <label className="block text-xs text-gray-400 mb-1">Nama Libur</label>
+          <label className="block text-xs text-gray-500 mb-1">Nama Libur</label>
           <input placeholder="Contoh: Idul Fitri" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-            className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
+            className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" />
         </div>
         <button onClick={handleAdd}
           className="px-4 py-2 bg-[#2563EB] text-black text-sm font-semibold rounded-lg hover:bg-[#1d4ed8]">
@@ -99,21 +99,21 @@ export default function HolidaysPage() {
       </div>
 
       {/* Holiday List */}
-      <div className="bg-[#111] rounded-xl border border-[#CBD5E1] overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Memuat...</div>
+          <div className="p-8 text-center text-gray-500">Memuat...</div>
         ) : holidays.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">Belum ada hari libur</div>
+          <div className="p-8 text-center text-gray-500">Belum ada hari libur</div>
         ) : (
           <>
           <div className="divide-y divide-[#1a1a1a]">
             {holidays.map((h, idx) => (
-              <div key={idx} className="flex items-center justify-between px-4 py-3 hover:bg-[#1a1a1a]">
+              <div key={idx} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50">
                 <div className="flex items-center gap-4">
                   <span className="rounded-full px-2 py-1 text-xs font-medium bg-[#2563EB]/10 text-[#2563EB]">{h.type || "Nasional"}</span>
                   <div>
-                    <span className="text-sm font-medium text-[#EEEEEE]">{h.name}</span>
-                    <span className="text-xs text-gray-400 ml-3">{new Date(h.date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
+                    <span className="text-sm font-medium text-gray-900">{h.name}</span>
+                    <span className="text-xs text-gray-500 ml-3">{new Date(h.date).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</span>
                   </div>
                 </div>
                 <button onClick={() => handleRemove(idx)} className="text-xs text-red-400 hover:underline">Hapus</button>

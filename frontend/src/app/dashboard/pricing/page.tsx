@@ -135,55 +135,55 @@ export default function PricingPage() {
     }
   };
 
-  if (loading) return <div className="p-6 text-gray-400">Memuat tarif...</div>;
+  if (loading) return <div className="p-6 text-gray-500">Memuat tarif...</div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#EEEEEE]">Kelola Tarif</h1>
-          <p className="text-sm text-gray-400 mt-1">Atur tarif kursus per instrumen dan level</p>
+          <h1 className="text-2xl font-bold text-gray-900">Kelola Tarif</h1>
+          <p className="text-sm text-gray-500 mt-1">Atur tarif kursus per instrumen dan level</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 text-sm bg-[#2563EB] text-black font-semibold rounded-lg hover:bg-[#1d4ed8]">
             + Tambah Tarif
           </button>
-          <button onClick={() => router.push("/dashboard")} className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]">
+          <button onClick={() => router.push("/dashboard")} className="px-4 py-2 text-sm bg-gray-50 border border-gray-200 text-gray-500 rounded-lg hover:bg-[#222]">
             Kembali
           </button>
         </div>
       </div>
 
-      {success && <div className="p-3 bg-[#2563EB]/10 border border-[#CBD5E1] rounded-lg text-[#2563EB] text-sm">{success}</div>}
+      {success && <div className="p-3 bg-[#2563EB]/10 border border-gray-200 rounded-lg text-[#2563EB] text-sm">{success}</div>}
       {error && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>}
 
       {/* Pricing table */}
-      <div className="bg-[#111] border border-[#CBD5E1] rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#0a0a0a] border-b border-[#CBD5E1]">
+          <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-400">Instrumen</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-400">Level</th>
-              <th className="px-4 py-3 text-right font-medium text-gray-400">Harga</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-400">Berlaku Mulai</th>
-              <th className="px-4 py-3 text-center font-medium text-gray-400">Status</th>
-              <th className="px-4 py-3 text-center font-medium text-gray-400">Aksi</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Instrumen</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Level</th>
+              <th className="px-4 py-3 text-right font-medium text-gray-500">Harga</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-500">Berlaku Mulai</th>
+              <th className="px-4 py-3 text-center font-medium text-gray-500">Status</th>
+              <th className="px-4 py-3 text-center font-medium text-gray-500">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#1a1a1a]">
             {pricings.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Belum ada tarif</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Belum ada tarif</td></tr>
             ) : pricings.map((p) => (
-              <tr key={p.id_pricing} className={`hover:bg-[#1a1a1a] ${p.is_active ? "" : "opacity-50"}`}>
-                <td className="px-4 py-3 text-[#EEEEEE]">{INSTRUMENT_LABELS[p.instrument] || p.instrument}</td>
-                <td className="px-4 py-3 text-[#EEEEEE]">{LEVEL_LABELS[p.level] || p.level}</td>
-                <td className="px-4 py-3 text-right font-mono text-[#EEEEEE]">{fmtRp(p.price)}</td>
-                <td className="px-4 py-3 text-gray-400">{new Date(p.effective_date).toLocaleDateString("id-ID")}</td>
+              <tr key={p.id_pricing} className={`hover:bg-gray-50 ${p.is_active ? "" : "opacity-50"}`}>
+                <td className="px-4 py-3 text-gray-900">{INSTRUMENT_LABELS[p.instrument] || p.instrument}</td>
+                <td className="px-4 py-3 text-gray-900">{LEVEL_LABELS[p.level] || p.level}</td>
+                <td className="px-4 py-3 text-right font-mono text-gray-900">{fmtRp(p.price)}</td>
+                <td className="px-4 py-3 text-gray-500">{new Date(p.effective_date).toLocaleDateString("id-ID")}</td>
                 <td className="px-4 py-3 text-center">
                   {p.is_active ? (
                     <span className="px-2 py-1 text-xs bg-[#2563EB]/10 text-[#2563EB] rounded-full">Aktif</span>
                   ) : (
-                    <span className="px-2 py-1 text-xs bg-gray-500/10 text-gray-400 rounded-full">Nonaktif</span>
+                    <span className="px-2 py-1 text-xs bg-gray-500/10 text-gray-500 rounded-full">Nonaktif</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-center">
@@ -201,39 +201,39 @@ export default function PricingPage() {
 
       {/* Form modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#111] border border-[#CBD5E1] rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-lg font-bold text-[#EEEEEE] mb-4">
+        <div className="fixed inset-0 bg-[#F8FAFC]/70 flex items-center justify-center z-50">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
               {editItem ? "Edit Tarif" : "Tambah Tarif"}
             </h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Instrumen</label>
-                <select value={instrument} onChange={(e) => setInstrument(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none">
+                <label className="block text-sm font-medium text-gray-500 mb-1">Instrumen</label>
+                <select value={instrument} onChange={(e) => setInstrument(e.target.value)} className="w-full p-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none">
                   {INSTRUMENTS.map((i) => <option key={i} value={i}>{INSTRUMENT_LABELS[i]}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Level</label>
-                <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none">
+                <label className="block text-sm font-medium text-gray-500 mb-1">Level</label>
+                <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full p-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none">
                   {LEVELS.map((l) => <option key={l} value={l}>{LEVEL_LABELS[l]}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Harga (Rp)</label>
-                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" placeholder="500000" />
+                <label className="block text-sm font-medium text-gray-500 mb-1">Harga (Rp)</label>
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full p-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" placeholder="500000" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Berlaku Mulai</label>
-                <input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
+                <label className="block text-sm font-medium text-gray-500 mb-1">Berlaku Mulai</label>
+                <input type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} className="w-full p-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Deskripsi (opsional)</label>
-                <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" placeholder="Tarif reguler bulanan" />
+                <label className="block text-sm font-medium text-gray-500 mb-1">Deskripsi (opsional)</label>
+                <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" placeholder="Tarif reguler bulanan" />
               </div>
             </div>
             <div className="mt-5 flex gap-2 justify-end">
-              <button onClick={resetForm} className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]">Batal</button>
+              <button onClick={resetForm} className="px-4 py-2 text-sm bg-gray-50 border border-gray-200 text-gray-500 rounded-lg hover:bg-[#222]">Batal</button>
               <button onClick={handleSubmit} disabled={saving || !price || !effectiveDate} className="px-4 py-2 text-sm bg-[#2563EB] text-black font-semibold rounded-lg hover:bg-[#1d4ed8] disabled:opacity-50">
                 {saving ? "Menyimpan..." : "Simpan"}
               </button>

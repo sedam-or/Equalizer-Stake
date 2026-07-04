@@ -45,21 +45,21 @@ export default function StudioPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#EEEEEE]">Studio Musik</h1>
-        <p className="text-sm text-gray-400">Kelola ruang studio dan peralatan</p>
+        <h1 className="text-2xl font-bold text-gray-900">Studio Musik</h1>
+        <p className="text-sm text-gray-500">Kelola ruang studio dan peralatan</p>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-gray-400">Memuat data studio...</div>
+        <div className="p-8 text-center text-gray-500">Memuat data studio...</div>
       ) : rooms.length === 0 ? (
-        <div className="p-8 text-center text-gray-400">Belum ada ruang studio</div>
+        <div className="p-8 text-center text-gray-500">Belum ada ruang studio</div>
       ) : (
         <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {rooms.map(room => (
-            <div key={room.id_room} className="bg-[#111] rounded-xl border border-[#CBD5E1] p-5 space-y-3">
+            <div key={room.id_room} className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#EEEEEE]">{room.name}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
                 <span className={`rounded-full px-2 py-1 text-xs font-medium ${
                   room.status === "available" ? "bg-[#2563EB]/10 text-[#2563EB]" :
                   room.status === "in_use" ? "bg-yellow-500/10 text-yellow-500" :
@@ -69,8 +69,8 @@ export default function StudioPage() {
                 </span>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-400">Kapasitas: <span className="text-[#EEEEEE]">{room.capacity} orang</span></p>
-                <p className="text-sm text-gray-400">Peralatan: <span className="text-[#EEEEEE]">{room.equipment}</span></p>
+                <p className="text-sm text-gray-500">Kapasitas: <span className="text-gray-900">{room.capacity} orang</span></p>
+                <p className="text-sm text-gray-500">Peralatan: <span className="text-gray-900">{room.equipment}</span></p>
               </div>
             </div>
           ))}

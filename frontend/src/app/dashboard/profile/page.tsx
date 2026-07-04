@@ -101,7 +101,7 @@ export default function ProfilePage() {
     finally { setPwSaving(false); }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Memuat profil...</div></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="text-gray-500">Memuat profil...</div></div>;
   if (!profile) return null;
 
   const roleLabel = ROLE_LABELS[profile.user.role] || profile.user.role;
@@ -109,15 +109,15 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#EEEEEE]">Profil Saya</h1>
-        <p className="text-sm text-gray-400">Kelola informasi akun Anda</p>
+        <h1 className="text-2xl font-bold text-gray-900">Profil Saya</h1>
+        <p className="text-sm text-gray-500">Kelola informasi akun Anda</p>
       </div>
 
       {/* Photo Upload */}
       <div className="bg-white rounded-xl p-6 border border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Foto Profil</h2>
         <div className="flex items-center gap-4">
-          <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-400">
+          <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-500">
             {profile?.full_name?.[0]?.toUpperCase() || "?"}
           </div>
           <div>
@@ -140,15 +140,15 @@ export default function ProfilePage() {
                 }
               } catch {}
             }} className="text-sm text-gray-500" />
-            <p className="text-xs text-gray-400 mt-1">JPEG/PNG, maks 5MB</p>
+            <p className="text-xs text-gray-500 mt-1">JPEG/PNG, maks 5MB</p>
           </div>
         </div>
       </div>
 
       {/* Profile Info */}
-      <div className="bg-[#111] rounded-xl p-6 border border-[#CBD5E1] space-y-4">
+      <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[#EEEEEE]">Informasi Akun</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Informasi Akun</h2>
           {!editMode && (
             <button onClick={() => setEditMode(true)} className="text-sm text-[#2563EB] hover:underline">
               Edit Profil
@@ -156,30 +156,30 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {msg && <div className="p-3 bg-[#2563EB]/10 border border-[#CBD5E1] rounded-lg text-[#2563EB] text-sm">{msg}</div>}
+        {msg && <div className="p-3 bg-[#2563EB]/10 border border-gray-200 rounded-lg text-[#2563EB] text-sm">{msg}</div>}
         {err && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{err}</div>}
 
         {editMode ? (
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Nama Lengkap</label>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Nama Lengkap</label>
               <input type="text" value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })}
-                className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
+                className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
+                className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">WhatsApp</label>
+              <label className="block text-sm font-medium text-gray-500 mb-1">WhatsApp</label>
               <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
-                className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" placeholder="08xxxxxxxxxx" />
+                className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" placeholder="08xxxxxxxxxx" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Alamat</label>
+              <label className="block text-sm font-medium text-gray-500 mb-1">Alamat</label>
               <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
-                className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" placeholder="Alamat lengkap" />
+                className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" placeholder="Alamat lengkap" />
             </div>
             <div className="flex gap-2">
               <button onClick={handleProfileSave} disabled={saving}
@@ -187,7 +187,7 @@ export default function ProfilePage() {
                 {saving ? "Menyimpan..." : "Simpan"}
               </button>
               <button onClick={() => { setEditMode(false); setErr(""); setMsg(""); }}
-                className="px-4 py-2 bg-[#1a1a1a] text-gray-400 text-sm font-medium rounded-lg hover:bg-[#222] border border-[#CBD5E1]">
+                className="px-4 py-2 bg-gray-50 text-gray-500 text-sm font-medium rounded-lg hover:bg-[#222] border border-gray-200">
                 Batal
               </button>
             </div>
@@ -208,25 +208,25 @@ export default function ProfilePage() {
       </div>
 
       {/* Change Password */}
-      <div className="bg-[#111] rounded-xl p-6 border border-[#CBD5E1] space-y-4">
-        <h2 className="text-lg font-semibold text-[#EEEEEE]">Ubah Password</h2>
-        {pwMsg && <div className="p-3 bg-[#2563EB]/10 border border-[#CBD5E1] rounded-lg text-[#2563EB] text-sm">{pwMsg}</div>}
+      <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">Ubah Password</h2>
+        {pwMsg && <div className="p-3 bg-[#2563EB]/10 border border-gray-200 rounded-lg text-[#2563EB] text-sm">{pwMsg}</div>}
         {pwErr && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{pwErr}</div>}
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Password Saat Ini</label>
+            <label className="block text-sm font-medium text-gray-500 mb-1">Password Saat Ini</label>
             <input type="password" value={pwForm.current_password} onChange={e => setPwForm({ ...pwForm, current_password: e.target.value })}
-              className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
+              className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Password Baru</label>
+            <label className="block text-sm font-medium text-gray-500 mb-1">Password Baru</label>
             <input type="password" value={pwForm.new_password} onChange={e => setPwForm({ ...pwForm, new_password: e.target.value })}
-              className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
+              className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Konfirmasi Password Baru</label>
+            <label className="block text-sm font-medium text-gray-500 mb-1">Konfirmasi Password Baru</label>
             <input type="password" value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })}
-              className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none" />
+              className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none" />
           </div>
           <button onClick={handlePasswordChange} disabled={pwSaving}
             className="px-4 py-2 bg-[#2563EB] text-black text-sm font-semibold rounded-lg hover:bg-[#1d4ed8] disabled:opacity-50">
@@ -236,9 +236,9 @@ export default function ProfilePage() {
       </div>
 
       {/* UU PDP Data Deletion */}
-      <div className="bg-[#111] rounded-xl p-6 border border-red-500/30 space-y-4">
+      <div className="bg-white rounded-xl p-6 border border-red-500/30 space-y-4">
         <h2 className="text-lg font-bold text-red-400">Hapus Data Saya</h2>
-        <p className="text-sm text-gray-400">Sesuai UU PDP (UU No. 27/2022), Anda berhak menghapus data pribadi. Permintaan akan diproses dalam 14 hari kerja.</p>
+        <p className="text-sm text-gray-500">Sesuai UU PDP (UU No. 27/2022), Anda berhak menghapus data pribadi. Permintaan akan diproses dalam 14 hari kerja.</p>
         <button
           onClick={async () => {
             if (!confirm("Apakah Anda yakin ingin menghapus data? Tindakan ini tidak dapat dibatalkan.")) return;
@@ -263,9 +263,9 @@ export default function ProfilePage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-1 border-b border-[#1a1a1a] last:border-0">
-      <span className="text-sm text-gray-400">{label}</span>
-      <span className="text-sm font-medium text-[#EEEEEE]">{value}</span>
+    <div className="flex items-center justify-between py-1 border-b border-gray-100 last:border-0">
+      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-sm font-medium text-gray-900">{value}</span>
     </div>
   );
 }

@@ -89,30 +89,30 @@ export default function OverridePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#EEEEEE]">Override Kehadiran</h1>
-        <p className="text-sm text-gray-400">Ubah status kehadiran sesi secara manual (Owner only)</p>
+        <h1 className="text-2xl font-bold text-gray-900">Override Kehadiran</h1>
+        <p className="text-sm text-gray-500">Ubah status kehadiran sesi secara manual (Owner only)</p>
       </div>
 
-      {msg && <div className="p-3 bg-[#2563EB]/10 border border-[#CBD5E1] rounded-lg text-[#2563EB] text-sm">{msg}</div>}
+      {msg && <div className="p-3 bg-[#2563EB]/10 border border-gray-200 rounded-lg text-[#2563EB] text-sm">{msg}</div>}
       {err && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{err}</div>}
 
-      <form onSubmit={handleSubmit} className="bg-[#111] rounded-xl border border-[#CBD5E1] p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">ID Sesi</label>
+          <label className="block text-sm font-medium text-gray-500 mb-1">ID Sesi</label>
           <input
             type="text"
             value={form.session_id}
             onChange={e => setForm({ ...form, session_id: e.target.value })}
             placeholder="Contoh: sess_abc123"
-            className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none"
+            className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">Status Kehadiran</label>
+          <label className="block text-sm font-medium text-gray-500 mb-1">Status Kehadiran</label>
           <select
             value={form.status}
             onChange={e => setForm({ ...form, status: e.target.value })}
-            className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none"
+            className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none"
           >
             <option value="present">Hadir</option>
             <option value="absent">Tidak Hadir</option>
@@ -121,13 +121,13 @@ export default function OverridePage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-1">Alasan Override</label>
+          <label className="block text-sm font-medium text-gray-500 mb-1">Alasan Override</label>
           <textarea
             value={form.reason}
             onChange={e => setForm({ ...form, reason: e.target.value })}
             placeholder="Jelaskan alasan override..."
             rows={3}
-            className="w-full px-3 py-2 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none resize-none"
+            className="w-full px-3 py-2 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none resize-none"
           />
         </div>
         <button
@@ -140,8 +140,8 @@ export default function OverridePage() {
       </form>
 
       {/* Recent sessions */}
-      <div className="bg-[#111] rounded-xl border border-[#CBD5E1] p-6">
-        <h2 className="text-lg font-semibold text-[#EEEEEE] mb-3">Sesi Terbaru</h2>
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Sesi Terbaru</h2>
         {loadingSessions ? (
           <p className="text-sm text-gray-500">Memuat sesi...</p>
         ) : sessions.length === 0 ? (
@@ -152,12 +152,12 @@ export default function OverridePage() {
             {sessions.slice(0, 10).map((s) => (
               <div
                 key={s.id_session}
-                className="flex items-center justify-between rounded-lg border border-[#CBD5E1] bg-black p-3 cursor-pointer hover:border-[#2563EB] transition-colors"
+                className="flex items-center justify-between rounded-lg border border-gray-200 bg-[#F8FAFC] p-3 cursor-pointer hover:border-[#2563EB] transition-colors"
                 onClick={() => setForm({ ...form, session_id: s.id_session })}
               >
                 <div>
-                  <p className="text-sm font-mono text-[#EEEEEE]">{s.id_session}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-sm font-mono text-gray-900">{s.id_session}</p>
+                  <p className="text-xs text-gray-500">
                     {s.student_name || "-"} {s.teacher_name ? `· ${s.teacher_name}` : ""}
                     {s.date ? ` · ${s.date}` : ""}
                     {s.time_start ? ` ${s.time_start}` : ""}

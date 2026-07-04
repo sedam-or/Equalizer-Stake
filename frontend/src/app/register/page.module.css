@@ -1,10 +1,9 @@
 .card {
-  background: rgba(17, 17, 17, 0.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(37, 57, 0, 0.6);
+  background: white;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
   padding: 2.5rem;
-  box-shadow: 0 0 60px rgba(8, 203, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .title {
@@ -18,23 +17,8 @@
 .subtitle {
   text-align: center;
   font-size: 0.9rem;
-  color: #888;
+  color: #64748b;
   margin-bottom: 1.75rem;
-}
-
-.gridRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 640px) {
-  .gridRow {
-    grid-template-columns: 1fr;
-  }
-  .card {
-    padding: 1.5rem;
-  }
 }
 
 .field {
@@ -46,17 +30,17 @@
 .label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #eee;
+  color: #334155;
   margin-bottom: 0.375rem;
 }
 
 .input {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  background: rgba(26, 26, 26, 0.8);
-  border: 1px solid #333;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
-  color: #eee;
+  color: #1e293b;
   font-size: 0.875rem;
   transition: border-color 0.2s;
   outline: none;
@@ -67,7 +51,7 @@
 }
 
 .input::placeholder {
-  color: #666;
+  color: #94a3b8;
 }
 
 .passwordWrapper {
@@ -85,7 +69,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #888;
+  color: #94a3b8;
   cursor: pointer;
   padding: 0.25rem;
   display: flex;
@@ -94,6 +78,21 @@
 
 .toggleBtn:hover {
   color: #2563EB;
+}
+
+.gridRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .gridRow {
+    grid-template-columns: 1fr;
+  }
+  .card {
+    padding: 1.5rem;
+  }
 }
 
 .errorText {
@@ -111,55 +110,33 @@
 }
 
 .serverSuccess {
-  background: rgba(8, 203, 0, 0.1);
+  background: #eff6ff;
   color: #2563EB;
-  border: 1px solid rgba(8, 203, 0, 0.3);
+  border: 1px solid #bfdbfe;
 }
 
 .serverError {
-  background: rgba(239, 68, 68, 0.1);
+  background: #fef2f2;
   color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.termsRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.termsRow input[type="checkbox"] {
-  margin-top: 0.25rem;
-  accent-color: #2563EB;
-}
-
-.termsRow label {
-  font-size: 0.8rem;
-  color: #aaa;
-  cursor: pointer;
-}
-
-.termsRow label a {
-  color: #2563EB;
-  text-decoration: underline;
+  border: 1px solid #fecaca;
 }
 
 .button {
   width: 100%;
   padding: 0.75rem;
   background: #2563EB;
-  color: #000;
+  color: white;
   font-weight: 600;
   font-size: 1rem;
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
   transition: background 0.2s;
+  margin-top: 0.5rem;
 }
 
 .button:hover {
-  background: #0aad00;
+  background: #1d4ed8;
 }
 
 .button:disabled {
@@ -171,7 +148,7 @@
   text-align: center;
   margin-top: 1.25rem;
   font-size: 0.875rem;
-  color: #888;
+  color: #64748b;
 }
 
 .footerLink {
@@ -182,36 +159,4 @@
 
 .footerLink:hover {
   text-decoration: underline;
-}
-
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  padding: 1rem;
-}
-
-.modalContent {
-  background: #111;
-  border: 1px solid #CBD5E1;
-  border-radius: 0.75rem;
-  padding: 2rem;
-  max-width: 500px;
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
-  color: #ccc;
-  font-size: 0.875rem;
-  line-height: 1.6;
-}
-
-.modalContent h2 {
-  color: #2563EB;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
 }

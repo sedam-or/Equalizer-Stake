@@ -154,7 +154,7 @@ function OwnerDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-8 text-center text-gray-400">Memuat data...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">Memuat data...</div>;
   if (!data) return null;
 
   const fmtRp = (n: number) =>
@@ -164,15 +164,15 @@ function OwnerDashboard() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#EEEEEE]">Dashboard Owner</h1>
-          <p className="mt-1 text-sm text-gray-400">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard Owner</h1>
+          <p className="mt-1 text-sm text-gray-500">
             Monitoring keseluruhan sistem — Periode {String(data.billing_period)}
             {error && <span className="ml-2 text-yellow-500 text-xs">(data dummy)</span>}
           </p>
         </div>
         <button
           onClick={() => window.print()}
-          className="rounded-lg border border-[#CBD5E1] bg-[#111] px-4 py-2 text-sm font-medium text-[#EEEEEE] hover:bg-[#1a1a1a] print:hidden"
+          className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 print:hidden"
         >
           🖨️ Cetak Laporan
         </button>
@@ -194,23 +194,23 @@ function OwnerDashboard() {
 
       {/* Detail section */}
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
-          <h2 className="text-lg font-semibold text-[#EEEEEE]">Kehadiran</h2>
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-gray-900">Kehadiran</h2>
           <div className="mt-4 space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-gray-400">Terverifikasi</span><span className="font-medium text-[#EEEEEE]">{String(data.verified_attendance)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">Total Absensi</span><span className="font-medium text-[#EEEEEE]">{String(data.total_attendance)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">Sesi Bulan Ini</span><span className="font-medium text-[#EEEEEE]">{String(data.sessions_this_month)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">Total Ruangan</span><span className="font-medium text-[#EEEEEE]">{String(data.total_rooms)}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Terverifikasi</span><span className="font-medium text-gray-900">{String(data.verified_attendance)}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Total Absensi</span><span className="font-medium text-gray-900">{String(data.total_attendance)}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Sesi Bulan Ini</span><span className="font-medium text-gray-900">{String(data.sessions_this_month)}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Total Ruangan</span><span className="font-medium text-gray-900">{String(data.total_rooms)}</span></div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
-          <h2 className="text-lg font-semibold text-[#EEEEEE]">Audit Log Terbaru</h2>
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-gray-900">Audit Log Terbaru</h2>
           <div className="mt-4 space-y-2">
             {Array.isArray(data.recent_audit) && data.recent_audit.length > 0 ? (
               (data.recent_audit as Array<Record<string, string>>).map((log) => (
                 <div key={log.id_audit} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">{log.table_name} — {log.action}</span>
+                  <span className="text-gray-500">{log.table_name} — {log.action}</span>
                   <span className="text-xs text-gray-500">{new Date(log.created_at).toLocaleDateString("id-ID")}</span>
                 </div>
               ))
@@ -223,7 +223,7 @@ function OwnerDashboard() {
 
       {/* Management links */}
       <div className="mt-8">
-        <h2 className="text-lg font-semibold text-[#EEEEEE]">Manajemen</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Manajemen</h2>
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <ActionButton href="/dashboard/admins" label="Kelola Admin" />
           <ActionButton href="/dashboard/override" label="Override Operasional" />
@@ -235,7 +235,7 @@ function OwnerDashboard() {
       </div>
 
       {/* Print-only summary */}
-      <div className="hidden print:block mt-8 border-t border-[#CBD5E1] pt-4 text-xs text-gray-500">
+      <div className="hidden print:block mt-8 border-t border-gray-200 pt-4 text-xs text-gray-500">
         <p>Dicetak: {new Date().toLocaleString("id-ID")} — BMD Music School Equalizer-Stake</p>
       </div>
     </div>
@@ -376,7 +376,7 @@ function GuardianDashboard() {
               {/* Upcoming sessions */}
               {child.upcoming_sessions?.length > 0 && (
                 <div className="mb-3 space-y-1">
-                  <p className="text-xs font-medium text-gray-400">Jadwal Mendatang</p>
+                  <p className="text-xs font-medium text-gray-500">Jadwal Mendatang</p>
                   {child.upcoming_sessions.slice(0, 2).map((s: any, i: number) => (
                     <div key={i} className="flex justify-between text-sm">
                       <span className="text-gray-600">{s.session_date} {s.start_time}</span>
@@ -416,8 +416,8 @@ function GuardianDashboard() {
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
-      <div className="text-sm text-gray-400">{label}</div>
+    <div className="rounded-xl border border-gray-200 bg-white p-6">
+      <div className="text-sm text-gray-500">{label}</div>
       <div className="mt-1 text-3xl font-bold text-[#2563EB]">{value}</div>
     </div>
   );
@@ -427,7 +427,7 @@ function ActionButton({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
-      className="rounded-xl border border-[#CBD5E1] bg-[#111] p-4 text-center text-sm font-medium text-[#EEEEEE] transition-colors hover:border-[#2563EB] hover:bg-[#1a1a1a]"
+      className="rounded-xl border border-gray-200 bg-white p-4 text-center text-sm font-medium text-gray-900 transition-colors hover:border-[#2563EB] hover:bg-gray-50"
     >
       {label}
     </a>
@@ -438,12 +438,12 @@ function SessionCard({ time, student, instrument, status }: {
   time: string; student: string; instrument: string; status: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-[#CBD5E1] bg-[#111] p-4">
+    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4">
       <div className="flex items-center gap-3">
         <div className="text-lg font-bold text-[#2563EB]">{time}</div>
         <div>
-          <p className="font-medium text-[#EEEEEE]">{student}</p>
-          <p className="text-sm text-gray-400">{instrument}</p>
+          <p className="font-medium text-gray-900">{student}</p>
+          <p className="text-sm text-gray-500">{instrument}</p>
         </div>
       </div>
       <span
@@ -463,9 +463,9 @@ function StudentCard({ name, instrument, level, jadwal, status }: {
   name: string; instrument: string; level: string; jadwal: string; status: string;
 }) {
   return (
-    <div className="rounded-xl border border-[#CBD5E1] bg-[#111] p-6">
+    <div className="rounded-xl border border-gray-200 bg-white p-6">
       <div className="flex items-center justify-between">
-        <p className="font-semibold text-[#EEEEEE]">{name}</p>
+        <p className="font-semibold text-gray-900">{name}</p>
         <span className={`rounded-full px-2 py-1 text-xs font-medium ${
           status === "Aktif"
             ? "bg-[#2563EB]/10 text-[#2563EB]"
@@ -475,9 +475,9 @@ function StudentCard({ name, instrument, level, jadwal, status }: {
         </span>
       </div>
       <div className="mt-3 space-y-1 text-sm">
-        <p className="text-gray-400">🎹 {instrument}</p>
-        <p className="text-gray-400">📊 Level: {level}</p>
-        <p className="text-gray-400">📅 {jadwal}</p>
+        <p className="text-gray-500">🎹 {instrument}</p>
+        <p className="text-gray-500">📊 Level: {level}</p>
+        <p className="text-gray-500">📅 {jadwal}</p>
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ const AUTH_COLORS = ["#08cb00", "#CBD5E1", "#00ffd1", "#0a0a0a"];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#F8FAFC] px-4 py-12">
       {/* ColorBends background */}
       <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
         <ColorBends
@@ -29,7 +29,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Dark overlay for readability */}
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-black/50" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[#F8FAFC]/50" aria-hidden="true" />
 
       {/* Content card */}
       <div className="relative z-10 w-full max-w-[720px]">

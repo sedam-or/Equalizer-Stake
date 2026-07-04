@@ -73,23 +73,23 @@ export default function AuditLogPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#EEEEEE]">Audit Log</h1>
-        <p className="text-sm text-gray-400">Riwayat perubahan data sistem</p>
+        <h1 className="text-2xl font-bold text-gray-900">Audit Log</h1>
+        <p className="text-sm text-gray-500">Riwayat perubahan data sistem</p>
       </div>
 
       {/* Filters */}
-      <div className="bg-[#111] rounded-xl p-4 border border-[#CBD5E1] flex flex-wrap gap-3 items-end">
+      <div className="bg-white rounded-xl p-4 border border-gray-200 flex flex-wrap gap-3 items-end">
         <div>
-          <label className="block text-xs font-medium text-gray-400 mb-1">Tabel</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Tabel</label>
           <select value={table} onChange={e => setTable(e.target.value)}
-            className="px-3 py-1.5 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none">
+            className="px-3 py-1.5 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none">
             {TABLE_OPTIONS.map(t => <option key={t} value={t}>{t || "Semua"}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-400 mb-1">Aksi</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Aksi</label>
           <select value={action} onChange={e => setAction(e.target.value)}
-            className="px-3 py-1.5 bg-black border border-[#CBD5E1] rounded-lg text-sm text-[#EEEEEE] focus:border-[#2563EB] focus:outline-none">
+            className="px-3 py-1.5 bg-[#F8FAFC] border border-gray-200 rounded-lg text-sm text-gray-900 focus:border-[#2563EB] focus:outline-none">
             <option value="">Semua</option>
             <option value="INSERT">INSERT</option>
             <option value="UPDATE">UPDATE</option>
@@ -104,38 +104,38 @@ export default function AuditLogPage() {
       </div>
 
       {/* Log Table */}
-      <div className="bg-[#111] rounded-xl border border-[#CBD5E1] overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Memuat audit log...</div>
+          <div className="p-8 text-center text-gray-500">Memuat audit log...</div>
         ) : displayLogs.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">Tidak ada data audit log</div>
+          <div className="p-8 text-center text-gray-500">Tidak ada data audit log</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#0a0a0a] border-b border-[#CBD5E1]">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">Waktu</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">Tabel</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">Aksi</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">Record ID</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">Oleh</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-400">IP</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Waktu</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Tabel</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Aksi</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Record ID</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">Oleh</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">IP</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1a1a1a]">
                 {displayLogs.map(log => (
-                  <tr key={log.id_audit} className="hover:bg-[#1a1a1a]">
+                  <tr key={log.id_audit} className="hover:bg-gray-50">
                     <td className="px-4 py-2.5 whitespace-nowrap text-gray-300">
                       {new Date(log.created_at).toLocaleString("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </td>
                     <td className="px-4 py-2.5 font-mono text-xs text-gray-300">{log.table_name}</td>
                     <td className="px-4 py-2.5">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${ACTION_COLORS[log.action] || "bg-gray-500/10 text-gray-400"}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${ACTION_COLORS[log.action] || "bg-gray-500/10 text-gray-500"}`}>
                         {log.action}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-xs text-gray-400 truncate max-w-[120px]">{log.record_id.slice(0, 12)}...</td>
-                    <td className="px-4 py-2.5 text-gray-400 text-xs truncate max-w-[100px]">{log.changed_by}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-gray-500 truncate max-w-[120px]">{log.record_id.slice(0, 12)}...</td>
+                    <td className="px-4 py-2.5 text-gray-500 text-xs truncate max-w-[100px]">{log.changed_by}</td>
                     <td className="px-4 py-2.5 text-gray-500 text-xs">{log.ip_address || "-"}</td>
                   </tr>
                 ))}

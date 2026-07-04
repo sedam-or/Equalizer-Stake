@@ -42,15 +42,15 @@ export default function ReportsPage() {
       .finally(() => setLoading(false));
   }, [router]);
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="text-gray-400">Memuat laporan...</div></div>;
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="text-gray-500">Memuat laporan...</div></div>;
   if (!data) return <div className="flex items-center justify-center h-64"><div className="text-gray-500">Belum ada data laporan</div></div>;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#EEEEEE]">Laporan &amp; Analitik</h1>
-          <p className="text-sm text-gray-400">Dashboard Owner — Periode {data.billing_period}</p>
+          <h1 className="text-2xl font-bold text-gray-900">Laporan &amp; Analitik</h1>
+          <p className="text-sm text-gray-500">Dashboard Owner — Periode {data.billing_period}</p>
         </div>
         <button className="px-4 py-2 bg-[#2563EB] text-black text-sm font-semibold rounded-lg hover:bg-[#1d4ed8] opacity-50 cursor-not-allowed"
           title="Coming soon">
@@ -72,17 +72,17 @@ export default function ReportsPage() {
       </div>
 
       {/* Recent Audit */}
-      <div className="bg-[#111] rounded-xl p-6 border border-[#CBD5E1]">
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[#EEEEEE]">Aktivitas Terakhir</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Aktivitas Terakhir</h2>
           <a href="/dashboard/audit-log" className="text-sm text-[#2563EB] hover:underline">Lihat Semua →</a>
         </div>
         {data.recent_audit.length === 0 ? (
-          <p className="text-sm text-gray-400">Belum ada aktivitas</p>
+          <p className="text-sm text-gray-500">Belum ada aktivitas</p>
         ) : (
           <div className="space-y-2">
             {data.recent_audit.map(log => (
-              <div key={log.id_audit} className="flex items-center gap-3 py-2 border-b border-[#1a1a1a] last:border-0">
+              <div key={log.id_audit} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   log.action === "INSERT" ? "bg-[#2563EB]/10 text-[#2563EB]" :
                   log.action === "UPDATE" ? "bg-yellow-500/10 text-yellow-500" :
@@ -101,8 +101,8 @@ export default function ReportsPage() {
 
 function KpiCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
   return (
-    <div className="bg-[#111] rounded-xl p-4 border border-[#CBD5E1]">
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
+    <div className="bg-white rounded-xl p-4 border border-gray-200">
+      <p className="text-xs text-gray-500 mb-1">{label}</p>
       <p className={`text-2xl font-bold ${color}`}>{value}</p>
       <p className="text-xs text-gray-500 mt-1">{sub}</p>
     </div>

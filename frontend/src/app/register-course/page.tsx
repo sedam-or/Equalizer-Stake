@@ -82,7 +82,7 @@ const CLASS_TYPES = [
 ] as const;
 
 const selectClass =
-  "w-full rounded-lg border border-[#CBD5E1] bg-[#111] px-4 py-3 text-[#EEEEEE] placeholder-gray-500 outline-none transition-colors focus:border-[#2563EB]";
+  "w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 outline-none transition-colors focus:border-[#2563EB]";
 
 export default function RegisterCoursePage() {
   const [form, setForm] = useState({
@@ -132,8 +132,8 @@ export default function RegisterCoursePage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black px-4">
-        <div className="w-full max-w-md rounded-2xl border border-[#CBD5E1] bg-[#111] p-8 text-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#2563EB]/10">
             <svg
               className="h-8 w-8 text-[#2563EB]"
@@ -149,10 +149,10 @@ export default function RegisterCoursePage() {
               />
             </svg>
           </div>
-          <h2 className="mb-2 text-xl font-bold text-[#EEEEEE]">
+          <h2 className="mb-2 text-xl font-bold text-gray-900">
             Pendaftaran Berhasil!
           </h2>
-          <p className="text-gray-400">
+          <p className="text-gray-500">
             Kami akan menghubungi Anda via WhatsApp.
           </p>
           <a
@@ -172,7 +172,7 @@ export default function RegisterCoursePage() {
       : [];
 
   return (
-    <div className="min-h-screen bg-black px-4 py-16">
+    <div className="min-h-screen bg-[#F8FAFC] px-4 py-16">
       <div className="mx-auto max-w-xl">
         <div className="mb-8 text-center">
           <a href="/" className="text-[#2563EB] text-sm hover:underline">
@@ -181,14 +181,14 @@ export default function RegisterCoursePage() {
           <h1 className="mt-4 text-3xl font-bold text-[#2563EB]">
             Daftar Kursus
           </h1>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-gray-500">
             Isi formulir berikut untuk mendaftar kursus di BMD Music School
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-2xl border border-[#CBD5E1] bg-[#111] p-6"
+          className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6"
         >
           {/* Nama Lengkap */}
           <div>

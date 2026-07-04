@@ -150,28 +150,28 @@ export default function RegistrationsPage() {
     });
 
   const inputClass =
-    "w-full rounded-lg border border-[#CBD5E1] bg-black px-3 py-2 text-sm text-[#EEEEEE] outline-none focus:border-[#2563EB]";
+    "w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]";
 
-  if (loading) return <div className="p-8 text-center text-gray-400">Memuat...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">Memuat...</div>;
 
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-bold text-[#EEEEEE]">
+      <h1 className="mb-1 text-2xl font-bold text-gray-900">
         Pendaftaran Kursus
       </h1>
-      <p className="mb-6 text-sm text-gray-400">
+      <p className="mb-6 text-sm text-gray-500">
         Review dan kelola pendaftaran kursus baru
       </p>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-[#111]">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
         {registrations.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">Tidak ada pendaftaran</div>
+          <div className="p-8 text-center text-gray-500">Tidak ada pendaftaran</div>
         ) : (
           <>
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#CBD5E1] text-xs uppercase tracking-wider text-gray-500">
+              <tr className="border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500">
                 <th className="px-4 py-3">Nama</th>
                 <th className="px-4 py-3">WhatsApp</th>
                 <th className="hidden px-4 py-3 md:table-cell">Instrumen</th>
@@ -186,19 +186,19 @@ export default function RegistrationsPage() {
               {registrations.map((r) => (
                 <tr
                   key={r.id}
-                  className="border-b border-[#CBD5E1]/50 transition-colors hover:bg-white/[0.02]"
+                  className="border-b border-gray-200/50 transition-colors hover:bg-white/[0.02]"
                 >
-                  <td className="px-4 py-3 font-medium text-[#EEEEEE]">
+                  <td className="px-4 py-3 font-medium text-gray-900">
                     {r.full_name}
                   </td>
-                  <td className="px-4 py-3 text-gray-400">{r.phone_whatsapp}</td>
-                  <td className="hidden px-4 py-3 text-gray-400 md:table-cell">
+                  <td className="px-4 py-3 text-gray-500">{r.phone_whatsapp}</td>
+                  <td className="hidden px-4 py-3 text-gray-500 md:table-cell">
                     {INSTRUMENT_LABELS[r.instrument] ?? r.instrument}
                   </td>
-                  <td className="hidden px-4 py-3 text-gray-400 md:table-cell">
+                  <td className="hidden px-4 py-3 text-gray-500 md:table-cell">
                     {LEVEL_LABELS[r.level] ?? r.level}
                   </td>
-                  <td className="hidden px-4 py-3 text-gray-400 lg:table-cell">
+                  <td className="hidden px-4 py-3 text-gray-500 lg:table-cell">
                     {CLASS_TYPE_LABELS[r.class_type] ?? r.class_type}
                   </td>
                   <td className="px-4 py-3">
@@ -208,7 +208,7 @@ export default function RegistrationsPage() {
                       {STATUS_LABELS[r.status]}
                     </span>
                   </td>
-                  <td className="hidden px-4 py-3 text-gray-400 sm:table-cell">
+                  <td className="hidden px-4 py-3 text-gray-500 sm:table-cell">
                     {formatDate(r.created_at)}
                   </td>
                   <td className="px-4 py-3">
@@ -219,7 +219,7 @@ export default function RegistrationsPage() {
                         setScheduleDay("");
                         setScheduleTime("");
                       }}
-                      className="rounded-lg border border-[#CBD5E1] px-3 py-1.5 text-xs font-medium text-[#EEEEEE] transition-colors hover:border-[#2563EB] hover:text-[#2563EB]"
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-900 transition-colors hover:border-[#2563EB] hover:text-[#2563EB]"
                     >
                       Detail
                     </button>
@@ -236,20 +236,20 @@ export default function RegistrationsPage() {
       {/* Modal */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#F8FAFC]/70 p-4 backdrop-blur-sm"
           onClick={() => setSelected(null)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl border border-[#CBD5E1] bg-[#111] p-6"
+            className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-[#EEEEEE]">
+              <h2 className="text-lg font-bold text-gray-900">
                 Detail Pendaftaran
               </h2>
               <button
                 onClick={() => setSelected(null)}
-                className="text-gray-500 hover:text-[#EEEEEE]"
+                className="text-gray-500 hover:text-gray-900"
               >
                 ✕
               </button>
@@ -283,13 +283,13 @@ export default function RegistrationsPage() {
             </div>
 
             {selected.status === "menunggu_konfirmasi" && (
-              <div className="mt-5 border-t border-[#CBD5E1] pt-5">
-                <h3 className="mb-3 text-sm font-semibold text-[#EEEEEE]">
+              <div className="mt-5 border-t border-gray-200 pt-5">
+                <h3 className="mb-3 text-sm font-semibold text-gray-900">
                   Setujui Pendaftaran
                 </h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="mb-1 block text-xs text-gray-400">
+                    <label className="mb-1 block text-xs text-gray-500">
                       Pengajar
                     </label>
                     <input
@@ -302,7 +302,7 @@ export default function RegistrationsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1 block text-xs text-gray-400">
+                      <label className="mb-1 block text-xs text-gray-500">
                         Hari
                       </label>
                       <select
@@ -319,7 +319,7 @@ export default function RegistrationsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs text-gray-400">
+                      <label className="mb-1 block text-xs text-gray-500">
                         Jam
                       </label>
                       <input
@@ -354,7 +354,7 @@ export default function RegistrationsPage() {
               <div className="mt-4 flex justify-end">
                 <button
                   onClick={() => setSelected(null)}
-                  className="rounded-full border border-[#CBD5E1] px-6 py-2 text-sm text-gray-400 hover:border-[#2563EB] hover:text-[#EEEEEE]"
+                  className="rounded-full border border-gray-200 px-6 py-2 text-sm text-gray-500 hover:border-[#2563EB] hover:text-gray-900"
                 >
                   Tutup
                 </button>
@@ -371,7 +371,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
       <span className="shrink-0 text-gray-500">{label}</span>
-      <span className="text-right text-[#EEEEEE]">{value}</span>
+      <span className="text-right text-gray-900">{value}</span>
     </div>
   );
 }

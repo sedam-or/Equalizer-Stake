@@ -43,26 +43,26 @@ export default function NotificationsPage() {
   const getUnread = (n: Notification) => n.unread_count ?? n.unreadCount ?? 0;
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-[#F8FAFC] p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[#EEEEEE]">
+          <h1 className="text-2xl font-bold text-gray-900">
             Notifikasi
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Notifikasi dikelompokkan per wali siswa
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => router.push("/dashboard/notification-settings")}
-            className="px-4 py-2 text-sm bg-[#CBD5E1] border border-[#CBD5E1] text-[#EEEEEE] rounded-lg hover:bg-[#355000]"
+            className="px-4 py-2 text-sm bg-[#CBD5E1] border border-gray-200 text-gray-900 rounded-lg hover:bg-[#355000]"
           >
             Pengaturan Notifikasi
           </button>
           <button
             onClick={() => router.push("/dashboard")}
-            className="px-4 py-2 text-sm bg-[#1a1a1a] border border-[#CBD5E1] text-gray-400 rounded-lg hover:bg-[#222]"
+            className="px-4 py-2 text-sm bg-gray-50 border border-gray-200 text-gray-500 rounded-lg hover:bg-[#222]"
           >
             Kembali
           </button>
@@ -70,9 +70,9 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-gray-400">Memuat notifikasi...</div>
+        <div className="p-8 text-center text-gray-500">Memuat notifikasi...</div>
       ) : notifications.length === 0 ? (
-        <div className="p-8 text-center text-gray-400">Belum ada notifikasi</div>
+        <div className="p-8 text-center text-gray-500">Belum ada notifikasi</div>
       ) : (
         <>
         <div className="space-y-3">
@@ -81,14 +81,14 @@ export default function NotificationsPage() {
               key={item.id_notification || idx}
               className={`rounded-xl border p-4 ${
                 getUnread(item) > 0
-                  ? "border-[#CBD5E1] bg-[#111]"
-                  : "border-[#1a1a1a] bg-[#0a0a0a]"
+                  ? "border-gray-200 bg-white"
+                  : "border-gray-100 bg-gray-50"
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-[#EEEEEE]">
+                    <span className="font-semibold text-gray-900">
                       {getName(item)}
                     </span>
                     {getUnread(item) > 0 && (
@@ -97,10 +97,10 @@ export default function NotificationsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-400 mb-2">
+                  <p className="text-sm text-gray-500 mb-2">
                     {getStudents(item).join(", ")}
                   </p>
-                  <p className="text-sm text-[#EEEEEE]">{item.message}</p>
+                  <p className="text-sm text-gray-900">{item.message}</p>
                 </div>
                 <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
                   {getTime(item)}
