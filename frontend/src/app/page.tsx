@@ -13,6 +13,7 @@ import StudioTourSection from "@/components/landing/StudioTourSection";
 import TestimonialSection from "@/components/landing/TestimonialSection";
 import PaketHargaSection from "@/components/landing/PaketHargaSection";
 import CtaSection from "@/components/landing/CtaSection";
+import FaqSection from "@/components/landing/FaqSection";
 
 export default function LandingPage() {
   return (
@@ -60,6 +61,7 @@ export default function LandingPage() {
       <PaketHargaSection />
 
       {/* CTA */}
+        <FaqSection />
       <CtaSection />
 
       <Footer />
