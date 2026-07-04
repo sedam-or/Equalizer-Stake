@@ -1848,7 +1848,7 @@
 - **Files**: `frontend/src/app/dashboard/profile/page.tsx`
 
 ### T-146: Guru Feedback Page (T-072)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: UC-02
 - **Deskripsi**:
