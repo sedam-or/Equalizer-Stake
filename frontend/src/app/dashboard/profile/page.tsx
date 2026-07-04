@@ -113,6 +113,38 @@ export default function ProfilePage() {
         <p className="text-sm text-gray-400">Kelola informasi akun Anda</p>
       </div>
 
+      {/* Photo Upload */}
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Foto Profil</h2>
+        <div className="flex items-center gap-4">
+          <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-400">
+            {profile?.full_name?.[0]?.toUpperCase() || "?"}
+          </div>
+          <div>
+            <input type="file" accept="image/jpeg,image/png" onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const formData = new FormData();
+              formData.append("file", file);
+              const token = localStorage.getItem("token");
+              try {
+                const res = await fetch("/api/v1/photos/upload", {
+                  method: "POST",
+                  headers: { Authorization: `Bearer ${token}` },
+                  body: formData,
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  setProfile(prev => prev ? { ...prev, photo_url: data.url } : prev);
+                  setMsg("Foto berhasil diunggah");
+                }
+              } catch {}
+            }} className="text-sm text-gray-500" />
+            <p className="text-xs text-gray-400 mt-1">JPEG/PNG, maks 5MB</p>
+          </div>
+        </div>
+      </div>
+
       {/* Profile Info */}
       <div className="bg-[#111] rounded-xl p-6 border border-[#CBD5E1] space-y-4">
         <div className="flex items-center justify-between">
