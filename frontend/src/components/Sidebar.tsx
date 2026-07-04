@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NotificationBadge } from "@/components/NotificationBadge";
 import { useEffect, useState } from "react";
+import { NotificationBadge } from "@/components/NotificationBadge";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type Role = "owner" | "admin" | "teacher" | "guardian";
 
@@ -154,6 +155,9 @@ export default function Sidebar() {
           <span className="mr-3 text-lg">{profileItem.icon}</span>
           {profileItem.label}
         </Link>
+      </div>
+      <div className="px-3 pb-3">
+        <ThemeToggle />
       </div>
     </aside>
   );
