@@ -1872,7 +1872,7 @@
 - **Files**: `frontend/src/app/dashboard/ratings/page.tsx` (new)
 
 ### T-148: Instruments Public Page (T-074)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: NFR-USA-01
 - **Deskripsi**:
