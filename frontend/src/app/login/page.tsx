@@ -124,7 +124,7 @@ export default function LoginPage() {
 
         <p className={styles.footer}>
           Belum punya akun?{" "}
-          <a href="/register" className={styles.footerLink}>Daftar</a>
+          <a href="/register-course" className={styles.footerLink}>Daftar</a>
         </p>
         <p className={styles.footer}>
           <a href="/forgot-password" className={styles.footerLink}>Lupa Password?</a>
