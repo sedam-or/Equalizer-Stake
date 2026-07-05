@@ -20,6 +20,7 @@ from app.schemas.scheduling import (
     StudioBookingCreate,
 )
 from app.services.audit import create_audit_log
+from app.services.duration_validation import validate_session_duration
 from app.services.scheduling import (
     ConflictError,
     approve_recording,
