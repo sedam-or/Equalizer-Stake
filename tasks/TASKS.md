@@ -2180,7 +2180,7 @@
 - **Files**: `backend/app/services/billing.py`, `frontend/src/app/dashboard/my-payments/page.tsx`
 
 ### T-168: Dashboard Wali Murid — Fix Menu & Pages
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-02, UC-02
 - **Deskripsi**:
