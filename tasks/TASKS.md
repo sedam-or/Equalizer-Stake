@@ -962,6 +962,7 @@
 | Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ✅ 9/9 |
 | Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 27/28 |
 | Phase 23: LANDING PAGE + REGISTRATION REBUILD | T-156..T-162 | ⏳ 0/7 |
+| Phase 24: GUARDIAN + TEACHER FLOW FIX | T-163..T-168 | ⏳ 0/6 |
 | **Total** | **162 tasks** | **120/162 done** |
 
 ---
@@ -2097,6 +2098,101 @@
   - Footer: "Booking Studio" (WhatsApp) + "Daftar Kursus" (register)
 - **Test**: Copywriting match copywriting-rewrite.md, benefit > feature
 - **Files**: Semua file landing page components
+
+---
+
+
+---
+
+## Phase 24: GUARDIAN + TEACHER FLOW FIX
+
+### T-163: Student CRUD — Backend API
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-02, UC-02
+- **Deskripsi**:
+  - POST /api/v1/students/ — tambah anak (guardian only)
+  - GET /api/v1/students/ — list anak (guardian: milik sendiri, admin: semua)
+  - PUT /api/v1/students/{id} — edit anak (guardian/admin)
+  - DELETE /api/v1/students/{id} — soft delete
+  - Model Student: id_guardian, full_name (encrypted), date_of_birth, instrument (ENUM), level (ENUM), enrollment_status
+  - Constraint: 1 guardian bisa punya N students
+  - Constraint: 1 student = 1 instrument
+  - PII: full_name wajib AES-256-GCM
+- **Test**: Guardian bisa CRUD anak, admin bisa lihat semua
+- **Files**: `backend/app/models/student.py`, `backend/app/routers/students.py`, `backend/app/schemas/student.py`
+
+### T-164: Anak Saya Page — Guardian Dashboard
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-02, UC-02
+- **Deskripsi**:
+  - /dashboard/my-students — halaman CRUD anak untuk guardian
+  - List semua anak (nama, instrumen, level, status)
+  - Form tambah anak: nama, tgl lahir, instrumen (dropdown), level (dropdown)
+  - Edit anak: update data
+  - Hapus anak: soft delete dengan konfirmasi
+  - Fetch dari API: GET /api/v1/students/ (tanpa id, auto-filter by guardian)
+- **Test**: Guardian bisa tambah/edit/hapus anak, data muncul di dashboard
+- **Files**: `frontend/src/app/dashboard/my-students/page.tsx`
+
+### T-165: Register Course Flow Fix — Multi-Student
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-02, UC-02
+- **Deskripsi**:
+  - Ubah flow register-course:
+    - Step 1: Data Diri Wali Murid
+    - Step 2: Buat Akun
+    - Step 3: Tambah Anak (bisa lebih dari 1, per anak: nama, instrumen, level)
+    - Step 4: Pilih Jadwal (per anak)
+    - Step 5: Upload Bukti Transfer
+    - Step 6: Selesai
+  - Backend: buat User + Guardian + Students (N records) dalam 1 request
+  - Setiap Student punya instrument + level sendiri
+- **Test**: Wali Murid bisa daftar dengan 3 anak, masing-masing instrumen berbeda
+- **Files**: `frontend/src/app/register-course/page.tsx`, `backend/app/routers/registrations.py`
+
+### T-166: Admin Assign Student ke Session
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-03, UC-03
+- **Deskripsi**:
+  - Admin bisa assign Student → Session (teacher + room + jadwal)
+  - GET /api/v1/sessions/available-slots — slot kosong
+  - POST /api/v1/sessions/assign — assign student ke slot
+  - Admin page: drag-drop atau dropdown untuk assign
+  - Constraint: 1 student per session, no overlap
+- **Test**: Admin assign student ke session, jadwal muncul di dashboard guru + wali
+- **Files**: `backend/app/routers/scheduling.py`, `frontend/src/app/dashboard/schedule/page.tsx`
+
+### T-167: Invoice Per Guardian — Aggregate Billing
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-06, UC-06
+- **Deskripsi**:
+  - Invoice per Guardian (bukan per Student)
+  - Aggregate: Registration Fee + SPP dari semua Student aktif
+  - unique_code 3 digit per invoice (untuk verifikasi transfer)
+  - Auto-generate tanggal 5 setiap bulan (cron job)
+  - Dashboard wali: lihat semua invoice + status
+- **Test**: Invoice ter-generate untuk guardian dengan 3 anak, total = sum SPP
+- **Files**: `backend/app/services/billing.py`, `frontend/src/app/dashboard/my-payments/page.tsx`
+
+### T-168: Dashboard Wali Murid — Fix Menu & Pages
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-02, UC-02
+- **Deskripsi**:
+  - Pastikan menu wali murid benar:
+    - Jadwal Anak (sessions semua anak)
+    - Anak Saya (CRUD student)
+    - Pembayaran (invoices + bayar)
+    - Beri Nilai (rate teacher)
+  - Hapus menu yang tidak relevan untuk wali murid
+  - Pastikan redirect setelah login benar
+- **Test**: Login sebagai wali_01 → dashboard wali murid → menu lengkap
+- **Files**: `frontend/src/components/Sidebar.tsx`, `frontend/src/app/dashboard/`
 
 ---
 
