@@ -2678,7 +2678,7 @@
 ## Phase 30: BUSINESS LOGIC FIXES (SRS Addendum)
 
 ### T-200: Cuti Max 2 Bulan Per Tahun Validation
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **SRS**: Addendum Section 3 — Kebijakan Cuti
 - **FR/UC terkait**: FR-02, UC-02
