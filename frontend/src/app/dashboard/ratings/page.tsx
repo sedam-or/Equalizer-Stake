@@ -19,7 +19,7 @@ export default function RatingsPage() {
     setError(""); setSuccess("");
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("/api/v1/v1/ratings/", {
+      const res = await fetch("/api/v1/ratings/", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ teacher_id: teacherId, rating, comment }),

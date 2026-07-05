@@ -13,7 +13,7 @@ from app.core.config import get_settings
 from app.core.limiter import limiter
 from app.services.scheduler import start_scheduler, shutdown_scheduler
 from app.services.background_queue import start_worker, stop_worker
-from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, eligibility, admin_mgmt, override, settings as settings_router, pricing, draft, students, payments, my_portal, registrations, photos, cron_trigger, feedback, ratings, import_data, teachers
+from app.routers import auth, scheduling, billing, attendance, notification, audit, privacy, multi_student, reports, admin_mgmt, override, settings as settings_router, pricing, draft, students, payments, my_portal, registrations, photos, cron_trigger, feedback, ratings, import_data, teachers, holidays
 
 settings = get_settings()
 
@@ -104,7 +104,7 @@ app.include_router(notification.router)
 app.include_router(audit.router)
 app.include_router(privacy.router)
 app.include_router(multi_student.router)
-app.include_router(eligibility.router)
+app.include_router(reports.router)
 app.include_router(admin_mgmt.router)
 app.include_router(override.router)
 app.include_router(settings_router.router)
@@ -115,7 +115,8 @@ app.include_router(payments.router)
 app.include_router(my_portal.router)
 app.include_router(registrations.router)
 app.include_router(teachers.router)
-app.include_router(photos.router, prefix="/api/photos", tags=["Photos"])
+app.include_router(holidays.router)
+app.include_router(photos.router, prefix="/api/v1/photos", tags=["Photos"])
 app.include_router(cron_trigger.router, prefix="/api/admin/cron", tags=["Cron Trigger"])
 app.include_router(feedback.router)
 app.include_router(ratings.router)

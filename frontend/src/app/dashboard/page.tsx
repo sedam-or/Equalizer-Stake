@@ -37,7 +37,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("/api/v1/v1/reports/admin-stats", {
+    fetch("/api/v1/reports/admin-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -249,7 +249,7 @@ function TeacherDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("/api/v1/v1/reports/teacher-stats", {
+    fetch("/api/v1/reports/teacher-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -327,7 +327,7 @@ function GuardianDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("/api/v1/v1/reports/guardian-stats", {
+    fetch("/api/v1/reports/guardian-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())

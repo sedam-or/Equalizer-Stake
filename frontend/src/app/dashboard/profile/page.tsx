@@ -128,7 +128,7 @@ export default function ProfilePage() {
               formData.append("file", file);
               const token = localStorage.getItem("token");
               try {
-                const res = await fetch("/api/v1/v1/photos/upload", {
+                const res = await fetch("/api/v1/photos/upload", {
                   method: "POST",
                   headers: { Authorization: `Bearer ${token}` },
                   body: formData,
