@@ -2378,7 +2378,7 @@
 - **Files**: backend/app/services/*.py, docs/audit/backend/
 
 ### T-181: Backend Audit — Security & Auth Flow
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **Deskripsi**:
   - Audit auth.py: login, register, refresh, logout, forgot-password
