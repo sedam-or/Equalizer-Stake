@@ -1,8 +1,3 @@
-/**
- * Shared Section Header — DRY component
- */
-import { SECTION_HEADER_CLASS, SECTION_SUBTITLE_CLASS } from "@/lib/landing-constants";
-
 interface SectionHeaderProps {
   title: string;
   subtitle?: string;
@@ -11,8 +6,10 @@ interface SectionHeaderProps {
 export default function SectionHeader({ title, subtitle }: SectionHeaderProps) {
   return (
     <div className="text-center">
-      <h2 className={SECTION_HEADER_CLASS}>{title}</h2>
-      {subtitle && <p className={SECTION_SUBTITLE_CLASS}>{subtitle}</p>}
+      <h2 className="font-heading text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        {title}
+      </h2>
+      {subtitle && <p className="mt-3 text-base text-gray-500 sm:text-lg">{subtitle}</p>}
     </div>
   );
 }

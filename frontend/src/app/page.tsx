@@ -1,11 +1,15 @@
+/**
+ * BMD Landing Page — Final rebuild
+ * Design: Split hero, 7 sections, warm colors, real images
+ * Reference: synthesis from Yousician + Fender + Masterclass + local schools
+ */
+
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import ProgramKursusSection from "@/components/landing/ProgramKursusSection";
-import KenapaBMDSection from "@/components/landing/KenapaBMDSection";
-import StudioTourSection from "@/components/landing/StudioTourSection";
+import TentangSection from "@/components/landing/TentangSection";
 import TestimonialSection from "@/components/landing/TestimonialSection";
 import PaketHargaSection from "@/components/landing/PaketHargaSection";
-import FaqSection from "@/components/landing/FaqSection";
 import CtaSection from "@/components/landing/CtaSection";
 import Footer from "@/components/landing/Footer";
 
@@ -18,11 +22,9 @@ export default function HomePage() {
       <Navbar />
       <HeroSection />
       <ProgramKursusSection />
-      <KenapaBMDSection />
-      <StudioTourSection />
+      <TentangSection />
       <TestimonialSection />
       <PaketHargaSection />
-      <FaqSection />
       <CtaSection />
       <Footer />
     </main>
