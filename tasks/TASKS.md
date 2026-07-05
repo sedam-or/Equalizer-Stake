@@ -2541,7 +2541,7 @@
 - **Files**: backend/app/models/teacher.py, room.py, session.py, feedback.py, rating.py
 
 ### T-191: Move Router Prefix to Router Definition
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **Source**: T-178 (BACKEND_ROUTER_AUDIT.md)
 - **Deskripsi**:
