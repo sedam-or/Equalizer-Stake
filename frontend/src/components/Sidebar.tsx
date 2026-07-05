@@ -48,18 +48,26 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    label: "Portal",
-    roles: ["teacher", "guardian"],
+    label: "Guru",
+    roles: ["teacher"],
     items: [
-      { href: "/dashboard/my-schedule", label: "Jadwal Saya", icon: "📅" },
-      { href: "/dashboard/attendance/submit", label: "Absen", icon: "📷" },
+      { href: "/dashboard/my-schedule", label: "Jadwal Mengajar", icon: "📅" },
+      { href: "/dashboard/attendance/submit", label: "Absensi", icon: "📷" },
+      { href: "/dashboard/feedback", label: "Feedback", icon: "💬" },
+    ],
+  },
+  {
+    label: "Wali Murid",
+    roles: ["guardian"],
+    items: [
+      { href: "/dashboard/my-schedule", label: "Jadwal Anak", icon: "📅" },
       { href: "/dashboard/my-children", label: "Anak Saya", icon: "👶" },
-      { href: "/dashboard/my-payments", label: "Pembayaran Saya", icon: "💳" },
+      { href: "/dashboard/my-payments", label: "Pembayaran", icon: "💳" },
+      { href: "/dashboard/ratings", label: "Beri Nilai", icon: "⭐" },
     ],
   },
 ];
 
-const guardianOnlyItems = ["/dashboard/my-children", "/dashboard/my-payments"];
 const profileItem = { href: "/dashboard/profile", label: "Profil Saya", icon: "👤" };
 
 export default function Sidebar() {
@@ -94,7 +102,6 @@ export default function Sidebar() {
         {navSections.map((section) => {
           if (!section.roles.includes(currentRole)) return null;
           const visibleItems = section.items.filter((item) => {
-            if (currentRole === "teacher" && guardianOnlyItems.includes(item.href)) return false;
             return true;
           });
           if (visibleItems.length === 0) return null;
