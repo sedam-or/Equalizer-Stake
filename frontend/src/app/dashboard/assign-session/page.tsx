@@ -23,8 +23,8 @@ export default function AssignSessionPage() {
     try {
       const [sRes, tRes, rRes] = await Promise.all([
         fetch("/api/v1/students/", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/v1/scheduling/teachers", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/v1/scheduling/rooms", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/v1/sessions/teachers", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/v1/sessions/rooms", { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       if (sRes.ok) { const d = await sRes.json(); setStudents(d.data || []); }
       if (tRes.ok) setTeachers(await tRes.json());
@@ -41,7 +41,7 @@ export default function AssignSessionPage() {
       setError("Semua field wajib diisi"); return;
     }
     try {
-      const res = await fetch("/api/v1/scheduling/", {
+      const res = await fetch("/api/v1/sessions/", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
