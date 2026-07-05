@@ -2022,7 +2022,7 @@
 - **Files**: `frontend/src/components/landing/PaketHargaSection.tsx` (rename to HargaSection.tsx)
 
 ### T-158: Registration Flow — Self-Service Wali Murid
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **FR/UC terkait**: FR-02, UC-02
 - **Deskripsi**:
