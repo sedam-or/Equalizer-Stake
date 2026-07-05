@@ -34,9 +34,9 @@ async def submit_registration(
     address: str = Form(None),
     username: str = Form(..., min_length=3, max_length=50),
     password: str = Form(..., min_length=8, max_length=100),
-    instrument: str = Form(..., max_length=50),
-    level: str = Form(..., max_length=50),
-    class_type: str = Form(..., max_length=50),
+    instrument: str = Form(None, max_length=50),
+    level: str = Form(None, max_length=50),
+    class_type: str = Form(None, max_length=50),
     schedule_id: str = Form(None),
     children: str = Form(None),  # JSON array of {full_name, instrument, level}
     payment_proof: UploadFile = File(None),
