@@ -13,6 +13,7 @@ class RegistrationCreate(BaseModel):
     instrument: str = Field(..., max_length=50)
     level: str = Field(..., max_length=50)
     class_type: str = Field(..., max_length=50)
+    schedule_id: str | None = None
 
 
 class RegistrationReject(BaseModel):

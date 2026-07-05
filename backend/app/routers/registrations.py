@@ -1,9 +1,11 @@
 """Registration router — visitor registration + admin approval flow (T-066)."""
+import os
+import uuid
 
 from datetime import date, datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,18 +28,41 @@ router = APIRouter(prefix="/api/v1/registrations", tags=["Registrations"])
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def submit_registration(
-    data: RegistrationCreate,
+    full_name: str = Form(..., min_length=2, max_length=255),
+    phone_whatsapp: str = Form(..., min_length=8, max_length=20),
+    email: str = Form(None),
+    address: str = Form(None),
+    instrument: str = Form(..., max_length=50),
+    level: str = Form(..., max_length=50),
+    class_type: str = Form(..., max_length=50),
+    schedule_id: str = Form(None),
+    payment_proof: UploadFile = File(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Publik: calon murid mengisi formulir pendaftaran."""
+    """Publik: calon murid mengisi formulir pendaftaran dengan bukti transfer."""
+    # Save payment proof if provided
+    proof_path = None
+    if payment_proof and payment_proof.filename:
+        upload_dir = "uploads/registration"
+        os.makedirs(upload_dir, exist_ok=True)
+        file_ext = os.path.splitext(payment_proof.filename)[1]
+        file_name = f"{uuid.uuid4()}{file_ext}"
+        file_path = os.path.join(upload_dir, file_name)
+        content = await payment_proof.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+        proof_path = file_path
+
     reg = Registration(
-        full_name=data.full_name,
-        phone_whatsapp=data.phone_whatsapp,
-        email=data.email,
-        address=data.address,
-        instrument=data.instrument,
-        level=data.level,
-        class_type=data.class_type,
+        full_name=full_name,
+        phone_whatsapp=phone_whatsapp,
+        email=email,
+        address=address,
+        instrument=instrument,
+        level=level,
+        class_type=class_type,
+        schedule_id=schedule_id,
+        payment_proof_path=proof_path,
     )
     db.add(reg)
     await db.flush()
@@ -302,3 +327,51 @@ async def delete_registration(
     reg.deleted_at = datetime.now(timezone.utc)
     await db.commit()
     return {"detail": "Pendaftaran berhasil dihapus"}
+
+
+# ── Public: available schedules for registration ─────────────────────
+
+@router.get("/available-schedules")
+async def get_available_schedules(
+    instrument: str = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Publik: ambil jadwal yang tersedia untuk pendaftaran."""
+    from app.models.session import Session
+    from app.models.room import Room
+    from app.models.teacher import Teacher
+    
+    # Get future sessions that are not cancelled
+    now = datetime.now(timezone.utc)
+    base = (
+        select(Session)
+        .where(Session.session_date >= now.date())
+        .where(Session.status != "cancelled")
+    )
+    
+    result = await db.execute(base)
+    sessions = result.scalars().all()
+    
+    # Get all rooms and teachers
+    rooms_result = await db.execute(select(Room).where(Room.is_available == True))
+    rooms = {str(r.id_room): r for r in rooms_result.scalars().all()}
+    
+    teachers_result = await db.execute(select(Teacher))
+    teachers = {str(t.id_teacher): t for t in teachers_result.scalars().all()}
+    
+    # Build available slots
+    available = []
+    for session in sessions:
+        room = rooms.get(str(session.id_room))
+        teacher = teachers.get(str(session.id_teacher))
+        available.append({
+            "id": str(session.id_session),
+            "day": session.session_date.strftime("%A"),
+            "date": session.session_date.strftime("%Y-%m-%d"),
+            "start_time": session.start_time.strftime("%H:%M") if session.start_time else None,
+            "end_time": session.end_time.strftime("%H:%M") if session.end_time else None,
+            "room": room.room_name if room else "Unknown",
+            "teacher": teacher.full_name if teacher else "Unknown",
+        })
+    
+    return {"schedules": available}

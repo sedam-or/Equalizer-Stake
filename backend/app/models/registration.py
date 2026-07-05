@@ -26,6 +26,8 @@ class Registration(Base):
     instrument: Mapped[str] = mapped_column(String(50), nullable=False)
     level: Mapped[str] = mapped_column(String(50), nullable=False)
     class_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    schedule_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    payment_proof_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[str] = mapped_column(
         Enum("pending", "approved", "rejected", name="registration_status"),
         nullable=False,
