@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const INSTRUMENTS = ["piano", "gitar", "biola", "drum", "vokal", "keyboard", "flute", "saxophone", "bass", "paket_liburan"];
 const INSTRUMENT_LABELS: Record<string, string> = {
@@ -46,16 +47,8 @@ export default function RegisterCoursePage() {
     setChildren(updated);
   };
 
-  const addChild = () => {
-    setChildren([...children, { full_name: "", instrument: "piano", level: "pemula" }]);
-  };
-
-  const removeChild = (index: number) => {
-    if (children.length > 1) setChildren(children.filter((_, i) => i !== index));
-  };
-
-  const nextStep = () => { setError(""); if (step < 5) setStep(step + 1); };
-  const prevStep = () => { setError(""); if (step > 1) setStep(step - 1); };
+  const addChild = () => setChildren([...children, { full_name: "", instrument: "piano", level: "pemula" }]);
+  const removeChild = (index: number) => setChildren(children.filter((_, i) => i !== index));
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -66,7 +59,7 @@ export default function RegisterCoursePage() {
       formData.append("children", JSON.stringify(children));
       if (paymentProof) formData.append("payment_proof", paymentProof);
 
-      const res = await fetch("/api/v1/registrations/", { method: "POST", body: formData });
+      const res = await fetch("/api/v1/registrations", { method: "POST", body: formData });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.detail || "Gagal mengirim pendaftaran");
@@ -81,32 +74,24 @@ export default function RegisterCoursePage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4">
-        <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-8 text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-100">
-            <span className="text-4xl">⏳</span>
+      <div className="flex min-h-screen items-center justify-center bg-[#0F172A] px-6">
+        <div className="w-full max-w-md text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#D4AF37]/10 text-4xl text-[#D4AF37]">
+              ✓
+            </div>
           </div>
-          <h1 className="font-heading text-2xl font-bold text-gray-900">Pendaftaran Berhasil!</h1>
-          
-          <div className="mt-4 rounded-lg bg-yellow-50 border border-yellow-200 p-4">
-            <p className="text-sm font-semibold text-yellow-800">⏳ Menunggu Verifikasi Admin</p>
-            <p className="mt-2 text-sm text-yellow-700">
-              Pendaftaran Anda sedang dalam antrian verifikasi. Admin akan memverifikasi pembayaran dan mengaktifkan akun dalam <strong>1×24 jam</strong>.
-            </p>
-          </div>
-          
-          <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4 text-left">
-            <p className="text-sm font-semibold text-blue-800">📋 Langkah Selanjutnya:</p>
-            <ul className="mt-2 space-y-1 text-sm text-blue-700">
-              <li>1. Cek email Anda untuk konfirmasi</li>
-              <li>2. Setelah akun aktif, login ke dashboard</li>
-              <li>3. Lihat jadwal kursus anak Anda</li>
-            </ul>
-          </div>
-          
-          <div className="mt-6 flex gap-3 justify-center">
-            <a href="/login" className="rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8]">Login</a>
-            <a href="/" className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Kembali ke Beranda</a>
+          <h1 className="font-heading text-2xl font-bold text-white">Pendaftaran Berhasil!</h1>
+          <p className="mt-4 text-gray-400">
+            Pendaftaran Anda sedang dalam antrian verifikasi. Admin akan memverifikasi pembayaran dalam 1×24 jam.
+          </p>
+          <div className="mt-8 flex flex-col gap-3">
+            <Link href="/login" className="rounded-lg bg-[#D4AF37] py-3 text-sm font-bold text-[#0F172A] transition-all hover:bg-[#D4AF37]/90">
+              Login
+            </Link>
+            <Link href="/" className="text-sm text-gray-500 hover:text-white">
+              ← Kembali ke Beranda
+            </Link>
           </div>
         </div>
       </div>
@@ -114,45 +99,87 @@ export default function RegisterCoursePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-4 py-12">
-      <div className="mx-auto max-w-2xl">
-        <div className="text-center">
-          <h1 className="font-heading text-3xl font-bold text-gray-900">Daftar Kursus Musik</h1>
-          <p className="mt-2 text-gray-500">Isi formulir untuk mendaftarkan anak Anda kursus di BMD Music School</p>
+    <div className="min-h-screen bg-[#0F172A]">
+      {/* Header */}
+      <div className="border-b border-white/10 px-6 py-4">
+        <div className="mx-auto flex max-w-3xl items-center justify-between">
+          <Link href="/" className="font-heading text-xl font-bold text-white">
+            BMD <span className="text-[#D4AF37]">Music</span>
+          </Link>
+          <Link href="/login" className="text-sm text-gray-400 hover:text-white">
+            Sudah punya akun? <span className="text-[#D4AF37]">Login</span>
+          </Link>
         </div>
+      </div>
 
+      <div className="mx-auto max-w-3xl px-6 py-8">
         {/* Progress */}
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mb-8 flex items-center justify-between">
           {steps.map((s, i) => (
             <div key={s.id} className="flex items-center">
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${step >= s.id ? "bg-[#2563EB] text-white" : "bg-gray-200 text-gray-500"}`}>
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-all ${
+                step >= s.id
+                  ? "bg-[#D4AF37] text-[#0F172A]"
+                  : "border border-white/20 text-gray-500"
+              }`}>
                 {step > s.id ? "✓" : s.id}
               </div>
-              <span className={`ml-2 text-xs ${step >= s.id ? "text-[#2563EB]" : "text-gray-400"}`}>{s.label}</span>
-              {i < steps.length - 1 && <div className={`mx-2 h-px w-8 ${step > s.id ? "bg-[#2563EB]" : "bg-gray-200"}`} />}
+              <span className={`ml-2 hidden text-sm sm:block ${step >= s.id ? "text-white" : "text-gray-500"}`}>
+                {s.label}
+              </span>
+              {i < steps.length - 1 && (
+                <div className={`mx-3 hidden h-px w-8 sm:block ${step > s.id ? "bg-[#D4AF37]" : "bg-white/10"}`} />
+              )}
             </div>
           ))}
         </div>
 
-        <div className="mt-8 rounded-xl border border-gray-200 bg-white p-6">
+        {/* Error */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+
+        {/* Step Content */}
+        <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
           {/* Step 1: Data Diri */}
           {step === 1 && (
             <div className="space-y-4">
-              <h2 className="font-heading text-xl font-bold text-gray-900">Data Diri Wali Murid</h2>
-              <div><label className="mb-1 block text-sm font-medium text-gray-700">Nama Lengkap *</label><input type="text" name="full_name" value={form.full_name} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" placeholder="Nama lengkap" /></div>
-              <div><label className="mb-1 block text-sm font-medium text-gray-700">Nomor WhatsApp *</label><input type="tel" name="phone_whatsapp" value={form.phone_whatsapp} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" placeholder="08xxxxxxxxxx" /></div>
-              <div><label className="mb-1 block text-sm font-medium text-gray-700">Email *</label><input type="email" name="email" value={form.email} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" placeholder="email@example.com" /></div>
-              <div><label className="mb-1 block text-sm font-medium text-gray-700">Alamat</label><textarea name="address" value={form.address} onChange={handleChange} rows={3} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" placeholder="Alamat lengkap" /></div>
+              <h2 className="font-heading text-lg font-bold text-white">Data Diri</h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-300">Nama Lengkap</label>
+                  <input name="full_name" value={form.full_name} onChange={handleChange} placeholder="Nama lengkap" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-300">No. WhatsApp</label>
+                  <input name="phone_whatsapp" value={form.phone_whatsapp} onChange={handleChange} placeholder="0812-3456-7890" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20" />
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-300">Email</label>
+                <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="email@contoh.com" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20" />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-300">Alamat</label>
+                <textarea name="address" value={form.address} onChange={handleChange} placeholder="Alamat lengkap" rows={2} className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20" />
+              </div>
             </div>
           )}
 
           {/* Step 2: Buat Akun */}
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="font-heading text-xl font-bold text-gray-900">Buat Akun</h2>
-              <p className="text-sm text-gray-500">Buat akun untuk memantau progress kursus anak Anda.</p>
-              <div><label className="mb-1 block text-sm font-medium text-gray-700">Username *</label><input type="text" name="username" value={form.username} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" placeholder="Minimal 3 karakter" /></div>
-              <div><label className="mb-1 block text-sm font-medium text-gray-700">Password *</label><input type="password" name="password" value={form.password} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" placeholder="Minimal 8 karakter" /></div>
+              <h2 className="font-heading text-lg font-bold text-white">Buat Akun</h2>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-300">Username</label>
+                <input name="username" value={form.username} onChange={handleChange} placeholder="Pilih username" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20" />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-300">Password</label>
+                <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Minimal 8 karakter" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20" />
+              </div>
             </div>
           )}
 
@@ -160,25 +187,26 @@ export default function RegisterCoursePage() {
           {step === 3 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-heading text-xl font-bold text-gray-900">Data Anak</h2>
-                <button onClick={addChild} className="rounded-lg border border-[#2563EB] px-3 py-1.5 text-xs font-semibold text-[#2563EB]">+ Tambah Anak</button>
+                <h2 className="font-heading text-lg font-bold text-white">Tambah Anak</h2>
+                <button onClick={addChild} className="text-sm text-[#D4AF37] hover:underline">+ Tambah Anak</button>
               </div>
-              <p className="text-sm text-gray-500">Daftarkan minimal 1 anak. Bisa tambah lebih dari 1.</p>
               {children.map((child, i) => (
-                <div key={i} className="rounded-lg border border-gray-200 p-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-gray-900">Anak {i + 1}</h3>
-                    {children.length > 1 && <button onClick={() => removeChild(i)} className="text-xs text-red-500">Hapus</button>}
+                <div key={i} className="rounded-lg border border-white/10 bg-white/5 p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-300">Anak {i + 1}</span>
+                    {children.length > 1 && (
+                      <button onClick={() => removeChild(i)} className="text-xs text-red-400 hover:underline">Hapus</button>
+                    )}
                   </div>
-                  <div className="mt-3 space-y-3">
-                    <div><label className="mb-1 block text-xs text-gray-600">Nama *</label><input type="text" value={child.full_name} onChange={(e) => handleChildChange(i, "full_name", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Nama anak" /></div>
+                  <div className="space-y-3">
+                    <input value={child.full_name} onChange={(e) => handleChildChange(i, "full_name", e.target.value)} placeholder="Nama anak" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20" />
                     <div className="grid grid-cols-2 gap-3">
-                      <div><label className="mb-1 block text-xs text-gray-600">Instrumen *</label>
-                        <select value={child.instrument} onChange={(e) => handleChildChange(i, "instrument", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm capitalize">{INSTRUMENTS.map((x) => <option key={x} value={x}>{INSTRUMENT_LABELS[x] || x}</option>)}</select>
-                      </div>
-                      <div><label className="mb-1 block text-xs text-gray-600">Level</label>
-                        <select value={child.level} onChange={(e) => handleChildChange(i, "level", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm capitalize">{LEVELS.map((x) => <option key={x} value={x}>{x}</option>)}</select>
-                      </div>
+                      <select value={child.instrument} onChange={(e) => handleChildChange(i, "instrument", e.target.value)} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20">
+                        {INSTRUMENTS.map((x) => <option key={x} value={x}>{INSTRUMENT_LABELS[x]}</option>)}
+                      </select>
+                      <select value={child.level} onChange={(e) => handleChildChange(i, "level", e.target.value)} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20">
+                        {LEVELS.map((x) => <option key={x} value={x}>{x.charAt(0).toUpperCase() + x.slice(1)}</option>)}
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -189,10 +217,17 @@ export default function RegisterCoursePage() {
           {/* Step 4: Pilih Jadwal */}
           {step === 4 && (
             <div className="space-y-4">
-              <h2 className="font-heading text-xl font-bold text-gray-900">Pilih Jadwal</h2>
-              <p className="text-sm text-gray-500">Jadwal akan diatur oleh admin setelah pendaftaran diverifikasi.</p>
-              <div className="rounded-lg bg-blue-50 p-4">
-                <p className="text-sm text-blue-800">Admin akan menghubungi Anda via WhatsApp untuk konfirmasi jadwal kursus anak Anda.</p>
+              <h2 className="font-heading text-lg font-bold text-white">Pilih Jadwal</h2>
+              <p className="text-sm text-gray-400">
+                Jadwal akan ditentukan oleh admin setelah pendaftaran diverifikasi.
+              </p>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                <p className="text-sm text-gray-300">💡 Tips:</p>
+                <ul className="mt-2 space-y-1 text-sm text-gray-400">
+                  <li>• Jam operasional: Senin-Sabtu, 08:00-20:00</li>
+                  <li>• Durasi sesi: 30 atau 45 menit</li>
+                  <li>• Konsultasikan jadwal dengan admin</li>
+                </ul>
               </div>
             </div>
           )}
@@ -200,31 +235,44 @@ export default function RegisterCoursePage() {
           {/* Step 5: Pembayaran */}
           {step === 5 && (
             <div className="space-y-4">
-              <h2 className="font-heading text-xl font-bold text-gray-900">Pembayaran</h2>
-              <div className="rounded-lg bg-gray-50 p-4">
-                <h3 className="text-sm font-bold text-gray-900">Transfer ke:</h3>
-                <p className="mt-1 text-lg font-bold text-[#2563EB]">BCA 1234567890</p>
-                <p className="text-sm text-gray-500">a/n BMD Music School</p>
-              </div>
-              <div className="rounded-lg bg-gray-50 p-4">
-                <h3 className="text-sm font-bold text-gray-900">Total Pembayaran:</h3>
-                <p className="mt-1 text-sm text-gray-500">Registration Fee + SPP akan dihitung oleh admin berdasarkan data anak yang didaftarkan.</p>
+              <h2 className="font-heading text-lg font-bold text-white">Pembayaran</h2>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                <p className="text-sm text-gray-300">Transfer ke:</p>
+                <p className="mt-1 font-heading text-lg font-bold text-[#D4AF37]">BCA 1234567890</p>
+                <p className="text-xs text-gray-500">a.n. BMD Music School</p>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Upload Bukti Transfer *</label>
-                <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files?.[0] || null)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" />
-                <p className="mt-1 text-xs text-gray-500">Format: JPG, PNG. Maks 5MB.</p>
+                <label className="mb-1.5 block text-sm font-medium text-gray-300">Upload Bukti Transfer</label>
+                <input type="file" accept="image/*" onChange={(e) => setPaymentProof(e.target.files?.[0] || null)} className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-4 file:rounded-lg file:border-0 file:bg-[#D4AF37] file:px-4 file:py-2 file:text-sm file:font-bold file:text-[#0F172A]" />
               </div>
+              <p className="text-xs text-gray-500">
+                Registration fee + SPP akan dihitung oleh admin berdasarkan data anak yang didaftarkan.
+              </p>
             </div>
           )}
+        </div>
 
-          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+        {/* Navigation */}
+        <div className="mt-6 flex items-center justify-between">
+          {step > 1 ? (
+            <button onClick={() => setStep(step - 1)} className="rounded-lg border border-white/20 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/5">
+              Kembali
+            </button>
+          ) : (
+            <Link href="/" className="text-sm text-gray-500 hover:text-white">
+              ← Kembali
+            </Link>
+          )}
 
-          <div className="mt-6 flex items-center justify-between">
-            {step > 1 && <button onClick={prevStep} className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Kembali</button>}
-            {step < 5 && <button onClick={nextStep} className="ml-auto rounded-lg bg-[#2563EB] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8]">Lanjut</button>}
-            {step === 5 && <button onClick={handleSubmit} disabled={submitting || !paymentProof} className="ml-auto rounded-lg bg-[#2563EB] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50">{submitting ? "Mengirim..." : "Kirim Pendaftaran"}</button>}
-          </div>
+          {step < 5 ? (
+            <button onClick={() => setStep(step + 1)} className="rounded-lg bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#0F172A] transition-all hover:bg-[#D4AF37]/90">
+              Lanjut
+            </button>
+          ) : (
+            <button onClick={handleSubmit} disabled={submitting} className="rounded-lg bg-[#D4AF37] px-6 py-3 text-sm font-bold text-[#0F172A] transition-all hover:bg-[#D4AF37]/90 disabled:opacity-50">
+              {submitting ? "Mengirim..." : "Kirim Pendaftaran"}
+            </button>
+          )}
         </div>
       </div>
     </div>

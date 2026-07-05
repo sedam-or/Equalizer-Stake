@@ -73,11 +73,19 @@ export default function Navbar() {
             Tentang
           </a>
           <a
+            href="/login"
+            className={`text-sm transition-colors duration-300 hover:text-[#D4AF37] ${
+              onDark ? "text-gray-400" : "text-gray-500"
+            }`}
+          >
+            Login
+          </a>
+          <a
             href="/register-course"
             className={`rounded-lg border px-5 py-2 text-sm font-semibold transition-all duration-300 ${
               onDark
-                ? "border-white/20 text-white hover:border-[#D4AF37]/50 hover:text-[#D4AF37]"
-                : "border-gray-300 text-[#0F172A] hover:border-[#2563EB] hover:text-[#2563EB]"
+                ? "border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                : "border-[#2563EB] text-[#2563EB] hover:bg-[#2563EB]/5"
             }`}
           >
             Daftar
