@@ -2604,7 +2604,7 @@
 - **Files**: frontend/src/app/dashboard/*/page.tsx (22 files)
 
 ### T-195: Add triggerRefresh to All Data-Mutating Pages
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **Source**: T-185 (FRONTEND_STATE_MANAGEMENT_AUDIT.md)
 - **Deskripsi**:
