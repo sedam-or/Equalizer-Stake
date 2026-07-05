@@ -1,4 +1,5 @@
 "use client";
+import { SkeletonTable } from "@/components/Skeleton";
 import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 

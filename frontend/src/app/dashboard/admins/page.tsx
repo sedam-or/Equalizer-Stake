@@ -1,4 +1,5 @@
 "use client";
+import { SkeletonTable } from "@/components/Skeleton";
 import { useDashboard } from "@/components/DashboardContext";
 
 import { parseApiError } from "@/lib/api-error";
@@ -112,7 +113,7 @@ export default function AdminsPage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Memuat...</div>;
+  if (loading) return <SkeletonTable rows={5} />;
 
   return (
     <div>

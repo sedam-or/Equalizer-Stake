@@ -1,4 +1,5 @@
 "use client";
+import { SkeletonTable } from "@/components/Skeleton";
 import { useDashboard } from "@/components/DashboardContext";
 
 import { useEffect, useState } from "react";
@@ -154,7 +155,7 @@ export default function RegistrationsPage() {
   const inputClass =
     "w-full rounded-lg border border-gray-200 bg-[#F8FAFC] px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#2563EB]";
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Memuat...</div>;
+  if (loading) return <SkeletonTable rows={5} />;
 
   return (
     <div>
