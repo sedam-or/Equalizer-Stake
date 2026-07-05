@@ -67,7 +67,10 @@ export default function RegisterCoursePage() {
       if (paymentProof) formData.append("payment_proof", paymentProof);
 
       const res = await fetch("/api/v1/registrations/", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Gagal mengirim pendaftaran");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || "Gagal mengirim pendaftaran");
+      }
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
