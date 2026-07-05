@@ -1,4 +1,5 @@
 "use client";
+import { parseApiError } from "@/lib/api-error";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -70,8 +71,7 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        const detail = data.detail;
-        setErr(Array.isArray(detail) ? detail.map((e: { msg: string }) => e.msg).join("; ") : (detail || "Gagal memperbarui profil"));
+        setErr(parseApiError(data));
         return;
       }
       setMsg("Profil berhasil diperbarui");

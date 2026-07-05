@@ -1,4 +1,5 @@
 "use client";
+import { parseApiError } from "@/lib/api-error";
 /**
  * Override Attendance (Owner only)
  */

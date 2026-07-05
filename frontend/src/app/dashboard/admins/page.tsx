@@ -1,5 +1,7 @@
 "use client";
 
+import { parseApiError } from "@/lib/api-error";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Pagination from "@/components/Pagination";
@@ -34,10 +36,10 @@ export default function AdminsPage() {
     const token = getToken();
     if (!token) { router.push("/login"); return; }
     try {
-      const res = await fetch(`/api/admin-mgmt/admins?limit=${limit}&offset=${offset}`, {
+      const res = await fetch(`/api/v1/admin-mgmt/admins?limit=${limit}&offset=${offset}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Gagal memuat data");
+      if (!res.ok) { const d = await res.json(); throw new Error(parseApiError(d)); }
       const data = await res.json();
       const list = data.data || (Array.isArray(data.admins) ? data.admins : []);
       setAdmins(list);
@@ -64,7 +66,7 @@ export default function AdminsPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.detail || "Gagal membuat admin");
+        throw new Error(parseApiError(data));
       }
       setShowCreate(false);
       setCreateForm({ username: "", email: "", password: "" });
@@ -79,7 +81,7 @@ export default function AdminsPage() {
   const handleToggle = async (admin: Admin) => {
     const token = getToken();
     const action = admin.is_active ? "deactivate" : "activate";
-    await fetch(`/api/admin-mgmt/admins/${admin.id_user}/${action}`, {
+    await fetch(`/api/v1/admin-mgmt/admins/${admin.id_user}/${action}`, {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -91,14 +93,14 @@ export default function AdminsPage() {
     setDeleteError("");
     const token = getToken();
     try {
-      const res = await fetch(`/api/admin-mgmt/admins/${deleteTarget.id_user}`, {
+      const res = await fetch(`/api/v1/admin-mgmt/admins/${deleteTarget.id_user}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ confirm_username: deleteConfirm }),
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.detail || "Gagal menghapus admin");
+        throw new Error(parseApiError(data));
       }
       setDeleteTarget(null);
       setDeleteConfirm("");
