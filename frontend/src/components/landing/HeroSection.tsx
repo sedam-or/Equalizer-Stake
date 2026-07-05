@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import BlurText from "@/components/BlurText";
 
 function CountUp({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -54,13 +55,20 @@ export default function HeroSection() {
           </p>
 
           {/* Headline */}
-          <h1 className="text-balance font-heading text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-4xl lg:text-5xl">
-            Musik Bukan Sekadar Hobi.
-            <br />
-            <span className="text-[#D4AF37]">
-              Warisan untuk Masa Depan Anak.
-            </span>
-          </h1>
+          <BlurText
+            text="Musik Bukan Sekadar Hobi."
+            animateBy="words"
+            direction="top"
+            delay={100}
+            className="text-balance font-heading text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-4xl lg:text-5xl"
+          />
+          <BlurText
+            text="Warisan untuk Masa Depan Anak."
+            animateBy="words"
+            direction="top"
+            delay={150}
+            className="mt-2 text-balance font-heading text-3xl font-bold leading-[1.15] tracking-tight text-[#D4AF37] sm:text-4xl lg:text-5xl"
+          />
 
           {/* Sub */}
           <p className="mt-6 max-w-lg text-lg leading-relaxed text-gray-400">
