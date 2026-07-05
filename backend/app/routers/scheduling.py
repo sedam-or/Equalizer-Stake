@@ -47,7 +47,7 @@ async def list_sessions(
     """List sessions with optional filters."""
     from app.models.session import Session as SessionModel
 
-    query = select(SessionModel).where(SessionModel.status.notin_(["cancelled"]))
+    query = select(SessionModel).where(SessionModel.status.notin_(["cancelled"]), SessionModel.deleted_at.is_(None))
     if teacher_id:
         query = query.where(SessionModel.id_teacher == teacher_id)
     if student_id:
