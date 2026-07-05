@@ -2695,7 +2695,7 @@
 - **Files**: backend/app/models/student.py, backend/app/routers/students.py, backend/app/services/scheduler.py
 
 ### T-201: Durasi Sesi Validation (30/45 Menit)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **SRS**: Addendum Section 11 — Durasi Frekuensi
 - **FR/UC terkait**: FR-03, UC-03
