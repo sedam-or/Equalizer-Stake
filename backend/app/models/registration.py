@@ -24,9 +24,9 @@ class Registration(Base):
     phone_whatsapp: Mapped[str] = mapped_column(EncryptedString(500), nullable=False)  # AES-256-GCM
     email: Mapped[str | None] = mapped_column(EncryptedString(500), nullable=True)  # AES-256-GCM
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
-    instrument: Mapped[str] = mapped_column(String(50), nullable=False)
-    level: Mapped[str] = mapped_column(String(50), nullable=False)
-    class_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    instrument: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    level: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    class_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     schedule_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
     payment_proof_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     children_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # [{full_name, instrument, level}]

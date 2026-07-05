@@ -49,8 +49,8 @@ async def submit_registration(
         raise HTTPException(status_code=400, detail="Username sudah digunakan")
     
     # Check email uniqueness (via hash)
-    from app.services.encryption import hash_email
-    email_hash_val = hash_email(email)
+    from app.services.encryption import hash_pii
+    email_hash_val = hash_pii(email)
     existing_email = await db.execute(select(User).where(User.email_hash == email_hash_val))
     if existing_email.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email sudah terdaftar")
@@ -60,7 +60,7 @@ async def submit_registration(
         username=username,
         email=email,
         password_hash=hash_password(password),
-        role="wali_murid",
+        role="guardian",
         email_hash=email_hash_val,
     )
     db.add(user)
