@@ -964,6 +964,7 @@
 | Phase 23: LANDING PAGE + REGISTRATION REBUILD | T-156..T-162 | ⏳ 0/7 |
 | Phase 24: GUARDIAN + TEACHER FLOW FIX | T-163..T-168 | ⏳ 0/6 |
 | Phase 25: COMPREHENSIVE SYSTEM AUDIT | T-169..T-177 | ⏳ 0/9 |
+| Phase 26: DEEP AUDIT — FRONTEND vs BACKEND | T-178..T-185 | ⏳ 0/8 |
 | **Total** | **162 tasks** | **120/162 done** |
 
 ---
@@ -2320,6 +2321,140 @@
   - Output: PERFORMANCE_AUDIT.md
 - **Test**: Response time sesuai NFR target
 - **Files**: `docs/audit/PERFORMANCE_AUDIT.md`
+
+---
+
+
+---
+
+## Phase 26: DEEP AUDIT — FRONTEND vs BACKEND SEPARATED
+
+### T-178: Backend Audit — Router & Endpoint Integrity
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Deskripsi**:
+  - Audit SETIAP router file di backend/app/routers/*.py
+  - Per router: list semua endpoint, method, auth guard, request/response schema
+  - Cek: prefix consistency (/api/v1/ di semua router)
+  - Cek: role guard benar (admin vs owner vs teacher vs guardian)
+  - Cek: request validation (Pydantic schema lengkap)
+  - Cek: response format konsisten (data/total/limit/offset)
+  - Cek: error handling (HTTPException dengan detail message)
+  - Cek: audit log pada semua mutation (INSERT/UPDATE/DELETE)
+  - Output: BACKEND_ROUTER_AUDIT.md per file
+- **Test**: Setiap endpoint punya auth, validation, error handling, audit log
+- **Files**: backend/app/routers/*.py, docs/audit/backend/
+
+### T-179: Backend Audit — Model & Migration Integrity
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Deskripsi**:
+  - Audit SETIAP model file di backend/app/models/*.py
+  - Per model: list semua field, type, constraint, enum, FK, index
+  - Cek: enum values match SRS (instrument, level, status, dll)
+  - Cek: PII fields encrypted (AES-256-GCM)
+  - Cek: soft delete (deleted_at) pada semua entity
+  - Cek: timestamp fields (created_at, updated_at)
+  - Cek: foreign key relationships benar
+  - Cek: unique constraints sesuai SRS
+  - Output: BACKEND_MODEL_AUDIT.md per file
+- **Test**: Setiap model field match SRS, PII encrypted, constraints benar
+- **Files**: backend/app/models/*.py, docs/audit/backend/
+
+### T-180: Backend Audit — Service & Business Logic
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Deskripsi**:
+  - Audit SETIAP service file di backend/app/services/*.py
+  - Per service: list semua function, input/output, business rules
+  - Cek: billing logic (auto-invoice, unique_code, fine, freeze)
+  - Cek: scheduling logic (conflict detection, slot validation)
+  - Cek: attendance logic (GPS validation, photo upload, review)
+  - Cek: notification logic (WhatsApp/email template, retry)
+  - Cek: encryption logic (AES-256-GCM, blind index)
+  - Cek: audit log logic (before/after state, user_id)
+  - Output: BACKEND_SERVICE_AUDIT.md per file
+- **Test**: Setiap business rule match SRS, error handling lengkap
+- **Files**: backend/app/services/*.py, docs/audit/backend/
+
+### T-181: Backend Audit — Security & Auth Flow
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Deskripsi**:
+  - Audit auth.py: login, register, refresh, logout, forgot-password
+  - Cek: JWT token flow (access + refresh + expiry)
+  - Cek: password hashing (bcrypt)
+  - Cek: rate limiting pada semua auth endpoint
+  - Cek: brute force protection (failed_login_attempts, locked_until)
+  - Cek: PII encryption pada semua sensitive field
+  - Cek: CORS configuration
+  - Cek: SQL injection protection (SQLAlchemy ORM)
+  - Output: BACKEND_SECURITY_DEEP_AUDIT.md
+- **Test**: Tidak ada vulnerability, auth flow lengkap
+- **Files**: backend/app/routers/auth.py, backend/app/middleware/, docs/audit/backend/
+
+### T-182: Frontend Audit — Page & Component Structure
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Deskripsi**:
+  - Audit SETIAP page di frontend/src/app/dashboard/*/page.tsx
+  - Per page: list semua fetch calls, state management, error handling
+  - Cek: API path benar (/api/v1/ prefix)
+  - Cek: token key konsisten (access_token bukan token)
+  - Cek: error handling (try-catch + error state + loading state)
+  - Cek: empty state (komponen ketika data kosong)
+  - Cek: loading state (skeleton/spinner)
+  - Cek: role guard (redirect jika role salah)
+  - Output: FRONTEND_PAGE_AUDIT.md per page
+- **Test**: Setiap page punya error handling, loading, empty state
+- **Files**: frontend/src/app/dashboard/*/page.tsx, docs/audit/frontend/
+
+### T-183: Frontend Audit — API Integration & Data Flow
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Deskripsi**:
+  - Audit SETIAP fetch call di frontend
+  - Per call: URL, method, headers, request body, response handling
+  - Cek: response parsing (JSON field names match backend)
+  - Cek: error response handling (4xx, 5xx)
+  - Cek: pagination handling (total, limit, offset)
+  - Cek: filter/search handling (query params)
+  - Cek: file upload handling (FormData)
+  - Cek: token refresh on 401
+  - Output: FRONTEND_API_INTEGRATION_AUDIT.md
+- **Test**: Setiap fetch call punya proper error handling dan response parsing
+- **Files**: frontend/src/app/**, docs/audit/frontend/
+
+### T-184: Frontend Audit — UI/UX Consistency & Design System
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**:
+  - Audit SETIAP page dan component terhadap design/DESIGN.md
+  - Per component: colors, typography, spacing, border radius, shadow
+  - Cek: warna konsisten (blue #2563EB, gold #F59E0B, gray scale)
+  - Cek: font konsisten (Plus Jakarta Sans headings, Inter body)
+  - Cek: spacing konsisten (4px grid system)
+  - Cek: responsive design (mobile-first, breakpoints)
+  - Cek: dark mode remnants (harusnya sudah dihapus)
+  - Cek: Bahasa Indonesia pada semua UI text
+  - Output: FRONTEND_UI_CONSISTENCY_AUDIT.md
+- **Test**: Setiap component match DESIGN.md, responsive, no dark mode
+- **Files**: frontend/src/components/*.tsx, frontend/src/app/**/page.tsx, docs/audit/frontend/
+
+### T-185: Frontend Audit — State Management & Data Sync
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Deskripsi**:
+  - Audit state management di semua page
+  - Cek: DashboardContext usage (refreshKey, triggerRefresh)
+  - Cek: localStorage usage (access_token, role, theme)
+  - Cek: useState vs useContext usage
+  - Cek: data sync antar page (apakah refresh bekerja?)
+  - Cek: stale data handling (kapan refetch?)
+  - Cek: optimistic update (jika ada)
+  - Output: FRONTEND_STATE_MANAGEMENT_AUDIT.md
+- **Test**: Data sinkron antar page, tidak ada stale data
+- **Files**: frontend/src/components/DashboardContext.tsx, frontend/src/app/**/page.tsx, docs/audit/frontend/
 
 ---
 
