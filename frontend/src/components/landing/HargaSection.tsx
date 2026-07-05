@@ -78,6 +78,17 @@ const instruments = [
       { type: "Private", price: 420000, duration: "45 menit" },
     ],
   },
+  {
+    name: "Paket Liburan",
+    emoji: "🏖️",
+    registrationFee: 60000,
+    classes: [
+      { type: "Kelas A (1 siswa)", price: 780000, duration: "45 menit" },
+      { type: "Kelas B (2 siswa)", price: 900000, duration: "45 menit" },
+      { type: "Kelas C (3 siswa)", price: 1020000, duration: "45 menit" },
+      { type: "Kelas D (4 siswa)", price: 1260000, duration: "45 menit" },
+    ],
+  },
 ];
 
 function formatRupiah(amount: number): string {

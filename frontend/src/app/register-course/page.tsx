@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 
-const INSTRUMENTS = ["piano", "gitar", "biola", "drum", "vokal", "keyboard", "flute", "saxophone", "bass"];
+const INSTRUMENTS = ["piano", "gitar", "biola", "drum", "vokal", "keyboard", "flute", "saxophone", "bass", "paket_liburan"];
+const INSTRUMENT_LABELS: Record<string, string> = {
+  piano: "Piano", gitar: "Gitar", biola: "Biola", drum: "Drum",
+  vokal: "Vokal", keyboard: "Keyboard", flute: "Flute", saxophone: "Saxophone",
+  bass: "Bass", paket_liburan: "Paket Liburan",
+};
 const LEVELS = ["pemula", "dasar", "menengah", "lanjut"];
 
 const steps = [
@@ -145,7 +150,7 @@ export default function RegisterCoursePage() {
                     <div><label className="mb-1 block text-xs text-gray-600">Nama *</label><input type="text" value={child.full_name} onChange={(e) => handleChildChange(i, "full_name", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" placeholder="Nama anak" /></div>
                     <div className="grid grid-cols-2 gap-3">
                       <div><label className="mb-1 block text-xs text-gray-600">Instrumen *</label>
-                        <select value={child.instrument} onChange={(e) => handleChildChange(i, "instrument", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm capitalize">{INSTRUMENTS.map((x) => <option key={x} value={x}>{x}</option>)}</select>
+                        <select value={child.instrument} onChange={(e) => handleChildChange(i, "instrument", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm capitalize">{INSTRUMENTS.map((x) => <option key={x} value={x}>{INSTRUMENT_LABELS[x] || x}</option>)}</select>
                       </div>
                       <div><label className="mb-1 block text-xs text-gray-600">Level</label>
                         <select value={child.level} onChange={(e) => handleChildChange(i, "level", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm capitalize">{LEVELS.map((x) => <option key={x} value={x}>{x}</option>)}</select>
