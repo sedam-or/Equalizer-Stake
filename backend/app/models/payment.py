@@ -16,7 +16,7 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id_payment: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    id_invoice: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("invoices.id_invoice"), nullable=False)
+    id_invoice: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("invoices.id_invoice"), nullable=False, index=True)
     amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     method: Mapped[str] = mapped_column(Enum("transfer", "cash", "dp", name="payment_method"), nullable=False)
     payment_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

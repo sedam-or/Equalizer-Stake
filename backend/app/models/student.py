@@ -17,7 +17,7 @@ class Student(Base):
     __tablename__ = "students"
 
     id_student: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    id_guardian: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("guardians.id_guardian"), nullable=False)
+    id_guardian: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("guardians.id_guardian"), nullable=False, index=True)
     full_name: Mapped[str] = mapped_column(EncryptedString(500), nullable=False)  # AES-256-GCM
     date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
     instrument: Mapped[str] = mapped_column(

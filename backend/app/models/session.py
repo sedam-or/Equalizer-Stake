@@ -19,9 +19,9 @@ class Session(Base):
     )
 
     id_session: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    id_teacher: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teachers.id_teacher"), nullable=False)
-    id_student: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("students.id_student"), nullable=False)
-    id_room: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("rooms.id_room"), nullable=False)
+    id_teacher: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teachers.id_teacher"), nullable=False, index=True)
+    id_student: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("students.id_student"), nullable=False, index=True)
+    id_room: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("rooms.id_room"), nullable=False, index=True)
     session_date: Mapped[date] = mapped_column(nullable=False)
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
     end_time: Mapped[time] = mapped_column(Time, nullable=False)

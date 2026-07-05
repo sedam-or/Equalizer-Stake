@@ -17,8 +17,8 @@ class Attendance(Base):
     __tablename__ = "attendances"
 
     id_attendance: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    id_session: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("sessions.id_session"), unique=True, nullable=False)
-    id_teacher: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teachers.id_teacher"), nullable=False)
+    id_session: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("sessions.id_session"), unique=True, index=True, nullable=False)
+    id_teacher: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("teachers.id_teacher"), nullable=False, index=True)
     photo_url: Mapped[str] = mapped_column(EncryptedString(1000), nullable=False)  # AES-256-GCM
     gps_lat: Mapped[float] = mapped_column(Numeric(10, 7), nullable=False)  # SRS: DECIMAL(10,7)
     gps_lng: Mapped[float] = mapped_column(Numeric(10, 7), nullable=False)  # SRS: DECIMAL(10,7)

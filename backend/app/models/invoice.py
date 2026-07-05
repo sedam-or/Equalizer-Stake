@@ -16,7 +16,7 @@ class Invoice(Base):
     __tablename__ = "invoices"
 
     id_invoice: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    id_guardian: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("guardians.id_guardian"), nullable=False)
+    id_guardian: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("guardians.id_guardian"), nullable=False, index=True)
     unique_code: Mapped[str] = mapped_column(CHAR(3), nullable=False)  # 000-999
     billing_period: Mapped[str] = mapped_column(String(7), nullable=False)  # YYYY-MM
     total_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
