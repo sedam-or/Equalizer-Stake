@@ -2513,7 +2513,7 @@
 - **Files**: backend/app/routers/draft.py, holidays.py, multi_student.py, privacy.py, teachers.py
 
 ### T-189: Add Indexes to Foreign Keys
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **Source**: T-179 (BACKEND_MODEL_AUDIT.md)
 - **Deskripsi**:
