@@ -2484,7 +2484,7 @@
 - **Files**: backend/app/models/student.py, backend/app/routers/students.py, backend/app/routers/registrations.py
 
 ### T-187: Add bass to Instrument Enum
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **Source**: T-179 (BACKEND_MODEL_AUDIT.md)
 - **Deskripsi**:
