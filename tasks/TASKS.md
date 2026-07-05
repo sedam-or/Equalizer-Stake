@@ -2651,6 +2651,7 @@
 ---
 
 ## Phase 29: PAKET & PRODUK TAMBAHAN
+| Phase 30: BUSINESS LOGIC FIXES | T-200..T-203 | ⏳ 0/4 |
 
 ### T-198: Paket Liburan — Landing Page + Register + Pricing
 - **Status**: ✅
@@ -2668,6 +2669,77 @@
   - Tambah class_type "paket_a", "paket_b", "paket_c", "paket_d" ke enum
 - **Test**: Landing page tampilkan Paket Liburan, register-course bisa pilih paket
 - **Files**: frontend/src/components/landing/HargaSection.tsx, frontend/src/app/register-course/page.tsx, backend/scripts/seed_pricing.py
+
+---
+
+
+---
+
+## Phase 30: BUSINESS LOGIC FIXES (SRS Addendum)
+
+### T-200: Cuti Max 2 Bulan Per Tahun Validation
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **SRS**: Addendum Section 3 — Kebijakan Cuti
+- **FR/UC terkait**: FR-02, UC-02
+- **Deskripsi**:
+  - SRS: Guardian bisa freeze anak max 2 bulan per tahun
+  - Current: enrollment_status="cuti" exists, no max validation
+  - Fix:
+    1. Track cuti start_date and end_date in Student model
+    2. Add validation: cumulative cuti days ≤ 60 per calendar year
+    3. Add endpoint: PUT /api/v1/students/{id}/cuti (start/end cuti)
+    4. Auto-reactivate when cuti period ends (scheduler job)
+  - Error: "Cuti melebihi batas 2 bulan per tahun" jika lebih dari 60 hari
+- **Test**: Set cuti 61 days → rejected, 60 days → accepted
+- **Files**: backend/app/models/student.py, backend/app/routers/students.py, backend/app/services/scheduler.py
+
+### T-201: Durasi Sesi Validation (30/45 Menit)
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **SRS**: Addendum Section 11 — Durasi Frekuensi
+- **FR/UC terkait**: FR-03, UC-03
+- **Deskripsi**:
+  - SRS: Sesi kursus 30 atau 45 menit
+  - Current: duration_minutes in Pricing model, no validation on Session
+  - Fix:
+    1. Add duration_minutes field to Session model (or compute from start/end time)
+    2. Validate: duration must be 30 or 45 minutes
+    3. Add check in session creation endpoint
+  - Error: "Durasi sesi harus 30 atau 45 menit" jika tidak valid
+- **Test**: Create session with 60 min → rejected, 45 min → accepted
+- **Files**: backend/app/models/session.py, backend/app/routers/scheduling.py
+
+### T-202: Syarat Usia Tunas (Min 3.5 Tahun)
+- **Status**: ⏳
+- **Priority**: 🟢 NICE TO HAVE
+- **SRS**: Addendum Section 9 — Syarat Usia
+- **FR/UC terkait**: FR-02, UC-02
+- **Deskripsi**:
+  - SRS: Kelas tunas min usia 3.5 tahun
+  - Current: Student.date_of_birth exists but not validated
+  - Fix:
+    1. Add validation in student creation: if instrument="tunas", check age ≥ 3.5 years
+    2. Compute: (today - date_of_birth) / 365.25 ≥ 3.5
+  - Error: "Usia minimal untuk kelas tunas adalah 3.5 tahun" jika kurang
+- **Test**: Register tunas student age 3 → rejected, age 4 → accepted
+- **Files**: backend/app/routers/students.py, backend/app/services/age_validation.py
+
+### T-203: Waktu Operasional Validation (Senin-Sabtu, 08:00-20:00)
+- **Status**: ⏳
+- **Priority**: 🟢 NICE TO HAVE
+- **SRS**: Addendum Section 10 — Waktu Operasional
+- **FR/UC terkait**: FR-03, UC-03
+- **Deskripsi**:
+  - SRS: BMD buka Senin-Sabtu, 08:00-20:00
+  - Current: No operational hours validation
+  - Fix:
+    1. Add validation in session creation: session_date must be Mon-Sat
+    2. Add validation: start_time ≥ 08:00 AND end_time ≤ 20:00
+    3. Add validation: no session on Sunday (day_of_week != 6)
+  - Error: "BMD tutup pada hari Minggu" atau "Jam operasional 08:00-20:00"
+- **Test**: Create session Sunday → rejected, Saturday → accepted
+- **Files**: backend/app/routers/scheduling.py, backend/app/services/operational_hours.py
 
 ---
 
