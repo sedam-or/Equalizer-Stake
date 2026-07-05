@@ -2137,7 +2137,7 @@
 - **Files**: `frontend/src/app/dashboard/my-students/page.tsx`
 
 ### T-165: Register Course Flow Fix — Multi-Student
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **FR/UC terkait**: FR-02, UC-02
 - **Deskripsi**:
