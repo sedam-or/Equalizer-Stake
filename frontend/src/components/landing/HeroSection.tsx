@@ -68,7 +68,7 @@ export default function HeroSection() {
           {/* Floating badge */}
           <div className="absolute -bottom-4 -left-4 rounded-xl bg-white p-4 shadow-lg">
             <div className="text-sm font-bold text-[#2563EB]">🎵 Kursus Musik</div>
-            <div className="text-xs text-gray-500">Trial tersedia</div>
+            <div className="text-xs text-gray-500">Kursus musik</div>
           </div>
         </div>
       </div>
