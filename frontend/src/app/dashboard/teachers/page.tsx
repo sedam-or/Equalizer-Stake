@@ -1,4 +1,6 @@
 "use client";
+
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 
 import { useEffect, useState, useCallback } from "react";
@@ -29,6 +31,7 @@ export default function TeachersPage() {
     max_students_per_session: 1,
   });
   const [error, setError] = useState("");
+  const { refreshKey } = useDashboard();
 
   const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
@@ -42,7 +45,7 @@ export default function TeachersPage() {
     setLoading(false);
   }, [token]);
 
-  useEffect(() => { fetchTeachers(); }, [fetchTeachers]);
+  useEffect(() => { fetchTeachers(); }, [fetchTeachers, refreshKey]);
 
   const handleInstrumentToggle = (inst: string) => {
     setForm((prev) => ({

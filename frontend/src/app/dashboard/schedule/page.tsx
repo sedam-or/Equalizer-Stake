@@ -1,5 +1,7 @@
 "use client";
 
+import { useDashboard } from "@/components/DashboardContext";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Pagination from "@/components/Pagination";

@@ -1,4 +1,6 @@
 "use client";
+
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 
 import { useEffect, useState, useCallback } from "react";
@@ -23,6 +25,7 @@ export default function MyStudentsPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ full_name: "", date_of_birth: "", instrument: "piano", level: "pemula" });
   const [error, setError] = useState("");
+  const { refreshKey, triggerRefresh } = useDashboard();
 
   const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
@@ -39,7 +42,8 @@ export default function MyStudentsPage() {
     setLoading(false);
   }, [token]);
 
-  useEffect(() => { fetchStudents(); }, [fetchStudents]);
+  useEffect(() => { fetchStudents();
+      triggerRefresh(); }, [fetchStudents, refreshKey]);
 
   const handleSave = async () => {
     setError("");
@@ -64,6 +68,7 @@ export default function MyStudentsPage() {
       setEditId(null);
       setForm({ full_name: "", date_of_birth: "", instrument: "piano", level: "pemula" });
       fetchStudents();
+      triggerRefresh();
     } catch { setError("Terjadi kesalahan"); }
   };
 
@@ -77,6 +82,7 @@ export default function MyStudentsPage() {
     if (!confirm("Yakin ingin menghapus data anak ini?")) return;
     await fetch(`/api/v1/students/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     fetchStudents();
+      triggerRefresh();
   };
 
   const openAdd = () => {
