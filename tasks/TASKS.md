@@ -2123,7 +2123,7 @@
 - **Files**: `backend/app/models/student.py`, `backend/app/routers/students.py`, `backend/app/schemas/student.py`
 
 ### T-164: Anak Saya Page — Guardian Dashboard
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **FR/UC terkait**: FR-02, UC-02
 - **Deskripsi**:
