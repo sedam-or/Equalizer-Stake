@@ -29,8 +29,8 @@ export default function AssignSessionPage() {
         fetch("/api/v1/sessions/rooms", { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       if (sRes.ok) { const d = await sRes.json(); setStudents(d.data || []); }
-      if (tRes.ok) setTeachers(await tRes.json());
-      if (rRes.ok) setRooms(await rRes.json());
+      if (tRes.ok) { const d = await tRes.json(); setTeachers(Array.isArray(d.data) ? d.data : Array.isArray(d) ? d : []); }
+      if (rRes.ok) { const d = await rRes.json(); setRooms(d.data || []); }
     } catch { /* ignore */ }
     setLoading(false);
   }, [token]);

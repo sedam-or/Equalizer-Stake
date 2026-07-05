@@ -94,7 +94,7 @@ export default function PaymentsPage() {
               </thead>
               <tbody>
                 {filtered.map((p, idx) => (
-                  <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={p.id || idx} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500">{offset + idx + 1}</td>
                     <td className="px-4 py-3 text-gray-900">{p.date}</td>
                     <td className="px-4 py-3 text-gray-900">{p.invoice}</td>

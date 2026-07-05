@@ -42,8 +42,7 @@ export default function MyStudentsPage() {
     setLoading(false);
   }, [token]);
 
-  useEffect(() => { fetchStudents();
-      triggerRefresh(); }, [fetchStudents, refreshKey]);
+  useEffect(() => { fetchStudents(); }, [fetchStudents, refreshKey]);
 
   const handleSave = async () => {
     setError("");
