@@ -2254,7 +2254,7 @@
 - **Files**: `docs/audit/FRONTEND_BACKEND_ALIGNMENT.md`
 
 ### T-173: Security Audit — Authentication & Authorization
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **FR/UC terkait**: SEC-01..SEC-08
 - **Deskripsi**:
