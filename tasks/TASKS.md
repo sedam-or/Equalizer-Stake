@@ -2070,7 +2070,7 @@
 - **Files**: `frontend/src/components/landing/Footer.tsx`
 
 ### T-161: Hapus Trial dari Landing Page + Database
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-06
 - **Deskripsi**:
