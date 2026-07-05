@@ -2167,7 +2167,7 @@
 - **Files**: `backend/app/routers/scheduling.py`, `frontend/src/app/dashboard/schedule/page.tsx`
 
 ### T-167: Invoice Per Guardian — Aggregate Billing
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-06, UC-06
 - **Deskripsi**:
