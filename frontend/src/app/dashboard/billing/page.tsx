@@ -47,7 +47,7 @@ export default function BillingPage() {
     if (!token) { router.push("/login"); return; }
     setLoading(true);
     const off = newOffset ?? offset;
-    fetch(`/api/billing/?limit=${limit}&offset=${off}`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`/api/v1/billing/invoices?limit=${limit}&offset=${off}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(res => {
         setInvoices(res.data || []);
@@ -66,7 +66,7 @@ export default function BillingPage() {
   const handleVerify = async (id: string) => {
     const token = localStorage.getItem("access_token");
     if (!token) return;
-    const res = await fetch(`/api/payments/${id}/verify`, {
+    const res = await fetch(`/api/v1/billing/payments/${id}/verify`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ unique_code: inputCode }),
@@ -81,7 +81,7 @@ export default function BillingPage() {
   const handleReject = async (id: string) => {
     const token = localStorage.getItem("access_token");
     if (!token) return;
-    const res = await fetch(`/api/payments/${id}/reject`, {
+    const res = await fetch(`/api/v1/billing/payments/${id}/reject`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });

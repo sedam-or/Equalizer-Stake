@@ -41,7 +41,7 @@ export default function PaymentsPage() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
-    fetch(`/api/payments/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`/api/v1/payments/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : { data: [], total: 0 })
       .then(res => {
         setPayments(res.data || []);
