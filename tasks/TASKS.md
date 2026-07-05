@@ -2007,7 +2007,7 @@
 - **Files**: `frontend/src/app/page.tsx`, `frontend/src/components/landing/*.tsx`
 
 ### T-157: Pricing Page — Per Instrumen + Tipe Kelas
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **FR/UC terkait**: FR-06, FR-16
 - **Deskripsi**:
