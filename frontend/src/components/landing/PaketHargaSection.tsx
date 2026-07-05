@@ -5,7 +5,7 @@ const packages = [
     name: "Trial",
     price: "Rp 150.000",
     period: "/1 sesi",
-    features: ["1x pertemuan (60 menit)", "1 instrumen pilihan", "Konsultasi level", "Sertifikat试课"],
+    features: ["1x pertemuan (60 menit)", "1 instrumen pilihan", "Konsultasi level", "Sertifikat Trial"],
     popular: false,
   },
   {

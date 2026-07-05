@@ -1,4 +1,4 @@
-"use client";
+import SectionHeader from "@/components/landing/SectionHeader";
 
 export default function CtaSection() {
   return (
@@ -11,12 +11,7 @@ export default function CtaSection() {
           Daftar sekarang dan dapatkan sesi trial gratis!
         </p>
         <div className="mt-10">
-          <a
-            href="https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20daftar%20kursus%20musik%20di%20BMD"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-[#F59E0B] px-12 py-4 text-base font-bold uppercase tracking-wide text-black shadow-lg transition-all duration-200 hover:bg-[#D97706] hover:shadow-xl hover:scale-105"
-          >
+          <a href="https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20daftar%20kursus%20musik%20di%20BMD" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-[#F59E0B] px-12 py-4 text-base font-bold uppercase tracking-wide text-black shadow-lg transition-all duration-200 hover:bg-[#D97706] hover:shadow-xl hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F59E0B]">
             🎵 Daftar via WhatsApp
           </a>
         </div>

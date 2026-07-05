@@ -1,10 +1,3 @@
-/**
- * BMD Landing Page — Rebuilt from scratch
- * Inspired by: oryzo.ai (typography, spacing, animations)
- * Applied to: BMD Music School (light theme, Indonesian, music school content)
- * Design spec: design/DESIGN.md
- */
-
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import ProgramKursusSection from "@/components/landing/ProgramKursusSection";
@@ -18,7 +11,10 @@ import Footer from "@/components/landing/Footer";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#F8FAFC]">
+    <main id="main-content" className="min-h-screen scroll-smooth bg-[#F8FAFC]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[#2563EB] focus:shadow-lg">
+        Lewati ke konten utama
+      </a>
       <Navbar />
       <HeroSection />
       <ProgramKursusSection />
