@@ -12,6 +12,7 @@ from app.middleware.auth import require_role
 from app.models.student import Student
 from app.models.user import User
 from app.services.audit import create_audit_log
+from app.services.level_validation import validate_instrument_level
 
 router = APIRouter(prefix="/api/v1/students", tags=["Students"])
 
@@ -43,6 +44,14 @@ def _student_dict(s: Student) -> dict:
         "enrollment_date": str(s.enrollment_date) if s.enrollment_date else None,
         "eligible_for_exam": s.eligible_for_exam,
     }
+
+
+@router.get("/levels")
+async def get_levels(instrument: str = Query(...)):
+    """Get valid levels for an instrument (SRS Addendum)."""
+    from app.services.level_validation import INSTRUMENT_LEVELS, LEGACY_LEVELS
+    levels = INSTRUMENT_LEVELS.get(instrument, [])
+    return {"instrument": instrument, "levels": levels, "legacy_levels": LEGACY_LEVELS}
 
 
 @router.get("")
@@ -112,6 +121,12 @@ async def create_student(
         guardian_id = guardian.id_guardian
     else:
         guardian_id = body.id_guardian
+    # Validate level per instrument (SRS Addendum)
+    if not validate_instrument_level(body.instrument, body.level):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Level '{body.level}' tidak valid untuk instrumen '{body.instrument}'"
+        )
     student = Student(
         id_guardian=guardian_id,
         full_name=body.full_name,

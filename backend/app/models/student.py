@@ -3,7 +3,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Text, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -25,9 +25,8 @@ class Student(Base):
         nullable=False
     )
     level: Mapped[str] = mapped_column(
-        Enum("pemula", "dasar", "menengah", "lanjut", name="student_level"),
-        nullable=False, default="pemula"
-    )
+        String(50), nullable=False, default="pemula"
+    )  # Per-instrumen: Piano Klasik=pra_elementary..grade_6, lain=basic/intermediate/advance
     enrollment_status: Mapped[str] = mapped_column(
         Enum("active", "cuti", "inactive", "trial", name="enrollment_status"),
         nullable=False, default="active"
