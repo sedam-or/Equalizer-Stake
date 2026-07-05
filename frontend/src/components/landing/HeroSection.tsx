@@ -54,7 +54,7 @@ export default function HeroSection() {
           </p>
 
           {/* Headline */}
-          <h1 className="text-balance font-heading text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl">
+          <h1 className="text-balance font-heading text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-4xl lg:text-5xl">
             Musik Bukan Sekadar Hobi.
             <br />
             <span className="text-[#D4AF37]">
