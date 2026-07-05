@@ -2154,7 +2154,7 @@
 - **Files**: `frontend/src/app/register-course/page.tsx`, `backend/app/routers/registrations.py`
 
 ### T-166: Admin Assign Student ke Session
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-03, UC-03
 - **Deskripsi**:
