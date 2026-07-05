@@ -21,7 +21,7 @@ class Student(Base):
     full_name: Mapped[str] = mapped_column(EncryptedString(500), nullable=False)  # AES-256-GCM
     date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
     instrument: Mapped[str] = mapped_column(
-        Enum("biola", "piano", "gitar", "drum", "keyboard", "flute", "saxophone", "vokal", "ensemble", name="instrument_type"),
+        Enum("biola", "piano", "gitar", "drum", "keyboard", "flute", "saxophone", "vokal", "bass", "ensemble", name="instrument_type"),
         nullable=False
     )
     level: Mapped[str] = mapped_column(
