@@ -2283,7 +2283,7 @@
 - **Files**: `docs/audit/USER_FLOW_VERIFICATION.md`
 
 ### T-175: Technical Audit — Error Handling & Edge Cases
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: NFR-REL-01, NFR-REL-02
 - **Deskripsi**:
