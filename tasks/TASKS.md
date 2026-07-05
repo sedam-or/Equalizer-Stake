@@ -2726,7 +2726,7 @@
 - **Files**: backend/app/routers/students.py, backend/app/services/age_validation.py
 
 ### T-203: Waktu Operasional Validation (Senin-Sabtu, 08:00-20:00)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟢 NICE TO HAVE
 - **SRS**: Addendum Section 10 — Waktu Operasional
 - **FR/UC terkait**: FR-03, UC-03
