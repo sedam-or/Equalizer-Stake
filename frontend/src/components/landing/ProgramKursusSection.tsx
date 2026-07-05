@@ -25,7 +25,7 @@ const instruments = [
 
 export default function ProgramKursusSection() {
   return (
-    <section id="instrumen" className="snap-section flex min-h-[100dvh] items-center bg-[#F8FAFC] px-6 md:px-8">
+    <section id="instrumen" data-theme="light" className="snap-section flex min-[100dvh] items-center bg-[#F8FAFC] px-6 md:px-8">
       <div className="mx-auto w-full max-w-7xl">
         {/* Header */}
         <div className="mb-12 max-w-2xl">

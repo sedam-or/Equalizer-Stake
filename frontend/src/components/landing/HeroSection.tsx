@@ -38,7 +38,7 @@ function CountUp({ target, suffix = "" }: { target: number; suffix?: string }) {
 
 export default function HeroSection() {
   return (
-    <section className="snap-section relative flex min-h-[100dvh] items-center overflow-hidden bg-[#0F172A] px-6 md:px-8">
+    <section data-theme="dark" className="snap-section relative flex min-[100dvh] items-center overflow-hidden bg-[#0F172A] px-6 md:px-8">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A]" />
 
