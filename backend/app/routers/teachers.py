@@ -1,7 +1,8 @@
 """Teacher router — admin CRUD for teacher profiles."""
 
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from app.core.limiter import limiter
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,6 +46,7 @@ async def list_teachers(
 
 @router.post("", response_model=TeacherResponse, status_code=status.HTTP_201_CREATED)
 async def create_teacher(
+    request: Request,
     data: TeacherCreate,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_role("admin")),
@@ -106,7 +108,9 @@ async def get_teacher(
 
 
 @router.put("/{teacher_id}", response_model=TeacherResponse)
+@limiter.limit("20/minute")
 async def update_teacher(
+    request: Request,
     teacher_id: uuid.UUID,
     data: TeacherUpdate,
     db: AsyncSession = Depends(get_db),
@@ -136,7 +140,9 @@ async def update_teacher(
 
 
 @router.delete("/{teacher_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("10/minute")
 async def delete_teacher(
+    request: Request,
     teacher_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_role("admin")),

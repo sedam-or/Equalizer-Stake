@@ -5,6 +5,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from app.core.limiter import limiter
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -72,6 +73,7 @@ async def list_invoices(
 
 
 @router.post("/payments/verify", response_model=PaymentResponse)
+@limiter.limit("20/minute")
 async def verify_payment_endpoint(
     data: PaymentVerifyRequest,
     request: Request,
@@ -114,6 +116,7 @@ async def verify_payment_endpoint(
 
 
 @router.post("/invoices/{invoice_id}/fine")
+@limiter.limit("10/minute")
 async def apply_fine_endpoint(
     invoice_id: str,
     request: Request,

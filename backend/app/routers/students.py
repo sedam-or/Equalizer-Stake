@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from app.core.limiter import limiter
 from pydantic import BaseModel, Field
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -103,9 +104,10 @@ async def list_students(
 
 
 @router.post("/", status_code=201)
+@limiter.limit("20/minute")
 async def create_student(
-    body: StudentCreate,
     request: Request,
+    body: StudentCreate,
     user: User = Depends(require_role("admin", "owner", "guardian")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -147,10 +149,11 @@ async def create_student(
 
 
 @router.patch("/{student_id}")
+@limiter.limit("20/minute")
 async def update_student(
+    request: Request,
     student_id: UUID,
     body: StudentUpdate,
-    request: Request,
     user: User = Depends(require_role("admin", "owner")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -175,9 +178,10 @@ async def update_student(
 
 
 @router.delete("/{student_id}")
+@limiter.limit("10/minute")
 async def delete_student(
-    student_id: UUID,
     request: Request,
+    student_id: UUID,
     user: User = Depends(require_role("admin", "owner")),
     db: AsyncSession = Depends(get_db),
 ):
