@@ -7,15 +7,16 @@ import { useRouter } from "next/navigation";
 import Pagination from "@/components/Pagination";
 
 interface Registration {
-  id: string;
+  id_registration: string;
   full_name: string;
   phone_whatsapp: string;
   email: string;
   address: string;
-  instrument: string;
-  level: string;
-  class_type: string;
-  status: "menunggu_konfirmasi" | "disetujui" | "ditolak";
+  instrument: string | null;
+  level: string | null;
+  class_type: string | null;
+  children_data: Array<{full_name: string; instrument: string; level: string}> | null;
+  status: "pending" | "approved" | "rejected";
   created_at: string;
 }
 
@@ -93,7 +94,7 @@ export default function RegistrationsPage() {
       const token = getToken();
       if (!token) { router.push("/login"); return; }
       try {
-        const res = await fetch(`/api/registrations/?limit=${limit}&offset=${offset}`, {
+        const res = await fetch(`/api/v1/registrations/?limit=${limit}&offset=${offset}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Gagal memuat pendaftaran");
@@ -113,13 +114,13 @@ export default function RegistrationsPage() {
     if (!selected) return;
     const token = getToken();
     try {
-      const res = await fetch(`/api/registrations/${selected.id}/approve`, {
+      const res = await fetch(`/api/v1/registrations/${selected.id_registration}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ teacher_id: teacher, schedule_day: scheduleDay, schedule_time: scheduleTime }),
       });
       if (!res.ok) throw new Error("Gagal menyetujui");
-      setRegistrations(prev => prev.map(r => r.id === selected.id ? { ...r, status: "disetujui" } : r));
+      setRegistrations(prev => prev.map(r => r.id_registration === selected.id_registration ? { ...r, status: "approved" } : r));
       setSelected(null);
       setTeacher("");
       setScheduleDay("");
@@ -133,12 +134,12 @@ export default function RegistrationsPage() {
     if (!selected) return;
     const token = getToken();
     try {
-      const res = await fetch(`/api/registrations/${selected.id}/reject`, {
+      const res = await fetch(`/api/v1/registrations/${selected.id_registration}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Gagal menolak");
-      setRegistrations(prev => prev.map(r => r.id === selected.id ? { ...r, status: "ditolak" } : r));
+      setRegistrations(prev => prev.map(r => r.id_registration === selected.id_registration ? { ...r, status: "rejected" } : r));
       setSelected(null);
     } catch {
       // ponytail: no toast
@@ -188,7 +189,7 @@ export default function RegistrationsPage() {
             <tbody>
               {registrations.map((r) => (
                 <tr
-                  key={r.id}
+                  key={r.id_registration}
                   className="border-b border-gray-200/50 transition-colors hover:bg-white/[0.02]"
                 >
                   <td className="px-4 py-3 font-medium text-gray-900">
@@ -196,13 +197,13 @@ export default function RegistrationsPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-500">{r.phone_whatsapp}</td>
                   <td className="hidden px-4 py-3 text-gray-500 md:table-cell">
-                    {INSTRUMENT_LABELS[r.instrument] ?? r.instrument}
+                    {(r.instrument ? INSTRUMENT_LABELS[r.instrument] ?? r.instrument : "-")}
                   </td>
                   <td className="hidden px-4 py-3 text-gray-500 md:table-cell">
-                    {LEVEL_LABELS[r.level] ?? r.level}
+                    {(r.level ? LEVEL_LABELS[r.level] ?? r.level : "-")}
                   </td>
                   <td className="hidden px-4 py-3 text-gray-500 lg:table-cell">
-                    {CLASS_TYPE_LABELS[r.class_type] ?? r.class_type}
+                    {(r.class_type ? CLASS_TYPE_LABELS[r.class_type] ?? r.class_type : "-")}
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -265,15 +266,15 @@ export default function RegistrationsPage() {
               <DetailRow label="Alamat" value={selected.address || "-"} />
               <DetailRow
                 label="Instrumen"
-                value={INSTRUMENT_LABELS[selected.instrument] ?? selected.instrument}
+                value={(selected.instrument ? INSTRUMENT_LABELS[selected.instrument] ?? selected.instrument : "-")}
               />
               <DetailRow
                 label="Level"
-                value={LEVEL_LABELS[selected.level] ?? selected.level}
+                value={(selected.level ? LEVEL_LABELS[selected.level] ?? selected.level : "-")}
               />
               <DetailRow
                 label="Tipe Kelas"
-                value={CLASS_TYPE_LABELS[selected.class_type] ?? selected.class_type}
+                value={(selected.class_type ? CLASS_TYPE_LABELS[selected.class_type] ?? selected.class_type : "-")}
               />
               <DetailRow
                 label="Status"
@@ -285,7 +286,7 @@ export default function RegistrationsPage() {
               />
             </div>
 
-            {selected.status === "menunggu_konfirmasi" && (
+            {selected.status === "pending" && (
               <div className="mt-5 border-t border-gray-200 pt-5">
                 <h3 className="mb-3 text-sm font-semibold text-gray-900">
                   Setujui Pendaftaran
@@ -353,7 +354,7 @@ export default function RegistrationsPage() {
               </div>
             )}
 
-            {selected.status !== "menunggu_konfirmasi" && (
+            {selected.status !== "pending" && (
               <div className="mt-4 flex justify-end">
                 <button
                   onClick={() => setSelected(null)}

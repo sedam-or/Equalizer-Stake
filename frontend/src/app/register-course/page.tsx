@@ -82,11 +82,32 @@ export default function RegisterCoursePage() {
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4">
-        <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 text-center">
-          <span className="text-5xl">✅</span>
-          <h1 className="mt-4 font-heading text-2xl font-bold text-gray-900">Pendaftaran Berhasil!</h1>
-          <p className="mt-2 text-sm text-gray-500">Akun Anda telah dibat. Admin akan memverifikasi pembayaran dalam 1×24 jam.</p>
-          <a href="/login" className="mt-6 inline-block rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8]">Login</a>
+        <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-8 text-center">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-100">
+            <span className="text-4xl">⏳</span>
+          </div>
+          <h1 className="font-heading text-2xl font-bold text-gray-900">Pendaftaran Berhasil!</h1>
+          
+          <div className="mt-4 rounded-lg bg-yellow-50 border border-yellow-200 p-4">
+            <p className="text-sm font-semibold text-yellow-800">⏳ Menunggu Verifikasi Admin</p>
+            <p className="mt-2 text-sm text-yellow-700">
+              Pendaftaran Anda sedang dalam antrian verifikasi. Admin akan memverifikasi pembayaran dan mengaktifkan akun dalam <strong>1×24 jam</strong>.
+            </p>
+          </div>
+          
+          <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4 text-left">
+            <p className="text-sm font-semibold text-blue-800">📋 Langkah Selanjutnya:</p>
+            <ul className="mt-2 space-y-1 text-sm text-blue-700">
+              <li>1. Cek email Anda untuk konfirmasi</li>
+              <li>2. Setelah akun aktif, login ke dashboard</li>
+              <li>3. Lihat jadwal kursus anak Anda</li>
+            </ul>
+          </div>
+          
+          <div className="mt-6 flex gap-3 justify-center">
+            <a href="/login" className="rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8]">Login</a>
+            <a href="/" className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Kembali ke Beranda</a>
+          </div>
         </div>
       </div>
     );
