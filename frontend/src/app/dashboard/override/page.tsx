@@ -22,7 +22,7 @@ export default function OverridePage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
-  const { refreshKey } = useDashboard();
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [form, setForm] = useState({
     session_id: "",
     status: "present",

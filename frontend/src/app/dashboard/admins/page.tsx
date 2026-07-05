@@ -19,7 +19,7 @@ export default function AdminsPage() {
   const router = useRouter();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
-  const { refreshKey } = useDashboard();
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [error, setError] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({ username: "", email: "", password: "" });

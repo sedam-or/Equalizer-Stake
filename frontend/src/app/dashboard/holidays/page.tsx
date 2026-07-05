@@ -20,7 +20,7 @@ export default function HolidaysPage() {
   const router = useRouter();
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState(true);
-  const { refreshKey } = useDashboard();
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [form, setForm] = useState({ date: "", name: "" });
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");

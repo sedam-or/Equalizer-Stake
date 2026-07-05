@@ -13,7 +13,7 @@ export default function AssignSessionPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
-  const { refreshKey } = useDashboard();
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [form, setForm] = useState({ id_student: "", id_teacher: "", id_room: "", session_date: "", start_time: "", end_time: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

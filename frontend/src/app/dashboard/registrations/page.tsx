@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -75,6 +76,7 @@ export default function RegistrationsPage() {
   const router = useRouter();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [selected, setSelected] = useState<Registration | null>(null);
   const [teacher, setTeacher] = useState("");
   const [scheduleDay, setScheduleDay] = useState("");

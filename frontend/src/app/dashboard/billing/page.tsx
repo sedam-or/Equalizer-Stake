@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 
 import { useState, useEffect } from "react";
@@ -39,6 +40,7 @@ export default function BillingPage() {
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [inputCode, setInputCode] = useState("");
   const [loading, setLoading] = useState(true);
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [error, setError] = useState("");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);

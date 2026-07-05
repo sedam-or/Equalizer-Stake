@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 
 import { useState, useEffect } from "react";
@@ -36,6 +37,7 @@ export default function AttendancePage() {
   const [filter, setFilter] = useState("semua");
   const [selected, setSelected] = useState<AttendanceRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [error, setError] = useState("");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);

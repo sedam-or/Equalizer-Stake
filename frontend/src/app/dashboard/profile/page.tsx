@@ -31,7 +31,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { refreshKey } = useDashboard();
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");

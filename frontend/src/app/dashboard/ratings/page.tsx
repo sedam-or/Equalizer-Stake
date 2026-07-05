@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default function RatingsPage() {
-  const { refreshKey } = useDashboard();
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [teacherId, setTeacherId] = useState("");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");

@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -35,6 +36,7 @@ export default function PricingPage() {
   const router = useRouter();
   const [pricings, setPricings] = useState<PricingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshKey, triggerRefresh } = useDashboard();
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<PricingItem | null>(null);

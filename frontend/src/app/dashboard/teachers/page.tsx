@@ -31,7 +31,7 @@ export default function TeachersPage() {
     max_students_per_session: 1,
   });
   const [error, setError] = useState("");
-  const { refreshKey } = useDashboard();
+  const { refreshKey, triggerRefresh } = useDashboard();
 
   const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
