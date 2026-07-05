@@ -44,7 +44,7 @@ async def list_pricing(
                 "id_pricing": str(p.id_pricing),
                 "instrument": p.instrument,
                 "level": p.level,
-                "price": float(p.price),
+                "price": float(p.monthly_fee),
                 "effective_date": p.effective_date.isoformat(),
                 "description": p.description,
                 "is_active": p.is_active,
@@ -75,7 +75,7 @@ async def get_single_pricing(
         "id_pricing": str(pricing.id_pricing),
         "instrument": pricing.instrument,
         "level": pricing.level,
-        "price": float(pricing.price),
+        "price": float(pricing.monthly_fee),
         "effective_date": pricing.effective_date.isoformat(),
         "description": pricing.description,
         "is_active": pricing.is_active,
@@ -152,7 +152,7 @@ async def create_pricing_endpoint(
         "id_pricing": str(pricing.id_pricing),
         "instrument": pricing.instrument,
         "level": pricing.level,
-        "price": float(pricing.price),
+        "price": float(pricing.monthly_fee),
         "effective_date": pricing.effective_date.isoformat(),
     }
 
@@ -176,7 +176,7 @@ async def update_pricing_endpoint(
     before_state = {
         "instrument": pricing.instrument,
         "level": pricing.level,
-        "price": float(pricing.price),
+        "price": float(pricing.monthly_fee),
         "effective_date": pricing.effective_date.isoformat(),
         "is_active": pricing.is_active,
     }
@@ -184,7 +184,7 @@ async def update_pricing_endpoint(
     # Validate if instrument/level/price provided
     instrument = body.get("instrument", pricing.instrument)
     level = body.get("level", pricing.level)
-    price = float(body.get("price", pricing.price))
+    price = float(body.get("price", pricing.monthly_fee))
     error = validate_pricing_input(instrument, level, price)
     if error:
         raise HTTPException(
@@ -217,7 +217,7 @@ async def update_pricing_endpoint(
     after_state = {
         "instrument": pricing.instrument,
         "level": pricing.level,
-        "price": float(pricing.price),
+        "price": float(pricing.monthly_fee),
         "effective_date": pricing.effective_date.isoformat(),
         "is_active": pricing.is_active,
     }
@@ -239,6 +239,6 @@ async def update_pricing_endpoint(
         "id_pricing": str(pricing.id_pricing),
         "instrument": pricing.instrument,
         "level": pricing.level,
-        "price": float(pricing.price),
+        "price": float(pricing.monthly_fee),
         "effective_date": pricing.effective_date.isoformat(),
     }
