@@ -1,50 +1,54 @@
-import SectionHeader from "@/components/landing/SectionHeader";
+"use client";
 
 const testimonials = [
   {
     name: "Ibu Rina",
-    child: "Andi, Gitar",
-    quote: "Dulu Andi malas latihan. Sekarang dia yang nagih mau les. Gurunya tahu cara membuat anak enjoy belajar — bukan dipaksa.",
-    stars: 5,
+    role: "Wali Murid Piano",
+    text: "Anak saya sekarang lebih percaya diri tampil di depan umum. Metode mengajar di BMD membuat anak saya mencintai piano, bukan sekadar belajar.",
+    rating: 5,
   },
   {
-    name: "Bapak Dimas",
-    child: "Sari, Piano",
-    quote: "Sebagai orang tua yang sibuk, saya sangat terbantu dengan sistem BMD. Jadwal, pembayaran, laporan — semua di satu tempat.",
-    stars: 5,
+    name: "Bapak Ahmad",
+    role: "Wali Murid Gitar",
+    text: "Sudah 2 tahun anak kami les di BMD. Perkembangannya luar biasa — dari tidak bisa nada sekarang sudah bisa main lagu favoritnya.",
+    rating: 5,
   },
   {
-    name: "Ibu Wati",
-    child: "Rizky, Drum",
-    quote: "Rizky awalnya cuma coba-coba drum. Sekarang dia sudah gabung band sekolah dan sering manggung. BMD membentuk karakter.",
-    stars: 5,
+    name: "Ibu Sari",
+    role: "Wali Murid Vokal",
+    text: "Gurunya sabar dan paham kebutuhan anak. Jadwal fleksibel banget, cocok untuk keluarga yang sibuk.",
+    rating: 5,
   },
 ];
 
 export default function TestimonialSection() {
   return (
-    <section className="bg-white px-6 py-20 md:px-8 md:py-28">
+    <section className="bg-gray-50 px-6 py-20 md:px-8 md:py-28">
       <div className="mx-auto max-w-7xl">
-        <SectionHeader title="Apa Kata Mereka?" subtitle="Dengarkan langsung dari orang tua yang anaknya belajar di BMD." />
-        <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-balance font-heading text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            Apa Kata Keluarga Kami?
+          </h2>
+          <p className="mt-4 text-lg text-gray-600">
+            150+ keluarga di Yogyakarta sudah mempercayakan pendidikan musik anak mereka kepada kami.
+          </p>
+        </div>
+
+        <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((t, i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-6">
-              <div aria-label={`${t.stars} dari 5 bintang`} className="flex items-center gap-0.5">
-                {Array.from({ length: t.stars }).map((_, j) => (
-                  <span key={j} aria-hidden="true" className="text-[#F59E0B]">★</span>
+            <div key={i} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              {/* Stars */}
+              <div className="flex gap-1">
+                {Array.from({ length: t.rating }).map((_, j) => (
+                  <span key={j} className="text-amber-400">★</span>
                 ))}
               </div>
-              <blockquote className="mt-4 text-sm leading-relaxed text-gray-600">
-                &ldquo;{t.quote}&rdquo;
-              </blockquote>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2563EB]/10 text-sm font-bold text-[#2563EB]">
-                  {t.name[0]}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">{t.name}</p>
-                  <p className="text-xs text-gray-500">Orang tua {t.child}</p>
-                </div>
+              {/* Quote */}
+              <p className="mt-4 text-sm leading-relaxed text-gray-700">&ldquo;{t.text}&rdquo;</p>
+              {/* Author */}
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <div className="font-heading text-sm font-bold text-gray-900">{t.name}</div>
+                <div className="text-xs text-gray-500">{t.role}</div>
               </div>
             </div>
           ))}

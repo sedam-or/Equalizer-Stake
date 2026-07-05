@@ -1,41 +1,43 @@
-import SectionHeader from "@/components/landing/SectionHeader";
+"use client";
 
 const instruments = [
-  { name: "Piano", emoji: "🎹", price: 350000, desc: "Dasar musik yang kuat untuk semua genre" },
-  { name: "Gitar", emoji: "🎸", price: 300000, desc: "Paling populer, langsung bisa main lagu" },
-  { name: "Biola", emoji: "🎻", price: 400000, desc: "Kembangkan ketelitian dan ekspresi" },
-  { name: "Drum", emoji: "🥁", price: 300000, desc: "Salurkan energi anak secara positif" },
-  { name: "Vokal", emoji: "🎤", price: 250000, desc: "Percaya diri tampil di depan umum" },
-  { name: "Keyboard", emoji: "🎹", price: 300000, desc: "Fleksibel, bisa bermain di mana saja" },
-  { name: "Saxophone", emoji: "🎷", price: 400000, desc: "Unik, beda dari yang lain" },
-  { name: "Flute", emoji: "🪈", price: 350000, desc: "Elegan, melatih pernapasan" },
-  { name: "Bass", emoji: "🎸", price: 300000, desc: "Backbone setiap band, selalu dibutuhkan" },
+  { name: "Piano", emoji: "🎹", desc: "Klasik & Pop", color: "bg-blue-50 text-blue-700 border-blue-100" },
+  { name: "Gitar", emoji: "🎸", desc: "Akustik & Elektrik", color: "bg-amber-50 text-amber-700 border-amber-100" },
+  { name: "Vokal", emoji: "🎤", desc: "Pop & Klasik", color: "bg-rose-50 text-rose-700 border-rose-100" },
+  { name: "Biola", emoji: "🎻", desc: "Klasik", color: "bg-purple-50 text-purple-700 border-purple-100" },
+  { name: "Drum", emoji: "🥁", desc: "Modern & Klasik", color: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+  { name: "Keyboard", emoji: "🎹", desc: "Pop & Jazz", color: "bg-cyan-50 text-cyan-700 border-cyan-100" },
+  { name: "Flute", emoji: "🪈", desc: "Klasik", color: "bg-teal-50 text-teal-700 border-teal-100" },
+  { name: "Saxophone", emoji: "🎷", desc: "Jazz & Pop", color: "bg-orange-50 text-orange-700 border-orange-100" },
+  { name: "Bass", emoji: "🎸", desc: "Gitar Bass", color: "bg-slate-50 text-slate-700 border-slate-100" },
 ];
 
 export default function ProgramKursusSection() {
   return (
-    <section id="instrumen" className="bg-white px-6 py-20 md:px-8 md:py-28">
+    <section id="instrumen" className="bg-gray-50 px-6 py-20 md:px-8 md:py-28">
       <div className="mx-auto max-w-7xl">
-        <SectionHeader title="Pilih Instrumen Favorit Anak Anda" subtitle="9 instrumen tersedia. Anak Anda bebas memilih yang paling disukai." />
-        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-balance font-heading text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            Pilih Instrumen Favorit Anak
+          </h2>
+          <p className="mt-4 text-lg text-gray-600">
+            9 instrumen tersedia dengan guru spesialis di bidangnya masing-masing.
+          </p>
+        </div>
+
+        <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {instruments.map((inst) => (
-            <div key={inst.name} className="group rounded-xl border border-gray-200 bg-white p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-              <span aria-hidden="true" className="text-4xl">{inst.emoji}</span>
-              <h3 className="mt-3 font-heading text-lg font-bold text-gray-900">{inst.name}</h3>
-              <p className="mt-1 text-sm text-gray-500">{inst.desc}</p>
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-base font-bold text-[#2563EB]">
-                  Rp {inst.price.toLocaleString("id-ID")}
-                  <span className="text-sm font-normal text-gray-500">/bulan</span>
-                </p>
-                <a
-                  href={`/register-course?instrument=${encodeURIComponent(inst.name)}`}
-                  className="rounded-lg bg-[#2563EB]/10 px-3 py-1.5 text-xs font-semibold text-[#2563EB] transition-colors hover:bg-[#2563EB] hover:text-white"
-                >
-                  Pelajari
-                </a>
+            <a
+              key={inst.name}
+              href="/register-course"
+              className={`group flex items-center gap-4 rounded-xl border p-5 transition-all duration-200 hover:shadow-md ${inst.color}`}
+            >
+              <span className="text-3xl">{inst.emoji}</span>
+              <div>
+                <div className="font-heading text-base font-bold">{inst.name}</div>
+                <div className="text-sm opacity-70">{inst.desc}</div>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
