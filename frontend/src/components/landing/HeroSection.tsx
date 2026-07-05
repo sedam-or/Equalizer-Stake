@@ -6,7 +6,7 @@ export default function HeroSection() {
       <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
         {/* Left: Text */}
         <div className="text-center lg:text-left">
-          <h1 className="font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="text-balance font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Anak Anda Punya Bakat Musik?
           </h1>
           <p className="mt-4 text-xl font-semibold text-white/90 sm:text-2xl">

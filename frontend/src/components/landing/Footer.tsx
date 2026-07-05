@@ -6,39 +6,39 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <h3 className="font-heading text-xl font-bold text-white">BMD Music School</h3>
-            <p className="mt-4 text-sm leading-relaxed text-gray-400">
+            <p className="mt-4 text-sm leading-relaxed text-gray-600">
               Sistem Penjadwalan Kursus Musik Berbasis Web untuk BMD Music School, Yogyakarta.
             </p>
           </div>
 
           {/* Navigation */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-white">Navigasi</h4>
+            <h4 className="text-sm font-semibold text-gray-300">Navigasi</h4>
             <div className="mt-4 flex flex-col gap-3">
-              <a href="#instrumen" className="text-sm text-gray-400 transition-colors hover:text-white">Instrumen</a>
-              <a href="#tentang" className="text-sm text-gray-400 transition-colors hover:text-white">Tentang</a>
-              <a href="#harga" className="text-sm text-gray-400 transition-colors hover:text-white">Harga</a>
-              <a href="/register-course" className="text-sm text-gray-400 transition-colors hover:text-white">Daftar Kursus</a>
+              <a href="#instrumen" className="text-sm text-gray-600 transition-colors hover:text-white">Instrumen</a>
+              <a href="#tentang" className="text-sm text-gray-600 transition-colors hover:text-white">Tentang</a>
+              <a href="#harga" className="text-sm text-gray-600 transition-colors hover:text-white">Harga</a>
+              <a href="/register-course" className="text-sm text-gray-600 transition-colors hover:text-white">Daftar Kursus</a>
             </div>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-white">Kontak</h4>
+            <h4 className="text-sm font-semibold text-gray-300">Kontak</h4>
             <address className="mt-4 flex flex-col gap-3 not-italic">
-              <p className="text-sm text-gray-400">📱 +62 812-3456-7890</p>
-              <p className="text-sm text-gray-400">✉️ info@bmdmusic.com</p>
-              <p className="text-sm text-gray-400">📍 Seturan, Yogyakarta</p>
+              <p className="text-sm text-gray-600">📱 +62 812-3456-7890</p>
+              <p className="text-sm text-gray-600">✉️ info@bmdmusic.com</p>
+              <p className="text-sm text-gray-600">📍 Seturan, Yogyakarta</p>
             </address>
           </div>
 
           {/* Hours + Studio Booking */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-white">Jam Operasional</h4>
+            <h4 className="text-sm font-semibold text-gray-300">Jam Operasional</h4>
             <div className="mt-4 flex flex-col gap-3">
-              <p className="text-sm text-gray-400">Senin - Sabtu</p>
-              <p className="text-sm text-gray-400">09:00 - 20:00 WIB</p>
-              <p className="text-sm text-gray-400">Minggu: Libur</p>
+              <p className="text-sm text-gray-600">Senin - Sabtu</p>
+              <p className="text-sm text-gray-600">09:00 - 20:00 WIB</p>
+              <p className="text-sm text-gray-600">Minggu: Libur</p>
             </div>
             <a
               href="https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20booking%20studio%20BMD"

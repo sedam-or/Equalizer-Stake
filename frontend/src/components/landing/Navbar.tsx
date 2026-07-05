@@ -22,7 +22,7 @@ export default function Navbar() {
   }, [mobileOpen, closeMobile]);
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100" : "bg-transparent"}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white shadow-sm border-b border-gray-100" : "bg-transparent"}`}>
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-8">
         <a href="/" className="font-heading text-xl font-bold text-gray-900">BMD</a>
         <div className="hidden items-center gap-8 md:flex">
