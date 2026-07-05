@@ -83,7 +83,7 @@ export default function SchedulePage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Jadwal Kursus</h1>
           <p className="mt-1 text-sm text-gray-500">Kelola jadwal sesi kursus BMD Music</p>

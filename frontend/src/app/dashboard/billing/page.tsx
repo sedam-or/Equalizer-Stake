@@ -161,7 +161,7 @@ export default function BillingPage() {
             </div>
 
             <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <div><span className="text-gray-500">Invoice:</span> <span className="text-gray-900 font-mono">{selected.invoice_no || selected.id_invoice.slice(0, 8)}</span></div>
                 <div><span className="text-gray-500">Periode:</span> <span className="text-gray-900">{selected.billing_period}</span></div>
                 <div><span className="text-gray-500">Wali:</span> <span className="text-gray-900">{selected.guardian_name || "-"}</span></div>

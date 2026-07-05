@@ -141,7 +141,7 @@ export default function PricingPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Kelola Tarif</h1>
           <p className="text-sm text-gray-500 mt-1">Atur tarif kursus per instrumen dan level</p>

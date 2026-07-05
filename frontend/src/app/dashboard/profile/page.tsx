@@ -149,7 +149,7 @@ export default function ProfilePage() {
 
       {/* Profile Info */}
       <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <h2 className="text-lg font-semibold text-gray-900">Informasi Akun</h2>
           {!editMode && (
             <button onClick={() => setEditMode(true)} className="text-sm text-[#2563EB] hover:underline">

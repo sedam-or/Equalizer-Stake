@@ -116,7 +116,7 @@ export default function AdminsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Kelola Admin</h1>
           <p className="mt-1 text-sm text-gray-500">Buat, nonaktifkan, atau hapus akun Admin</p>

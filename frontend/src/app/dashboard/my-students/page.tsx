@@ -93,7 +93,7 @@ export default function MyStudentsPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
           <h1 className="font-heading text-2xl font-bold text-gray-900">Anak Saya</h1>
           <p className="text-sm text-gray-500">Kelola data anak yang terdaftar kursus</p>

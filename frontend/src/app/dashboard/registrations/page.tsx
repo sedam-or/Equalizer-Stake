@@ -302,7 +302,7 @@ export default function RegistrationsPage() {
                       className={inputClass}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="mb-1 block text-xs text-gray-500">
                         Hari

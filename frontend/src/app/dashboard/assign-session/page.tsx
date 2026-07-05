@@ -94,7 +94,7 @@ export default function AssignSessionPage() {
               <label className="mb-1 block text-sm font-medium text-gray-700">Tanggal *</label>
               <input type="date" value={form.session_date} onChange={(e) => setForm({ ...form, session_date: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Jam Mulai *</label>
                 <input type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" />

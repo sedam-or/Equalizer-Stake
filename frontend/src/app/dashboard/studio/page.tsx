@@ -60,7 +60,7 @@ export default function StudioPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {rooms.map(room => (
             <div key={room.id_room} className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
                 <span className={`rounded-full px-2 py-1 text-xs font-medium ${
                   room.status === "available" ? "bg-[#2563EB]/10 text-[#2563EB]" :

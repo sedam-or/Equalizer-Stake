@@ -158,7 +158,7 @@ export default function AttendancePage() {
               <p className="text-xs text-gray-600">Terenkripsi AES-256-GCM</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div><span className="text-gray-500">Tanggal:</span> <span className="text-gray-900">{selected.session_date}</span></div>
               <div><span className="text-gray-500">Jam:</span> <span className="text-gray-900">{selected.start_time} - {selected.end_time}</span></div>
               <div><span className="text-gray-500">Siswa:</span> <span className="text-gray-900">{selected.student_name || "-"}</span></div>
@@ -170,7 +170,7 @@ export default function AttendancePage() {
             {selected.gps_lat && (
               <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <h3 className="text-xs font-semibold text-gray-500 mb-2">Validasi GPS</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                   <div><span className="text-gray-500">Lat:</span> <span className="text-gray-900">{selected.gps_lat}</span></div>
                   <div><span className="text-gray-500">Lng:</span> <span className="text-gray-900">{selected.gps_lng}</span></div>
                   <div><span className="text-gray-500">Jarak:</span> <span className="text-gray-900">{selected.gps_distance_m || "?"}m</span></div>
