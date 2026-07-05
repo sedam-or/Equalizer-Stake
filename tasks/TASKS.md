@@ -2057,7 +2057,7 @@
 - **Files**: `backend/app/models/registration.py`, `backend/app/routers/registrations.py`
 
 ### T-160: Hapus Studio Rental dari System
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: FR-08
 - **Deskripsi**:
