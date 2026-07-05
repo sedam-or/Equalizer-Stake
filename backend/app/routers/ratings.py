@@ -11,6 +11,7 @@ from app.core.database import get_db
 from app.middleware.auth import require_role
 from app.models.user import User
 from app.services.audit import create_audit_log
+from app.models.rating import Rating
 
 router = APIRouter(prefix="/api/v1/ratings", tags=["Ratings"])
 
@@ -94,10 +95,9 @@ async def list_ratings(
         "data": [
             {
                 "id_rating": str(r.id_rating),
-                "session_id": str(r.id_session),
                 "teacher_id": str(r.id_teacher),
-                "student_id": str(r.id_student),
-                "score": r.score,
+                "guardian_id": str(r.id_guardian),
+                "rating": r.rating,
                 "comment": r.comment,
                 "created_at": r.created_at.isoformat() if r.created_at else None,
             }
