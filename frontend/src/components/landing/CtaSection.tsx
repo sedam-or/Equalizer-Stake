@@ -6,22 +6,14 @@ export default function CtaSection() {
           Siap Memberikan yang Terbaik untuk Anak?
         </h2>
         <p className="mt-4 text-lg text-white/80">
-          Daftar kursus sekarang atau hubungi kami untuk info lebih lanjut.
+          Daftar kursus musik sekarang dan wujudkan potensi anak Anda.
         </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="mt-8">
           <a
             href="/register-course"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-4 text-base font-bold text-[#EA580C] shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-10 py-4 text-base font-bold text-[#EA580C] shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105"
           >
-            🎵 Daftar Kursus
-          </a>
-          <a
-            href="https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20info%20kursus%20musik%20di%20BMD"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border-2 border-white px-8 py-4 text-base font-semibold text-white transition-all duration-200 hover:bg-white/10"
-          >
-            💬 Chat via WhatsApp
+            🎵 Daftar Kursus Sekarang
           </a>
         </div>
       </div>
