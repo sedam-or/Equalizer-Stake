@@ -37,7 +37,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("/api/v1/reports/admin-stats", {
+    fetch("/api/v1/v1/reports/admin-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -101,7 +101,7 @@ function AdminDashboard() {
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3">
-        <ActionButton href="/dashboard/scheduling" label="Buat Jadwal Baru" />
+        <ActionButton href="/dashboard/schedule" label="Buat Jadwal Baru" />
         <ActionButton href="/dashboard/attendance" label="Review Absensi" />
         <ActionButton href="/dashboard/billing" label="Verifikasi Pembayaran" />
       </div>
@@ -139,7 +139,7 @@ function OwnerDashboard() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    fetch("/api/reports/owner-dashboard", {
+    fetch("/api/v1/reports/owner-dashboard", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -249,7 +249,7 @@ function TeacherDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("/api/v1/reports/teacher-stats", {
+    fetch("/api/v1/v1/reports/teacher-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -327,7 +327,7 @@ function GuardianDashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("/api/v1/reports/guardian-stats", {
+    fetch("/api/v1/v1/reports/guardian-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())

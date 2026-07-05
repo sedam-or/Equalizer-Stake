@@ -35,7 +35,7 @@ export default function TeachersPage() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/teachers", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch("/api/v1/v1/teachers", { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) setTeachers(await res.json());
     } catch { /* ignore */ }
     setLoading(false);

@@ -52,16 +52,16 @@ export default function SchedulePage() {
     const h = { Authorization: `Bearer ${token}` };
 
     fetch(`/api/sessions/?limit=${limit}&offset=${offset}`, { headers: h }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(res => { setSessions(res.data || []); setTotal(res.total || 0); }).catch(() => { setSessions([]); setTotal(0); }).finally(() => setLoading(false));
-    fetch("/api/sessions/rooms", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : d.data || [])).catch(() => {});
-    fetch("/api/sessions/teachers", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setTeachers(Array.isArray(d) ? d : d.data || [])).catch(() => {});
-    fetch("/api/students/", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setStudents(Array.isArray(d) ? d : d.data || [])).catch(() => {});
+    fetch("/api/v1/sessions/rooms", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : d.data || [])).catch(() => {});
+    fetch("/api/v1/sessions/teachers", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setTeachers(Array.isArray(d) ? d : d.data || [])).catch(() => {});
+    fetch("/api/v1/students/", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setStudents(Array.isArray(d) ? d : d.data || [])).catch(() => {});
   }, [router, offset]);
 
   const handleCreate = async () => {
     setError(""); setSuccess("");
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("/api/sessions/", {
+      const res = await fetch("/api/v1/sessions/", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),

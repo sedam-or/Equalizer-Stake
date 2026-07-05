@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NotificationBadge } from "@/components/NotificationBadge";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 type Role = "owner" | "admin" | "teacher" | "guardian";
 
@@ -166,7 +165,6 @@ export default function Sidebar() {
         </Link>
       </div>
       <div className="px-3 pb-3">
-        <ThemeToggle />
         <button
           onClick={() => {
             localStorage.removeItem("access_token");

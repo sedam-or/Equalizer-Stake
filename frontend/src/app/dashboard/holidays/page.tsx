@@ -44,7 +44,7 @@ export default function HolidaysPage() {
     if (!form.date || !form.name.trim()) { setErr("Tanggal dan nama libur wajib diisi"); return; }
     const token = localStorage.getItem("token");
     const updated = [...holidays, { date: form.date, name: form.name, type: "Custom" }];
-    const res = await fetch("/api/holidays/", {
+    const res = await fetch("/api/v1/holidays/", {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ holidays: updated }),
@@ -62,7 +62,7 @@ export default function HolidaysPage() {
   const handleRemove = async (idx: number) => {
     const updated = holidays.filter((_, i) => i !== idx);
     const token = localStorage.getItem("token");
-    await fetch("/api/holidays/", {
+    await fetch("/api/v1/holidays/", {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ holidays: updated }),

@@ -64,7 +64,7 @@ export default function OverridePage() {
     if (!token) { router.push("/login"); return; }
     setSubmitting(true);
     try {
-      const res = await fetch("/api/attendances/override", {
+      const res = await fetch("/api/v1/attendances/override", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({

@@ -62,14 +62,14 @@ export default function MySchedulePage() {
     const r = localStorage.getItem("role") || "";
 
     if (r === "teacher") {
-      fetch("/api/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } })
+      fetch("/api/v1/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.ok ? r.json() : null)
         .then(profile => {
           if (profile?.instruments?.length) setInstruments(profile.instruments);
         })
         .catch(() => {});
     } else if (r === "guardian") {
-      fetch("/api/my/children?limit=50", { headers: { Authorization: `Bearer ${token}` } })
+      fetch("/api/v1/my/children?limit=50", { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.ok ? r.json() : null)
         .then(res => {
           if (res?.data) setChildren(res.data);

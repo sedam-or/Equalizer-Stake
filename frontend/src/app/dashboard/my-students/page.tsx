@@ -29,7 +29,7 @@ export default function MyStudentsPage() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/students/", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch("/api/v1/v1/students/", { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setStudents(data.data || []);

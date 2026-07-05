@@ -57,7 +57,7 @@ export default function AdminsPage() {
     setCreateLoading(true);
     const token = getToken();
     try {
-      const res = await fetch("/api/admin-mgmt/admins", {
+      const res = await fetch("/api/v1/admin-mgmt/admins", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(createForm),

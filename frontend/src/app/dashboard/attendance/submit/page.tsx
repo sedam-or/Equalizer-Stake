@@ -42,7 +42,7 @@ export default function AttendanceSubmitPage() {
     if (!token) { router.push("/login"); return; }
 
     // Fetch teacher's schedule for today
-    fetch("/api/my/schedule", { headers: { Authorization: `${B} ${token}` } })
+    fetch("/api/v1/my/schedule", { headers: { Authorization: `${B} ${token}` } })
       .then(r => r.ok ? r.json() : [])
       .then(data => {
         const today = new Date().toISOString().split("T")[0];
@@ -119,7 +119,7 @@ export default function AttendanceSubmitPage() {
 
     // Online: send to server
     try {
-      const res = await fetch("/api/attendance/", {
+      const res = await fetch("/api/v1/attendance/", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(attendanceData),

@@ -44,7 +44,7 @@ export default function ProfilePage() {
     const token = localStorage.getItem("token");
     if (!token) { router.push("/login"); return; }
 
-    fetch("/api/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } })
+    fetch("/api/v1/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
         setProfile(data);
@@ -63,7 +63,7 @@ export default function ProfilePage() {
     setSaving(true); setErr(""); setMsg("");
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("/api/auth/me/profile", {
+      const res = await fetch("/api/v1/auth/me/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ full_name: form.full_name, email: form.email, phone: form.phone || undefined }),
@@ -76,7 +76,7 @@ export default function ProfilePage() {
       }
       setMsg("Profil berhasil diperbarui");
       setEditMode(false);
-      const r2 = await fetch("/api/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } });
+      const r2 = await fetch("/api/v1/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } });
       setProfile(await r2.json());
     } catch { setErr("Terjadi kesalahan jaringan"); }
     finally { setSaving(false); }
@@ -88,7 +88,7 @@ export default function ProfilePage() {
     if (pwForm.new_password.length < 8) { setPwErr("Password minimal 8 karakter"); setPwSaving(false); return; }
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("/api/auth/change-password", {
+      const res = await fetch("/api/v1/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ current_password: pwForm.current_password, new_password: pwForm.new_password }),
@@ -128,7 +128,7 @@ export default function ProfilePage() {
               formData.append("file", file);
               const token = localStorage.getItem("token");
               try {
-                const res = await fetch("/api/v1/photos/upload", {
+                const res = await fetch("/api/v1/v1/photos/upload", {
                   method: "POST",
                   headers: { Authorization: `Bearer ${token}` },
                   body: formData,
@@ -244,7 +244,7 @@ export default function ProfilePage() {
             if (!confirm("Apakah Anda yakin ingin menghapus data? Tindakan ini tidak dapat dibatalkan.")) return;
             const token = localStorage.getItem("token");
             try {
-              const res = await fetch("/api/privacy/delete-request?reason=User+request&entity_type=user&entity_id=" + (localStorage.getItem("user_id") || ""), {
+              const res = await fetch("/api/v1/privacy/delete-request?reason=User+request&entity_type=user&entity_id=" + (localStorage.getItem("user_id") || ""), {
                 method: "POST",
                 headers: { Authorization: `${"B" + String.fromCharCode(101) + "arer"} ${token}` },
               });

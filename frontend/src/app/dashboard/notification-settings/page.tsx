@@ -44,7 +44,7 @@ export default function NotificationSettingsPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) { router.push("/login"); return; }
-    fetch("/api/notifications/toggle", { headers: { Authorization: `${B} ${token}` } })
+    fetch("/api/v1/notifications/toggle", { headers: { Authorization: `${B} ${token}` } })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => { setSettings(Array.isArray(data) ? data : []); })
       .catch(() => { setSettings([]); })
