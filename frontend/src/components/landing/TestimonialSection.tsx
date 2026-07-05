@@ -1,4 +1,5 @@
 "use client";
+import BlurText from "@/components/BlurText";
 
 export default function TestimonialSection() {
   return (
@@ -8,9 +9,13 @@ export default function TestimonialSection() {
         <div className="mb-8 font-heading text-6xl text-[#D4AF37]/30">&ldquo;</div>
 
         {/* Quote */}
-        <blockquote className="text-balance font-heading text-2xl font-light leading-relaxed text-white/90 sm:text-3xl lg:text-4xl">
-          Anak saya sekarang lebih percaya diri tampil di depan umum. Metode mengajar di BMD membuat anak saya mencintai piano — bukan sekadar belajar.
-        </blockquote>
+        <BlurText
+          text="Anak saya sekarang lebih percaya diri tampil di depan umum. Metode mengajar di BMD membuat anak saya mencintai piano — bukan sekadar belajar."
+          animateBy="words"
+          direction="top"
+          delay={80}
+          className="text-balance font-heading text-2xl font-light leading-relaxed text-white/90 sm:text-3xl lg:text-4xl"
+        />
 
         {/* Author */}
         <div className="mt-10 flex flex-col items-center gap-2">

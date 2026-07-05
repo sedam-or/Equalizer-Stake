@@ -1,4 +1,5 @@
 "use client";
+import BlurText from "@/components/BlurText";
 
 const reasons = [
   {
@@ -28,11 +29,20 @@ export default function WhyBMD() {
             <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-[#D4AF37]">
               Mengapa BMD
             </p>
-            <h2 className="text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-[#0F172A] sm:text-4xl lg:text-5xl">
-              Bukan Sekadar Kursus Musik.
-              <br />
-              <span className="text-gray-400">Investasi untuk Masa Depan.</span>
-            </h2>
+            <BlurText
+              text="Bukan Sekadar Kursus Musik."
+              animateBy="words"
+              direction="top"
+              delay={100}
+              className="text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-[#0F172A] sm:text-4xl lg:text-5xl"
+            />
+            <BlurText
+              text="Investasi untuk Masa Depan."
+              animateBy="words"
+              direction="top"
+              delay={150}
+              className="mt-2 text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-gray-400 sm:text-4xl lg:text-5xl"
+            />
             <p className="mt-6 max-w-md text-base leading-relaxed text-gray-500">
               Kami tidak hanya mengajarkan anak bermain instrumen. Kami membangun fondasi yang benar agar anak mencintai musik seumur hidup.
             </p>

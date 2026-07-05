@@ -1,4 +1,5 @@
 "use client";
+import BlurText from "@/components/BlurText";
 
 export default function CtaSection() {
   return (
@@ -8,9 +9,13 @@ export default function CtaSection() {
           Langkah Selanjutnya
         </p>
 
-        <h2 className="text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-          Jadwalkan Kunjungan ke Studio Kami.
-        </h2>
+        <BlurText
+          text="Jadwalkan Kunjungan ke Studio Kami."
+          animateBy="words"
+          direction="top"
+          delay={100}
+          className="text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
+        />
 
         <p className="mx-auto mt-6 max-w-lg text-lg leading-relaxed text-blue-100">
           Lihat langsung fasilitas kami, bertemu dengan guru, dan rasakan atmosfer belajar yang kami ciptakan untuk anak-anak.

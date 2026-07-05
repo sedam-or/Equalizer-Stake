@@ -1,25 +1,26 @@
 "use client";
+import BlurText from "@/components/BlurText";
 
 const instruments = [
   {
     name: "Piano",
     desc: "Klasik & Pop — dari pemula hingga performa",
-    image: "/images/instruments/piano.jpg",
+    image: "/images/instrument/piano.png",
   },
   {
     name: "Gitar",
     desc: "Akustik & Elektrik — fondasi musik modern",
-    image: "/images/instruments/guitar.jpg",
+    image: "/images/instrument/gitar.png",
   },
   {
     name: "Vokal",
     desc: "Pop & Klasik — temukan suara unik anak",
-    image: "/images/instruments/vocal.jpg",
+    image: "/images/instrument/vocal.png",
   },
   {
     name: "Biola",
     desc: "Klasik — disiplin dan keindahan nada",
-    image: "/images/instruments/violin.jpg",
+    image: "/images/instrument/biola.png",
   },
 ];
 
@@ -32,11 +33,20 @@ export default function ProgramKursusSection() {
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-[#D4AF37]">
             Program
           </p>
-          <h2 className="text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-[#0F172A] sm:text-4xl">
-            Pilih Instrumen.
-            <br />
-            <span className="text-gray-400">Mulai Perjalanan Musik Anak.</span>
-          </h2>
+          <BlurText
+            text="Pilih Instrumen."
+            animateBy="words"
+            direction="top"
+            delay={100}
+            className="text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-[#0F172A] sm:text-4xl"
+          />
+          <BlurText
+            text="Mulai Perjalanan Musik Anak."
+            animateBy="words"
+            direction="top"
+            delay={150}
+            className="mt-2 text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-gray-400 sm:text-4xl"
+          />
         </div>
 
         {/* Instruments — horizontal scroll on mobile */}
