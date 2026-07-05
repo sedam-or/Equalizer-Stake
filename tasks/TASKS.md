@@ -2553,7 +2553,7 @@
 - **Files**: backend/app/routers/cron_trigger.py, photos.py, backend/app/main.py
 
 ### T-192: Add Rate Limiting to CRUD Endpoints
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **Source**: T-181 (BACKEND_SECURITY_DEEP_AUDIT.md)
 - **Deskripsi**:
