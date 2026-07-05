@@ -2590,7 +2590,7 @@
 - **Files**: frontend/src/app/dashboard/*/page.tsx (11 files)
 
 ### T-194: Add refreshKey to All Data-Fetching Pages
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **Source**: T-185 (FRONTEND_STATE_MANAGEMENT_AUDIT.md)
 - **Deskripsi**:
