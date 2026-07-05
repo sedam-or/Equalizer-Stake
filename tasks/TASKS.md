@@ -2529,7 +2529,7 @@
 - **Files**: backend/app/models/attendance.py, invoice.py, payment.py, session.py, student.py
 
 ### T-190: Add Soft Delete to Missing Models
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **Source**: T-179 (BACKEND_MODEL_AUDIT.md)
 - **Deskripsi**:
