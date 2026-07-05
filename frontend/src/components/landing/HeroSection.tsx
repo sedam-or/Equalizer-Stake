@@ -38,7 +38,7 @@ function CountUp({ target, suffix = "" }: { target: number; suffix?: string }) {
 
 export default function HeroSection() {
   return (
-    <section data-theme="dark" className="snap-section relative flex min-[100dvh] items-center overflow-hidden bg-[#0F172A] px-6 md:px-8">
+    <section data-theme="dark" className="snap-section relative flex min-[100dvh] items-center overflow-hidden bg-[#0F172A] px-6 pt-24 pb-12 md:px-8 md:pt-28 md:pb-16">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A]" />
 
@@ -111,7 +111,7 @@ export default function HeroSection() {
         <div className="relative hidden lg:block">
           <div className="relative overflow-hidden rounded-sm">
             <img
-              src="/images/studio-1.jpg"
+              src="/images/screen.png"
               alt="Studio BMD Music School"
               className="h-[600px] w-full object-cover"
             />

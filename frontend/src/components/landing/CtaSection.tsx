@@ -2,7 +2,7 @@
 
 export default function CtaSection() {
   return (
-    <section data-theme="dark" className="snap-section flex min-[100dvh] items-center bg-[#2563EB] px-6 md:px-8">
+    <section data-theme="dark" className="snap-section flex min-[100dvh] items-center bg-[#2563EB] px-6 pt-20 md:px-8">
       <div className="mx-auto max-w-3xl text-center">
         <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">
           Langkah Selanjutnya

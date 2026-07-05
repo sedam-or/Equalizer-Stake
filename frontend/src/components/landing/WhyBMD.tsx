@@ -20,7 +20,7 @@ const reasons = [
 
 export default function WhyBMD() {
   return (
-    <section data-theme="light" className="snap-section flex min-[100dvh] items-center bg-white px-6 md:px-8">
+    <section data-theme="light" className="snap-section flex min-[100dvh] items-center bg-white px-6 pt-20 md:px-8">
       <div className="mx-auto w-full max-w-7xl">
         <div className="grid items-center gap-16 lg:grid-cols-2">
           {/* Left: Text */}
