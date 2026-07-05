@@ -2711,7 +2711,7 @@
 - **Files**: backend/app/models/session.py, backend/app/routers/scheduling.py
 
 ### T-202: Syarat Usia Tunas (Min 3.5 Tahun)
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟢 NICE TO HAVE
 - **SRS**: Addendum Section 9 — Syarat Usia
 - **FR/UC terkait**: FR-02, UC-02
