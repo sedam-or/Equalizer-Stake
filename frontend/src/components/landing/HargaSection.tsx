@@ -1,4 +1,3 @@
-import SectionHeader from "@/components/landing/SectionHeader";
 
 const instruments = [
   {
@@ -99,10 +98,6 @@ export default function HargaSection() {
   return (
     <section id="harga" className="bg-[#F8FAFC] px-6 py-20 md:px-8 md:py-28">
       <div className="mx-auto max-w-7xl">
-        <SectionHeader
-          title="Investasi untuk Masa Depan Anak"
-          subtitle="Biaya transparan, tanpa biaya tersembunyi. Registration fee dibayar sekali saat daftar."
-        />
 
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {instruments.map((inst) => (

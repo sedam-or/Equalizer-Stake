@@ -1,59 +1,46 @@
+"use client";
+
 export default function Footer() {
   return (
-    <footer id="kontak" className="bg-gray-900 px-6 py-16 md:px-8">
+    <footer className="bg-[#0A0F1A] px-6 py-16 md:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-4">
+        <div className="grid gap-12 md:grid-cols-3">
           {/* Brand */}
           <div>
-            <h3 className="font-heading text-xl font-bold text-white">BMD Music School</h3>
-            <p className="mt-4 text-sm leading-relaxed text-gray-600">
-              Sistem Penjadwalan Kursus Musik Berbasis Web untuk BMD Music School, Yogyakarta.
+            <a href="/" className="font-heading text-xl font-bold tracking-tight text-white">
+              BMD <span className="text-[#D4AF37]">Music</span>
+            </a>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-500">
+              Kelas privat musik premium untuk keluarga di Yogyakarta. Pengalaman 10+ tahun mengembangkan bakat musik anak.
             </p>
           </div>
 
-          {/* Navigation */}
+          {/* Links */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-300">Navigasi</h4>
-            <div className="mt-4 flex flex-col gap-3">
-              <a href="#instrumen" className="text-sm text-gray-600 transition-colors hover:text-white">Instrumen</a>
-              <a href="#tentang" className="text-sm text-gray-600 transition-colors hover:text-white">Tentang</a>
-              <a href="#harga" className="text-sm text-gray-600 transition-colors hover:text-white">Harga</a>
-              <a href="/register-course" className="text-sm text-gray-600 transition-colors hover:text-white">Daftar Kursus</a>
-            </div>
+            <h4 className="text-sm font-semibold text-gray-400">Program</h4>
+            <ul className="mt-4 space-y-3">
+              <li><a href="/instruments" className="text-sm text-gray-500 transition-colors hover:text-white">Semua Instrumen</a></li>
+              <li><a href="/register-course" className="text-sm text-gray-500 transition-colors hover:text-white">Daftar Kursus</a></li>
+              <li><a href="/help" className="text-sm text-gray-500 transition-colors hover:text-white">FAQ</a></li>
+            </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-300">Kontak</h4>
-            <address className="mt-4 flex flex-col gap-3 not-italic">
-              <p className="text-sm text-gray-600">📱 +62 812-3456-7890</p>
-              <p className="text-sm text-gray-600">✉️ info@bmdmusic.com</p>
-              <p className="text-sm text-gray-600">📍 Seturan, Yogyakarta</p>
-            </address>
-          </div>
-
-          {/* Hours + Studio Booking */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-300">Jam Operasional</h4>
-            <div className="mt-4 flex flex-col gap-3">
-              <p className="text-sm text-gray-600">Senin - Sabtu</p>
-              <p className="text-sm text-gray-600">09:00 - 20:00 WIB</p>
-              <p className="text-sm text-gray-600">Minggu: Libur</p>
-            </div>
-            <a
-              href="https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20booking%20studio%20BMD"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#1D4ED8]"
-            >
-              🎹 Booking Studio
-            </a>
+            <h4 className="text-sm font-semibold text-gray-400">Kontak</h4>
+            <ul className="mt-4 space-y-3">
+              <li className="text-sm text-gray-500">📍 Seturan, Yogyakarta</li>
+              <li className="text-sm text-gray-500">📞 0812-3456-7890</li>
+              <li className="text-sm text-gray-500">⏰ Sen-Sab, 08:00-20:00</li>
+            </ul>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-12 border-t border-gray-700 pt-8 text-center">
-          <p className="text-xs text-gray-500">© 2026 BMD Music School. All rights reserved.</p>
+        {/* Bottom */}
+        <div className="mt-12 border-t border-white/5 pt-8 text-center">
+          <p className="text-xs text-gray-600">
+            © 2026 BMD Music School. Hak cipta dilindungi.
+          </p>
         </div>
       </div>
     </footer>

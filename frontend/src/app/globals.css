@@ -147,3 +147,59 @@ button:active, [role="button"]:active {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* === PREMIUM LANDING PAGE === */
+
+/* Scroll snap container */
+.scroll-container {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: scroll;
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
+
+/* Snap sections */
+.snap-section {
+  min-height: 100vh;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+}
+
+/* Mobile: softer snap */
+@media (max-width: 768px) {
+  .scroll-container {
+    scroll-snap-type: y proximity;
+  }
+}
+
+/* Fade-in animation */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.fade-in.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered fade-in */
+.fade-in-delay-1 { transition-delay: 0.1s; }
+.fade-in-delay-2 { transition-delay: 0.2s; }
+.fade-in-delay-3 { transition-delay: 0.3s; }
+.fade-in-delay-4 { transition-delay: 0.4s; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-container {
+    scroll-snap-type: none;
+  }
+  .fade-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

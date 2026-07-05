@@ -1,58 +1,38 @@
 "use client";
 
-const testimonials = [
-  {
-    name: "Ibu Rina",
-    role: "Wali Murid Piano",
-    text: "Anak saya sekarang lebih percaya diri tampil di depan umum. Metode mengajar di BMD membuat anak saya mencintai piano, bukan sekadar belajar.",
-    rating: 5,
-  },
-  {
-    name: "Bapak Ahmad",
-    role: "Wali Murid Gitar",
-    text: "Sudah 2 tahun anak kami les di BMD. Perkembangannya luar biasa — dari tidak bisa nada sekarang sudah bisa main lagu favoritnya.",
-    rating: 5,
-  },
-  {
-    name: "Ibu Sari",
-    role: "Wali Murid Vokal",
-    text: "Gurunya sabar dan paham kebutuhan anak. Jadwal fleksibel banget, cocok untuk keluarga yang sibuk.",
-    rating: 5,
-  },
-];
-
 export default function TestimonialSection() {
   return (
-    <section className="bg-gray-50 px-6 py-20 md:px-8 md:py-28">
-      <div className="mx-auto max-w-7xl">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-balance font-heading text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Apa Kata Keluarga Kami?
-          </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            150+ keluarga di Yogyakarta sudah mempercayakan pendidikan musik anak mereka kepada kami.
+    <section className="snap-section flex min-h-[100dvh] items-center bg-[#0F172A] px-6 md:px-8">
+      <div className="mx-auto max-w-4xl text-center">
+        {/* Quote mark */}
+        <div className="mb-8 font-heading text-6xl text-[#D4AF37]/30">&ldquo;</div>
+
+        {/* Quote */}
+        <blockquote className="text-balance font-heading text-2xl font-light leading-relaxed text-white/90 sm:text-3xl lg:text-4xl">
+          Anak saya sekarang lebih percaya diri tampil di depan umum. Metode mengajar di BMD membuat anak saya mencintai piano — bukan sekadar belajar.
+        </blockquote>
+
+        {/* Author */}
+        <div className="mt-10 flex flex-col items-center gap-2">
+          <div className="flex gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <span key={i} className="text-[#D4AF37]">★</span>
+            ))}
+          </div>
+          <p className="mt-2 font-heading text-sm font-semibold text-[#D4AF37]">
+            Ibu Rina
+          </p>
+          <p className="text-xs text-gray-500">
+            Wali Murid — Piano, 2 tahun bersama BMD
           </p>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((t, i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              {/* Stars */}
-              <div className="flex gap-1">
-                {Array.from({ length: t.rating }).map((_, j) => (
-                  <span key={j} className="text-amber-400">★</span>
-                ))}
-              </div>
-              {/* Quote */}
-              <p className="mt-4 text-sm leading-relaxed text-gray-700">&ldquo;{t.text}&rdquo;</p>
-              {/* Author */}
-              <div className="mt-4 border-t border-gray-100 pt-4">
-                <div className="font-heading text-sm font-bold text-gray-900">{t.name}</div>
-                <div className="text-xs text-gray-500">{t.role}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Subtle divider */}
+        <div className="mx-auto mt-16 h-px w-16 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+
+        <p className="mt-6 text-sm text-gray-600">
+          150+ keluarga di Yogyakarta mempercayakan pendidikan musik anak kepada BMD
+        </p>
       </div>
     </section>
   );
