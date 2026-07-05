@@ -54,7 +54,7 @@ export default function PricingPage() {
     const token = localStorage.getItem("token");
     if (!token) { router.push("/login"); return; }
     try {
-      const res = await fetch(`/api/pricing?limit=${limit}&offset=${offset}`, {
+      const res = await fetch(`/api/v1/pricing?limit=${limit}&offset=${offset}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.status === 403) { setError("Akses ditolak."); return; }
@@ -96,8 +96,8 @@ export default function PricingPage() {
         instrument, level, price: Number(price), effective_date: effectiveDate, description: description || null,
       };
       const url = editItem
-        ? `/api/pricing/${editItem.id_pricing}`
-        : "/api/pricing";
+        ? `/api/v1/pricing/${editItem.id_pricing}`
+        : "/api/v1/pricing";
       const method = editItem ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
@@ -122,7 +122,7 @@ export default function PricingPage() {
     if (!confirm("Nonaktifkan tarif ini?")) return;
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`/api/pricing/${id}`, {
+      const res = await fetch(`/api/v1/pricing/${id}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: false }),

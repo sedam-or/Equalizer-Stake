@@ -27,7 +27,7 @@ export default function SettingsPage() {
       if (!token) { router.push("/login"); return; }
 
       try {
-        const res = await fetch(`/api/settings?limit=${limit}&offset=${offset}`, {
+        const res = await fetch(`/api/v1/settings?limit=${limit}&offset=${offset}`, {
           headers: { Authorization: `${B} ${token}` },
         });
         if (!res.ok) throw new Error("Gagal memuat");
