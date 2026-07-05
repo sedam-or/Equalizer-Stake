@@ -38,7 +38,7 @@ function CountUp({ target, suffix = "" }: { target: number; suffix?: string }) {
 
 export default function HeroSection() {
   return (
-    <section data-theme="dark" className="snap-section relative flex min-[100dvh] items-center overflow-hidden bg-[#0F172A] px-6 pt-24 pb-12 md:px-8 md:pt-28 md:pb-16">
+    <section data-theme="dark" className="snap-section relative flex min-[100dvh] items-center overflow-hidden bg-[#0F172A] px-6 pt-20 md:px-8">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A]" />
 
@@ -85,21 +85,21 @@ export default function HeroSection() {
           </div>
 
           {/* Stats */}
-          <div className="mt-16 flex items-center gap-10 border-t border-white/10 pt-8">
+          <div className="mt-8 flex items-center gap-8 border-t border-white/10 pt-8">
             <div>
-              <div className="font-heading text-3xl font-bold text-white">
+              <div className="font-heading text-2xl font-bold text-white">
                 <CountUp target={150} suffix="+" />
               </div>
               <div className="mt-1 text-xs uppercase tracking-wider text-gray-500">Keluarga</div>
             </div>
             <div>
-              <div className="font-heading text-3xl font-bold text-white">
+              <div className="font-heading text-2xl font-bold text-white">
                 <CountUp target={10} suffix="+" />
               </div>
               <div className="mt-1 text-xs uppercase tracking-wider text-gray-500">Tahun</div>
             </div>
             <div>
-              <div className="font-heading text-3xl font-bold text-white">
+              <div className="font-heading text-2xl font-bold text-white">
                 <CountUp target={4.9} suffix="★" />
               </div>
               <div className="mt-1 text-xs uppercase tracking-wider text-gray-500">Google</div>
