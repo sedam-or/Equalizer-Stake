@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.middleware.auth import require_role
 from app.models.user import User
+from app.services.audit import create_audit_log
 from app.models.draft import Draft
 from app.services.draft import DraftConflictError, delete_draft, get_draft, save_draft
 

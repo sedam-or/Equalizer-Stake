@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.middleware.auth import require_role
 from app.models.user import User
+from app.services.audit import create_audit_log
 from app.services.privacy import create_deletion_request, complete_deletion
 
 router = APIRouter(prefix="/api/v1/privacy", tags=["Privacy"])

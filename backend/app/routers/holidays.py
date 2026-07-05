@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from app.core.database import get_db
 from app.middleware.auth import require_role
 from app.models.user import User
+from app.services.audit import create_audit_log
 
 router = APIRouter(prefix="/api/v1/holidays", tags=["Holidays"])
 
