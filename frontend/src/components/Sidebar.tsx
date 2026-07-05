@@ -62,7 +62,7 @@ const navSections: NavSection[] = [
     roles: ["guardian"],
     items: [
       { href: "/dashboard/my-schedule", label: "Jadwal Anak", icon: "📅" },
-      { href: "/dashboard/my-children", label: "Anak Saya", icon: "👶" },
+      { href: "/dashboard/my-students", label: "Anak Saya", icon: "👶" },
       { href: "/dashboard/my-payments", label: "Pembayaran", icon: "💳" },
       { href: "/dashboard/ratings", label: "Beri Nilai", icon: "⭐" },
     ],
