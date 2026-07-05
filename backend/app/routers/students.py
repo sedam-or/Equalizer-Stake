@@ -51,12 +51,21 @@ async def list_students(
     status_filter: str | None = Query(None, alias="status"),
     limit: int = Query(20, le=100),
     offset: int = Query(0, ge=0),
-    user: User = Depends(require_role("admin", "owner")),
+    user: User = Depends(require_role("admin", "owner", "guardian")),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all students (admin/owner)."""
+    """List students. Guardian: own children only. Admin/Owner: all."""
+    from app.models.guardian import Guardian
     base = select(Student).where(Student.deleted_at.is_(None))
-    if guardian_id:
+    # Guardian can only see own students
+    if user.role == "guardian":
+        guardian_result = await db.execute(select(Guardian).where(Guardian.id_user == user.id_user))
+        guardian = guardian_result.scalar_one_or_none()
+        if guardian:
+            base = base.where(Student.id_guardian == guardian.id_guardian)
+        else:
+            return {"data": [], "total": 0, "limit": limit, "offset": offset}
+    elif guardian_id:
         base = base.where(Student.id_guardian == guardian_id)
     if status_filter:
         base = base.where(Student.enrollment_status == status_filter)
@@ -88,13 +97,23 @@ async def list_students(
 async def create_student(
     body: StudentCreate,
     request: Request,
-    user: User = Depends(require_role("admin", "owner")),
+    user: User = Depends(require_role("admin", "owner", "guardian")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Create new student."""
+    """Create new student. Guardian: auto-set own guardian_id."""
     from datetime import date as dt_date
+    from app.models.guardian import Guardian
+    # Guardian adds student to own profile
+    if user.role == "guardian":
+        guardian_result = await db.execute(select(Guardian).where(Guardian.id_user == user.id_user))
+        guardian = guardian_result.scalar_one_or_none()
+        if not guardian:
+            raise HTTPException(status_code=400, detail="Guardian profile tidak ditemukan")
+        guardian_id = guardian.id_guardian
+    else:
+        guardian_id = body.id_guardian
     student = Student(
-        id_guardian=body.id_guardian,
+        id_guardian=guardian_id,
         full_name=body.full_name,
         instrument=body.instrument,
         level=body.level,
