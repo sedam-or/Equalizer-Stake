@@ -961,7 +961,8 @@
 | Phase 20: INFRASTRUCTURE — External Services | T-116..T-118 | ⏳ 0/3 |
 | Phase 21: BACKEND CRITICAL FIXES | T-119..T-127 | ✅ 9/9 |
 | Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 27/28 |
-| **Total** | **155 tasks** | **120/155 done** |
+| Phase 23: LANDING PAGE + REGISTRATION REBUILD | T-156..T-162 | ⏳ 0/7 |
+| **Total** | **162 tasks** | **120/162 done** |
 
 ---
 
@@ -1980,6 +1981,122 @@
   - Referensi: design/UI_UX_DESIGN_SYSTEM.md §21
 - **Test**: Ctrl+P → print preview → content only
 - **Files**: `frontend/src/app/globals.css`
+
+---
+
+
+---
+
+## Phase 23: LANDING PAGE + REGISTRATION REBUILD
+
+### T-156: Landing Page — Final Rebuild (Design Synthesis)
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-16, UC-03
+- **Deskripsi**:
+  - Rebuild landing page sesuai design synthesis (Yousician + Fender + Masterclass)
+  - Split hero (text kiri, studio photo kanan)
+  - Warm gradient (gold → orange)
+  - Typography: bold (bukan extrabold uppercase)
+  - 7 sections: Navbar, Hero, Instrumen, Tentang, Testimoni, Harga, CTA, Footer
+  - Hapus: FaqSection, KenapaBMDSection, StudioTourSection
+  - Tambah: TentangSection (teacher profiles + studio gallery)
+  - WhatsApp HANYA untuk Booking Studio (footer)
+  - Semua CTA utama → /register-course
+- **Test**: Landing page match design synthesis, no WhatsApp CTA except footer
+- **Files**: `frontend/src/app/page.tsx`, `frontend/src/components/landing/*.tsx`
+
+### T-157: Pricing Page — Per Instrumen + Tipe Kelas
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-06, FR-16
+- **Deskripsi**:
+  - Hapus paket Trial/Reguler/Premium dari landing page
+  - Ganti dengan tabel harga per instrumen + tipe kelas
+  - Data dari SRS: Registration Fee + SPP per bulan
+  - Tampilkan: Private, Intensif (2 siswa), Semi Intensif (4 siswa), Expatriate
+  - Instrumen: Piano Klasik, Piano Pop, Vokal, Biola, Gitar, Keyboard, Drum, Flute, Saxophone
+  - Registration Fee terpisah dari SPP
+  - Contoh: "Piano Klasik — Private: Rp 420.000/bulan | Registration Fee: Rp 420.000"
+- **Test**: Harga match SRS, per instrumen + tipe kelas, bukan paket Trial/Reguler/Premium
+- **Files**: `frontend/src/components/landing/PaketHargaSection.tsx` (rename to HargaSection.tsx)
+
+### T-158: Registration Flow — Self-Service Wali Murid
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-02, UC-02
+- **Deskripsi**:
+  - Alur: Data diri → Pilih instrumen + tipe kelas → Pilih jadwal → Upload bukti transfer → Submit
+  - Step 1: Form data diri Wali Murid (nama, email, HP, alamat)
+  - Step 2: Pilih instrumen + tipe kelas (Private, Intensif, dll)
+  - Step 3: Tampilkan jadwal yang tersedia (fetch dari API)
+  - Step 4: Tampilkan rekening bank + total biaya (Registration Fee + SPP)
+  - Step 5: Upload bukti transfer (image)
+  - Step 6: Submit → Status "Menunggu Verifikasi"
+  - Step 7: Admin verifikasi → Status "Active" → Notifikasi
+  - Frontend: Multi-step form dengan progress indicator
+  - Backend: POST /api/v1/registrations/ (create registration request)
+  - Backend: GET /api/v1/schedules/available (slot kosong)
+- **Test**: Wali Murid bisa daftar, pilih instrumen, pilih jadwal, upload bukti, submit
+- **Files**: `frontend/src/app/register-course/page.tsx`, `backend/app/routers/registrations.py`
+
+### T-159: Registration API — Backend Endpoint
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: FR-02, UC-02
+- **Deskripsi**:
+  - POST /api/v1/registrations/ — buat registrasi baru
+  - GET /api/v1/registrations/ — list semua registrasi (admin)
+  - PUT /api/v1/registrations/{id}/verify — verifikasi pembayaran (admin)
+  - GET /api/v1/schedules/available — slot jadwal yang tersedia
+  - Model: Registration (id, guardian_data, instrument, class_type, schedule_id, payment_proof, status, created_at)
+  - Status flow: pending → verified → active (atau rejected)
+  - Simpan bukti transfer di /uploads/registration/
+  - Audit log untuk setiap verifikasi
+- **Test**: Registrasi berhasil dibuat, admin bisa verifikasi, audit log tercatat
+- **Files**: `backend/app/models/registration.py`, `backend/app/routers/registrations.py`
+
+### T-160: Hapus Studio Rental dari System
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-08
+- **Deskripsi**:
+  - Hapus semua referensi studio rental dari frontend (kecuali footer WhatsApp button)
+  - Footer: "Booking Studio" button → WhatsApp (tetap ada)
+  - Hapus StudioTourSection (sudah merged ke TentangSection)
+  - Hapus referensi "sewa studio" di copywriting
+  - Pastikan tidak ada halaman/route untuk studio booking
+- **Test**: Tidak ada studio rental di UI, footer WhatsApp button tetap ada
+- **Files**: `frontend/src/components/landing/Footer.tsx`
+
+### T-161: Hapus Trial dari Landing Page + Database
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-06
+- **Deskripsi**:
+  - Hapus paket Trial dari landing page (PaketHargaSection)
+  - Tetap ada status `trial` di database (untuk admin manual)
+  - Hapus copywriting "Trial Gratis" dari hero, CTA, pricing
+  - Ganti dengan "Registration Fee + SPP per bulan"
+  - Admin tetap bisa set enrollment_status = "trial" via dashboard
+- **Test**: Tidak ada "Trial" di landing page, tetap ada di database enum
+- **Files**: `frontend/src/components/landing/PaketHargaSection.tsx`, `frontend/src/components/landing/HeroSection.tsx`
+
+### T-162: Copywriting Rewrite — Benefit > Feature
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-USA-02
+- **Deskripsi**:
+  - Rewrite semua copywriting sesuai design/copywriting-rewrite.md
+  - Hero: "Anak Anda Punya Bakat Musik? Kami Bantu Mengembangkannya."
+  - Instrumen: benefit-focused descriptions
+  - Tentang: story-driven, bukan deskripsi fitur
+  - Testimoni: transformation stories, bukan feature quotes
+  - Harga: "Investasi untuk Masa Depan Anak"
+  - CTA: "Siap Memberikan yang Terbaik untuk Anak?"
+  - Footer: "Booking Studio" (WhatsApp) + "Daftar Kursus" (register)
+- **Test**: Copywriting match copywriting-rewrite.md, benefit > feature
+- **Files**: Semua file landing page components
 
 ---
 
