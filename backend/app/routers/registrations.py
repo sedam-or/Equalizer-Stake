@@ -38,6 +38,7 @@ async def submit_registration(
     level: str = Form(..., max_length=50),
     class_type: str = Form(..., max_length=50),
     schedule_id: str = Form(None),
+    children: str = Form(None),  # JSON array of {full_name, instrument, level}
     payment_proof: UploadFile = File(None),
     db: AsyncSession = Depends(get_db),
 ):
@@ -88,6 +89,15 @@ async def submit_registration(
             f.write(file_content)
         proof_path = file_path
     
+    # Parse children data
+    import json
+    children_data = None
+    if children:
+        try:
+            children_data = json.loads(children)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Format data anak tidak valid")
+
     # Create Registration
     reg = Registration(
         full_name=full_name,
@@ -99,6 +109,7 @@ async def submit_registration(
         class_type=class_type,
         schedule_id=schedule_id,
         payment_proof_path=proof_path,
+        children_data=children_data,
     )
     db.add(reg)
     await db.flush()
@@ -206,17 +217,34 @@ async def approve_registration(
     db.add(guardian)
     await db.flush()
 
-    # 3. Create Student (name same as guardian for now, admin can edit later)
-    student = Student(
-        id_guardian=guardian.id_guardian,
-        full_name=reg.full_name,
-        instrument=reg.instrument,  # type: ignore[arg-type]
-        level=reg.level,  # type: ignore[arg-type]
-        enrollment_status="trial",
-        enrollment_date=date.today(),
-    )
-    db.add(student)
-    await db.flush()
+    # 3. Create Students from children_data (or single from registration)
+    students_created = []
+    if reg.children_data:
+        for child in reg.children_data:
+            student = Student(
+                id_guardian=guardian.id_guardian,
+                full_name=child.get("full_name", reg.full_name),
+                instrument=child.get("instrument", reg.instrument),
+                level=child.get("level", "pemula"),
+                enrollment_status="active",
+                enrollment_date=date.today(),
+            )
+            db.add(student)
+            await db.flush()
+            students_created.append(str(student.id_student))
+    else:
+        # Fallback: single student from registration data
+        student = Student(
+            id_guardian=guardian.id_guardian,
+            full_name=reg.full_name,
+            instrument=reg.instrument,
+            level=reg.level,
+            enrollment_status="active",
+            enrollment_date=date.today(),
+        )
+        db.add(student)
+        await db.flush()
+        students_created.append(str(student.id_student))
 
     # 4. Update registration status
     reg.status = "approved"
@@ -234,7 +262,7 @@ async def approve_registration(
             "status": "approved",
             "user_created": str(new_user.id_user),
             "guardian_created": str(guardian.id_guardian),
-            "student_created": str(student.id_student),
+            "students_created": students_created,
         },
     )
     

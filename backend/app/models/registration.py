@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -28,6 +29,7 @@ class Registration(Base):
     class_type: Mapped[str] = mapped_column(String(50), nullable=False)
     schedule_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
     payment_proof_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    children_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # [{full_name, instrument, level}]
     status: Mapped[str] = mapped_column(
         Enum("pending", "approved", "rejected", name="registration_status"),
         nullable=False,
