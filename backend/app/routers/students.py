@@ -14,6 +14,7 @@ from app.models.student import Student
 from app.models.user import User
 from app.services.audit import create_audit_log
 from app.services.level_validation import validate_instrument_level
+from app.services.cuti_validation import validate_cuti_limit, apply_cuti
 
 router = APIRouter(prefix="/api/v1/students", tags=["Students"])
 
@@ -200,6 +201,48 @@ async def delete_student(
     )
     await db.commit()
     return {"detail": "Siswa berhasil dihapus"}
+
+
+class CutiRequest(BaseModel):
+    cuti_start: str  # YYYY-MM-DD
+    cuti_end: str  # YYYY-MM-DD
+
+
+@router.put("/{student_id}/cuti")
+async def set_cuti(
+    student_id: UUID,
+    body: CutiRequest,
+    user: User = Depends(require_role("admin", "guardian")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Set cuti for student. Max 60 days per year."""
+    from datetime import date as dt_date
+    
+    cuti_start = dt_date.fromisoformat(body.cuti_start)
+    cuti_end = dt_date.fromisoformat(body.cuti_end)
+    
+    if cuti_end <= cuti_start:
+        raise HTTPException(status_code=400, detail="Tanggal cuti tidak valid")
+    
+    # Validate cuti limit
+    is_valid, requested, remaining = await validate_cuti_limit(db, student_id, cuti_start, cuti_end)
+    
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cuti melebihi batas. Diminta: {requested} hari, Sisa: {remaining} hari (max 60 hari/tahun)"
+        )
+    
+    student = await apply_cuti(db, student_id, cuti_start, cuti_end)
+    await db.commit()
+    
+    return {
+        "message": "Cuti berhasil diatur",
+        "student_id": str(student_id),
+        "cuti_start": body.cuti_start,
+        "cuti_end": body.cuti_end,
+        "cuti_days_used": student.cuti_days_used,
+    }
 
 
 @router.post("/{student_id}/restore")

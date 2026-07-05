@@ -3,7 +3,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -33,6 +33,9 @@ class Student(Base):
     )
     enrollment_date: Mapped[date] = mapped_column(Date, nullable=False)
     trial_end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    cuti_start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    cuti_end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    cuti_days_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)  # Total cuti days this year
     eligible_for_exam: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
