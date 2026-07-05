@@ -38,7 +38,16 @@ export default function LoginPage() {
       }
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("refresh_token", data.refresh_token);
-      router.push("/dashboard");
+      localStorage.setItem("role", data.role);
+      
+      // Redirect berdasarkan role
+      if (data.role === "teacher") {
+        router.push("/dashboard/my-schedule");
+      } else if (data.role === "guardian") {
+        router.push("/dashboard/my-students");
+      } else {
+        router.push("/dashboard");
+      }
     } catch {
       setErrors({ general: "Terjadi kesalahan. Coba lagi." });
     } finally {

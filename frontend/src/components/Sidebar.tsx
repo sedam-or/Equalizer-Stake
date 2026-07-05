@@ -158,6 +158,18 @@ export default function Sidebar() {
       </div>
       <div className="px-3 pb-3">
         <ThemeToggle />
+        <button
+          onClick={() => {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            localStorage.removeItem("role");
+            window.location.href = "/login";
+          }}
+          className="mt-2 flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50"
+        >
+          <span className="mr-3 text-lg">🚪</span>
+          Keluar
+        </button>
       </div>
     </aside>
   );
