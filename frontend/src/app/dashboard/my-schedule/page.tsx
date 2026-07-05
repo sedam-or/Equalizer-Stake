@@ -1,4 +1,5 @@
 "use client";
+import { parseApiError } from "@/lib/api-error";
 /**
  * T-065/T-111/T-112: My Schedule — connected to real API
  * GET /api/my/schedule?instrument=xxx&student_id=xxx
@@ -46,6 +47,7 @@ export default function MySchedulePage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [role, setRole] = useState("");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);

@@ -1,4 +1,5 @@
 "use client";
+import { parseApiError } from "@/lib/api-error";
 /**
  * T-041: Reports Dashboard (Owner only)
  * UC-17: Ekspor Laporan
@@ -31,6 +32,7 @@ export default function ReportsPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");

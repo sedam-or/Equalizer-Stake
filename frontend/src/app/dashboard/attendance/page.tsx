@@ -1,4 +1,5 @@
 "use client";
+import { parseApiError } from "@/lib/api-error";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -35,6 +36,7 @@ export default function AttendancePage() {
   const [filter, setFilter] = useState("semua");
   const [selected, setSelected] = useState<AttendanceRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
   const limit = 20;

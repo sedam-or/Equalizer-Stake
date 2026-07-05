@@ -1,4 +1,5 @@
 "use client";
+import { parseApiError } from "@/lib/api-error";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,7 @@ export default function BillingPage() {
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [inputCode, setInputCode] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
   const limit = 20;

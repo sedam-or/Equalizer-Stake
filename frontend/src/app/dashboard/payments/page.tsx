@@ -1,4 +1,5 @@
 "use client";
+import { parseApiError } from "@/lib/api-error";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,6 +34,7 @@ export default function PaymentsPage() {
   const router = useRouter();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [filter, setFilter] = useState("semua");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);

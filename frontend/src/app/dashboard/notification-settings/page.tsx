@@ -1,4 +1,5 @@
 "use client";
+import { parseApiError } from "@/lib/api-error";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -40,6 +41,7 @@ export default function NotificationSettingsPage() {
   const router = useRouter();
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
