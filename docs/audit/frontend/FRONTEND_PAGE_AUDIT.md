@@ -1,50 +1,83 @@
-# Frontend Page Audit — Detailed Status
+# Frontend Page Audit — T-182
 
 **Date:** 2026-07-05
-**Scope:** All dashboard pages — error handling, API integration, state management
+**Scope:** All 25 dashboard pages, 17 components
 
 ---
 
 ## PAGE STATUS SUMMARY
 
-### ✅ PROPER ERROR HANDLING (7 pages)
+### ✅ PROPER ERROR HANDLING (8 pages)
 
-| Page | API Calls | Try-Catch | Error State | Loading | Empty State |
-|------|-----------|-----------|-------------|---------|-------------|
-| admins | 3 | ✅ | ✅ | ✅ | ✅ |
-| assign-session | 3 | ✅ | ✅ | ✅ | ✅ |
-| my-students | 1 | ✅ | ✅ | ✅ | ✅ |
-| override | 1 | ✅ | ✅ | ✅ | ✅ |
-| pricing | 3 | ✅ | ✅ | ✅ | ✅ |
-| profile | 2 | ✅ | ✅ | ✅ | ✅ |
-| teachers | 1 | ✅ | ✅ | ✅ | ✅ |
+| Page | API | Try | Error | Loading | Empty | parseApiError |
+|------|-----|-----|-------|---------|-------|---------------|
+| admins | 3 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| assign-session | 4 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| my-students | 1 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| override | 1 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| pricing | 3 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| profile | 6 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| schedule | 4 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| teachers | 1 | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### ⚠️ PARTIAL ERROR HANDLING (6 pages)
 
-| Page | API Calls | Try-Catch | Error State | Loading | Issue |
-|------|-----------|-----------|-------------|---------|-------|
+| Page | API | Try | Error | Loading | Issue |
+|------|-----|-----|-------|---------|-------|
 | audit-log | 1 | ✅ | ❌ | ✅ | No error state |
 | feedback | 1 | ✅ | ✅ | ❌ | No loading state |
-| holidays | 1 | ⚠️ | ✅ | ✅ | Partial try-catch |
+| holidays | 2 | ⚠️ | ✅ | ✅ | Partial try-catch |
 | ratings | 1 | ✅ | ✅ | ❌ | No loading state |
 | registrations | 3 | ✅ | ❌ | ✅ | No error state |
 | settings | 1 | ✅ | ❌ | ✅ | No error state |
 
-### ❌ NO ERROR HANDLING (12 pages)
+### ❌ NO ERROR HANDLING (11 pages)
 
-| Page | API Calls | Try-Catch | Error State | Loading | Impact |
-|------|-----------|-----------|-------------|---------|--------|
-| attendance | 2 | ❌ | ❌ | ✅ | Crash on network error |
-| billing | 2 | ❌ | ❌ | ✅ | Crash on network error |
-| my-payments | 1 | ❌ | ❌ | ✅ | Crash on network error |
-| my-schedule | 2 | ❌ | ❌ | ✅ | Crash on network error |
-| notification-settings | 1 | ❌ | ❌ | ✅ | Crash on network error |
-| notifications | 1 | ❌ | ❌ | ✅ | Crash on network error |
-| payments | 1 | ❌ | ❌ | ✅ | Crash on network error |
-| reports | 1 | ❌ | ❌ | ✅ | Crash on network error |
-| schedule | 5 | ⚠️ | ✅ | ✅ | Has error but no try-catch |
-| students | 1 | ❌ | ❌ | ✅ | Crash on network error |
-| studio | 1 | ❌ | ❌ | ✅ | Crash on network error |
+| Page | API | Impact |
+|------|-----|--------|
+| attendance | 2 | Crash on network error |
+| billing | 2 | Crash on network error |
+| my-payments | 1 | Crash on network error |
+| my-schedule | 2 | Crash on network error |
+| notification-settings | 1 | Crash on network error |
+| notifications | 1 | Crash on network error |
+| payments | 1 | Crash on network error |
+| reports | 1 | Crash on network error |
+| students | 1 | Crash on network error |
+| studio | 1 | Crash on network error |
+
+---
+
+## COMPONENT AUDIT
+
+### Available Components (17):
+
+| Component | Purpose | Used By |
+|-----------|---------|---------|
+| BottomNav | Mobile bottom navigation | Dashboard layout |
+| Breadcrumbs | Page breadcrumbs | All pages |
+| ConfirmDialog | Confirmation modal | Delete actions |
+| DashboardContext | Shared state | All pages |
+| DraftIndicator | Auto-save indicator | Forms |
+| EmptyState | Empty data message | List pages |
+| ErrorBoundary | React error boundary | Layout |
+| ErrorState | Error display | All pages |
+| FilterChips | Filter buttons | List pages |
+| MobileTable | Responsive table | List pages |
+| NotificationBadge | Unread count | Sidebar |
+| Pagination | Page navigation | List pages |
+| SearchInput | Search field | List pages |
+| Sidebar | Side navigation | Dashboard layout |
+| Skeleton | Loading skeleton | All pages |
+| SortDropdown | Sort options | List pages |
+| Toast | Toast notification | All pages |
+
+### Component Usage Issues:
+
+1. **EmptyState** — EXISTS but not used by all pages
+2. **Skeleton** — EXISTS but not used by all pages
+3. **ErrorState** — EXISTS but not used by all pages
+4. **ErrorBoundary** — EXISTS at layout level
 
 ---
 
@@ -66,31 +99,32 @@
 
 ---
 
-## PYDANTIC ERROR HANDLING
+## DARK MODE STATUS
 
-| Pattern | Files | Status |
-|---------|-------|--------|
-| parseApiError(data) | 12 | ✅ Correct |
-| data.detail directly | 0 | ✅ All fixed |
+| Check | Result |
+|-------|--------|
+| dark: references | 0 ✅ |
+| ThemeToggle | Deleted ✅ |
+| .dark class | None ✅ |
 
 ---
 
 ## DASHBOARD CONTEXT USAGE
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| DashboardProvider | ✅ | Wraps dashboard layout |
-| useDashboard() | ✅ | Available on all pages |
-| refreshKey | ⚠️ | Only used by my-students, teachers, schedule |
-| triggerRefresh() | ⚠️ | Only called by my-students |
+| Feature | Status | Pages Using |
+|---------|--------|-------------|
+| DashboardProvider | ✅ | Wraps layout |
+| useDashboard() | ✅ | Available |
+| refreshKey | ⚠️ | my-students, teachers, schedule |
+| triggerRefresh() | ⚠️ | my-students only |
 
-**Issue:** Most pages don't use refreshKey → data not synced across pages
+**Issue:** Most pages don't sync data via refreshKey
 
 ---
 
 ## RECOMMENDED FIXES
 
-### P0 — CRITICAL (12 pages)
+### P0 — CRITICAL (11 pages)
 1. Add try-catch + error state to: attendance, billing, my-payments, my-schedule, notification-settings, notifications, payments, reports, students, studio
 
 ### P1 — HIGH (6 pages)
@@ -99,4 +133,5 @@
 ### P2 — MEDIUM
 3. Add refreshKey dependency to all pages that fetch data
 4. Add triggerRefresh() to all pages that mutate data
-5. Add empty state component to all pages
+5. Use EmptyState component on all list pages
+6. Use Skeleton component on all loading states
