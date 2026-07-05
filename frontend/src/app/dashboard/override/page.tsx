@@ -33,7 +33,7 @@ export default function OverridePage() {
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
-  const getToken = () => localStorage.getItem("token");
+  const getToken = () => localStorage.getItem("access_token");
 
   useEffect(() => {
     const fetchSessions = async () => {

@@ -41,7 +41,7 @@ export default function AuditLogPage() {
   const limit = 20;
 
   const fetchLogs = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (table) params.set("table_name", table);

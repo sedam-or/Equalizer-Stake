@@ -30,7 +30,7 @@ export default function AdminsPage() {
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
-  const getToken = () => localStorage.getItem("token");
+  const getToken = () => localStorage.getItem("access_token");
 
   const fetchAdmins = async () => {
     const token = getToken();

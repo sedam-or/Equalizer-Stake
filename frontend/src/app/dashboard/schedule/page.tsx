@@ -49,7 +49,7 @@ export default function SchedulePage() {
   const limit = 20;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     const h = { Authorization: `Bearer ${token}` };
 
@@ -61,7 +61,7 @@ export default function SchedulePage() {
 
   const handleCreate = async () => {
     setError(""); setSuccess("");
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     try {
       const res = await fetch("/api/v1/sessions/", {
         method: "POST",

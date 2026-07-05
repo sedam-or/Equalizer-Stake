@@ -51,7 +51,7 @@ export default function PricingPage() {
   const [saving, setSaving] = useState(false);
 
   const fetchPricings = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     try {
       const res = await fetch(`/api/v1/pricing?limit=${limit}&offset=${offset}`, {
@@ -90,7 +90,7 @@ export default function PricingPage() {
 
   const handleSubmit = async () => {
     setSaving(true); setError(""); setSuccess("");
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     try {
       const body: Record<string, unknown> = {
         instrument, level, price: Number(price), effective_date: effectiveDate, description: description || null,
@@ -120,7 +120,7 @@ export default function PricingPage() {
 
   const handleDeactivate = async (id: string) => {
     if (!confirm("Nonaktifkan tarif ini?")) return;
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     try {
       const res = await fetch(`/api/v1/pricing/${id}`, {
         method: "PUT",

@@ -40,7 +40,7 @@ export default function AttendancePage() {
   const limit = 20;
 
   const fetchRecords = () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     setLoading(true);
     fetch(`/api/attendance/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -56,7 +56,7 @@ export default function AttendancePage() {
   useEffect(() => { fetchRecords(); }, [router, offset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleVerify = async (id: string) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) return;
     const res = await fetch(`/api/attendance/${id}/review`, {
       method: "PUT",
@@ -70,7 +70,7 @@ export default function AttendancePage() {
   };
 
   const handleReject = async (id: string, reason: string) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) return;
     const res = await fetch(`/api/attendance/${id}/review`, {
       method: "PUT",

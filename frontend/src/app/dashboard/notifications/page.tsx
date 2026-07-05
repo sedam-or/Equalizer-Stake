@@ -25,7 +25,7 @@ export default function NotificationsPage() {
   const limit = 20;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     fetch(`/api/notifications/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })

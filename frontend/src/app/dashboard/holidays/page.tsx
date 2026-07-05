@@ -27,7 +27,7 @@ export default function HolidaysPage() {
   const limit = 20;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     fetch(`/api/holidays/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : { data: [], total: 0 })
@@ -43,7 +43,7 @@ export default function HolidaysPage() {
   const handleAdd = async () => {
     setErr(""); setMsg("");
     if (!form.date || !form.name.trim()) { setErr("Tanggal dan nama libur wajib diisi"); return; }
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     const updated = [...holidays, { date: form.date, name: form.name, type: "Custom" }];
     const res = await fetch("/api/v1/holidays/", {
       method: "PUT",
@@ -62,7 +62,7 @@ export default function HolidaysPage() {
 
   const handleRemove = async (idx: number) => {
     const updated = holidays.filter((_, i) => i !== idx);
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     await fetch("/api/v1/holidays/", {
       method: "PUT",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },

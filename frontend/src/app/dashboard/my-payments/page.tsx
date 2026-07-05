@@ -46,7 +46,7 @@ export default function MyPaymentsPage() {
   const limit = 20;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     fetch(`/api/my/payments?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : Promise.reject())

@@ -18,7 +18,7 @@ export default function FeedbackPage() {
   const handleSubmit = async () => {
     if (!sessionId) { setError("Pilih sesi terlebih dahulu"); return; }
     setError(""); setSuccess("");
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     try {
       const res = await fetch("/api/v1/feedback/", {
         method: "POST",

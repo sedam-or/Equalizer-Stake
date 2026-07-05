@@ -57,7 +57,7 @@ export default function MySchedulePage() {
 
   // Fetch teacher instruments or guardian children
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) return;
     const r = localStorage.getItem("role") || "";
 
@@ -80,7 +80,7 @@ export default function MySchedulePage() {
 
   // Fetch schedule
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     const r = localStorage.getItem("role") || "";
     setRole(r);

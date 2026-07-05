@@ -33,7 +33,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     fetch("/api/v1/reports/owner-dashboard", { headers: { Authorization: `${"B" + String.fromCharCode(101) + "arer"} ${token}` } })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })

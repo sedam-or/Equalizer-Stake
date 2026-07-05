@@ -42,7 +42,7 @@ export default function ProfilePage() {
   const [pwForm, setPwForm] = useState({ current_password: "", new_password: "", confirm: "" });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
 
     fetch("/api/v1/auth/me/profile", { headers: { Authorization: `Bearer ${token}` } })
@@ -62,7 +62,7 @@ export default function ProfilePage() {
 
   const handleProfileSave = async () => {
     setSaving(true); setErr(""); setMsg("");
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     try {
       const res = await fetch("/api/v1/auth/me/profile", {
         method: "PATCH",
@@ -86,7 +86,7 @@ export default function ProfilePage() {
     setPwSaving(true); setPwErr(""); setPwMsg("");
     if (pwForm.new_password !== pwForm.confirm) { setPwErr("Password baru tidak cocok"); setPwSaving(false); return; }
     if (pwForm.new_password.length < 8) { setPwErr("Password minimal 8 karakter"); setPwSaving(false); return; }
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     try {
       const res = await fetch("/api/v1/auth/change-password", {
         method: "POST",
@@ -126,7 +126,7 @@ export default function ProfilePage() {
               if (!file) return;
               const formData = new FormData();
               formData.append("file", file);
-              const token = localStorage.getItem("token");
+              const token = localStorage.getItem("access_token");
               try {
                 const res = await fetch("/api/v1/photos/upload", {
                   method: "POST",
@@ -242,7 +242,7 @@ export default function ProfilePage() {
         <button
           onClick={async () => {
             if (!confirm("Apakah Anda yakin ingin menghapus data? Tindakan ini tidak dapat dibatalkan.")) return;
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("access_token");
             try {
               const res = await fetch("/api/v1/privacy/delete-request?reason=User+request&entity_type=user&entity_id=" + (localStorage.getItem("user_id") || ""), {
                 method: "POST",

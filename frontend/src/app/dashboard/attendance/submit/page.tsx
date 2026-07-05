@@ -29,7 +29,7 @@ export default function AttendanceSubmitPage() {
   const [offlineCount, setOfflineCount] = useState(0);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
 
     // Setup offline sync
@@ -38,7 +38,7 @@ export default function AttendanceSubmitPage() {
   }, [router]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
 
     // Fetch teacher's schedule for today
@@ -88,7 +88,7 @@ export default function AttendanceSubmitPage() {
     if (!gps) { setError("GPS belum tersedia"); return; }
 
     setSubmitting(true); setError(""); setSuccess("");
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
 
     const attendanceData = {
       id_session: selectedSession,

@@ -13,7 +13,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserInfo | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     const role = localStorage.getItem("role");
     if (!token) {
       router.push("/login");
@@ -36,7 +36,7 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     fetch("/api/v1/reports/admin-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -137,7 +137,7 @@ function OwnerDashboard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) return;
     fetch("/api/v1/reports/owner-dashboard", {
       headers: { Authorization: `Bearer ${token}` },
@@ -248,7 +248,7 @@ function TeacherDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     fetch("/api/v1/reports/teacher-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -326,7 +326,7 @@ function GuardianDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     fetch("/api/v1/reports/guardian-stats", {
       headers: { Authorization: `Bearer ${token}` },
     })

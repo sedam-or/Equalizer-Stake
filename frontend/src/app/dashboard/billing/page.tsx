@@ -43,7 +43,7 @@ export default function BillingPage() {
   const limit = 20;
 
   const fetchInvoices = (newOffset?: number) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
     setLoading(true);
     const off = newOffset ?? offset;
@@ -64,7 +64,7 @@ export default function BillingPage() {
   };
 
   const handleVerify = async (id: string) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) return;
     const res = await fetch(`/api/payments/${id}/verify`, {
       method: "PUT",
@@ -79,7 +79,7 @@ export default function BillingPage() {
   };
 
   const handleReject = async (id: string) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) return;
     const res = await fetch(`/api/payments/${id}/reject`, {
       method: "PUT",

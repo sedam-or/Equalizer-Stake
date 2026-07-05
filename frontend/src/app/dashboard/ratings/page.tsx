@@ -17,7 +17,7 @@ export default function RatingsPage() {
   const handleSubmit = async () => {
     if (!teacherId) { setError("Masukkan ID guru"); return; }
     setError(""); setSuccess("");
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     try {
       const res = await fetch("/api/v1/ratings/", {
         method: "POST",

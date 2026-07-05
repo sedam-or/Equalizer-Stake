@@ -23,7 +23,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const fetchSettings = async () => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("access_token");
       if (!token) { router.push("/login"); return; }
 
       try {
