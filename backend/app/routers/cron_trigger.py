@@ -7,7 +7,7 @@ from app.core.database import get_db
 from app.middleware.auth import get_current_user
 from app.models.user import User
 
-router = APIRouter()
+router = APIRouter(prefix="/api/admin/cron", tags=["Cron Trigger"])
 
 
 @router.post("/trigger/auto-invoice")

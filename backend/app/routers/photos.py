@@ -16,7 +16,7 @@ from app.services.photo_storage import (
     delete_photo,
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/api/v1/photos", tags=["Photos"])
 
 
 class PhotoUploadRequest(BaseModel):
