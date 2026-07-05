@@ -2268,7 +2268,7 @@
 - **Files**: `docs/audit/SECURITY_AUDIT.md`
 
 ### T-174: Business Logic Audit — User Flow Verification
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: UC-01..UC-20
 - **Deskripsi**:
