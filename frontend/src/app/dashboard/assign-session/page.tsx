@@ -24,7 +24,7 @@ export default function AssignSessionPage() {
     setLoading(true);
     try {
       const [sRes, tRes, rRes] = await Promise.all([
-        fetch("/api/v1/students/", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/v1/students", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/v1/sessions/teachers", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/v1/sessions/rooms", { headers: { Authorization: `Bearer ${token}` } }),
       ]);

@@ -22,7 +22,7 @@ export default function FeedbackPage() {
     setError(""); setSuccess("");
     const token = localStorage.getItem("access_token");
     try {
-      const res = await fetch("/api/v1/feedback/", {
+      const res = await fetch("/api/v1/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ session_id: sessionId, rating, comment, category }),

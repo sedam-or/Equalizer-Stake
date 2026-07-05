@@ -33,7 +33,7 @@ export default function MyStudentsPage() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/students/", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch("/api/v1/students", { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setStudents(data.data || []);
@@ -49,7 +49,7 @@ export default function MyStudentsPage() {
     if (!form.full_name.trim()) { setError("Nama anak wajib diisi"); return; }
     try {
       const method = editId ? "PATCH" : "POST";
-      const url = editId ? `/api/v1/students/${editId}` : "/api/v1/students/";
+      const url = editId ? `/api/v1/students${editId}` : "/api/v1/students";
       const body = editId
         ? { full_name: form.full_name, instrument: form.instrument, level: form.level }
         : { full_name: form.full_name, instrument: form.instrument, level: form.level, enrollment_date: new Date().toISOString().split("T")[0] };
@@ -79,7 +79,7 @@ export default function MyStudentsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus data anak ini?")) return;
-    await fetch(`/api/v1/students/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    await fetch(`/api/v1/students${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     fetchStudents();
       triggerRefresh();
   };

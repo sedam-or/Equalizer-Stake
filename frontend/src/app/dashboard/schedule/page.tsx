@@ -56,7 +56,7 @@ export default function SchedulePage() {
     fetch(`/api/sessions/?limit=${limit}&offset=${offset}`, { headers: h }).then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(res => { setSessions(res.data || []); setTotal(res.total || 0); }).catch(() => { setSessions([]); setTotal(0); }).finally(() => setLoading(false));
     fetch("/api/v1/sessions/rooms", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : d.data || [])).catch(() => {});
     fetch("/api/v1/sessions/teachers", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setTeachers(Array.isArray(d) ? d : d.data || [])).catch(() => {});
-    fetch("/api/v1/students/", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setStudents(Array.isArray(d) ? d : d.data || [])).catch(() => {});
+    fetch("/api/v1/students", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setStudents(Array.isArray(d) ? d : d.data || [])).catch(() => {});
   }, [router, offset]);
 
   const handleCreate = async () => {

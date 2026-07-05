@@ -77,6 +77,38 @@ async def create_rating(
     }
 
 
+@router.get("")
+async def list_ratings(
+    limit: int = Query(20, le=100),
+    offset: int = Query(0, ge=0),
+    user: User = Depends(require_role("admin", "owner", "guardian")),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all ratings."""
+    base = select(Rating).where(Rating.deleted_at.is_(None))
+    count_q = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_q.scalar()
+    result = await db.execute(base.order_by(Rating.created_at.desc()).offset(offset).limit(limit))
+    ratings = result.scalars().all()
+    return {
+        "data": [
+            {
+                "id_rating": str(r.id_rating),
+                "session_id": str(r.id_session),
+                "teacher_id": str(r.id_teacher),
+                "student_id": str(r.id_student),
+                "score": r.score,
+                "comment": r.comment,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in ratings
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
 @router.get("/{teacher_id}")
 async def get_teacher_ratings(
     teacher_id: str,

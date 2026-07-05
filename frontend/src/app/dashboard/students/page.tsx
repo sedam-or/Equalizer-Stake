@@ -34,7 +34,7 @@ export default function StudentsPage() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
-    fetch(`/api/v1/students/?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`/api/v1/students?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : { data: [], total: 0 })
       .then(res => {
         setStudents(res.data || []);
