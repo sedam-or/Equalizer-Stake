@@ -34,6 +34,7 @@ const navSections: NavSection[] = [
       { href: "/dashboard/studio", label: "Studio", icon: "🎵" },
       { href: "/dashboard/teachers", label: "Guru", icon: "👨‍🏫" },
       { href: "/dashboard/registrations", label: "Pendaftaran", icon: "📝" },
+      { href: "/dashboard/assign-session", label: "Assign Sesi", icon: "🔗" },
     ],
   },
   {
