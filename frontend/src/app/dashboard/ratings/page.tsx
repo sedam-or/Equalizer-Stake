@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 /**
  * Guardian Rating Page — T-147
  * Wali Murid → Guru rating
@@ -8,6 +9,7 @@ import { useState } from "react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default function RatingsPage() {
+  const { refreshKey } = useDashboard();
   const [teacherId, setTeacherId] = useState("");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");

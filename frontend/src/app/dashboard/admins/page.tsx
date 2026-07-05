@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 
 import { parseApiError } from "@/lib/api-error";
 
@@ -18,6 +19,7 @@ export default function AdminsPage() {
   const router = useRouter();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboard();
   const [error, setError] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({ username: "", email: "", password: "" });
@@ -51,7 +53,7 @@ export default function AdminsPage() {
     }
   };
 
-  useEffect(() => { fetchAdmins(); }, [offset]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchAdmins(); }, [offset, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

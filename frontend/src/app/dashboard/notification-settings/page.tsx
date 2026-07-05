@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 
 import { useState, useEffect } from "react";
@@ -41,6 +42,7 @@ export default function NotificationSettingsPage() {
   const router = useRouter();
   const [settings, setSettings] = useState<NotificationSetting[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboard();
   const [error, setError] = useState("");
 
   useEffect(() => {

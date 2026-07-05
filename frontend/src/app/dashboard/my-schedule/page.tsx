@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 /**
  * T-065/T-111/T-112: My Schedule — connected to real API
@@ -47,6 +48,7 @@ export default function MySchedulePage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboard();
   const [error, setError] = useState("");
   const [role, setRole] = useState("");
   const [total, setTotal] = useState(0);
@@ -78,7 +80,7 @@ export default function MySchedulePage() {
         })
         .catch(() => {});
     }
-  }, []);
+  }, [refreshKey]);
 
   // Fetch schedule
   useEffect(() => {

@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 
 import { useEffect, useState } from "react";
@@ -30,6 +31,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboard();
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");

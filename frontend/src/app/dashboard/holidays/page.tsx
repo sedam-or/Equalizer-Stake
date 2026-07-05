@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 /**
  * T-042: Holiday Management (Admin)
@@ -19,6 +20,7 @@ export default function HolidaysPage() {
   const router = useRouter();
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboard();
   const [form, setForm] = useState({ date: "", name: "" });
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");

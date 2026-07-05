@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 /**
  * Guru Feedback Page — T-146
  * Guru → Wali Murid feedback
@@ -8,6 +9,7 @@ import { useState } from "react";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default function FeedbackPage() {
+  const { refreshKey } = useDashboard();
   const [sessionId, setSessionId] = useState("");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");

@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 /**
  * T-041: Reports Dashboard (Owner only)
@@ -32,6 +33,7 @@ export default function ReportsPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { refreshKey } = useDashboard();
   const [error, setError] = useState("");
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 "use client";
+import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 /**
  * Override Attendance (Owner only)
@@ -21,6 +22,7 @@ export default function OverridePage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
+  const { refreshKey } = useDashboard();
   const [form, setForm] = useState({
     session_id: "",
     status: "present",
