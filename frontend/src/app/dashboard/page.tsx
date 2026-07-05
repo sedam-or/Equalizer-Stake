@@ -98,10 +98,11 @@ function AdminDashboard() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2" style={{ height: "280px" }}>
         <DashboardChart
           type="bar"
           title="Sesi Minggu Ini"
+          height={220}
           data={data?.weekly_sessions || [
             { name: "Sen", value: 12 },
             { name: "Sel", value: 15 },
@@ -114,6 +115,7 @@ function AdminDashboard() {
         <DashboardChart
           type="donut"
           title="Status Pembayaran"
+          height={220}
           data={data?.payment_status || [
             { name: "Lunas", value: 45 },
             { name: "Pending", value: 12 },
@@ -237,57 +239,66 @@ function OwnerDashboard() {
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <DashboardChart
-          type="bar"
-          title="Revenue Bulanan"
-          data={data?.monthly_revenue || [
-            { name: "Jan", value: 45000000 },
-            { name: "Feb", value: 52000000 },
-            { name: "Mar", value: 48000000 },
-            { name: "Apr", value: 55000000 },
-            { name: "Mei", value: 60000000 },
-            { name: "Jun", value: 58000000 },
-          ]}
-          colors={["#2563EB"]}
-        />
-        <DashboardChart
-          type="pie"
-          title="Distribusi Instrumen"
-          data={data?.instrument_distribution || [
-            { name: "Piano", value: 35 },
-            { name: "Gitar", value: 28 },
-            { name: "Vokal", value: 22 },
-            { name: "Biola", value: 15 },
-          ]}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <DashboardChart
-          type="line"
-          title="Pertumbuhan Siswa"
-          data={data?.student_growth || [
-            { name: "Jan", value: 120 },
-            { name: "Feb", value: 125 },
-            { name: "Mar", value: 130 },
-            { name: "Apr", value: 138 },
-            { name: "Mei", value: 145 },
-            { name: "Jun", value: 150 },
-          ]}
-          colors={["#10B981"]}
-        />
-        <DashboardChart
-          type="donut"
-          title="Status Pembayaran"
-          data={data?.payment_status || [
-            { name: "Lunas", value: 85 },
-            { name: "Pending", value: 10 },
-            { name: "Overdue", value: 5 },
-          ]}
-          colors={["#10B981", "#F59E0B", "#EF4444"]}
-        />
+      {/* Charts — 2x2 grid */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div style={{ height: "280px" }}>
+          <DashboardChart
+            type="bar"
+            title="Revenue Bulanan"
+            height={220}
+            data={data?.monthly_revenue || [
+              { name: "Jan", value: 45000000 },
+              { name: "Feb", value: 52000000 },
+              { name: "Mar", value: 48000000 },
+              { name: "Apr", value: 55000000 },
+              { name: "Mei", value: 60000000 },
+              { name: "Jun", value: 58000000 },
+            ]}
+            colors={["#2563EB"]}
+          />
+        </div>
+        <div style={{ height: "280px" }}>
+          <DashboardChart
+            type="donut"
+            title="Status Pembayaran"
+            height={220}
+            data={data?.payment_status || [
+              { name: "Lunas", value: 85 },
+              { name: "Pending", value: 10 },
+              { name: "Overdue", value: 5 },
+            ]}
+            colors={["#10B981", "#F59E0B", "#EF4444"]}
+          />
+        </div>
+        <div style={{ height: "280px" }}>
+          <DashboardChart
+            type="line"
+            title="Pertumbuhan Siswa"
+            height={220}
+            data={data?.student_growth || [
+              { name: "Jan", value: 120 },
+              { name: "Feb", value: 125 },
+              { name: "Mar", value: 130 },
+              { name: "Apr", value: 138 },
+              { name: "Mei", value: 145 },
+              { name: "Jun", value: 150 },
+            ]}
+            colors={["#10B981"]}
+          />
+        </div>
+        <div style={{ height: "280px" }}>
+          <DashboardChart
+            type="pie"
+            title="Distribusi Instrumen"
+            height={220}
+            data={data?.instrument_distribution || [
+              { name: "Piano", value: 35 },
+              { name: "Gitar", value: 28 },
+              { name: "Vokal", value: 22 },
+              { name: "Biola", value: 15 },
+            ]}
+          />
+        </div>
       </div>
     </div>
   );
