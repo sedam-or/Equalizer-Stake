@@ -2647,6 +2647,30 @@
 
 ---
 
+
+---
+
+## Phase 29: PAKET & PRODUK TAMBAHAN
+
+### T-198: Paket Liburan — Landing Page + Register + Pricing
+- **Status**: ✅
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-06, UC-06
+- **Deskripsi**:
+  - Tambah section Paket Liburan di landing page (HargaSection)
+  - Tambah opsi Paket Liburan di register-course
+  - Tambah pricing data ke database:
+    - Kelas A (1 siswa): Rp 780.000
+    - Kelas B (2 siswa): Rp 900.000
+    - Kelas C (3 siswa): Rp 1.020.000
+    - Kelas D (4 siswa): Rp 1.260.000
+    - Registration Fee: Rp 60.000
+  - Tambah class_type "paket_a", "paket_b", "paket_c", "paket_d" ke enum
+- **Test**: Landing page tampilkan Paket Liburan, register-course bisa pilih paket
+- **Files**: frontend/src/components/landing/HargaSection.tsx, frontend/src/app/register-course/page.tsx, backend/scripts/seed_pricing.py
+
+---
+
 ## ATURAN WAJIB (berlaku untuk SEMUA task)
 
 1. **DILARANG dummy data di frontend** — Semua page HARUS fetch dari API. Tidak ada `const data = [...]` di component.
