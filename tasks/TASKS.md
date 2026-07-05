@@ -2041,7 +2041,7 @@
 - **Files**: `frontend/src/app/register-course/page.tsx`, `backend/app/routers/registrations.py`
 
 ### T-159: Registration API — Backend Endpoint
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🔴 KRITIS
 - **FR/UC terkait**: FR-02, UC-02
 - **Deskripsi**:
