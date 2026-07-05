@@ -965,6 +965,8 @@
 | Phase 24: GUARDIAN + TEACHER FLOW FIX | T-163..T-168 | ⏳ 0/6 |
 | Phase 25: COMPREHENSIVE SYSTEM AUDIT | T-169..T-177 | ⏳ 0/9 |
 | Phase 26: DEEP AUDIT — FRONTEND vs BACKEND | T-178..T-185 | ⏳ 0/8 |
+| Phase 27: AUDIT FIXES — BACKEND | T-186..T-192 | ⏳ 0/7 |
+| Phase 28: AUDIT FIXES — FRONTEND | T-193..T-197 | ⏳ 0/5 |
 | **Total** | **162 tasks** | **120/162 done** |
 
 ---
@@ -2455,6 +2457,193 @@
   - Output: FRONTEND_STATE_MANAGEMENT_AUDIT.md
 - **Test**: Data sinkron antar page, tidak ada stale data
 - **Files**: frontend/src/components/DashboardContext.tsx, frontend/src/app/**/page.tsx, docs/audit/frontend/
+
+---
+
+
+---
+
+## Phase 27: AUDIT FIXES — BACKEND (Per Bagian)
+
+### T-186: Fix Student Level System — Per Instrumen
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Source**: T-179 (BACKEND_MODEL_AUDIT.md)
+- **Deskripsi**:
+  - SRS Addendum Section 6: level HARUS per instrumen
+  - Current: Enum("pemula", "dasar", "menengah", "lanjut") — SALAH
+  - Fix: Remove enum constraint, use String(50)
+  - Add validation per instrument:
+    - Piano Klasik: pra_elementary, elementary, grade_1..6
+    - Piano Pop: beginner, intermediate, intermediate_2
+    - Vokal/Biola/Gitar/Keyboard/Drum/Flute/Saxophone: basic, intermediate, advance
+  - Update registration.py, students.py to accept new levels
+  - Update seed scripts
+  - DB migration: ALTER TYPE or remove enum constraint
+- **Test**: Register student with Piano Klasik grade_3 → success
+- **Files**: backend/app/models/student.py, backend/app/routers/students.py, backend/app/routers/registrations.py
+
+### T-187: Add bass to Instrument Enum
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Source**: T-179 (BACKEND_MODEL_AUDIT.md)
+- **Deskripsi**:
+  - SRS Addendum Section 5: tambah bass
+  - Current enum: biola, piano, gitar, drum, keyboard, flute, saxophone, vokal, ensemble
+  - Fix: ALTER TYPE instrument_type ADD VALUE 'bass'
+  - Update all routers that validate instrument
+  - Update seed scripts
+- **Test**: Register student with instrument=bass → success
+- **Files**: backend/app/models/student.py, backend/app/routers/students.py
+
+### T-188: Add Audit Log to 5 Missing Routers
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Source**: T-178 (BACKEND_ROUTER_AUDIT.md)
+- **Deskripsi**:
+  - Routers missing audit log on mutations:
+    - draft.py — POST/DELETE
+    - holidays.py — POST/DELETE
+    - multi_student.py — POST freeze
+    - privacy.py — POST/PUT
+    - teachers.py — POST/PUT/DELETE
+  - Fix: Add create_audit_log() to all mutation endpoints
+  - Format: create_audit_log(db, user.id_user, "INSERT"/"UPDATE"/"DELETE", entity, entity_id, before_state, after_state)
+- **Test**: Create teacher → audit_log entry created
+- **Files**: backend/app/routers/draft.py, holidays.py, multi_student.py, privacy.py, teachers.py
+
+### T-189: Add Indexes to Foreign Keys
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Source**: T-179 (BACKEND_MODEL_AUDIT.md)
+- **Deskripsi**:
+  - Models missing FK indexes:
+    - attendance (id_session, id_student)
+    - invoice (id_guardian)
+    - payment (id_invoice)
+    - session (id_teacher, id_student, id_room)
+    - student (id_guardian)
+  - Fix: Add index=True to all FK fields
+  - DB migration: CREATE INDEX CONCURRENTLY
+- **Test**: Query with FK filter uses index (EXPLAIN ANALYZE)
+- **Files**: backend/app/models/attendance.py, invoice.py, payment.py, session.py, student.py
+
+### T-190: Add Soft Delete to Missing Models
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Source**: T-179 (BACKEND_MODEL_AUDIT.md)
+- **Deskripsi**:
+  - Models missing soft delete:
+    - teacher, room, session, feedback, rating
+  - Fix: Add deleted_at column, update queries to filter deleted_at IS NULL
+  - Add DELETE endpoints that set deleted_at instead of hard delete
+- **Test**: Delete teacher → deleted_at set, list excludes deleted
+- **Files**: backend/app/models/teacher.py, room.py, session.py, feedback.py, rating.py
+
+### T-191: Move Router Prefix to Router Definition
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Source**: T-178 (BACKEND_ROUTER_AUDIT.md)
+- **Deskripsi**:
+  - Routers with prefix in main.py:
+    - cron_trigger.py — move prefix to router
+    - photos.py — move prefix to router
+  - Fix: Add prefix= to APIRouter() in router file, remove from main.py
+- **Test**: All endpoints still work after prefix move
+- **Files**: backend/app/routers/cron_trigger.py, photos.py, backend/app/main.py
+
+### T-192: Add Rate Limiting to CRUD Endpoints
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Source**: T-181 (BACKEND_SECURITY_DEEP_AUDIT.md)
+- **Deskripsi**:
+  - Endpoints missing rate limiting:
+    - students POST/PUT/DELETE
+    - teachers POST/PUT/DELETE
+    - sessions POST/PUT/DELETE
+    - billing POST/PUT/DELETE
+  - Fix: Add @limiter.limit() to all write endpoints
+  - Limits: 20/minute for POST, 10/minute for PUT/DELETE
+- **Test**: Spam POST → 429 Too Many Requests after limit
+- **Files**: backend/app/routers/students.py, teachers.py, scheduling.py, billing.py
+
+---
+
+## Phase 28: AUDIT FIXES — FRONTEND (Per Bagian)
+
+### T-193: Add Error Handling to 11 Pages
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Source**: T-182 (FRONTEND_PAGE_AUDIT.md)
+- **Deskripsi**:
+  - Pages without error handling:
+    - attendance, billing, my-payments, my-schedule
+    - notification-settings, notifications, payments, reports
+    - students, studio
+  - Fix per page:
+    1. Add try-catch to fetch calls
+    2. Add error state (setError)
+    3. Add loading state (setLoading)
+    4. Add error display (ErrorState component)
+    5. Use parseApiError() for error messages
+- **Test**: Network error → shows error message, not crash
+- **Files**: frontend/src/app/dashboard/*/page.tsx (11 files)
+
+### T-194: Add refreshKey to All Data-Fetching Pages
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Source**: T-185 (FRONTEND_STATE_MANAGEMENT_AUDIT.md)
+- **Deskripsi**:
+  - Pages not using refreshKey: 22 pages
+  - Fix per page:
+    1. Import useDashboard
+    2. Add const { refreshKey } = useDashboard()
+    3. Add refreshKey to useEffect dependency
+  - Pages: schedule, students, teachers, billing, payments, notifications, my-schedule, my-payments, admin, assign-session, etc.
+- **Test**: Add student on my-students → schedule page shows updated data
+- **Files**: frontend/src/app/dashboard/*/page.tsx (22 files)
+
+### T-195: Add triggerRefresh to All Data-Mutating Pages
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **Source**: T-185 (FRONTEND_STATE_MANAGEMENT_AUDIT.md)
+- **Deskripsi**:
+  - Pages that mutate data but don't triggerRefresh:
+    - assign-session (add session)
+    - billing (verify payment)
+    - registrations (approve/reject)
+    - override (override attendance)
+    - holidays (add/delete holiday)
+    - feedback (add feedback)
+    - ratings (add rating)
+  - Fix: Add triggerRefresh() after successful mutation
+- **Test**: Approve registration → students page shows new student
+- **Files**: 7 page files
+
+### T-196: Add Responsive Breakpoints to All Pages
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Source**: T-184 (FRONTEND_UI_CONSISTENCY_AUDIT.md)
+- **Deskripsi**:
+  - Only 21 responsive breakpoint classes found
+  - Fix: Add md:/lg: classes to all page layouts
+  - Focus: sidebar collapse on mobile, table → cards on mobile
+  - Use MobileTable component on all list pages
+- **Test**: View on mobile (320px) → layout works, no overflow
+- **Files**: frontend/src/app/dashboard/*/page.tsx
+
+### T-197: Use Shared Components on All Pages
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **Source**: T-184 (FRONTEND_UI_CONSISTENCY_AUDIT.md)
+- **Deskripsi**:
+  - Components exist but underused:
+    - EmptyState — use on all list pages when data empty
+    - Skeleton — use on all pages during loading
+    - ErrorState — use on all pages on error
+  - Fix: Add shared components to all pages
+- **Test**: Empty data → shows EmptyState, Loading → shows Skeleton, Error → shows ErrorState
+- **Files**: frontend/src/app/dashboard/*/page.tsx
 
 ---
 
