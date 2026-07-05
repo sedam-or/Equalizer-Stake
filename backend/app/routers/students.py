@@ -14,6 +14,7 @@ from app.models.student import Student
 from app.models.user import User
 from app.services.audit import create_audit_log
 from app.services.level_validation import validate_instrument_level
+from app.services.age_validation import validate_age_for_instrument
 from app.services.cuti_validation import validate_cuti_limit, apply_cuti
 
 router = APIRouter(prefix="/api/v1/students", tags=["Students"])
@@ -124,6 +125,19 @@ async def create_student(
         guardian_id = guardian.id_guardian
     else:
         guardian_id = body.id_guardian
+    # Validate age for tunas class (SRS Addendum)
+    dob = None
+    if body.date_of_birth:
+        from datetime import date as dt_date
+        dob = dt_date.fromisoformat(body.date_of_birth)
+    
+    age_valid, age_years = validate_age_for_instrument(dob, body.instrument)
+    if not age_valid:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Usia minimal untuk kelas tunas adalah 3.5 tahun (saat ini: {age_years} tahun)"
+        )
+    
     # Validate level per instrument (SRS Addendum)
     if not validate_instrument_level(body.instrument, body.level):
         raise HTTPException(
