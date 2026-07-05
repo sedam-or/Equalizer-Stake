@@ -963,6 +963,7 @@
 | Phase 22: FRONTEND REDESIGN — LIGHT THEME + UX | T-128..T-155 | ⏳ 27/28 |
 | Phase 23: LANDING PAGE + REGISTRATION REBUILD | T-156..T-162 | ⏳ 0/7 |
 | Phase 24: GUARDIAN + TEACHER FLOW FIX | T-163..T-168 | ⏳ 0/6 |
+| Phase 25: COMPREHENSIVE SYSTEM AUDIT | T-169..T-177 | ⏳ 0/9 |
 | **Total** | **162 tasks** | **120/162 done** |
 
 ---
@@ -2193,6 +2194,132 @@
   - Pastikan redirect setelah login benar
 - **Test**: Login sebagai wali_01 → dashboard wali murid → menu lengkap
 - **Files**: `frontend/src/components/Sidebar.tsx`, `frontend/src/app/dashboard/`
+
+---
+
+
+---
+
+## Phase 25: COMPREHENSIVE SYSTEM AUDIT
+
+### T-169: Business Logic Audit — SRS Compliance Check
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: ALL
+- **Deskripsi**:
+  - Baca semua SRS documents (srs/*.md)
+  - Bandingkan setiap FR/UC dengan implementasi aktual
+  - Catat: missing features, wrong implementation, incomplete flows
+  - Output: SRS_COMPLIANCE_MATRIX.md (FR-xx → status: implemented/partial/missing)
+  - Focus: registration flow, billing, attendance, notification, reporting
+- **Test**: Setiap FR/UC punya status yang jelas
+- **Files**: `docs/audit/SRS_COMPLIANCE_MATRIX.md`
+
+### T-170: Business Logic Audit — Data Model vs Business Rules
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: ALL
+- **Deskripsi**:
+  - Baca 99-entities.md dan 99-addendum-business-rules.md
+  - Bandingkan setiap entity field dengan model SQLAlchemy
+  - Catat: missing fields, wrong types, missing constraints, missing enums
+  - Focus: Student (instrument/level enum), Invoice (unique_code), Session (status), Guardian (account_status)
+  - Output: DATA_MODEL_AUDIT.md
+- **Test**: Setiap entity field match SRS
+- **Files**: `docs/audit/DATA_MODEL_AUDIT.md`
+
+### T-171: Technical Audit — API Endpoint Completeness
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: ALL
+- **Deskripsi**:
+  - List semua endpoint di backend (router files)
+  - List semua fetch call di frontend
+  - Bandingkan: frontend butuh endpoint X → backend punya?
+  - Catat: missing endpoints, wrong paths, wrong methods, missing auth
+  - Output: API_ENDPOINT_AUDIT.md
+- **Test**: Setiap frontend fetch punya backend endpoint
+- **Files**: `docs/audit/API_ENDPOINT_AUDIT.md`
+
+### T-172: Technical Audit — Frontend-Backend Alignment
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: ALL
+- **Deskripsi**:
+  - Bandingkan request/response format antara frontend dan backend
+  - Catat: field name mismatch, type mismatch, missing fields, extra fields
+  - Focus: students, teachers, sessions, invoices, notifications
+  - Output: FRONTEND_BACKEND_ALIGNMENT.md
+- **Test**: Setiap API call punya response yang sesuai
+- **Files**: `docs/audit/FRONTEND_BACKEND_ALIGNMENT.md`
+
+### T-173: Security Audit — Authentication & Authorization
+- **Status**: ⏳
+- **Priority**: 🔴 KRITIS
+- **FR/UC terkait**: SEC-01..SEC-08
+- **Deskripsi**:
+  - Cek semua endpoint: punya auth guard? Role check benar?
+  - Cek: JWT validation, token expiry, refresh token flow
+  - Cek: PII encryption (AES-256-GCM) untuk field yang wajib
+  - Cek: input validation, SQL injection, XSS protection
+  - Cek: rate limiting pada endpoint kritis
+  - Output: SECURITY_AUDIT.md
+- **Test**: Tidak ada endpoint tanpa auth, tidak ada PII tanpa encrypt
+- **Files**: `docs/audit/SECURITY_AUDIT.md`
+
+### T-174: Business Logic Audit — User Flow Verification
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: UC-01..UC-20
+- **Deskripsi**:
+  - Test setiap user flow dari awal sampai akhir:
+    - Guardian: register → tambah anak → bayar → lihat jadwal
+    - Teacher: login → lihat jadwal → submit absensi → feedback
+    - Admin: login → manage siswa → manage guru → verifikasi bayar → assign sesi
+    - Owner: login → lihat reports → manage admin → audit log
+  - Catat: broken flows, missing steps, wrong redirects
+  - Output: USER_FLOW_VERIFICATION.md
+- **Test**: Setiap flow bisa dijalankan end-to-end
+- **Files**: `docs/audit/USER_FLOW_VERIFICATION.md`
+
+### T-175: Technical Audit — Error Handling & Edge Cases
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: NFR-REL-01, NFR-REL-02
+- **Deskripsi**:
+  - Cek semua error handling di frontend dan backend
+  - Catat: unhandled errors, missing try-catch, wrong error messages
+  - Cek edge cases: empty data, network error, timeout, unauthorized
+  - Cek: loading states, empty states, error states di UI
+  - Output: ERROR_HANDLING_AUDIT.md
+- **Test**: Semua error punya handling yang benar
+- **Files**: `docs/audit/ERROR_HANDLING_AUDIT.md`
+
+### T-176: Business Logic Audit — Pricing & Billing Accuracy
+- **Status**: ⏳
+- **Priority**: 🟡 IMPORTANT
+- **FR/UC terkait**: FR-06, UC-06
+- **Deskripsi**:
+  - Bandingkan pricing di landing page, register-course, dashboard, database
+  - Cek: registration fee, SPP, class type multiplier, instrument pricing
+  - Cek: invoice generation logic (cron job), unique_code, due_date, fine
+  - Cek: payment verification flow, receipt upload, status update
+  - Output: PRICING_BILLING_AUDIT.md
+- **Test**: Harga konsisten di semua tempat
+- **Files**: `docs/audit/PRICING_BILLING_AUDIT.md`
+
+### T-177: Technical Audit — Performance & Optimization
+- **Status**: ⏳
+- **Priority**: 🟢 NICE
+- **FR/UC terkait**: NFR-PERF-01, NFR-PERF-02
+- **Deskripsi**:
+  - Cek: N+1 queries, missing indexes, eager loading
+  - Cek: bundle size, lazy loading, code splitting
+  - Cek: API response time (target ≤2s page, ≤1s validation)
+  - Cek: image optimization, font loading, CSS efficiency
+  - Output: PERFORMANCE_AUDIT.md
+- **Test**: Response time sesuai NFR target
+- **Files**: `docs/audit/PERFORMANCE_AUDIT.md`
 
 ---
 
