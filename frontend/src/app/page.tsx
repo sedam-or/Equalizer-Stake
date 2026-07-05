@@ -9,7 +9,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import ProgramKursusSection from "@/components/landing/ProgramKursusSection";
 import TentangSection from "@/components/landing/TentangSection";
 import TestimonialSection from "@/components/landing/TestimonialSection";
-import PaketHargaSection from "@/components/landing/PaketHargaSection";
+import HargaSection from "@/components/landing/HargaSection";
 import CtaSection from "@/components/landing/CtaSection";
 import Footer from "@/components/landing/Footer";
 
@@ -24,7 +24,7 @@ export default function HomePage() {
       <ProgramKursusSection />
       <TentangSection />
       <TestimonialSection />
-      <PaketHargaSection />
+      <HargaSection />
       <CtaSection />
       <Footer />
     </main>
