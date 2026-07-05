@@ -5,10 +5,11 @@ import { useState } from "react";
 // Step indicators
 const steps = [
   { id: 1, label: "Data Diri" },
-  { id: 2, label: "Pilih Kursus" },
-  { id: 3, label: "Pilih Jadwal" },
-  { id: 4, label: "Pembayaran" },
-  { id: 5, label: "Selesai" },
+  { id: 2, label: "Buat Akun" },
+  { id: 3, label: "Pilih Kursus" },
+  { id: 4, label: "Pilih Jadwal" },
+  { id: 5, label: "Pembayaran" },
+  { id: 6, label: "Selesai" },
 ];
 
 // Instrument data from SRS
@@ -52,6 +53,8 @@ export default function RegisterCoursePage() {
     phone_whatsapp: "",
     email: "",
     address: "",
+    username: "",
+    password: "",
     instrument: "",
     class_type: "",
     schedule_id: "",
@@ -98,6 +101,8 @@ export default function RegisterCoursePage() {
       formData.append("phone_whatsapp", form.phone_whatsapp);
       formData.append("email", form.email);
       formData.append("address", form.address);
+      formData.append("username", form.username);
+      formData.append("password", form.password);
       formData.append("instrument", form.instrument);
       formData.append("class_type", form.class_type);
       formData.append("schedule_id", form.schedule_id);
@@ -174,7 +179,7 @@ export default function RegisterCoursePage() {
                 <input type="tel" name="phone_whatsapp" value={form.phone_whatsapp} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20" placeholder="08xxxxxxxxxx" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Email *</label>
                 <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20" placeholder="email@example.com" />
               </div>
               <div>
@@ -184,8 +189,24 @@ export default function RegisterCoursePage() {
             </div>
           )}
 
-          {/* Step 2: Pilih Kursus */}
-          {step === 2 && (
+          {/* Step 2: Buat Akun */}
+          {step === 5 && (
+            <div className="space-y-4">
+              <h2 className="font-heading text-xl font-bold text-gray-900">Buat Akun</h2>
+              <p className="text-sm text-gray-500">Buat akun untuk memantau progress kursus anak Anda.</p>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Username *</label>
+                <input type="text" name="username" value={form.username} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20" placeholder="Minimal 3 karakter" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Password *</label>
+                <input type="password" name="password" value={form.password} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20" placeholder="Minimal 8 karakter" />
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Pilih Kursus */}
+          {step === 5 && (
             <div className="space-y-4">
               <h2 className="font-heading text-xl font-bold text-gray-900">Pilih Instrumen & Tipe Kelas</h2>
               <div>
@@ -222,8 +243,8 @@ export default function RegisterCoursePage() {
             </div>
           )}
 
-          {/* Step 3: Pilih Jadwal */}
-          {step === 3 && (
+          {/* Step 4: Pilih Jadwal */}
+          {step === 5 && (
             <div className="space-y-4">
               <h2 className="font-heading text-xl font-bold text-gray-900">Pilih Jadwal</h2>
               <p className="text-sm text-gray-500">Pilih jadwal yang tersedia untuk {selectedInstrument?.label}</p>
@@ -241,8 +262,8 @@ export default function RegisterCoursePage() {
             </div>
           )}
 
-          {/* Step 4: Pembayaran */}
-          {step === 4 && (
+          {/* Step 5: Pembayaran */}
+          {step === 5 && (
             <div className="space-y-4">
               <h2 className="font-heading text-xl font-bold text-gray-900">Pembayaran</h2>
               <div className="rounded-lg bg-gray-50 p-4">
@@ -287,12 +308,12 @@ export default function RegisterCoursePage() {
                 Kembali
               </button>
             )}
-            {step < 4 && (
+            {step < 5 && (
               <button onClick={nextStep} className="ml-auto rounded-lg bg-[#2563EB] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8]">
                 Lanjut
               </button>
             )}
-            {step === 4 && (
+            {step === 5 && (
               <button onClick={handleSubmit} disabled={submitting || !paymentProof} className="ml-auto rounded-lg bg-[#2563EB] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50">
                 {submitting ? "Mengirim..." : "Kirim Pendaftaran"}
               </button>

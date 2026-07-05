@@ -30,8 +30,10 @@ router = APIRouter(prefix="/api/v1/registrations", tags=["Registrations"])
 async def submit_registration(
     full_name: str = Form(..., min_length=2, max_length=255),
     phone_whatsapp: str = Form(..., min_length=8, max_length=20),
-    email: str = Form(None),
+    email: str = Form(..., min_length=5, max_length=255),
     address: str = Form(None),
+    username: str = Form(..., min_length=3, max_length=50),
+    password: str = Form(..., min_length=8, max_length=100),
     instrument: str = Form(..., max_length=50),
     level: str = Form(..., max_length=50),
     class_type: str = Form(..., max_length=50),
@@ -39,7 +41,40 @@ async def submit_registration(
     payment_proof: UploadFile = File(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Publik: calon murid mengisi formulir pendaftaran dengan bukti transfer."""
+    """Publik: buat akun + daftar kursus dalam satu request."""
+    # Check username uniqueness
+    existing_user = await db.execute(select(User).where(User.username == username))
+    if existing_user.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Username sudah digunakan")
+    
+    # Check email uniqueness (via hash)
+    from app.services.encryption import hash_email
+    email_hash_val = hash_email(email)
+    existing_email = await db.execute(select(User).where(User.email_hash == email_hash_val))
+    if existing_email.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Email sudah terdaftar")
+    
+    # Create User
+    user = User(
+        username=username,
+        email=email,
+        password_hash=hash_password(password),
+        role="wali_murid",
+        email_hash=email_hash_val,
+    )
+    db.add(user)
+    await db.flush()
+    
+    # Create Guardian
+    guardian = Guardian(
+        id_user=user.id_user,
+        full_name=full_name,
+        phone_whatsapp=phone_whatsapp,
+        address=address,
+    )
+    db.add(guardian)
+    await db.flush()
+    
     # Save payment proof if provided
     proof_path = None
     if payment_proof and payment_proof.filename:
@@ -48,11 +83,12 @@ async def submit_registration(
         file_ext = os.path.splitext(payment_proof.filename)[1]
         file_name = f"{uuid.uuid4()}{file_ext}"
         file_path = os.path.join(upload_dir, file_name)
-        content = await payment_proof.read()
+        file_content = await payment_proof.read()
         with open(file_path, "wb") as f:
-            f.write(content)
+            f.write(file_content)
         proof_path = file_path
-
+    
+    # Create Registration
     reg = Registration(
         full_name=full_name,
         phone_whatsapp=phone_whatsapp,
@@ -66,10 +102,13 @@ async def submit_registration(
     )
     db.add(reg)
     await db.flush()
+    
     return {
+        "id_user": str(user.id_user),
+        "id_guardian": str(guardian.id_guardian),
         "id_registration": str(reg.id_registration),
         "status": reg.status,
-        "message": "Pendaftaran berhasil dikirim. Menunggu persetujuan admin.",
+        "message": "Pendaftaran berhasil. Akun Anda telah dibuat. Menunggu verifikasi admin.",
     }
 
 
