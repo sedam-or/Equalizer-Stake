@@ -56,7 +56,7 @@ export default function HolidaysPage() {
       setForm({ date: "", name: "" });
     } else {
       const data = await res.json();
-      setErr(data.detail || "Gagal menambahkan libur");
+      setErr(parseApiError(data));
     }
   };
 

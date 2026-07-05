@@ -94,7 +94,7 @@ export default function ProfilePage() {
         body: JSON.stringify({ current_password: pwForm.current_password, new_password: pwForm.new_password }),
       });
       const data = await res.json();
-      if (!res.ok) { setPwErr(data.detail || "Gagal mengubah password"); return; }
+      if (!res.ok) { setPwErr(parseApiError(data)); return; }
       setPwMsg("Password berhasil diubah");
       setPwForm({ current_password: "", new_password: "", confirm: "" });
     } catch { setPwErr("Terjadi kesalahan jaringan"); }

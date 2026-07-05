@@ -48,7 +48,7 @@ export default function AssignSessionPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.detail?.message || data.detail || "Gagal assign sesi");
+        setError(parseApiError(data));
         return;
       }
       setSuccess("Sesi berhasil diassign!");

@@ -75,7 +75,7 @@ export default function TeachersPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.detail || "Gagal menyimpan");
+        setError(parseApiError(data));
         return;
       }
       setShowForm(false);
