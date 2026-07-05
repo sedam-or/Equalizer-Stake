@@ -2083,7 +2083,7 @@
 - **Files**: `frontend/src/components/landing/PaketHargaSection.tsx`, `frontend/src/components/landing/HeroSection.tsx`
 
 ### T-162: Copywriting Rewrite — Benefit > Feature
-- **Status**: ⏳
+- **Status**: ✅
 - **Priority**: 🟡 IMPORTANT
 - **FR/UC terkait**: NFR-USA-02
 - **Deskripsi**:
