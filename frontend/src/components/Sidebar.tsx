@@ -32,6 +32,7 @@ const navSections: NavSection[] = [
       { href: "/dashboard/payments", label: "Pembayaran", icon: "💳" },
       { href: "/dashboard/holidays", label: "Libur", icon: "🏖️" },
       { href: "/dashboard/studio", label: "Studio", icon: "🎵" },
+      { href: "/dashboard/teachers", label: "Guru", icon: "👨‍🏫" },
       { href: "/dashboard/registrations", label: "Pendaftaran", icon: "📝" },
     ],
   },
