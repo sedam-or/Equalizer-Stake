@@ -167,7 +167,7 @@ export default function BillingPage() {
                 <div><span className="text-gray-500">Wali:</span> <span className="text-gray-900">{selected.guardian_name || "-"}</span></div>
                 <div><span className="text-gray-500">Jumlah:</span> <span className="text-[#2563EB] font-bold">{rupiah(selected.total_amount)}</span></div>
                 <div><span className="text-gray-500">Jatuh Tempo:</span> <span className="text-gray-900">{selected.due_date}</span></div>
-                <div><span className="text-gray-500">Kode Unik:</span> <span className="text-[#2563EB] font-mono font-bold">{String(selected.unique_code || "N/A")}</span></div>
+                <div><span className="text-gray-500">Kode Unik:</span> <span className="text-[#2563EB] font-mono font-bold">{selected.unique_code}</span></div>
               </div>
             </div>
 
@@ -181,14 +181,14 @@ export default function BillingPage() {
               <div className="flex gap-2">
                 <input type="text" maxLength={3} value={inputCode} onChange={e => setInputCode(e.target.value.replace(/\D/g, ""))} placeholder="___" className="w-24 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-center text-lg font-mono font-bold text-[#2563EB] placeholder-gray-600 focus:border-[#2563EB] focus:outline-none" />
                 <div className="flex items-center text-sm text-gray-500">
-                  {inputCode.length === 3 && (inputCode === String(selected.unique_code || '') ? <span className="text-[#2563EB]">✓ Kode cocok!</span> : <span className="text-red-400">✗ Kode tidak cocok</span>)}
+                  {inputCode.length === 3 && (inputCode === selected.unique_code ? <span className="text-[#2563EB]">✓ Kode cocok!</span> : <span className="text-red-400">✗ Kode tidak cocok</span>)}
                 </div>
               </div>
             </div>
 
             {selected.status !== "paid" && selected.status !== "lunas" && (
               <div className="flex gap-2">
-                <button onClick={() => handleVerify(selected.id_invoice)} disabled={inputCode !== String(selected.unique_code || '')} className={`flex-1 rounded-lg py-2 text-sm font-semibold ${inputCode === String(selected.unique_code || '') ? "bg-[#2563EB] text-black hover:bg-[#1d4ed8]" : "bg-gray-700 text-gray-500 cursor-not-allowed"}`}>✓ Verifikasi Pembayaran</button>
+                <button onClick={() => handleVerify(selected.id_invoice)} disabled={inputCode !== selected.unique_code} className={`flex-1 rounded-lg py-2 text-sm font-semibold ${inputCode === selected.unique_code ? "bg-[#2563EB] text-black hover:bg-[#1d4ed8]" : "bg-gray-700 text-gray-500 cursor-not-allowed"}`}>✓ Verifikasi Pembayaran</button>
                 <button onClick={() => handleReject(selected.id_invoice)} className="flex-1 rounded-lg bg-red-500/20 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/30">✗ Tolak</button>
               </div>
             )}
