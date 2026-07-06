@@ -173,7 +173,7 @@ export default function ReportsPage() {
             type="bar"
             title="Revenue Bulanan"
             height={220}
-            data={data?.monthly_revenue || [
+            data={(data?.revenue_trend || []).map((r: any) => ({name: r.period?.slice(5)||'', value: r.total_amount||0})) || [
               { name: "Jan", value: 45000000 },
               { name: "Feb", value: 52000000 },
               { name: "Mar", value: 48000000 },
@@ -189,11 +189,7 @@ export default function ReportsPage() {
             type="donut"
             title="Status Pembayaran"
             height={220}
-            data={data?.payment_status || [
-              { name: "Lunas", value: 85 },
-              { name: "Pending", value: 10 },
-              { name: "Overdue", value: 5 },
-            ]}
+            data={[{name:'Lunas',value:((data?.total_students||0) - (data?.unpaid_invoices||0) - (data?.overdue_invoices||0))},{name:'Belum Bayar',value:data?.unpaid_invoices||0},{name:'Terlambat',value:data?.overdue_invoices||0}]}
             colors={["#10B981", "#F59E0B", "#EF4444"]}
           />
         </div>
@@ -202,7 +198,7 @@ export default function ReportsPage() {
             type="line"
             title="Pertumbuhan Siswa"
             height={220}
-            data={data?.student_growth || [
+            data={(data?.revenue_trend || []).map((r: any) => ({name: r.period?.slice(5)||'', value: r.invoice_count||0})) || [
               { name: "Jan", value: 120 },
               { name: "Feb", value: 125 },
               { name: "Mar", value: 130 },
@@ -218,7 +214,7 @@ export default function ReportsPage() {
             type="pie"
             title="Distribusi Instrumen"
             height={220}
-            data={data?.instrument_distribution || [
+            data={(data?.studio_breakdown || []).map((s: any) => ({name: s.room_name, value: s.sessions||0})) || [
               { name: "Piano", value: 35 },
               { name: "Gitar", value: 28 },
               { name: "Vokal", value: 22 },
@@ -236,7 +232,7 @@ export default function ReportsPage() {
           <div>
             <h4 className="mb-2 text-sm font-semibold text-gray-500">Revenue</h4>
             <div className="space-y-2">
-              {(data?.monthly_revenue || []).slice(-3).map((r: any) => (
+              {((data?.revenue_trend || []).map((r: any) => ({name: r.period?.slice(5)||'', value: r.total_amount||0})) || []).slice(-3).map((r: any) => (
                 <div key={r.name} className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">{r.name}</span>
                   <span className="font-medium text-[#0F172A]">Rp {(r.value / 1000000).toFixed(1)}jt</span>
@@ -248,7 +244,7 @@ export default function ReportsPage() {
           <div>
             <h4 className="mb-2 text-sm font-semibold text-gray-500">Pembayaran</h4>
             <div className="space-y-2">
-              {(data?.payment_status || []).map((p: any) => (
+              {([{name:'Lunas',value:((data?.total_students||0) - (data?.unpaid_invoices||0) - (data?.overdue_invoices||0))},{name:'Belum Bayar',value:data?.unpaid_invoices||0},{name:'Terlambat',value:data?.overdue_invoices||0}]).map((p: any) => (
                 <div key={p.name} className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">{p.name}</span>
                   <span className="font-medium text-[#0F172A]">{p.value} tagihan</span>

@@ -116,7 +116,7 @@ function AdminDashboard() {
           type="donut"
           title="Status Pembayaran"
           height={220}
-          data={data?.payment_status || [
+          data={((data?.unpaid_invoices || 0) + (data?.overdue_invoices || 0)) > 0 ? [{name:'Lunas',value:(data?.total_students||0) - (data?.unpaid_invoices||0) - (data?.overdue_invoices||0)},{name:'Belum Bayar',value:data?.unpaid_invoices||0},{name:'Terlambat',value:data?.overdue_invoices||0}] : [
             { name: "Lunas", value: 45 },
             { name: "Pending", value: 12 },
             { name: "Overdue", value: 8 },
@@ -246,7 +246,7 @@ function OwnerDashboard() {
             type="bar"
             title="Revenue Bulanan"
             height={220}
-            data={data?.monthly_revenue || [
+            data={(data?.revenue_trend || []).map((r: any) => ({ name: r.period?.slice(5) || '', value: r.total_amount || 0 })) || [
               { name: "Jan", value: 45000000 },
               { name: "Feb", value: 52000000 },
               { name: "Mar", value: 48000000 },
@@ -262,7 +262,7 @@ function OwnerDashboard() {
             type="donut"
             title="Status Pembayaran"
             height={220}
-            data={data?.payment_status || [
+            data={((data?.unpaid_invoices || 0) + (data?.overdue_invoices || 0)) > 0 ? [{name:'Lunas',value:(data?.total_students||0) - (data?.unpaid_invoices||0) - (data?.overdue_invoices||0)},{name:'Belum Bayar',value:data?.unpaid_invoices||0},{name:'Terlambat',value:data?.overdue_invoices||0}] : [
               { name: "Lunas", value: 85 },
               { name: "Pending", value: 10 },
               { name: "Overdue", value: 5 },
@@ -289,14 +289,9 @@ function OwnerDashboard() {
         <div style={{ height: "280px" }}>
           <DashboardChart
             type="pie"
-            title="Distribusi Instrumen"
+            title="Utilisasi Studio"
             height={220}
-            data={data?.instrument_distribution || [
-              { name: "Piano", value: 35 },
-              { name: "Gitar", value: 28 },
-              { name: "Vokal", value: 22 },
-              { name: "Biola", value: 15 },
-            ]}
+            data={(data?.studio_breakdown || []).map((s: any) => ({ name: s.room_name, value: s.sessions || 0 }))}
           />
         </div>
       </div>

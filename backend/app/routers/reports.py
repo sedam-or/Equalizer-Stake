@@ -179,6 +179,29 @@ async def admin_dashboard_stats(
             "status": s.status,
         })
 
+    # Weekly sessions (last 7 days)
+    from datetime import date as date_type
+    weekly_sessions = []
+    day_names = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab"]
+    for i in range(6):
+        d = today - timedelta(days=today.weekday() - i)
+        if d > today:
+            break
+        count_q = await db.execute(
+            select(func.count()).select_from(Session).where(Session.session_date == d)
+        )
+        weekly_sessions.append({"name": day_names[i], "value": count_q.scalar() or 0})
+
+    # Payment status breakdown
+    paid_q = await db.execute(select(func.count()).select_from(Invoice).where(Invoice.status == "paid"))
+    issued_q = await db.execute(select(func.count()).select_from(Invoice).where(Invoice.status == "issued"))
+    overdue_q2 = await db.execute(select(func.count()).select_from(Invoice).where(Invoice.status == "overdue"))
+    payment_status = [
+        {"name": "Lunas", "value": paid_q.scalar() or 0},
+        {"name": "Belum Dibayar", "value": issued_q.scalar() or 0},
+        {"name": "Terlambat", "value": overdue_q2.scalar() or 0},
+    ]
+
     return {
         "greeting": f"Selamat datang, {user.username}",
         "date": today.isoformat(),
@@ -189,6 +212,8 @@ async def admin_dashboard_stats(
             "failed_notifications": failed_notifications,
         },
         "recent_sessions": recent_sessions,
+        "weekly_sessions": weekly_sessions,
+        "payment_status": payment_status,
     }
 
 
