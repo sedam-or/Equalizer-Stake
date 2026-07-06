@@ -17,9 +17,15 @@ interface Session {
   id_room?: string;
 }
 
-interface Room { id_room: string; room_name: string; }
-interface Teacher { id_teacher: string; full_name: string; }
-interface Student { id_student: string; full_name: string; }
+interface Room { id_room: string; room_name: string; capacity?: number; }
+interface Teacher { id_teacher: string; full_name: string; instruments?: Record<string, string>; }
+interface Student { id_student: string; full_name: string; instrument?: string; }
+
+interface ValidationResult {
+  available: boolean;
+  conflicts: Array<{ conflict_type: string; message: string }>;
+  alternatives: Array<{ start_time: string; end_time: string }>;
+}
 
 const statusBadge: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700",
@@ -28,8 +34,6 @@ const statusBadge: Record<string, string> = {
   cancelled: "bg-red-100 text-red-700",
   rescheduled: "bg-purple-100 text-purple-700",
 };
-
-const Bearer = "Bearer";
 
 export default function SchedulePage() {
   const router = useRouter();
@@ -44,10 +48,11 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
+  const [validating, setValidating] = useState(false);
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
   const limit = 20;
   const { refreshKey, triggerRefresh } = useDashboard();
 
-  // Lookup maps
   const teacherMap = Object.fromEntries(teachers.map(t => [t.id_teacher, t.full_name]));
   const studentMap = Object.fromEntries(students.map(s => [s.id_student, s.full_name]));
   const roomMap = Object.fromEntries(rooms.map(r => [r.id_room, r.room_name]));
@@ -55,8 +60,7 @@ export default function SchedulePage() {
   const fetchAll = () => {
     const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
-    const h = { Authorization: `${Bearer} ${token}` };
-
+    const h = { Authorization: `Bearer ${token}` };
     setLoading(true);
     fetch(`/api/v1/sessions/?limit=${limit}&offset=${offset}`, { headers: h })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
@@ -71,13 +75,18 @@ export default function SchedulePage() {
 
   useEffect(() => { fetchAll(); }, [offset, refreshKey]);
 
-  const handleCreate = async () => {
-    setError(""); setSuccess("");
-    const token = localStorage.getItem("access_token");
-    try {
-      const res = await fetch("/api/v1/sessions/", {
+  // Real-time validation when form changes
+  useEffect(() => {
+    if (!form.teacher_id || !form.room_id || !form.student_id || !form.session_date || !form.start_time || !form.end_time) {
+      setValidation(null);
+      return;
+    }
+    setValidating(true);
+    const timer = setTimeout(() => {
+      const token = localStorage.getItem("access_token");
+      fetch("/api/v1/sessions/validate", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `${Bearer} ${token}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           id_teacher: form.teacher_id,
           id_student: form.student_id,
@@ -87,13 +96,39 @@ export default function SchedulePage() {
           end_time: form.end_time,
           session_type: "reguler",
         }),
+      })
+        .then(r => r.json())
+        .then(setValidation)
+        .catch(() => setValidation(null))
+        .finally(() => setValidating(false));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [form.teacher_id, form.room_id, form.student_id, form.session_date, form.start_time, form.end_time]);
+
+  const handleCreate = async () => {
+    setError(""); setSuccess("");
+    if (!validation?.available) { setError("Slot tidak tersedia. Pilih waktu lain."); return; }
+    const token = localStorage.getItem("access_token");
+    try {
+      const res = await fetch("/api/v1/sessions/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          id_teacher: form.teacher_id, id_student: form.student_id, id_room: form.room_id,
+          session_date: form.session_date, start_time: form.start_time, end_time: form.end_time, session_type: "reguler",
+        }),
       });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal membuat jadwal"); }
       setSuccess("Jadwal berhasil dibuat");
       setShowForm(false);
       setForm({ teacher_id: "", student_id: "", room_id: "", session_date: "", start_time: "", end_time: "" });
+      setValidation(null);
       triggerRefresh();
     } catch (err) { setError(err instanceof Error ? err.message : "Terjadi kesalahan"); }
+  };
+
+  const applyAlternative = (alt: { start_time: string; end_time: string }) => {
+    setForm({ ...form, start_time: alt.start_time, end_time: alt.end_time });
   };
 
   return (
@@ -101,17 +136,17 @@ export default function SchedulePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-[#0F172A]">Jadwal Kursus</h1>
-          <p className="text-sm text-gray-500">Kelola jadwal sesi kursus</p>
+          <p className="text-sm text-gray-500">Kelola jadwal sesi kursus dengan validasi konflik real-time</p>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8]">
           {showForm ? "Tutup" : "+ Buat Jadwal"}
         </button>
       </div>
 
-      {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
-      {success && <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-600">{success}</div>}
+      {error && <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">{error}</div>}
+      {success && <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-600">{success}</div>}
 
-      {/* Form */}
+      {/* Form with real-time validation */}
       {showForm && (
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 font-heading text-lg font-bold text-[#0F172A]">Jadwal Baru</h2>
@@ -127,7 +162,7 @@ export default function SchedulePage() {
               <label className="mb-1 block text-sm font-medium text-gray-700">Siswa</label>
               <select value={form.student_id} onChange={e => setForm({ ...form, student_id: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
                 <option value="">Pilih siswa</option>
-                {students.map(s => <option key={s.id_student} value={s.id_student}>{s.full_name}</option>)}
+                {students.map(s => <option key={s.id_student} value={s.id_student}>{s.full_name} {s.instrument ? `(${s.instrument})` : ""}</option>)}
               </select>
             </div>
             <div>
@@ -150,9 +185,44 @@ export default function SchedulePage() {
               <input type="time" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" />
             </div>
           </div>
+
+          {/* Validation result */}
+          {validating && <p className="mt-3 text-sm text-gray-400">⏳ Memvalidasi ketersediaan slot...</p>}
+          {validation && !validating && (
+            <div className={`mt-4 rounded-lg p-4 ${validation.available ? "border border-emerald-200 bg-emerald-50" : "border border-red-200 bg-red-50"}`}>
+              {validation.available ? (
+                <p className="text-sm font-medium text-emerald-700">✓ Slot tersedia — tidak ada konflik</p>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-red-700">✗ Konflik terdeteksi:</p>
+                  <ul className="mt-1 space-y-1">
+                    {validation.conflicts.map((c, i) => (
+                      <li key={i} className="text-sm text-red-600">• {c.message}</li>
+                    ))}
+                  </ul>
+                  {validation.alternatives.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm font-medium text-gray-700">Slot alternatif yang tersedia:</p>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {validation.alternatives.map((alt, i) => (
+                          <button key={i} onClick={() => applyAlternative(alt)} className="rounded-lg border border-[#2563EB] bg-white px-3 py-1.5 text-xs font-medium text-[#2563EB] hover:bg-[#2563EB]/5">
+                            {alt.start_time} - {alt.end_time}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           <div className="mt-4 flex gap-2">
-            <button onClick={handleCreate} className="rounded-lg bg-[#2563EB] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8]">Simpan</button>
-            <button onClick={() => setShowForm(false)} className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+            <button onClick={handleCreate} disabled={!validation?.available || validating}
+              className={`rounded-lg px-5 py-2 text-sm font-semibold ${validation?.available ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8]" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}>
+              Simpan Jadwal
+            </button>
+            <button onClick={() => { setShowForm(false); setValidation(null); }} className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
           </div>
         </div>
       )}
