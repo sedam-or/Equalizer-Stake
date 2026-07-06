@@ -64,8 +64,12 @@ export default function SchedulePage() {
     setLoading(true);
     fetch(`/api/v1/sessions/?limit=${limit}&offset=${offset}`, { headers: h })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(data => { setSessions(Array.isArray(data) ? data : data.data || []); setTotal(data.total || (Array.isArray(data) ? data.length : 0)); })
-      .catch(() => { setSessions([]); setTotal(0); })
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data.data || []);
+        setSessions(list);
+        setTotal(Array.isArray(data) ? list.length : (data.total || list.length));
+      })
+      .catch(e => { console.error("Sessions fetch error:", e); setSessions([]); setTotal(0); })
       .finally(() => setLoading(false));
 
     fetch("/api/v1/sessions/rooms", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : d.data || [])).catch(() => {});
