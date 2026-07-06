@@ -5,7 +5,7 @@ import { parseApiError } from "@/lib/api-error";
 import { useEffect, useState, useCallback } from "react";
 
 interface Student { id_student: string; full_name: string; instrument: string; }
-interface Teacher { id_teacher: string; full_name: string; instruments: string[]; }
+interface Teacher { id_teacher: string; full_name: string; instruments: string[] | Record<string, string>; }
 interface Room { id_room: string; room_name: string; room_type: string; }
 
 export default function AssignSessionPage() {
@@ -80,7 +80,7 @@ export default function AssignSessionPage() {
               <label className="mb-1 block text-sm font-medium text-gray-700">Guru *</label>
               <select value={form.id_teacher} onChange={(e) => setForm({ ...form, id_teacher: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
                 <option value="">Pilih guru</option>
-                {teachers.map((t) => <option key={t.id_teacher} value={t.id_teacher}>{t.full_name} ({t.instruments.join(", ")})</option>)}
+                {teachers.map((t) => <option key={t.id_teacher} value={t.id_teacher}>{t.full_name} ({(Array.isArray(t.instruments) ? t.instruments : Object.values(t.instruments)).join(", ")})</option>)}
               </select>
             </div>
             <div>
