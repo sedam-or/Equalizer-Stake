@@ -11,6 +11,7 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import WhyBMD from "@/components/landing/WhyBMD";
 import ProgramKursusSection from "@/components/landing/ProgramKursusSection";
+import TeachersSection from "@/components/landing/TeachersSection";
 import TestimonialSection from "@/components/landing/TestimonialSection";
 import CtaSection from "@/components/landing/CtaSection";
 import Footer from "@/components/landing/Footer";
@@ -43,6 +44,7 @@ export default function HomePage() {
         <HeroSection />
         <WhyBMD />
         <ProgramKursusSection />
+        <TeachersSection />
         <TestimonialSection />
         <CtaSection />
       </div>
