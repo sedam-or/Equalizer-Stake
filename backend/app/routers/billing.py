@@ -57,6 +57,7 @@ async def list_invoices(
             {
                 "id_invoice": str(inv.id_invoice),
                 "id_guardian": str(inv.id_guardian),
+                "unique_code": getattr(inv, "unique_code", None),
                 "billing_period": inv.billing_period,
                 "total_amount": float(inv.total_amount),
                 "due_date": inv.due_date.isoformat() if inv.due_date else None,
