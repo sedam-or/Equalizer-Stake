@@ -1738,3 +1738,18 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Charts now use real API data. Empty state prevents misleading data.
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 307823b
+
+### T-206: Fix reports API params mismatch
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: FR-13 (reporting)
+- **Files changed**:
+  - `frontend/src/app/dashboard/reports/page.tsx` — period → start_date/end_date
+- **Test results**:
+  - [x] Period "2026-06" sends start_date=2026-06-01&end_date=2026-06-31
+  - [x] TypeScript passes
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: Backend requires both start_date and end_date together
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 06d2a4e
