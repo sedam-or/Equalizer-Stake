@@ -1,9 +1,9 @@
 "use client";
-import { toast } from "@/components/Toast";
-import { parseApiError } from "@/lib/api-error";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "@/components/Toast";
+import { SkeletonTable } from "@/components/dashboard/Skeleton";
 import Pagination from "@/components/Pagination";
 
 interface Student {
@@ -12,93 +12,224 @@ interface Student {
   full_name: string;
   instrument: string;
   level: string;
-  enrollment_status: string;
+  is_active: boolean;
+  guardian_name?: string;
 }
 
-const badge: Record<string, string> = {
-  active: "bg-[#2563EB]/10 text-[#2563EB]",
-  inactive: "bg-red-500/10 text-red-500",
-  cuti: "bg-yellow-500/10 text-yellow-500",
-  trial: "bg-blue-500/10 text-blue-500",
+const INSTRUMENTS = ["piano", "gitar", "vokal", "biola", "drum", "keyboard", "flute", "saxophone", "bass"];
+const INSTRUMENT_LABELS: Record<string, string> = {
+  piano: "Piano", gitar: "Gitar", vokal: "Vokal", biola: "Biola",
+  drum: "Drum", keyboard: "Keyboard", flute: "Flute", saxophone: "Saxophone", bass: "Bass",
 };
 
 export default function StudentsPage() {
   const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
+  const [showForm, setShowForm] = useState(false);
+  const [editStudent, setEditStudent] = useState<Student | null>(null);
+  const [form, setForm] = useState({ full_name: "", instrument: "piano", level: "pemula" });
+  const [submitting, setSubmitting] = useState(false);
   const limit = 20;
 
-  useEffect(() => {
+  const fetchStudents = () => {
     const token = localStorage.getItem("access_token");
     if (!token) { router.push("/login"); return; }
-    fetch(`/api/v1/students?limit=${limit}&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : { data: [], total: 0 })
-      .then(res => {
-        setStudents(res.data || []);
-        setTotal(res.total || 0);
-      })
-      .catch(() => toast("error", "Gagal memuat data siswa"))
+    setLoading(true);
+    fetch(`/api/v1/students?limit=${limit}&offset=${offset}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => { setStudents(d.data || []); setTotal(d.total || 0); })
+      .catch(() => { setStudents([]); toast("error", "Gagal memuat data siswa"); })
       .finally(() => setLoading(false));
-  }, [router, offset]);
+  };
 
-  const filtered = students.filter(
-    (s) =>
-      s.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      s.instrument.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => { fetchStudents(); }, [offset]);
+
+  const handleCreate = async () => {
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch("/api/v1/students", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal menambah siswa"); }
+      toast("success", "Siswa berhasil ditambahkan");
+      setShowForm(false);
+      setForm({ full_name: "", instrument: "piano", level: "pemula" });
+      fetchStudents();
+    } catch (err) { toast("error", err instanceof Error ? err.message : "Terjadi kesalahan"); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleUpdate = async () => {
+    if (!editStudent) return;
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`/api/v1/students/${editStudent.id_student}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal mengupdate siswa"); }
+      toast("success", "Siswa berhasil diupdate");
+      setEditStudent(null);
+      setForm({ full_name: "", instrument: "piano", level: "pemula" });
+      fetchStudents();
+    } catch (err) { toast("error", err instanceof Error ? err.message : "Terjadi kesalahan"); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleDelete = async (student: Student) => {
+    if (!confirm(`Yakin ingin menghapus ${student.full_name}?`)) return;
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`/api/v1/students/${student.id_student}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal menghapus siswa"); }
+      toast("success", "Siswa berhasil dihapus");
+      fetchStudents();
+    } catch (err) { toast("error", err instanceof Error ? err.message : "Terjadi kesalahan"); }
+  };
+
+  const openEdit = (student: Student) => {
+    setEditStudent(student);
+    setForm({ full_name: student.full_name, instrument: student.instrument, level: student.level });
+  };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-6">
-      <h1 className="text-2xl font-bold text-gray-900">Siswa</h1>
-      <p className="mt-1 text-sm text-gray-500">Daftar siswa terdaftar</p>
-
-      <div className="mt-4">
-        <input
-          type="text"
-          placeholder="Cari nama atau instrumen..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-sm rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder-gray-500 outline-none focus:border-[#2563EB]"
-        />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-[#0F172A]">Siswa</h1>
+          <p className="text-sm text-gray-500">{total} siswa terdaftar</p>
+        </div>
+        <button onClick={() => { setShowForm(!showForm); setEditStudent(null); }} className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8]">
+          {showForm ? "Tutup" : "+ Tambah Siswa"}
+        </button>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white">
-        {loading ? (
-          <div className="p-8 text-center text-gray-500">Memuat data siswa...</div>
-        ) : (
-          <>
-            <table className="w-full text-sm">
+      {/* Create Form */}
+      {showForm && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-4 font-heading text-lg font-bold text-[#0F172A]">Tambah Siswa Baru</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Nama Lengkap</label>
+              <input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} placeholder="Nama siswa" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Instrumen</label>
+              <select value={form.instrument} onChange={e => setForm({ ...form, instrument: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
+                {INSTRUMENTS.map(i => <option key={i} value={i}>{INSTRUMENT_LABELS[i]}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Level</label>
+              <select value={form.level} onChange={e => setForm({ ...form, level: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
+                <option value="pemula">Pemula</option>
+                <option value="dasar">Dasar</option>
+                <option value="menengah">Menengah</option>
+                <option value="lanjut">Lanjut</option>
+              </select>
+            </div>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <button onClick={handleCreate} disabled={!form.full_name || submitting} className="rounded-lg bg-[#2563EB] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8] disabled:opacity-50">
+              {submitting ? "Menyimpan..." : "Simpan"}
+            </button>
+            <button onClick={() => setShowForm(false)} className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditStudent(null)}>
+          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h2 className="font-heading text-lg font-bold text-[#0F172A]">Edit Siswa</h2>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Nama</label>
+                <input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Instrumen</label>
+                <select value={form.instrument} onChange={e => setForm({ ...form, instrument: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
+                  {INSTRUMENTS.map(i => <option key={i} value={i}>{INSTRUMENT_LABELS[i]}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Level</label>
+                <select value={form.level} onChange={e => setForm({ ...form, level: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
+                  <option value="pemula">Pemula</option>
+                  <option value="dasar">Dasar</option>
+                  <option value="menengah">Menengah</option>
+                  <option value="lanjut">Lanjut</option>
+                </select>
+              </div>
+            </div>
+            <div className="mt-6 flex gap-2">
+              <button onClick={handleUpdate} disabled={submitting} className="rounded-lg bg-[#2563EB] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8]">
+                {submitting ? "Menyimpan..." : "Simpan"}
+              </button>
+              <button onClick={() => setEditStudent(null)} className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Table */}
+      {loading ? (
+        <SkeletonTable />
+      ) : students.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center">
+          <p className="text-gray-500">Belum ada siswa terdaftar.</p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 text-left text-gray-500">
-                  <th className="px-4 py-3">Nama</th>
-                  <th className="px-4 py-3">Instrumen</th>
-                  <th className="px-4 py-3">Level</th>
-                  <th className="px-4 py-3">Status</th>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nama</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Instrumen</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Level</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((s) => (
-                  <tr key={s.id_student} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-900">{s.full_name}</td>
-                    <td className="px-4 py-3 text-gray-900">{s.instrument}</td>
-                    <td className="px-4 py-3 text-gray-900">{s.level}</td>
+                {students.map(s => (
+                  <tr key={s.id_student} className="border-b border-gray-50 transition-colors hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-[#0F172A]">{s.full_name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{INSTRUMENT_LABELS[s.instrument] || s.instrument}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 capitalize">{s.level}</td>
                     <td className="px-4 py-3">
-                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${badge[s.enrollment_status]}`}>
-                        {s.enrollment_status}
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${s.is_active ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                        {s.is_active ? "Aktif" : "Nonaktif"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => openEdit(s)} className="mr-2 text-xs font-medium text-[#2563EB] hover:underline">Edit</button>
+                      <button onClick={() => handleDelete(s)} className="text-xs font-medium text-red-500 hover:underline">Hapus</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <Pagination total={total} limit={limit} offset={offset} onChange={setOffset} />
-          </>
-        )}
-      </div>
+          </div>
+          <Pagination total={total} limit={limit} offset={offset} onChange={setOffset} />
+        </div>
+      )}
     </div>
   );
 }
