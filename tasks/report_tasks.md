@@ -1855,3 +1855,20 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: confirm() in pricing/teachers/my-students kept — functional, non-critical
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 8954bd6
+
+### T-213: Next.js middleware route protection
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: NFR (security, access control)
+- **Files changed**:
+  - `frontend/src/middleware.ts` — role-based route protection
+- **Test results**:
+  - [x] No token → redirect to /login
+  - [x] Wrong role → redirect to /dashboard
+  - [x] Correct role → access granted
+  - [x] TypeScript passes
+- **Security findings**: Client-side role check is UX convenience only. Backend require_role() is the real security gate.
+- **Performance**: No impact
+- **Notes**: JWT decoded client-side for role extraction. No verification — that's backend's job.
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 2423a05
