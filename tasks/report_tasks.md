@@ -1807,3 +1807,19 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Pages keep useState<any> for now. Types file enables opt-in typing.
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 249047e
+
+### T-210: Wire up attendance photo display
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: FR-05 (attendance with photo)
+- **Files changed**:
+  - `frontend/src/app/dashboard/attendance/page.tsx` — emoji → actual img
+- **Test results**:
+  - [x] Shows photo when photo_url exists
+  - [x] Shows placeholder when no photo
+  - [x] Error handling for broken images
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: Photo URL comes from backend photo_storage.py
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 9f7f7b8
