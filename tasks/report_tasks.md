@@ -1790,3 +1790,20 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Migrated dashboard page only. Remaining ~60 fetch calls to migrate gradually.
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 018f844
+
+### T-209: TypeScript interfaces for API responses
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: NFR (type safety, reliability)
+- **Files changed**:
+  - `frontend/src/types/api.ts` — NEW: 20+ shared interfaces
+  - `frontend/src/lib/apiClient.ts` — added type imports
+- **Test results**:
+    - [x] 20+ interfaces created
+    - [x] TypeScript passes
+    - [x] Pages can gradually adopt types
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: Pages keep useState<any> for now. Types file enables opt-in typing.
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 249047e
