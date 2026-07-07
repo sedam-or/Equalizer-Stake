@@ -1698,3 +1698,25 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 | T-213 | pending | Next.js middleware route protection |
 | T-214 | pending | Standardize loading skeletons |
 | T-215 | pending | CRUD for students page |
+
+### T-204: Error handling — replace .catch(() => {}) with toast
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: FR-02 (reliability), NFR (graceful degradation)
+- **Files changed**:
+  - `frontend/src/app/dashboard/page.tsx` — 4 catches → toast
+  - `frontend/src/app/dashboard/schedule/page.tsx` — 3 catches → toast
+  - `frontend/src/app/dashboard/students/page.tsx` — 1 catch → toast
+  - `frontend/src/app/dashboard/studio/page.tsx` — 1 catch → toast
+  - `frontend/src/app/dashboard/holidays/page.tsx` — 1 catch → toast
+  - `frontend/src/app/dashboard/reports/page.tsx` — 1 catch → toast
+  - `frontend/src/app/dashboard/my-schedule/page.tsx` — 2 catches → toast
+- **Test results**:
+  - [x] All .catch(() => {}) removed: 0 remaining
+  - [x] TypeScript passes
+  - [x] Toast shows on fetch failure
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: Used existing Toast component (toast function + ToastProvider)
+- **Dependencies affected**: None
+- **Rollback plan**: git revert f4e0689
