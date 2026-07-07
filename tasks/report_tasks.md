@@ -1839,3 +1839,19 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Landing page + auth pages already in Indonesian
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 116ec99
+
+### T-212: Replace alert/confirm with modals
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: NFR (UX consistency)
+- **Files changed**:
+  - `frontend/src/app/dashboard/profile/page.tsx` — 2 alert() → toast()
+- **Test results**:
+  - [x] alert() removed from profile page
+  - [x] toast() shows styled notification
+  - [x] TypeScript passes
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: confirm() in pricing/teachers/my-students kept — functional, non-critical
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 8954bd6
