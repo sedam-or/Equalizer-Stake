@@ -1872,3 +1872,19 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: JWT decoded client-side for role extraction. No verification — that's backend's job.
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 2423a05
+
+### T-214: Standardize loading states — skeleton loaders
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: NFR (UX consistency)
+- **Files changed**:
+  - `frontend/src/components/dashboard/Skeleton.tsx` — NEW: 4 skeleton components
+  - `frontend/src/components/dashboard/index.ts` — exports
+- **Test results**:
+  - [x] SkeletonTable, SkeletonCard, SkeletonChart, SkeletonPage created
+  - [x] TypeScript passes
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: Pages can gradually adopt skeleton components
+- **Dependencies affected**: None
+- **Rollback plan**: git revert dab83e3
