@@ -12,7 +12,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    fetch(`/api/v1/reports/owner-dashboard?period=${period}`, {
+    fetch(`/api/v1/reports/owner-dashboard?start_date=${period}-01&end_date=${period}-31`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
