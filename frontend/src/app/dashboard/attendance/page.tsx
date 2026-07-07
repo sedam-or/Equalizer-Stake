@@ -152,10 +152,23 @@ export default function AttendancePage() {
               <button onClick={() => setSelected(null)} aria-label="Tutup" className="text-gray-500 hover:text-white">✕</button>
             </div>
 
-            <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 p-8 text-center">
-              <div className="text-4xl mb-2">📷</div>
-              <p className="text-sm text-gray-500">Foto bukti kehadiran</p>
-              <p className="text-xs text-gray-600">Terenkripsi AES-256-GCM</p>
+            <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+              {selected.photo_url ? (
+                <img
+                  src={selected.photo_url}
+                  alt="Foto bukti kehadiran"
+                  className="w-full h-48 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              ) : (
+                <div className="p-8 text-center">
+                  <div className="text-4xl mb-2">📷</div>
+                  <p className="text-sm text-gray-500">Foto bukti kehadiran</p>
+                  <p className="text-xs text-gray-600">Tidak ada foto</p>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
