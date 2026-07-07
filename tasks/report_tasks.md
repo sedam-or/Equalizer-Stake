@@ -1888,3 +1888,22 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Pages can gradually adopt skeleton components
 - **Dependencies affected**: None
 - **Rollback plan**: git revert dab83e3
+
+### T-215: Students page — full CRUD
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: FR-04 (student management)
+- **Files changed**:
+  - `frontend/src/app/dashboard/students/page.tsx` — full rewrite (103→292 lines)
+- **Test results**:
+  - [x] List students with table
+  - [x] Create student with form
+  - [x] Edit student with modal
+  - [x] Delete student with confirmation
+  - [x] Pagination works
+  - [x] TypeScript passes
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: Uses backend endpoints: GET, POST, PATCH, DELETE
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 541f33f
