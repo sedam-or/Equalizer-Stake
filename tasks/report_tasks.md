@@ -1823,3 +1823,19 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Photo URL comes from backend photo_storage.py
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 9f7f7b8
+
+### T-211: Localize dashboard text to Indonesian
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: NFR (UI language — Bahasa Indonesia)
+- **Files changed**:
+  - `frontend/src/app/dashboard/page.tsx` — 6 strings translated
+  - `frontend/src/app/dashboard/reports/page.tsx` — 6 strings translated
+- **Test results**:
+  - [x] 12 English strings → Indonesian
+  - [x] TypeScript passes
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: Landing page + auth pages already in Indonesian
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 116ec99
