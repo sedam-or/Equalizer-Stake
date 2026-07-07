@@ -2750,3 +2750,34 @@
 3. **Setiap button HARUS panggil API** — Verifikasi, Tolak, Simpan, Hapus = semua `fetch(method: 'POST/PUT/DELETE')`.
 4. **Fallback dummy HANYA jika API error** — `catch(() => setDummy)` hanya sebagai safety net, bukan primary data.
 5. **Studio coordinates**: -7.737428, 110.429669 (Seturan, Yogyakarta)
+
+## Phase 31: Council Recommendations (12 Tasks)
+
+### CRITICAL (Revenue Impact)
+
+| Task | Description | Deps | Estimate |
+|------|-------------|------|----------|
+| T-204 | Error handling: Replace all `.catch(() => {})` with user-facing error states (27 instances across frontend) | - | 2-3 days |
+| T-205 | Remove hardcoded chart fallback data — show "Tidak ada data" instead of fiction | - | 1 day |
+| T-206 | Fix reports page API params: `period` → `start_date`/`end_date` (backend mismatch) | - | 0.5 day |
+| T-207 | Build guardian payment flow: upload bukti transfer (currently `alert()` with placeholder phone) | - | 3-5 days |
+
+### HIGH (Quality Impact)
+
+| Task | Description | Deps | Estimate |
+|------|-------------|------|----------|
+| T-208 | Create shared `apiClient.ts` with auth interceptor + token refresh (eliminate 51 localStorage calls) | - | 2 days |
+| T-209 | Add TypeScript interfaces for all API responses (dashboard, schedule, billing) | - | 1-2 days |
+| T-210 | Wire up attendance photo display (backend supports it, frontend shows 📷 emoji) | - | 0.5 day |
+| T-211 | Localize all user-facing text to Indonesian (currently mixed EN/ID) | - | 1-2 days |
+
+### MEDIUM (Polish)
+
+| Task | Description | Deps | Estimate |
+|------|-------------|------|----------|
+| T-212 | Replace `alert()`/`confirm()` with styled modal ConfirmDialog | - | 1 day |
+| T-213 | Add Next.js middleware for server-side role route protection | - | 1 day |
+| T-214 | Standardize loading states — skeleton loaders everywhere | - | 1 day |
+| T-215 | Add CRUD to students page (currently read-only shell, 103 lines) | - | 2-3 days |
+
+---

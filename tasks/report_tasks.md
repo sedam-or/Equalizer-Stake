@@ -1679,3 +1679,22 @@
   - Marked as NICE priority, not critical
 - **Dependencies affected**: None
 - **Rollback plan**: Revert import files
+
+## Phase 31: Council Recommendations (2026-07-06)
+
+Council of the Wise analyzed the system. 5 experts, 12 action items.
+
+| Task | Status | Notes |
+|------|--------|-------|
+| T-204 | pending | Error handling: 27x .catch(() => {}) |
+| T-205 | pending | Remove hardcoded chart fallbacks |
+| T-206 | pending | Fix reports API params mismatch |
+| T-207 | pending | Build guardian payment upload flow |
+| T-208 | pending | Create apiClient.ts shared layer |
+| T-209 | pending | TypeScript interfaces for API |
+| T-210 | pending | Wire up attendance photo display |
+| T-211 | pending | Localize to Indonesian |
+| T-212 | pending | Replace alert/confirm with modals |
+| T-213 | pending | Next.js middleware route protection |
+| T-214 | pending | Standardize loading skeletons |
+| T-215 | pending | CRUD for students page |
