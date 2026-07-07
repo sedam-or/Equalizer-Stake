@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/api-error";
 
 import { useEffect, useState } from "react";
@@ -40,7 +41,7 @@ export default function StudentsPage() {
         setStudents(res.data || []);
         setTotal(res.total || 0);
       })
-      .catch(() => {})
+      .catch(() => toast("error", "Gagal memuat data siswa"))
       .finally(() => setLoading(false));
   }, [router, offset]);
 

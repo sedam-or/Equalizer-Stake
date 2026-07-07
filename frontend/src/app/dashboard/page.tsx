@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/components/Toast";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -43,7 +44,7 @@ function AdminDashboard() {
     })
       .then((r) => r.json())
       .then(setData)
-      .catch(() => {})
+      .catch(() => toast("error", "Gagal memuat data dashboard"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -185,7 +186,7 @@ function OwnerDashboard() {
     })
       .then((r) => r.json())
       .then(setData)
-      .catch(() => {})
+      .catch(() => toast("error", "Gagal memuat data owner"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -311,7 +312,7 @@ function TeacherDashboard() {
     })
       .then((r) => r.json())
       .then(setData)
-      .catch(() => {})
+      .catch(() => toast("error", "Gagal memuat jadwal"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -392,7 +393,7 @@ function GuardianDashboard() {
     })
       .then((r) => r.json())
       .then((d) => setChildren(d?.data || []))
-      .catch(() => {})
+      .catch(() => toast("error", "Gagal memuat data anak"))
       .finally(() => setLoading(false));
   }, []);
 

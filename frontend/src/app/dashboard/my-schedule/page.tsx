@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/components/Toast";
 import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 /**
@@ -71,14 +72,14 @@ export default function MySchedulePage() {
         .then(profile => {
           if (profile?.instruments?.length) setInstruments(profile.instruments);
         })
-        .catch(() => {});
+        .catch(() => toast("error", "Gagal memuat jadwal"));
     } else if (r === "guardian") {
       fetch("/api/v1/my/children?limit=50", { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.ok ? r.json() : null)
         .then(res => {
           if (res?.data) setChildren(res.data);
         })
-        .catch(() => {});
+        .catch(() => toast("error", "Gagal memuat data anak"));
     }
   }, [refreshKey]);
 

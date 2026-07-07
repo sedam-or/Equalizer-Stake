@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/components/Toast";
 import { parseApiError } from "@/lib/api-error";
 /**
  * Studio Room Management
@@ -40,7 +41,7 @@ export default function StudioPage() {
         setRooms(res.data || (Array.isArray(res) ? res : res.rooms || []));
         setTotal(res.total || 0);
       })
-      .catch(() => {})
+      .catch(() => toast("error", "Gagal memuat studio"))
       .finally(() => setLoading(false));
   }, [router, offset]);
 

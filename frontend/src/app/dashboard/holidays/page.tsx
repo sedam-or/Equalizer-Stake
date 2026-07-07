@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/components/Toast";
 import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
 /**
@@ -38,7 +39,7 @@ export default function HolidaysPage() {
         setHolidays(data);
         setTotal(res.total || 0);
       })
-      .catch(() => {})
+      .catch(() => toast("error", "Gagal memuat data libur"))
       .finally(() => setLoading(false));
   }, [router, offset]);
 

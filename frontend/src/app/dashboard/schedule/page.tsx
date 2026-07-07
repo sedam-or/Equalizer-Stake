@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/components/Toast";
 
 import { useDashboard } from "@/components/DashboardContext";
 import { useState, useEffect } from "react";
@@ -72,9 +73,9 @@ export default function SchedulePage() {
       .catch(e => { console.error("Sessions fetch error:", e); setSessions([]); setTotal(0); })
       .finally(() => setLoading(false));
 
-    fetch("/api/v1/sessions/rooms", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : d.data || [])).catch(() => {});
-    fetch("/api/v1/sessions/teachers", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setTeachers(Array.isArray(d) ? d : d.data || [])).catch(() => {});
-    fetch("/api/v1/students", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setStudents(Array.isArray(d) ? d : d.data || [])).catch(() => {});
+    fetch("/api/v1/sessions/rooms", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : d.data || [])).catch(() => toast("error", "Gagal memuat studio"));
+    fetch("/api/v1/sessions/teachers", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setTeachers(Array.isArray(d) ? d : d.data || [])).catch(() => toast("error", "Gagal memuat guru"));
+    fetch("/api/v1/students", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setStudents(Array.isArray(d) ? d : d.data || [])).catch(() => toast("error", "Gagal memuat siswa"));
   };
 
   useEffect(() => { fetchAll(); }, [offset, refreshKey]);

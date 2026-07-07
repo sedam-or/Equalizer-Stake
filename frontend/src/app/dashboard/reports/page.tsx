@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/components/Toast";
 
 import { useEffect, useState } from "react";
 import { StatCard, DashboardChart, PageHeader, EmptyState } from "@/components/dashboard";
@@ -16,7 +17,7 @@ export default function ReportsPage() {
     })
       .then((r) => r.json())
       .then(setData)
-      .catch(() => {})
+      .catch(() => toast("error", "Gagal memuat laporan"))
       .finally(() => setLoading(false));
   }, [period]);
 
