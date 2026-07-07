@@ -1753,3 +1753,21 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Backend requires both start_date and end_date together
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 06d2a4e
+
+### T-207: Guardian payment upload flow
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: FR-06 (payment), UC-06 (guardian payment)
+- **Files changed**:
+  - `frontend/src/app/dashboard/my-payments/page.tsx` — full rewrite (alert → modal upload)
+- **Test results**:
+  - [x] Alert removed, modal replaces it
+  - [x] File upload works (image preview, size validation)
+  - [x] POST /api/v1/payments with proof_base64
+  - [x] Success/error toast messages
+  - [x] TypeScript passes
+- **Security findings**: None (file size limit enforced)
+- **Performance**: No impact
+- **Notes**: Removed WhatsApp placeholder. Payment flow now complete end-to-end.
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 2e874f3
