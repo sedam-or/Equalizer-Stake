@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/components/Toast";
 import { SkeletonTable } from "@/components/Skeleton";
 import { useDashboard } from "@/components/DashboardContext";
 import { parseApiError } from "@/lib/api-error";
@@ -251,9 +252,9 @@ export default function ProfilePage() {
                 method: "POST",
                 headers: { Authorization: `${"B" + String.fromCharCode(101) + "arer"} ${token}` },
               });
-              if (res.ok) alert("Permintaan hapus data diterima. Akan diproses dalam 14 hari kerja.");
-              else alert("Gagal mengirim permintaan.");
-            } catch { alert("Gagal mengirim permintaan."); }
+              if (res.ok) toast("success", "Permintaan hapus data diterima. Akan diproses dalam 14 hari kerja.");
+              else toast("error", "Gagal mengirim permintaan.");
+            } catch { toast("error", "Gagal mengirim permintaan."); }
           }}
           className="px-4 py-2 bg-red-500/20 text-red-400 text-sm font-semibold rounded-lg hover:bg-red-500/30"
         >
