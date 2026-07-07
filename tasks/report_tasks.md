@@ -1771,3 +1771,22 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Removed WhatsApp placeholder. Payment flow now complete end-to-end.
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 2e874f3
+
+### T-208: Create shared apiClient.ts
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: NFR (reliability, security)
+- **Files changed**:
+  - `frontend/src/lib/apiClient.ts` — NEW: shared API client
+  - `frontend/src/app/dashboard/page.tsx` — migrated 4 fetch calls
+- **Test results**:
+  - [x] apiClient created with auth interceptor
+  - [x] 401 → redirect to login
+  - [x] 403 → access denied
+  - [x] 429 → rate limit message
+  - [x] TypeScript passes
+- **Security findings**: None
+- **Performance**: Reduced code duplication
+- **Notes**: Migrated dashboard page only. Remaining ~60 fetch calls to migrate gradually.
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 018f844
