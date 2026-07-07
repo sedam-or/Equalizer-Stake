@@ -1720,3 +1720,21 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Used existing Toast component (toast function + ToastProvider)
 - **Dependencies affected**: None
 - **Rollback plan**: git revert f4e0689
+
+### T-205: Remove hardcoded chart fallback data
+- **Status**: ✅ Selesai
+- **Tanggal**: 2026-07-06
+- **FR/UC terkait**: NFR (data accuracy, reliability)
+- **Files changed**:
+  - `frontend/src/components/dashboard/DashboardChart.tsx` — empty state "Tidak ada data"
+  - `frontend/src/app/dashboard/page.tsx` — removed 4 hardcoded chart datasets
+  - `frontend/src/app/dashboard/reports/page.tsx` — removed 4 hardcoded chart datasets
+- **Test results**:
+  - [x] No hardcoded chart data remaining: 0 matches
+  - [x] TypeScript passes
+  - [x] Empty state shows "Tidak ada data" when no data
+- **Security findings**: None
+- **Performance**: No impact
+- **Notes**: Charts now use real API data. Empty state prevents misleading data.
+- **Dependencies affected**: None
+- **Rollback plan**: git revert 307823b
