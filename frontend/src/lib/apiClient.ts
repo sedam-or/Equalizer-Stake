@@ -1,3 +1,5 @@
+import type { LoginResponse, UserProfile } from "@/types/api";
+
 /**
  * Shared API client with auth interceptor + error handling.
  * Replaces direct fetch() calls across dashboard pages.

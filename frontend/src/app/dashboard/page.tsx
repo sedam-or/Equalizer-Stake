@@ -1,5 +1,6 @@
 "use client";
 import { api } from "@/lib/apiClient";
+import type { AdminStats, OwnerDashboard, Session, SessionSummary, Student } from "@/types/api";
 import { toast } from "@/components/Toast";
 
 import { useEffect, useState } from "react";
