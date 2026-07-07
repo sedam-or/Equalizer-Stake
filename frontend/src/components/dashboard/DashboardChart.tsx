@@ -194,7 +194,15 @@ export default function DashboardChart({
       </div>
 
       {/* Chart */}
-      <div className="flex-1">{renderChart()}</div>
+      <div className="flex-1">
+        {data.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-sm text-gray-400">
+            Tidak ada data
+          </div>
+        ) : (
+          renderChart()
+        )}
+      </div>
     </div>
   );
 }

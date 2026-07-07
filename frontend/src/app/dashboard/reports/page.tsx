@@ -174,53 +174,7 @@ export default function ReportsPage() {
             type="bar"
             title="Revenue Bulanan"
             height={220}
-            data={(data?.revenue_trend || []).map((r: any) => ({name: r.period?.slice(5)||'', value: r.total_amount||0})) || [
-              { name: "Jan", value: 45000000 },
-              { name: "Feb", value: 52000000 },
-              { name: "Mar", value: 48000000 },
-              { name: "Apr", value: 55000000 },
-              { name: "Mei", value: 60000000 },
-              { name: "Jun", value: 58000000 },
-            ]}
-            colors={["#2563EB"]}
-          />
-        </div>
-        <div style={{ height: "280px" }}>
-          <DashboardChart
-            type="donut"
-            title="Status Pembayaran"
-            height={220}
-            data={[{name:'Lunas',value:((data?.total_students||0) - (data?.unpaid_invoices||0) - (data?.overdue_invoices||0))},{name:'Belum Bayar',value:data?.unpaid_invoices||0},{name:'Terlambat',value:data?.overdue_invoices||0}]}
-            colors={["#10B981", "#F59E0B", "#EF4444"]}
-          />
-        </div>
-        <div style={{ height: "280px" }}>
-          <DashboardChart
-            type="line"
-            title="Pertumbuhan Siswa"
-            height={220}
-            data={(data?.revenue_trend || []).map((r: any) => ({name: r.period?.slice(5)||'', value: r.invoice_count||0})) || [
-              { name: "Jan", value: 120 },
-              { name: "Feb", value: 125 },
-              { name: "Mar", value: 130 },
-              { name: "Apr", value: 138 },
-              { name: "Mei", value: 145 },
-              { name: "Jun", value: 150 },
-            ]}
-            colors={["#10B981"]}
-          />
-        </div>
-        <div style={{ height: "280px" }}>
-          <DashboardChart
-            type="pie"
-            title="Distribusi Instrumen"
-            height={220}
-            data={(data?.studio_breakdown || []).map((s: any) => ({name: s.room_name, value: s.sessions||0})) || [
-              { name: "Piano", value: 35 },
-              { name: "Gitar", value: 28 },
-              { name: "Vokal", value: 22 },
-              { name: "Biola", value: 15 },
-            ]}
+            data={(data?.studio_breakdown || []).map((s: any) => ({ name: s.room_name, value: s.sessions || 0 }))}
           />
         </div>
       </div>
