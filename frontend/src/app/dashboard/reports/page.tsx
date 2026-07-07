@@ -24,10 +24,10 @@ export default function ReportsPage() {
   const handleExportCSV = () => {
     if (!data) return;
     const exportData = [
-      { metric: "Total Revenue", value: data.total_revenue || 0 },
+      { metric: "Total Pendapatan", value: data.total_revenue || 0 },
       { metric: "Siswa Aktif", value: data.total_students || 0 },
-      { metric: "Attendance Rate", value: `${data.attendance_rate || 0}%` },
-      { metric: "Frozen Accounts", value: data.frozen_accounts || 0 },
+      { metric: "Tingkat Kehadiran", value: `${data.attendance_rate || 0}%` },
+      { metric: "Akun Dibekukan", value: data.frozen_accounts || 0 },
       ...(data.instrument_distribution || []).map((i: any) => ({
         metric: `Instrumen: ${i.name}`,
         value: i.value,
@@ -98,7 +98,7 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Laporan & Analitik"
-        description="Executive summary untuk pemilik bisnis"
+        description="Ringkasan eksekutif untuk pemilik bisnis"
         action={{
           label: "Export PDF",
           href: "#",
@@ -140,7 +140,7 @@ export default function ReportsPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard
-          label="Total Revenue"
+          label="Total Pendapatan"
           value={`Rp ${((data?.total_revenue || 0) / 1000000).toFixed(1)}jt`}
           icon="💰"
           gradient="from-[#10B981] to-[#059669]"
@@ -154,13 +154,13 @@ export default function ReportsPage() {
           trend={{ value: 5, isPositive: true }}
         />
         <StatCard
-          label="Attendance Rate"
+          label="Tingkat Kehadiran"
           value={`${data?.attendance_rate || 0}%`}
           icon="📊"
           gradient="from-[#F59E0B] to-[#D97706]"
         />
         <StatCard
-          label="Frozen Accounts"
+          label="Akun Dibekukan"
           value={data?.frozen_accounts || 0}
           icon="❄️"
           gradient="from-[#64748B] to-[#475569]"
@@ -172,7 +172,7 @@ export default function ReportsPage() {
         <div style={{ height: "280px" }}>
           <DashboardChart
             type="bar"
-            title="Revenue Bulanan"
+            title="Pendapatan Bulanan"
             height={220}
             data={(data?.studio_breakdown || []).map((s: any) => ({ name: s.room_name, value: s.sessions || 0 }))}
           />

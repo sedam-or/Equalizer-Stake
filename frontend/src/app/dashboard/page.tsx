@@ -208,14 +208,14 @@ function OwnerDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Owner Dashboard"
+        title="Dashboard Pemilik"
         description="Overview bisnis BMD Music School"
       />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard
-          label="Total Revenue"
+          label="Total Pendapatan"
           value={`Rp ${((data?.total_revenue || 0) / 1000000).toFixed(1)}jt`}
           icon="💰"
           gradient="from-[#10B981] to-[#059669]"
@@ -229,13 +229,13 @@ function OwnerDashboard() {
           trend={{ value: 5, isPositive: true }}
         />
         <StatCard
-          label="Attendance Rate"
+          label="Tingkat Kehadiran"
           value={`${data?.attendance_rate || 0}%`}
           icon="📊"
           gradient="from-[#F59E0B] to-[#D97706]"
         />
         <StatCard
-          label="Frozen Accounts"
+          label="Akun Dibekukan"
           value={data?.frozen_accounts || 0}
           icon="❄️"
           gradient="from-[#64748B] to-[#475569]"
@@ -247,7 +247,7 @@ function OwnerDashboard() {
         <div style={{ height: "280px" }}>
           <DashboardChart
             type="bar"
-            title="Revenue Bulanan"
+            title="Pendapatan Bulanan"
             height={220}
             data={(data?.revenue_trend || []).map((r: any) => ({ name: r.period?.slice(5) || "", value: r.total_amount || 0 }))}
             colors={["#2563EB"]}
