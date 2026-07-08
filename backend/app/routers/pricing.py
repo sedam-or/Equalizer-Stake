@@ -93,6 +93,7 @@ async def create_pricing_endpoint(
     body = await request.json()
     instrument = body.get("instrument")
     level = body.get("level")
+    class_type = body.get("class_type", "private")
     price = body.get("price")
     effective_date = body.get("effective_date")
     description = body.get("description")

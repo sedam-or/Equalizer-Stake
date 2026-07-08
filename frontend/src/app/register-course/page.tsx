@@ -19,10 +19,19 @@ const steps = [
   { id: 5, label: "Pembayaran" },
 ];
 
+const CLASS_TYPES = [
+  { value: "private", label: "Private (1 siswa)" },
+  { value: "intensif_2", label: "Intensif 2 (2 siswa)" },
+  { value: "intensif_3", label: "Intensif 3 (3 siswa)" },
+  { value: "semi_intensif", label: "Semi Intensif (4 siswa)" },
+  { value: "tunas", label: "Tunas (anak usia dini)" },
+];
+
 interface Child {
   full_name: string;
   instrument: string;
   level: string;
+  class_type: string;
 }
 
 export default function RegisterCoursePage() {
@@ -31,7 +40,7 @@ export default function RegisterCoursePage() {
     full_name: "", phone_whatsapp: "", email: "", address: "",
     username: "", password: "",
   });
-  const [children, setChildren] = useState<Child[]>([{ full_name: "", instrument: "piano", level: "pemula" }]);
+  const [children, setChildren] = useState<Child[]>([{ full_name: "", instrument: "piano", level: "pemula", class_type: "private" }]);
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -47,7 +56,7 @@ export default function RegisterCoursePage() {
     setChildren(updated);
   };
 
-  const addChild = () => setChildren([...children, { full_name: "", instrument: "piano", level: "pemula" }]);
+  const addChild = () => setChildren([...children, { full_name: "", instrument: "piano", level: "pemula", class_type: "private" }]);
   const removeChild = (index: number) => setChildren(children.filter((_, i) => i !== index));
 
   const handleSubmit = async () => {
@@ -200,13 +209,19 @@ export default function RegisterCoursePage() {
                   </div>
                   <div className="space-y-3">
                     <input value={child.full_name} onChange={(e) => handleChildChange(i, "full_name", e.target.value)} placeholder="Nama anak" className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20" />
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <select value={child.instrument} onChange={(e) => handleChildChange(i, "instrument", e.target.value)} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20">
                         {INSTRUMENTS.map((x) => <option key={x} value={x}>{INSTRUMENT_LABELS[x]}</option>)}
                       </select>
                       <select value={child.level} onChange={(e) => handleChildChange(i, "level", e.target.value)} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20">
                         {LEVELS.map((x) => <option key={x} value={x}>{x.charAt(0).toUpperCase() + x.slice(1)}</option>)}
                       </select>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-300">Tipe Kelas</label>
+                        <select value={child.class_type} onChange={(e) => handleChildChange(i, "class_type", e.target.value)} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-[#D4AF37]/50 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20">
+                          {CLASS_TYPES.map((ct) => <option key={ct.value} value={ct.value}>{ct.label}</option>)}
+                        </select>
                     </div>
                   </div>
                 </div>

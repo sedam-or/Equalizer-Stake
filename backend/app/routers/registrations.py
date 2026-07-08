@@ -226,6 +226,7 @@ async def approve_registration(
                 full_name=child.get("full_name", reg.full_name),
                 instrument=child.get("instrument", reg.instrument),
                 level=child.get("level", "pemula"),
+                class_type=child.get("class_type", "private"),
                 enrollment_status="active",
                 enrollment_date=date.today(),
             )
@@ -239,6 +240,7 @@ async def approve_registration(
             full_name=reg.full_name,
             instrument=reg.instrument,
             level=reg.level,
+            class_type=getattr(reg, 'class_type', 'private'),
             enrollment_status="active",
             enrollment_date=date.today(),
         )
