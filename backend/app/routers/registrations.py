@@ -187,37 +187,62 @@ async def approve_registration(
             detail="Nomor WhatsApp sudah terdaftar sebagai akun pengguna.",
         )
 
-    # 1. Create User (guardian role)
-    temp_pw = generate_temp_password()
     now = datetime.now(timezone.utc)
-    user_email = reg.email or f"{reg.phone_whatsapp}@bmdmusic.local"
-    new_user = User(
-        username=reg.phone_whatsapp,
-        email=user_email,
-        email_hash=hash_pii(user_email),
-        password_hash=hash_password(temp_pw),
-        role="guardian",
-        is_active=True,
-        first_login=True,
-        is_temp_password=True,
-        password_expires_at=now + timedelta(days=7),
-    )
-    db.add(new_user)
-    await db.flush()
 
-    # 2. Create Guardian
-    guardian = Guardian(
-        id_user=new_user.id_user,
-        full_name=reg.full_name,
-        phone_whatsapp=reg.phone_whatsapp,
-        phone_hash=hash_pii(reg.phone_whatsapp),
-        email=reg.email,
-        address=reg.address,
+    # 1. Get EXISTING User + Guardian (created during submit_registration)
+    existing_user = await db.execute(
+        select(User).where(User.email_hash == hash_pii(reg.email or ""))
     )
-    db.add(guardian)
-    await db.flush()
+    existing_user_result = existing_user.scalar_one_or_none()
+    
+    if existing_user_result:
+        # Reuse existing user
+        new_user = existing_user_result
+        guardian_result = await db.execute(
+            select(Guardian).where(Guardian.id_user == new_user.id_user)
+        )
+        guardian = guardian_result.scalar_one_or_none()
+        if not guardian:
+            # Fallback: create guardian linked to existing user
+            guardian = Guardian(
+                id_user=new_user.id_user,
+                full_name=reg.full_name,
+                phone_whatsapp=reg.phone_whatsapp,
+                phone_hash=hash_pii(reg.phone_whatsapp),
+                email=reg.email,
+                address=reg.address,
+            )
+            db.add(guardian)
+            await db.flush()
+    else:
+        # Fallback: create new user (shouldn't happen normally)
+        temp_pw = generate_temp_password()
+        user_email = reg.email or f"{reg.phone_whatsapp}@bmdmusic.local"
+        new_user = User(
+            username=reg.phone_whatsapp,
+            email=user_email,
+            email_hash=hash_pii(user_email),
+            password_hash=hash_password(temp_pw),
+            role="guardian",
+            is_active=True,
+            first_login=True,
+            is_temp_password=True,
+            password_expires_at=now + timedelta(days=7),
+        )
+        db.add(new_user)
+        await db.flush()
+        guardian = Guardian(
+            id_user=new_user.id_user,
+            full_name=reg.full_name,
+            phone_whatsapp=reg.phone_whatsapp,
+            phone_hash=hash_pii(reg.phone_whatsapp),
+            email=reg.email,
+            address=reg.address,
+        )
+        db.add(guardian)
+        await db.flush()
 
-    # 3. Create Students from children_data (or single from registration)
+    # 2. Create Students from children_data (or single from registration)
     students_created = []
     if reg.children_data:
         for child in reg.children_data:
@@ -262,8 +287,8 @@ async def approve_registration(
         before_state={"status": "pending"},
         after_state={
             "status": "approved",
-            "user_created": str(new_user.id_user),
-            "guardian_created": str(guardian.id_guardian),
+            "user_id": str(new_user.id_user),
+            "guardian_id": str(guardian.id_guardian),
             "students_created": students_created,
         },
     )
