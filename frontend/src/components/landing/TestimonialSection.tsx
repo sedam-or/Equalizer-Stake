@@ -3,7 +3,7 @@ import BlurText from "@/components/BlurText";
 
 export default function TestimonialSection() {
   return (
-    <section data-theme="dark" className="snap-section flex min-[100dvh] items-center bg-[#0F172A] px-6 pt-20 md:px-8">
+    <section data-theme="dark" className="snap-section flex min-h-[100dvh] items-center bg-[#0F172A] px-6 pt-20 md:px-8">
       <div className="mx-auto max-w-4xl text-center">
         {/* Quote mark */}
         <div className="mb-8 font-heading text-6xl text-[#D4AF37]/30">&ldquo;</div>
