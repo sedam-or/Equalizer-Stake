@@ -1907,3 +1907,28 @@ Council of the Wise analyzed the system. 5 experts, 12 action items.
 - **Notes**: Uses backend endpoints: GET, POST, PATCH, DELETE
 - **Dependencies affected**: None
 - **Rollback plan**: git revert 541f33f
+
+## Phase 32: Business Logic Fixes — Council Findings (2026-07-09)
+
+Council of the Wise audit found 14 critical + 9 moderate gaps.
+Broke down into 14 specific tasks (T-216..T-229).
+
+P0 CRITICAL (5 tasks):
+├── T-216: Wire validate_slot() — prevent double-booking
+├── T-217: DB lock on payment — prevent double-payment
+├── T-218: Fix fine on paid invoices
+├── T-219: Fix IDOR in multi-student list
+└── T-220: Unique constraint on invoice
+
+P1 HIGH (6 tasks):
+├── T-221: Reset cuti counter yearly
+├── T-222: Schedule cuti auto-reactivate
+├── T-223: Clean orphan users
+├── T-224: Defer user activation
+├── T-225: Fix unique code collision
+└── T-226: Align operational hours
+
+P2 MEDIUM (3 tasks):
+├── T-227: Configurable GPS radius
+├── T-228: Optimistic locking on schedule
+└── T-229: Block soft-deleted data from API

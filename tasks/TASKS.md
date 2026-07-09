@@ -2781,3 +2781,34 @@
 | T-215 | Add CRUD to students page (currently read-only shell, 103 lines) | - | 2-3 days |
 
 ---
+
+## Phase 32: Business Logic Fixes (Council Findings)
+
+### P0 — CRITICAL (Security & Data Integrity)
+
+| Task | Description | Deps | Estimate |
+|------|-------------|------|----------|
+| T-216 | Wire validate_slot() into create_session() — prevent double-booking | - | 15 min |
+| T-217 | Add DB lock on payment verification — prevent double-payment | - | 30 min |
+| T-218 | Fix fine system — check payment status before applying fine | - | 30 min |
+| T-219 | Fix IDOR in multi-student list — add ownership check | - | 15 min |
+| T-220 | Add unique constraint on invoice (guardian + billing_period) | - | 15 min |
+
+### P1 — HIGH (Business Logic)
+
+| Task | Description | Deps | Estimate |
+|------|-------------|------|----------|
+| T-221 | Reset cuti counter yearly (January 1) | - | 15 min |
+| T-222 | Schedule cuti auto-reactivate job | - | 15 min |
+| T-223 | Clean orphan users after registration rejection | - | 20 min |
+| T-224 | Defer user activation until admin approval | - | 30 min |
+| T-225 | Fix unique code collision — use 4-digit codes | - | 10 min |
+| T-226 | Align operational hours code vs SRS | - | 15 min |
+
+### P2 — MEDIUM (Edge Cases)
+
+| Task | Description | Deps | Estimate |
+|------|-------------|------|----------|
+| T-227 | Relax GPS radius for indoor venues (configurable) | - | 20 min |
+| T-228 | Add optimistic locking on schedule edits | - | 30 min |
+| T-229 | Block soft-deleted data from API responses | - | 15 min |
