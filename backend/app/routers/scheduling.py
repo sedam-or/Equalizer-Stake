@@ -306,7 +306,7 @@ async def approve_recording_endpoint(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={
-                "message": "Konflik slot terdeteksi saat assign guru.",
+                "message": "Konflik slot terdeteksi saat assign instructor.",
                 "conflicts": e.conflicts,
             },
         )

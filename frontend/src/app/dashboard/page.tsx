@@ -169,7 +169,7 @@ function AdminDashboard() {
         </a>
         <a href="/dashboard/students" className="rounded-xl border border-gray-200 bg-white p-4 text-center shadow-sm transition-all hover:border-[#2563EB]/30 hover:shadow-md">
           <span className="text-2xl">👥</span>
-          <div className="mt-2 text-sm font-semibold text-[#0F172A]">Kelola Siswa</div>
+          <div className="mt-2 text-sm font-semibold text-[#0F172A]">Kelola Student</div>
         </a>
       </div>
     </div>
@@ -209,7 +209,7 @@ function OwnerDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Dashboard Pemilik"
-        description="Overview bisnis BMD Music School"
+        description="Overview bisnis Equalizer-Stake"
       />
 
       {/* KPI Cards */}
@@ -222,7 +222,7 @@ function OwnerDashboard() {
           trend={{ value: 12, isPositive: true }}
         />
         <StatCard
-          label="Siswa Aktif"
+          label="Student Aktif"
           value={data?.total_students || 0}
           icon="👥"
           gradient="from-[#2563EB] to-[#1E40AF]"
@@ -269,7 +269,7 @@ function OwnerDashboard() {
         <div style={{ height: "280px" }}>
           <DashboardChart
             type="line"
-            title="Pertumbuhan Siswa"
+            title="Pertumbuhan Student"
             height={220}
             data={data?.revenue_trend?.map((r: any) => ({ name: r.period?.slice(5) || "", value: r.invoice_count || 0 })) || []}
             colors={["#10B981"]}
@@ -335,7 +335,7 @@ function TeacherDashboard() {
           gradient="from-[#2563EB] to-[#1E40AF]"
         />
         <StatCard
-          label="Total Siswa"
+          label="Total Student"
           value={sessions.reduce((acc: number, s: any) => acc + (s.student_count || 1), 0)}
           icon="👥"
           gradient="from-[#10B981] to-[#059669]"

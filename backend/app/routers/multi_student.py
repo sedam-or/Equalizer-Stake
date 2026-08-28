@@ -92,6 +92,6 @@ async def freeze_household(
     """Freeze all students under guardian."""
     count = await freeze_guardian_household(db, UUID(guardian_id), reason)
     return {
-        "message": f"{count} siswa dibekukan",
+        "message": f"{count} student dibekukan",
         "frozen_count": count,
     }

@@ -15,31 +15,31 @@ Logto memisahkan API menjadi 3 layer dengan concerns berbeda:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Request Flow                          │
+│ Request Flow │
 ├─────────────────────────────────────────────────────────┤
-│                                                          │
-│  HTTP Request                                            │
-│       │                                                  │
-│       ▼                                                  │
-│  ┌──────────────┐   tenant_id dari subdomain/domain      │
-│  │ Tenant Pool  │   → resolve Tenant instance            │
-│  │ (LRU Cache)  │   → tenant.run(ctx, next)              │
-│  └──────┬───────┘                                        │
-│         │                                                │
-│         ▼                                                │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │              apisApp (Koa)                        │   │
-│  │  ┌─────────────┐ ┌──────────────┐ ┌──────────┐  │   │
-│  │  │ Experience  │ │  Management  │ │ Account  │  │   │
-│  │  │ Router      │ │  Router      │ │ Router   │  │   │
-│  │  │ (anonymous) │ │ (JWT+tenant) │ │ (OIDC)   │  │   │
-│  │  │             │ │              │ │          │  │   │
-│  │  │ /sign-in    │ │ /api/apps    │ │ /my-     │  │   │
-│  │  │ /interaction│ │ /api/users   │ │  account │  │   │
-│  │  │ /consent    │ │ /api/roles   │ │          │  │   │
-│  │  └─────────────┘ └──────────────┘ └──────────┘  │   │
-│  └──────────────────────────────────────────────────┘   │
-│                                                          │
+│ │
+│ HTTP Request │
+│ │ │
+│ ▼ │
+│ ┌──────────────┐ tenant_id dari subdomain/domain │
+│ │ Tenant Pool │ → resolve Tenant instance │
+│ │ (LRU Cache) │ → tenant.run(ctx, next) │
+│ └──────┬───────┘ │
+│ │ │
+│ ▼ │
+│ ┌──────────────────────────────────────────────────┐ │
+│ │ apisApp (Koa) │ │
+│ │ ┌─────────────┐ ┌──────────────┐ ┌──────────┐ │ │
+│ │ │ Experience │ │ Management │ │ Account │ │ │
+│ │ │ Router │ │ Router │ │ Router │ │ │
+│ │ │ (anonymous) │ │ (JWT+tenant) │ │ (OIDC) │ │ │
+│ │ │ │ │ │ │ │ │ │
+│ │ │ /sign-in │ │ /api/apps │ │ /my- │ │ │
+│ │ │ /interaction│ │ /api/users │ │ account │ │ │
+│ │ │ /consent │ │ /api/roles │ │ │ │ │
+│ │ └─────────────┘ └──────────────┘ └──────────┘ │ │
+│ └──────────────────────────────────────────────────┘ │
+│ │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -70,15 +70,15 @@ Logto memisahkan API menjadi 3 layer dengan concerns berbeda:
 ```sql
 -- Every table has tenant_id as first column
 CREATE TABLE users (
-    tenant_id VARCHAR(21) NOT NULL REFERENCES tenants(id),
-    id VARCHAR(21) NOT NULL,
-    username VARCHAR(256) NOT NULL,
-    primary_identity JSONB NOT NULL DEFAULT '{}'::jsonb,
-    --  ^^^ JSONB for flexible user data (email, phone, social)
-    custom_data JSONB NOT NULL DEFAULT '{}'::jsonb,
-    --  ^^^ extension point for tenant-specific fields
-    created_at TIMESTAMPTZ NOT NULL DEFAULT(now()),
-    PRIMARY KEY (tenant_id, id)
+ tenant_id VARCHAR(21) NOT NULL REFERENCES tenants(id),
+ id VARCHAR(21) NOT NULL,
+ username VARCHAR(256) NOT NULL,
+ primary_identity JSONB NOT NULL DEFAULT '{}'::jsonb,
+ -- ^^^ JSONB for flexible user data (email, phone, social)
+ custom_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+ -- ^^^ extension point for tenant-specific fields
+ created_at TIMESTAMPTZ NOT NULL DEFAULT(now()),
+ PRIMARY KEY (tenant_id, id)
 );
 
 CREATE INDEX users__id ON users (tenant_id, id);
@@ -100,55 +100,55 @@ CREATE UNIQUE INDEX users__username ON users (tenant_id, username);
 ```typescript
 // packages/core/src/tenants/TenantPool.ts
 class TenantPool {
-  private cache = new LRUCache<string, Promise<Tenant>>({
-    max: EnvSet.values.tenantPoolSize,
-    dispose: (entry) => { /* cleanup: dispose DB pool */ },
-  });
+ private cache = new LRUCache<string, Promise<Tenant>>({
+ max: EnvSet.values.tenantPoolSize,
+ dispose: (entry) => { /* cleanup: dispose DB pool */ },
+ });
 
-  async get(tenantId: string, customDomain?: string): Promise<Tenant> {
-    // 1. Check LRU cache
-    // 2. If miss → Tenant.create({ id, redisCache, customDomain })
-    // 3. Health check before serving
-    // 4. Request slot reservation (requestStart/requestEnd)
-    // 5. Max 10 retries with fallback
-  }
+ async get(tenantId: string, customDomain?: string): Promise<Tenant> {
+ // 1. Check LRU cache
+ // 2. If miss → Tenant.create({ id, redisCache, customDomain })
+ // 3. Health check before serving
+ // 4. Request slot reservation (requestStart/requestEnd)
+ // 5. Max 10 retries with fallback
+ }
 }
 
 // packages/core/src/tenants/Tenant.ts
 class Tenant implements TenantContext {
-  static async create({ id, redisCache, customDomain }): Promise<Tenant> {
-    const tenantDatabaseDsn = await getTenantDatabaseDsn(id);
-    const envSet = new EnvSet(id, tenantDatabaseDsn);
-    await envSet.load(customDomain);
-    return new Tenant(envSet, id, new WellKnownCache(id, redisCache));
-  }
+ static async create({ id, redisCache, customDomain }): Promise<Tenant> {
+ const tenantDatabaseDsn = await getTenantDatabaseDsn(id);
+ const envSet = new EnvSet(id, tenantDatabaseDsn);
+ await envSet.load(customDomain);
+ return new Tenant(envSet, id, new WellKnownCache(id, redisCache));
+ }
 
-  // Per-tenant: provider (OIDC), queries, libraries, sentinel
-  readonly queries: Queries;      // DB query layer
-  readonly libraries: Libraries;  // Business logic layer
-  readonly wellKnownCache: WellKnownCache;  // Redis cache
+ // Per-tenant: provider (OIDC), queries, libraries, sentinel
+ readonly queries: Queries; // DB query layer
+ readonly libraries: Libraries; // Business logic layer
+ readonly wellKnownCache: WellKnownCache; // Redis cache
 }
 ```
 
 **Multi-Tenancy Flow:**
 
 ```
-Request → app/init.ts → getTenantId(URL)  // from subdomain or path
-       → tenantPool.get(tenantId)          // LRU cache lookup
-       → tenant.run(ctx, next)             // Koa middleware chain
-       → tenant.requestEnd()               // Release DB pool slot
+Request → app/init.ts → getTenantId(URL) // from subdomain or path
+ → tenantPool.get(tenantId) // LRU cache lookup
+ → tenant.run(ctx, next) // Koa middleware chain
+ → tenant.requestEnd() // Release DB pool slot
 ```
 
 **Tenant Class Composition:**
 
 ```
 Tenant
-├── EnvSet              — env config, DB pool, OIDC config per tenant
-├── WellKnownCache      — Redis-backed cache for tenant config
-├── Queries             — DB query methods (slonik SQL tagged templates)
-├── Libraries           — Business logic (users, apps, sessions, etc.)
-├── Provider            — OIDC provider instance
-└── Sentinel            — Rate limiting / abuse detection
+├── EnvSet — env config, DB pool, OIDC config per tenant
+├── WellKnownCache — Redis-backed cache for tenant config
+├── Queries — DB query methods (slonik SQL tagged templates)
+├── Libraries — Business logic (users, apps, sessions, etc.)
+├── Provider — OIDC provider instance
+└── Sentinel — Rate limiting / abuse detection
 ```
 
 ### 1.4 Monorepo Structure
@@ -156,27 +156,27 @@ Tenant
 ```
 logto/
 ├── packages/
-│   ├── core/           — Backend server (Koa + OIDC)
-│   ├── schemas/        — DB tables + TypeScript types (single source of truth)
-│   ├── console/        — Admin dashboard (React SPA)
-│   ├── experience/     — Sign-in UI (React)
-│   ├── account/        — Account center UI
-│   ├── connectors/     — Email, SMS, social connectors (15+)
-│   ├── phrases/        — i18n strings
-│   ├── shared/         — Shared utilities
-│   ├── toolkit/        — CLI tools, SDK
-│   └── cli/            — CLI interface
+│ ├── core/ — Backend server (Koa + OIDC)
+│ ├── schemas/ — DB tables + TypeScript types (single source of truth)
+│ ├── console/ — Admin dashboard (React SPA)
+│ ├── experience/ — Sign-in UI (React)
+│ ├── account/ — Account center UI
+│ ├── connectors/ — Email, SMS, social connectors (15+)
+│ ├── phrases/ — i18n strings
+│ ├── shared/ — Shared utilities
+│ ├── toolkit/ — CLI tools, SDK
+│ └── cli/ — CLI interface
 ├── pnpm-workspace.yaml
-└── package.json        — workspace scripts
+└── package.json — workspace scripts
 ```
 
 **Dependency Hierarchy:**
 
 ```
 core ← schemas ← shared
-  ↓
+ ↓
 connectors ← core
-  ↓
+ ↓
 console ← core (API)
 experience ← core (API)
 account ← core (API)
@@ -204,33 +204,33 @@ account ← core (API)
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                 FastAPI App                          │
+│ FastAPI App │
 ├─────────────────────────────────────────────────────┤
-│                                                      │
-│  /api/auth/*     → Authentication (public + JWT)     │
-│  │  /login                POST (public)              │
-│  │  /register             POST (public)              │
-│  │  /forgot-password      POST (public)              │
-│  │  /reset-password       POST (public)              │
-│  │  /me                   GET  (JWT)                 │
-│  │  /me/profile           GET/PATCH (JWT)            │
-│  │  /change-password      POST (JWT)                 │
-│  │                                               │
-│  /api/admin/*    → Management (admin+owner only)     │
-│  │  /users                 CRUD                      │
-│  │  /teachers              CRUD                      │
-│  │  /students              CRUD                      │
-│  │  /rooms                 CRUD                      │
-│  │  /settings              GET/PATCH                 │
-│  │                                               │
-│  /api/org/*      → Organization (org-scoped)         │
-│  │  /schedule              GET                       │
-│  │  /billing               GET                       │
-│  │  /attendance            GET/POST                  │
-│  │  /notifications         GET                       │
-│                                                      │
-│  Middleware: org_id injection via JWT sub→org_id     │
-│                                                      │
+│ │
+│ /api/auth/* → Authentication (public + JWT) │
+│ │ /login POST (public) │
+│ │ /register POST (public) │
+│ │ /forgot-password POST (public) │
+│ │ /reset-password POST (public) │
+│ │ /me GET (JWT) │
+│ │ /me/profile GET/PATCH (JWT) │
+│ │ /change-password POST (JWT) │
+│ │ │
+│ /api/admin/* → Management (admin+owner only) │
+│ │ /users CRUD │
+│ │ /teachers CRUD │
+│ │ /students CRUD │
+│ │ /rooms CRUD │
+│ │ /settings GET/PATCH │
+│ │ │
+│ /api/org/* → Organization (org-scoped) │
+│ │ /schedule GET │
+│ │ /billing GET │
+│ │ /attendance GET/POST │
+│ │ /notifications GET │
+│ │
+│ Middleware: org_id injection via JWT sub→org_id │
+│ │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -239,45 +239,45 @@ account ← core (API)
 ```sql
 -- Users table: org_id nullable (superadmin has NULL)
 CREATE TABLE users (
-    id_user UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role user_role NOT NULL,  -- 'owner','admin','teacher','guardian'
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    metadata JSONB NOT NULL DEFAULT '{}',  -- extensible profile data
-    failed_login_attempts INT NOT NULL DEFAULT 0,
-    locked_until TIMESTAMPTZ,
-    last_login_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    deleted_at TIMESTAMPTZ
+ id_user UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+ org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+ username VARCHAR(50) UNIQUE NOT NULL,
+ email VARCHAR(255) UNIQUE NOT NULL,
+ password_hash VARCHAR(255) NOT NULL,
+ role user_role NOT NULL, -- 'owner','admin','teacher','guardian'
+ is_active BOOLEAN NOT NULL DEFAULT true,
+ metadata JSONB NOT NULL DEFAULT '{}', -- extensible profile data
+ failed_login_attempts INT NOT NULL DEFAULT 0,
+ locked_until TIMESTAMPTZ,
+ last_login_at TIMESTAMPTZ,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+ updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+ deleted_at TIMESTAMPTZ
 );
 
 -- Composite index for tenant isolation
 CREATE INDEX idx_users_org ON users (org_id) WHERE org_id IS NOT NULL;
 CREATE UNIQUE INDEX idx_users_username_org ON users (org_id, username)
-    WHERE org_id IS NOT NULL;
+ WHERE org_id IS NOT NULL;
 
 -- Organizations (multi-tenancy)
 CREATE TABLE organizations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(100) NOT NULL,
-    slug VARCHAR(50) UNIQUE NOT NULL,
-    settings JSONB NOT NULL DEFAULT '{}',
-    -- settings: { studio_gps: {lat, lng, radius}, billing_day: 5, late_fee: 100000 }
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+ name VARCHAR(100) NOT NULL,
+ slug VARCHAR(50) UNIQUE NOT NULL,
+ settings JSONB NOT NULL DEFAULT '{}',
+ -- settings: { studio_gps: {lat, lng, radius}, billing_day: 5, late_fee: 100000 }
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- All business tables get org_id
 CREATE TABLE sessions (
-    id_session UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id UUID NOT NULL REFERENCES organizations(id),
-    id_student UUID NOT NULL REFERENCES students(id_student),
-    id_teacher UUID NOT NULL REFERENCES teachers(id_teacher),
-    id_room UUID NOT NULL REFERENCES rooms(id_room),
-    ...
+ id_session UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+ org_id UUID NOT NULL REFERENCES organizations(id),
+ id_student UUID NOT NULL REFERENCES students(id_student),
+ id_teacher UUID NOT NULL REFERENCES teachers(id_teacher),
+ id_room UUID NOT NULL REFERENCES rooms(id_room),
+ ...
 );
 ```
 
@@ -286,44 +286,44 @@ CREATE TABLE sessions (
 ```python
 # app/services/base.py — Query layer (like Logto's Queries)
 class BaseRepository:
-    def __init__(self, session: AsyncSession, org_id: UUID | None = None):
-        self.session = session
-        self.org_id = org_id
+ def __init__(self, session: AsyncSession, org_id: UUID | None = None):
+ self.session = session
+ self.org_id = org_id
 
-    def _org_filter(self, model):
-        """Apply org_id filter if set."""
-        if self.org_id:
-            return model.org_id == self.org_id
-        return True  # no filter for superadmin
+ def _org_filter(self, model):
+ """Apply org_id filter if set."""
+ if self.org_id:
+ return model.org_id == self.org_id
+ return True # no filter for superadmin
 
 
 # app/services/user_service.py — Business logic (like Logto's Libraries)
 class UserService(BaseRepository):
-    async def authenticate(self, username: str, password: str) -> User | None:
-        ...
+ async def authenticate(self, username: str, password: str) -> User | None:
+ ...
 
-    async def create(self, data: UserCreate) -> User:
-        ...
+ async def create(self, data: UserCreate) -> User:
+ ...
 
-    async def get_profile(self, user_id: UUID) -> ProfileResponse:
-        ...
+ async def get_profile(self, user_id: UUID) -> ProfileResponse:
+ ...
 
 
 # app/services/org_service.py — Org cache (simplified Logto TenantPool)
 class OrgCache:
-    """Simple org config cache. ≤50 concurrent users, no LRU needed."""
-    def __init__(self, redis: Redis):
-        self.redis = redis
-        self.ttl = 300  # 5 minutes
+ """Simple org config cache. ≤50 concurrent users, no LRU needed."""
+ def __init__(self, redis: Redis):
+ self.redis = redis
+ self.ttl = 300 # 5 minutes
 
-    async def get(self, org_id: UUID) -> dict | None:
-        cached = await self.redis.get(f"org:{org_id}")
-        if cached:
-            return json.loads(cached)
-        org = await self._load_from_db(org_id)
-        if org:
-            await self.redis.setex(f"org:{org_id}", self.ttl, json.dumps(org))
-        return org
+ async def get(self, org_id: UUID) -> dict | None:
+ cached = await self.redis.get(f"org:{org_id}")
+ if cached:
+ return json.loads(cached)
+ org = await self._load_from_db(org_id)
+ if org:
+ await self.redis.setex(f"org:{org_id}", self.ttl, json.dumps(org))
+ return org
 ```
 
 ### 2.5 Auth Middleware (JWT + org_id injection)
@@ -331,51 +331,51 @@ class OrgCache:
 ```python
 # app/middleware/auth.py
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(get_db),
+ credentials: HTTPAuthorizationCredentials = Depends(security),
+ db: AsyncSession = Depends(get_db),
 ) -> User:
-    payload = decode_access_token(credentials.credentials)
-    if not payload:
-        raise HTTPException(401, "Token tidak valid")
+ payload = decode_access_token(credentials.credentials)
+ if not payload:
+ raise HTTPException(401, "Token tidak valid")
 
-    user = await get_user_by_id(db, UUID(payload["sub"]))
-    if not user or user.deleted_at:
-        raise HTTPException(401, "User tidak ditemukan")
-    if not user.is_active:
-        raise HTTPException(403, "Akun tidak aktif")
+ user = await get_user_by_id(db, UUID(payload["sub"]))
+ if not user or user.deleted_at:
+ raise HTTPException(401, "User tidak ditemukan")
+ if not user.is_active:
+ raise HTTPException(403, "Akun tidak aktif")
 
-    return user
+ return user
 
 # org_id derived from JWT → user.org_id
 async def get_org_id(user: User = Depends(get_current_user)) -> UUID | None:
-    return user.org_id  # NULL for superadmin
+ return user.org_id # NULL for superadmin
 ```
 
 ### 2.6 Frontend Auth Flow
 
 ```
 Landing Page
-  ├── Hero → /register (GlowButton)
-  ├── CTA  → /register (GlowButton)
-  ├── Pricing → /register (GlowButton per card)
-  └── Footer → /login, /register, /forgot-password
+ ├── Hero → /register (GlowButton)
+ ├── CTA → /register (GlowButton)
+ ├── Pricing → /register (GlowButton per card)
+ └── Footer → /login, /register, /forgot-password
 
 Login Page (/login)
-  ├── Tab: Masuk    → POST /api/auth/login → JWT → /dashboard
-  ├── Tab: Daftar   → redirect /register
-  └── Tab: Lupa Password → redirect /forgot-password
+ ├── Tab: Masuk → POST /api/auth/login → JWT → /dashboard
+ ├── Tab: Daftar → redirect /register
+ └── Tab: Lupa Password → redirect /forgot-password
 
 Register Page (/register)
-  ├── Form → POST /api/auth/register → /login?success=1
-  └── Footer: "Sudah punya akun? Masuk"
+ ├── Form → POST /api/auth/register → /login?success=1
+ └── Footer: "Sudah punya akun? Masuk"
 
 Forgot Password (/forgot-password)
-  ├── Form → POST /api/auth/forgot-password → success message
-  └── Footer: "Kembali ke Login" | "Daftar akun baru"
+ ├── Form → POST /api/auth/forgot-password → success message
+ └── Footer: "Kembali ke Login" | "Daftar akun baru"
 
 Dashboard (/dashboard)
-  ├── GET /api/auth/me → validate JWT → render role-based dashboard
-  └── Redirect to /login if no valid token
+ ├── GET /api/auth/me → validate JWT → render role-based dashboard
+ └── Redirect to /login if no valid token
 ```
 
 ---

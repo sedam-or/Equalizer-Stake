@@ -9,8 +9,8 @@ const reasons = [
   },
   {
     number: "02",
-    title: "Guru Berstandar Internasional",
-    desc: "Semua guru memiliki latar belakang pendidikan musik formal dan pengalaman mengajar anak. Metode yang sabar, terstruktur, dan menyenangkan.",
+    title: "Instruktur Berstandar Internasional",
+    desc: "Semua instruktur memiliki latar belakang pendidikan musik formal dan pengalaman mengajar. Metode yang sabar, terstruktur, dan menyenangkan.",
   },
   {
     number: "03",
@@ -19,7 +19,7 @@ const reasons = [
   },
 ];
 
-export default function WhyBMD() {
+export default function WhyEQS() {
   return (
     <section data-theme="light" className="snap-section flex min-h-[100dvh] items-center bg-white px-6 pt-20 md:px-8">
       <div className="mx-auto w-full max-w-7xl">
@@ -27,7 +27,7 @@ export default function WhyBMD() {
           {/* Left: Text */}
           <div>
             <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-[#D4AF37]">
-              Mengapa BMD
+              Mengapa Equalizer-Stake
             </p>
             <BlurText
               text="Bukan Sekadar Kursus Musik."

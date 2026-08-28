@@ -16,7 +16,7 @@ date: "2026-06-27"
 |---|---|
 | Kode | FR-01 |
 | Status | **Approved** |
-| Aktor | Owner, Admin Operasional, Guru Musik, Wali Murid |
+| Aktor | Owner, Admin Operasional, Instructor, Guardian |
 | Pemicu | Pengguna membuka URL sistem |
 | Modul | Autentikasi |
 | UC Linked | UC-01 |
@@ -24,7 +24,7 @@ date: "2026-06-27"
 
 ## 2. Spesifikasi
 
-Sistem shall menyediakan halaman login tunggal yang mengarahkan pengguna ke dashboard sesuai perannya (Owner, Admin, Guru, Wali Murid) setelah autentikasi berhasil. Token sesi (JWT) diterbitkan dengan masa berlaku sesuai batas waktu per peran.
+Sistem shall menyediakan halaman login tunggal yang mengarahkan pengguna ke dashboard sesuai perannya (Owner, Admin, Instructor, Guardian) setelah autentikasi berhasil. Token sesi (JWT) diterbitkan dengan masa berlaku sesuai batas waktu per peran.
 
 ### 2.1 Token & Sesi
 
@@ -33,8 +33,8 @@ Sistem shall menyediakan halaman login tunggal yang mengarahkan pengguna ke dash
 | Token | JWT HS256, per-role payload |
 | Owner | 30 menit timeout |
 | Admin Operasional | 30 menit timeout |
-| Guru Musik | 30 menit timeout |
-| Wali Murid | 60 menit timeout |
+| Instructor | 30 menit timeout |
+| Guardian | 60 menit timeout |
 
 Setelah timeout, pengguna diminta login ulang. Draft tersimpan dipulihkan otomatis.
 
@@ -46,7 +46,7 @@ Setelah timeout, pengguna diminta login ulang. Draft tersimpan dipulihkan otomat
 
 ### 2.3 Onboarding Password
 
-Ketika Admin membuat akun baru untuk Guru atau Wali Murid:
+Ketika Admin membuat akun baru untuk Instructor atau Guardian:
 
 | Fitur | Detail |
 |---|---|
@@ -67,45 +67,45 @@ Ketika Admin membuat akun baru untuk Guru atau Wali Murid:
 ### 3.1 Login Berhasil
 
 ```
-Given   Pengguna memiliki akun aktif dan kredensial yang benar
-When    Pengguna memasukkan username dan password lalu menekan tombol Masuk
-Then    Sistem menerbitkan token sesi, mencatat waktu login di audit log,
-        dan menampilkan dashboard sesuai peran dalam ≤ 2 detik
+Given Pengguna memiliki akun aktif dan kredensial yang benar
+When Pengguna memasukkan username dan password lalu menekan tombol Masuk
+Then Sistem menerbitkan token sesi, mencatat waktu login di audit log,
+ dan menampilkan dashboard sesuai peran dalam ≤ 2 detik
 ```
 
 ### 3.2 Kredensial Salah
 
 ```
-Given   Pengguna memasukkan username atau password yang salah
-When    Menekan tombol Masuk
-Then    Sistem menampilkan "Username atau password tidak valid"
-        tanpa menyebutkan field mana yang salah; fail counter bertambah +1
+Given Pengguna memasukkan username atau password yang salah
+When Menekan tombol Masuk
+Then Sistem menampilkan "Username atau password tidak valid"
+ tanpa menyebutkan field mana yang salah; fail counter bertambah +1
 ```
 
 ### 3.3 Akun Terkunci (Brute Force)
 
 ```
-Given   Sudah 4 percobaan login gagal dalam 15 menit terakhir
-When    Percobaan ke-5 gagal
-Then    Akun dikunci 15 menit; notifikasi email dikirim ke Admin;
-        pesan "Akun terkunci. Coba lagi dalam 15 menit."
+Given Sudah 4 percobaan login gagal dalam 15 menit terakhir
+When Percobaan ke-5 gagal
+Then Akun dikunci 15 menit; notifikasi email dikirim ke Admin;
+ pesan "Akun terkunci. Coba lagi dalam 15 menit."
 ```
 
 ### 3.4 Login Pertama (Password Sementara)
 
 ```
-Given   Pengguna baru dengan password sementara yang belum expired
-When    Login berhasil dengan password sementara
-Then    Sistem redirect ke halaman wajib ubah password;
-        password baru disimpan; flag first_login direset; audit log dicatat
+Given Pengguna baru dengan password sementara yang belum expired
+When Login berhasil dengan password sementara
+Then Sistem redirect ke halaman wajib ubah password;
+ password baru disimpan; flag first_login direset; audit log dicatat
 ```
 
 ### 3.5 Password Sementara Kedaluwarsa
 
 ```
-Given   Password sementara sudah > 7 hari sejak penerbitan
-When    Pengguna mencoba login
-Then    Pesan "Link telah kedaluwarsa. Hubungi Admin untuk mengirim ulang."
+Given Password sementara sudah > 7 hari sejak penerbitan
+When Pengguna mencoba login
+Then Pesan "Link telah kedaluwarsa. Hubungi Admin untuk mengirim ulang."
 ```
 
 ## 4. Tahapan Alur (Flow Steps)
@@ -153,6 +153,6 @@ Then    Pesan "Link telah kedaluwarsa. Hubungi Admin untuk mengirim ulang."
 |---|---|
 | Kredensial salah | "Username atau password tidak valid" (tanpa spesifik) |
 | Percobaan ke-5 gagal | Kunci 15 menit, notifikasi email ke Admin |
-| Akun nonaktif | "Akun Anda tidak aktif. Hubungi Admin BMD Musik." |
+| Akun nonaktif | "Akun Anda tidak aktif. Hubungi Admin Equalizer-Stake." |
 | Password kedaluwarsa | "Link telah kedaluwarsa. Hubungi Admin untuk mengirim ulang." |
 | Layanan token gangguan | Pesan pemeliharaan; catat insiden di log sistem |

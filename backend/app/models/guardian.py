@@ -1,4 +1,4 @@
-"""Guardian model — Wali Murid profile."""
+"""Guardian model — Guardian profile."""
 
 import uuid
 from datetime import datetime

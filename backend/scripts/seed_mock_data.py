@@ -6,7 +6,7 @@ Usage:
 
 Creates:
 - 5 teachers with instruments
-- 10 students (wali_01..wali_05, 2 children each)
+- 10 students (guardian_01..guardian_05, 2 children each)
 - 20 sessions (past + future)
 - 5 invoices
 - Sample notifications
@@ -33,24 +33,24 @@ from app.services.billing import generate_unique_code
 from sqlalchemy import select
 
 TEACHERS = [
-    {"username": "guru_bmd", "full_name": "Pak Dimas Pratama", "instruments": ["piano", "keyboard"], "type": "tetap"},
-    {"username": "guru_sari", "full_name": "Mbak Sari Wulandari", "instruments": ["vokal", "biola"], "type": "tetap"},
-    {"username": "guru_rizky", "full_name": "Pak Rizky Febian", "instruments": ["gitar", "gitar"], "type": "tetap"},
-    {"username": "guru_andi", "full_name": "Pak Andi Drum", "instruments": ["drum"], "type": "freelance"},
-    {"username": "guru_hana", "full_name": "Mbak Hana Flute", "instruments": ["flute", "saxophone"], "type": "freelance"},
+    {"username": "instr_dimas", "full_name": "Pak Dimas Pratama", "instruments": ["piano", "keyboard"], "type": "tetap"},
+    {"username": "instr_sari", "full_name": "Mbak Sari Wulandari", "instruments": ["vokal", "biola"], "type": "tetap"},
+    {"username": "instr_rizky", "full_name": "Pak Rizky Febian", "instruments": ["gitar", "gitar"], "type": "tetap"},
+    {"username": "instr_andi", "full_name": "Pak Andi Drum", "instruments": ["drum"], "type": "freelance"},
+    {"username": "instr_hana", "full_name": "Mbak Hana Flute", "instruments": ["flute", "saxophone"], "type": "freelance"},
 ]
 
 STUDENTS = [
-    {"guardian": "wali_01", "name": "Andi Pratama", "instrument": "piano", "level": "pemula"},
-    {"guardian": "wali_01", "name": "Rina Wulandari", "instrument": "vokal", "level": "dasar"},
-    {"guardian": "wali_02", "name": "Budi Santoso", "instrument": "gitar", "level": "menengah"},
-    {"guardian": "wali_02", "name": "Dewi Lestari", "instrument": "biola", "level": "pemula"},
-    {"guardian": "wali_03", "name": "Eko Prasetyo", "instrument": "drum", "level": "dasar"},
-    {"guardian": "wali_03", "name": "Fitri Handayani", "instrument": "piano", "level": "menengah"},
-    {"guardian": "wali_04", "name": "Gilang Ramadhan", "instrument": "keyboard", "level": "pemula"},
-    {"guardian": "wali_04", "name": "Hana Putri", "instrument": "flute", "level": "dasar"},
-    {"guardian": "wali_05", "name": "Irfan Hakim", "instrument": "saxophone", "level": "lanjut"},
-    {"guardian": "wali_05", "name": "Joko Widodo", "instrument": "gitar", "level": "pemula"},
+    {"guardian": "guardian_01", "name": "Andi Pratama", "instrument": "piano", "level": "pemula"},
+    {"guardian": "guardian_01", "name": "Rina Wulandari", "instrument": "vokal", "level": "dasar"},
+    {"guardian": "guardian_02", "name": "Budi Santoso", "instrument": "gitar", "level": "menengah"},
+    {"guardian": "guardian_02", "name": "Dewi Lestari", "instrument": "biola", "level": "pemula"},
+    {"guardian": "guardian_03", "name": "Eko Prasetyo", "instrument": "drum", "level": "dasar"},
+    {"guardian": "guardian_03", "name": "Fitri Handayani", "instrument": "piano", "level": "menengah"},
+    {"guardian": "guardian_04", "name": "Gilang Ramadhan", "instrument": "keyboard", "level": "pemula"},
+    {"guardian": "guardian_04", "name": "Hana Putri", "instrument": "flute", "level": "dasar"},
+    {"guardian": "guardian_05", "name": "Irfan Hakim", "instrument": "saxophone", "level": "lanjut"},
+    {"guardian": "guardian_05", "name": "Joko Widodo", "instrument": "gitar", "level": "pemula"},
 ]
 
 

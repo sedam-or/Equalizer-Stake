@@ -176,7 +176,7 @@ async def create_payment(
     guardian_result = await db.execute(select(Guardian).where(Guardian.id_user == user.id_user))
     guardian = guardian_result.scalar_one_or_none()
     if not guardian:
-        raise HTTPException(status_code=403, detail="Hanya wali murid yang bisa membayar")
+        raise HTTPException(status_code=403, detail="Hanya guardian yang bisa membayar")
 
     # Verify invoice belongs to guardian
     result = await db.execute(

@@ -2,28 +2,28 @@
 
 ## System Roles (SRS-defined)
 
-### 1. Owner / Superadmin (Pemilik BMD Musik)
+### 1. Owner / Superadmin (Pemilik Equalizer-Stake)
 - **Akses**: Dashboard monitoring, audit log (semua kategori), manajemen Admin, override operasional, pengaturan sistem
 - **Session timeout**: 30 menit
 - **Otoritas**: Buat/hapus/nonaktifkan Admin, override freeze/tagihan/jadwal, kelola tarif, maintenance window
-- **Product Champion**: Founder/Owner BMD Musik
+- **Product Champion**: Founder/Owner Equalizer-Stake
 - **Catatan**: Superadmin — bisa akses semua fitur termasuk yang biasanya hanya Admin
 
 ### 2. Admin Operasional
 - **Akses**: Input/ubah jadwal, verifikasi pembayaran, manajemen akun, monitoring notifikasi
 - **Session timeout**: 30 menit
 - **Otoritas**: Penjadwalan harian, validasi absensi, eskalasi bentrok jadwal
-- **Product Champion**: Kepala Admin BMD Musik
+- **Product Champion**: Kepala Admin Equalizer-Stake
 
-### 3. Guru Musik
+### 3. Instructor
 - **Akses**: Kalender pribadi, input absensi + foto, konfirmasi kehadiran, terima reminder
 - **Session timeout**: 30 menit
-- **Otoritas**: Standar penilaian kehadiran, persetujuan reschedule, kelayakan level siswa
+- **Otoritas**: Standar penilaian kehadiran, persetujuan reschedule, kelayakan level student
 
-### 4. Wali Murid
+### 4. Guardian
 - **Akses**: Jadwal multi-anak, booking studio, terima tagihan & reminder, riwayat kehadiran
 - **Session timeout**: 60 menit
-- **Relasi**: 1 Wali : N Siswa (kakak-adik dalam satu keluarga)
+- **Relasi**: 1 Wali : N Student (kakak-adik dalam satu pengguna)
 
 ---
 

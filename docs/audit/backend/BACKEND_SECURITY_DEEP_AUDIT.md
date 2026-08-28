@@ -14,17 +14,17 @@
 2. Check account lock (locked_until)
 3. Verify password (bcrypt)
 4. If failed:
-   - Increment failed_login_attempts
-   - Lock after 5 failures (30 min)
-   - Log LOGIN_FAILED
+ - Increment failed_login_attempts
+ - Lock after 5 failures (30 min)
+ - Log LOGIN_FAILED
 5. If success:
-   - Reset failed_login_attempts
-   - Create access_token (JWT HS256)
-   - Create refresh_token (JWT HS256)
-   - Store refresh_token in DB
-   - Log LOGIN_SUCCESS
+ - Reset failed_login_attempts
+ - Create access_token (JWT HS256)
+ - Create refresh_token (JWT HS256)
+ - Store refresh_token in DB
+ - Log LOGIN_SUCCESS
 6. Check first_login / temp_password
-   - If true → force password change
+ - If true → force password change
 ```
 
 **Status:** ✅ Secure

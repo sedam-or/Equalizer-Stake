@@ -9,7 +9,7 @@ module: Notifikasi Multi-Channel
 
 ## 1. Deskripsi Modul
 
-Sistem notifikasi multi-channel yang mengirim pesan melalui WhatsApp dan email kepada Wali Murid. Notifikasi dikategorikan berdasarkan urgensi dengan strategi channel prioritas berbeda.
+Sistem notifikasi multi-channel yang mengirim pesan melalui WhatsApp dan email kepada Guardian. Notifikasi dikategorikan berdasarkan urgensi dengan strategi channel prioritas berbeda.
 
 ## 2. Kategori Notifikasi
 
@@ -47,9 +47,9 @@ Sistem notifikasi multi-channel yang mengirim pesan melalui WhatsApp dan email k
 
 ## 4. Penerima Notifikasi
 
-- Semua notifikasi dikirim ke **Wali Murid**, bukan per siswa.
-- Jika 1 Wali Murid memiliki N siswa, notifikasi digabungkan menjadi 1 pesan.
-- Format pesan mencantumkan nama semua siswa terkait.
+- Semua notifikasi dikirim ke **Guardian**, bukan per student.
+- Jika 1 Guardian memiliki N student, notifikasi digabungkan menjadi 1 pesan.
+- Format pesan mencantumkan nama semua student terkait.
 
 ## 5. Admin Dashboard — Panel Toggle
 
@@ -67,7 +67,7 @@ Setiap notifikasi dicatat dengan field berikut:
 | Field | Tipe | Keterangan |
 |-------|------|------------|
 | `notification_id` | UUID | ID unik notifikasi |
-| `wali_murid_id` | FK | Penerima |
+| `guardian_id` | FK | Penerima |
 | `category` | ENUM | `CRITICAL`, `NON_CRITICAL` |
 | `channel` | ENUM | `WHATSAPP`, `EMAIL` |
 | `status` | ENUM | `PENDING`, `SENT`, `DELIVERED`, `FAILED`, `FALLBACK` |

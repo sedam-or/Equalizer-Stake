@@ -10,16 +10,16 @@ source: BAB4 (SRS_Equalizer-Stake_BAB4.md)
 ### Autentikasi
 | UC | Nama | Aktor |
 |----|------|-------|
-| UC-01 | Login & Role-Based Auth | Owner, Admin, Guru, Wali Murid |
+| UC-01 | Login & Role-Based Auth | Owner, Admin, Instructor, Guardian |
 | UC-02 | Kelola Profil | Semua |
 
 ### Penjadwalan
 | UC | Nama | Aktor |
 |----|------|-------|
-| UC-03 | Input Jadwal Kursus | Admin |
+| UC-03 | Input Jadwal Course | Admin |
 | UC-04 | Validasi Konflik Slot | Sistem (otomatis) |
 | UC-05 | Kelola Libur & Minggu ke-5 | Admin, Sistem |
-| UC-06 | Reservasi Studio | Wali Murid, Admin |
+| UC-06 | Reservasi Studio | Guardian, Admin |
 
 ### Penagihan
 | UC | Nama | Aktor |
@@ -32,7 +32,7 @@ source: BAB4 (SRS_Equalizer-Stake_BAB4.md)
 ### Kehadiran
 | UC | Nama | Aktor |
 |----|------|-------|
-| UC-11 | Input Absensi + Foto | Guru |
+| UC-11 | Input Absensi + Foto | Instructor |
 | UC-12 | Validasi GPS & Waktu | Sistem |
 | UC-13 | Lacak Kelayakan Ujian | Sistem, Admin, Owner |
 
@@ -52,7 +52,7 @@ source: BAB4 (SRS_Equalizer-Stake_BAB4.md)
 ### Kepatuhan
 | UC | Nama | Aktor |
 |----|------|-------|
-| UC-19 | Ajukan Hapus Data | Wali Murid, Guru |
+| UC-19 | Ajukan Hapus Data | Guardian, Instructor |
 | UC-20 | Proses Hapus PII | Sistem, Admin |
 
 ---
@@ -62,7 +62,7 @@ source: BAB4 (SRS_Equalizer-Stake_BAB4.md)
 | Dari | Ke | Alasan |
 |------|-----|--------|
 | UC-03 | UC-04 | Setiap input jadwal → validasi konflik otomatis |
-| UC-07 | UC-14 | Setiap invoice → notifikasi WhatsApp ke Wali Murid |
+| UC-07 | UC-14 | Setiap invoice → notifikasi WhatsApp ke Guardian |
 | UC-08 | UC-09 | Setiap verifikasi pembayaran → cek denda terutang |
 | UC-11 | UC-12 | Setiap absensi → validasi GPS + waktu server |
 
@@ -80,9 +80,9 @@ source: BAB4 (SRS_Equalizer-Stake_BAB4.md)
 | Aktor | UC yang Bisa Diakses |
 |-------|---------------------|
 | Owner | UC-01, UC-02, UC-16, UC-17, UC-18 |
-| Admin | UC-01..UC-10, UC-14..UC-20 (kecuali UC-11 Guru) |
-| Guru | UC-01, UC-02, UC-11 |
-| Wali Murid | UC-01, UC-02, UC-06, UC-10 (view), UC-19 |
+| Admin | UC-01..UC-10, UC-14..UC-20 (kecuali UC-11 Instructor) |
+| Instructor | UC-01, UC-02, UC-11 |
+| Guardian | UC-01, UC-02, UC-06, UC-10 (view), UC-19 |
 
 ---
 
@@ -122,17 +122,17 @@ Redirect ke halaman wajib ubah password → Password baru disimpan, flag direset
 
 ### SCR-003: Input Jadwal (UC-03 + UC-04)
 
-**Prasyarat**: Admin login, data guru/ruang/siswa tersedia, hari libur dikonfigurasi, jam operasional aktif.
+**Prasyarat**: Admin login, data instructor/ruang/student tersedia, hari libur dikonfigurasi, jam operasional aktif.
 
 **Normal Flow:**
 1. Buka form jadwal baru
-2. Pilih siswa, guru, ruangan
+2. Pilih student, instructor, ruangan
 3. Pilih tanggal & waktu sesi
 4. Validasi konflik real-time ≤1 detik
 5. Tampilkan "Slot tersedia"
 6. Klik "Simpan Jadwal"
 7. Simpan status Locked + catat audit log
-8. Kirim notifikasi ke Guru & Wali Murid
+8. Kirim notifikasi ke Instructor & Guardian
 
 **Alternatif — Konflik Slot Terdeteksi:**
 Validasi deteksi konflik → Tampilkan detail konflik → 3 slot alternatif terdekat → Admin pilih atau batalkan
@@ -144,28 +144,28 @@ Admin kedua coba simpan slot sama → Concurrency lock aktif → "Data baru saja
 Admin pilih "Batalkan Sesi" → Wajib input alasan → Kredit dikembalikan penuh → Audit log
 
 **Error Handling:**
-- Konflik: "Ruang A sudah digunakan oleh [Guru X] pukul 15.00-16.00" + 3 alternatif
+- Konflik: "Ruang A sudah digunakan oleh [Instructor X] pukul 15.00-16.00" + 3 alternatif
 - Draft auto-save 30 detik via IndexedDB
 
 ---
 
 ### SCR-011: Absensi Digital (UC-11 + UC-12)
 
-**Prasyarat**: Guru login, sesi aktif, di lokasi studio, GPS aktif, kamera accessible.
+**Prasyarat**: Instructor login, sesi aktif, di lokasi studio, GPS aktif, kamera accessible.
 
 **Normal Flow:**
 1. Buka menu "Absensi Hari Ini"
 2. Pilih sesi aktif
-3. Ambil foto siswa via kamera
+3. Ambil foto student via kamera
 4. Client-side: validasi proporsi wajah ≥30% (face-api.js) ≤1 detik
 5. Ambil koordinat GPS perangkat
 6. Kirim (foto + GPS + timestamp) ke Backend
 7. Backend validasi GPS radius 150m + timestamp server
 8. Simpan status "Hadir" + potong kredit
-9. Kirim notifikasi hadir ke Wali Murid
+9. Kirim notifikasi hadir ke Guardian
 
 **Alternatif — Wajah Tidak Lolos (Client-Side):**
-face-api.js gagal → "Pastikan wajah mengisi minimal 1/3 area foto" → Guru ambil ulang → Tidak ada request ke server
+face-api.js gagal → "Pastikan wajah mengisi minimal 1/3 area foto" → Instructor ambil ulang → Tidak ada request ke server
 
 **Alternatif — GPS Luar Radius:**
 Validasi server gagal → Status "Menunggu Verifikasi" → Notifikasi ke Admin untuk review ≤2 jam
@@ -187,7 +187,7 @@ Foto tersimpan di perangkat lokal → Auto-upload saat koneksi kembali (≤5 men
 |------|-----|---------|-------------|
 | Draft | Pending | Data lengkap, dikirim | Tahan slot sementara |
 | Pending | Locked | Admin konfirmasi | Permanen, notifikasi, audit log |
-| Locked | Rescheduled | Guru berhalangan / libur | Kredit TIDAK dipotong |
+| Locked | Rescheduled | Instructor berhalangan / libur | Kredit TIDAK dipotong |
 | Locked | Cancelled | Admin batalkan (alasan) | Slot dilepas, kredit sesuai kebijakan |
 | Locked | Completed | Absensi dikonfirmasi | Kredit dipotong, hitung kelayakan |
 
@@ -195,22 +195,22 @@ Foto tersimpan di perangkat lokal → Auto-upload saat koneksi kembali (≤5 men
 | Dari | Ke | Trigger | Side Effect |
 |------|-----|---------|-------------|
 | Unpaid | Overdue | Tgl 11 00:00 | Denda Rp 100k otomatis |
-| Overdue | Frozen | Otomatis | Semua akses siswa diblokir |
+| Overdue | Frozen | Otomatis | Semua akses student diblokir |
 | Frozen | Paid | Admin verifikasi pelunasan | Aktif kembali, notifikasi, audit log |
 
 ### Attendance
 | Status | Dampak Kredit | Dampak Kelayakan |
 |--------|--------------|-----------------|
 | Present | Terpotong (sesi dihitung) | Positif |
-| AbsentExcused | Terpotong (kebijakan BMD) | Terhitung absen |
+| AbsentExcused | Terpotong (kebijakan EQS) | Terhitung absen |
 | AbsentNoShow | Terpotong + sesi hangus | >1x/3bln = tidak layak ujian |
-| Rescheduled (Guru) | TIDAK terpotong | TIDAK terhitung absen |
+| Rescheduled (Instructor) | TIDAK terpotong | TIDAK terhitung absen |
 
 ### Student Profile
 | Dari | Ke | Trigger | Side Effect |
 |------|-----|---------|-------------|
 | Trial | Active | Admin verifikasi admin fee + audisi | enrollment_date diisi |
-| Active | Cuti | Wali Murid ajukan (maks 1 bln) | Sesi ditahan, tagihan jeda |
+| Active | Cuti | Guardian ajukan (maks 1 bln) | Sesi ditahan, tagihan jeda |
 | Cuti | Active | Kembali ≤1 bulan | Kembali ke jadwal |
 | Cuti | Inactive | >1 bulan tanpa kembali | Auto-inactive, harus daftar ulang |
 | Active | Inactive | Admin nonaktifkan | PII dianonimasi, audit log |

@@ -1,7 +1,7 @@
-# Equalizer-Stake — BMD Musik Web App
+# Equalizer-Stake — Web App
 
 ## Ringkasan Proyek
-Sistem Penjadwalan Kursus & Reservasi Studio Berbasis Web untuk BMD Music School, Yogyakarta.
+Deterministic Course & Studio Reservation Engine.
 Stack: FastAPI + Next.js (PWA) + PostgreSQL + Redis + Docker.
 SRS: ISO/IEC/IEEE 29148:2018 | UU PDP No. 27/2022
 
@@ -27,7 +27,7 @@ SRS: ISO/IEC/IEEE 29148:2018 | UU PDP No. 27/2022
 9. **Traceability**: Setiap kode harus trace ke FR-xx/UC-xx dari SRS.
 
 ## SRS Context (Quick Reference)
-- **4 Roles**: Owner (read-only dashboard), Admin Operasional (harian), Guru Musik (absensi), Wali Murid (1:N siswa)
+- **4 Roles**: Owner (read-only dashboard), Admin Operasional (harian), Instructor (absensi), Guardian (1:N student)
 - **7 Modules**: Penjadwalan, Penagihan, Kehadiran, Notifikasi, Pelaporan, Audit/Governance, Dokumentasi
 - **15 FRs**: FR-01..FR-15 (13 Approved, 2 Proposed)
 - **20 UCs**: UC1..UC20 across 7 modules
@@ -35,4 +35,4 @@ SRS: ISO/IEC/IEEE 29148:2018 | UU PDP No. 27/2022
 - **Billing**: Auto-invoice tanggal 5, denda Rp100k tanggal 11, freeze akun
 - **Attendance**: GPS 150m, face-api.js client-side ≥30%, server verify
 - **Notif**: WhatsApp+email, retry 3x (10/20/40s), circuit breaker
-- **MVP**: 10 minggu, ≤50 concurrent users, PWA, single location (Seturan Yogya)
+- **MVP**: 10 minggu, ≤50 concurrent users, PWA, single location

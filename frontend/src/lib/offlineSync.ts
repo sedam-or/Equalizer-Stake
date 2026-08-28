@@ -4,7 +4,7 @@
  * T-114: Offline Attendance Sync
  */
 
-const DB_NAME = "bmdmusic_offline";
+const DB_NAME = "eqs_offline";
 const DB_VERSION = 1;
 const STORE_NAME = "attendance_queue";
 

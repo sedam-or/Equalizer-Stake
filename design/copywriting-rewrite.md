@@ -1,4 +1,4 @@
-# BMD Music School — Copywriting Rewrite
+# Equalizer-Stake — Copywriting Rewrite
 
 > Prinsip: **Benefit > Feature. Emosi > Fakta.**
 > Target: Orang tua 30-55 tahun, anak 5-17 tahun
@@ -9,19 +9,19 @@
 
 ### Headline (SEKARANG — hambar)
 ```
-Musik Bukan Sekadar Hobi.
-Musik Membangun Masa Depan.
+Music Beyond Hobbies.
+Music Builds the Future.
 ```
 
 ### Headline (BARU — menjual)
 ```
-Anak Anda Punya Bakat Musik?
+Anak Anda Punya Musical Talent?
 Kami Bantu Mengembangkannya.
 ```
 
 ### Subheadline
 ```
-Bergabung dengan 150+ keluarga di Yogyakarta yang sudah mempercayakan pendidikan musik anak mereka kepada BMD Music School.
+Bergabung dengan 150+ pengguna yang sudah mempercayakan pendidikan music anak mereka kepada Equalizer-Stake.
 ```
 
 ### CTA
@@ -59,7 +59,7 @@ Mulai dari Rp [harga]/bulan
 
 | Instrumen | Lama (hambar) | Baru (menjual) |
 |-----------|---------------|----------------|
-| Piano | "Belajar piano klasik & modern" | "Dasar musik yang kuat untuk semua genre" |
+| Piano | "Belajar piano klasik & modern" | "Dasar music yang kuat untuk semua genre" |
 | Gitar | "Akustik, elektrik, klasik" | "Paling populer, langsung bisa main lagu" |
 | Biola | "Biola klasik & kontemporer" | "Kembangkan ketelitian dan ekspresi" |
 | Drum | "Drum akustik & elektrik" | "Salurkan energi anak secara positif" |
@@ -71,27 +71,27 @@ Mulai dari Rp [harga]/bulan
 
 ---
 
-## Kenapa BMD Section
+## Kenapa EQS Section
 
 ### Headline
 ```
-Kenapa Orang Tua Memilih BMD?
+Kenapa Orang Tua Memilih EQS?
 ```
 
 ### Subheadline
 ```
-Bukan hanya kursus musik. Kami membangun karakter anak melalui musik.
+Bukan hanya course music. Kami membangun karakter anak melalui music.
 ```
 
 ### Benefits (3 pilar)
 
-#### 1. Guru Berpengalaman
-**Lama:** "Guru berpengalaman dengan sertifikasi nasional. Metode belajar menyenangkan dan terstruktur."
+#### 1. Instructor Berpengalaman
+**Lama:** "Instructor berpengalaman dengan sertifikasi nasional. Metode belajar menyenangkan dan terstruktur."
 
 **Baru:**
 ```
-Guru Kami Bukan Sekadar Mengajar
-Setiap guru BMD memiliki pengalaman 10+ tahun dan sertifikasi nasional. Mereka tahu cara membuat anak betah belajar — bukan hanya pintar bermain musik, tapi juga mencintainya.
+Instructor Kami Bukan Sekadar Mengajar
+Setiap instructor EQS memiliki pengalaman 10+ tahun dan sertifikasi nasional. Mereka tahu cara membuat anak betah belajar — bukan hanya pintar bermain music, tapi juga mencintainya.
 ```
 
 #### 2. Jadwal Fleksibel
@@ -100,7 +100,7 @@ Setiap guru BMD memiliki pengalaman 10+ tahun dan sertifikasi nasional. Mereka t
 **Baru:**
 ```
 Jadwal yang Mengikuti Aktivitas Anak
-Les sore setelah sekolah? Weekend? Kami atur sesuai jadwal keluarga Anda. Senin-Sabtu, 09:00-20:00 WIB.
+Les sore setelah sekolah? Weekend? Kami atur sesuai jadwal pengguna Anda. Senin-Sabtu, 09:00-20:00 WIB.
 ```
 
 #### 3. Studio Profesional
@@ -109,7 +109,7 @@ Les sore setelah sekolah? Weekend? Kami atur sesuai jadwal keluarga Anda. Senin-
 **Baru:**
 ```
 Studio yang Membuat Anak Nyaman
-Studio BMD dilengkapi peralatan standar profesional. Ruangan kedap suara, AC, dan suasana yang membuat anak fokus belajar — bukan sekadar ruangan kosong dengan piano.
+Studio EQS dilengkapi peralatan standar profesional. Ruangan kedap suara, AC, dan suasana yang membuat anak fokus belajar — bukan sekadar ruangan kosong dengan piano.
 ```
 
 ---
@@ -118,14 +118,14 @@ Studio BMD dilengkapi peralatan standar profesional. Ruangan kedap suara, AC, da
 
 ### Headline
 ```
-BMD Music School — Sejak 2015
+Equalizer-Stake — Sejak 2015
 ```
 
 ### Body
 ```
-Dimulai dari sebuah ruangan kecil di Seturan, Yogyakarta, BMD Music School kini telah menjadi rumah bagi 500+ alumni yang tersebar di seluruh Indonesia.
+Dimulai dari sebuah ruangan kecil di Equalizer-Stake kini telah menjadi rumah bagi 500+ alumni yang tersebar di seluruh Indonesia.
 
-Kami percaya musik bukan sekadar hobi — ia adalah bahasa universal yang membentuk karakter, disiplin, dan kreativitas anak. Setiap anak yang belajar di BMD tidak hanya pintar bermain musik, tapi juga belajar:
+Kami percaya music bukan sekadar hobi — ia adalah bahasa universal yang membentuk karakter, disiplin, dan kreativitas anak. Setiap anak yang belajar di EQS tidak hanya pintar bermain music, tapi juga belajar:
 - Ketekunan melalui latihan rutin
 - Percaya diri melalui pertunjukan berkala
 - Kerja sama melalui ensemble dan band
@@ -147,7 +147,7 @@ Apa Kata Mereka?
 
 ### Subheadline
 ```
-Dengarkan langsung dari orang tua yang anaknya belajar di BMD.
+Dengarkan langsung dari orang tua yang anaknya belajar di EQS.
 ```
 
 ### Testimonial format
@@ -161,7 +161,7 @@ Dengarkan langsung dari orang tua yang anaknya belajar di BMD.
 ### Testimonial rewrites
 
 #### Ibu Rina (Anak: Andi, Gitar)
-**Lama:** "Anak saya jadi lebih semangat belajar musik sejak bergabung dengan BMD. Jadwal fleksibel dan gurunya sabar banget."
+**Lama:** "Anak saya jadi lebih semangat learn music sejak bergabung dengan EQS. Jadwal fleksibel dan their instructor sabar banget."
 
 **Baru:**
 ```
@@ -173,15 +173,15 @@ Dengarkan langsung dari orang tua yang anaknya belajar di BMD.
 
 **Baru:**
 ```
-"Sebagai orang tua yang sibuk, saya sangat terbantu dengan sistem BMD. Jadwal, pembayaran, laporan — semua di satu tempat. Sari sekarang sudah tampil di recital tahunan."
+"Sebagai orang tua yang sibuk, saya sangat terbantu dengan sistem EQS. Jadwal, pembayaran, laporan — semua di satu tempat. Sari sekarang sudah tampil di recital tahunan."
 ```
 
 #### Ibu Wati (Anak: Rizky, Drum)
-**Lama:** "Studio BMD lengkap dan nyaman. Anak saya betah belajar di sini. Rekaman sesi juga jadi kenangan berharga."
+**Lama:** "Studio EQS lengkap dan nyaman. Anak saya betah belajar di sini. Rekaman sesi juga jadi kenangan berharga."
 
 **Baru:**
 ```
-"Rizky awalnya cuma coba-coba drum. Sekarang dia sudah gabung band sekolah dan sering manggung. BMD bukan hanya mengajar musik, tapi membentuk karakter."
+"Rizky awalnya cuma coba-coba drum. Sekarang dia sudah gabung band sekolah dan sering manggung. EQS bukan hanya mengajar music, tapi membentuk karakter."
 ```
 
 ---
@@ -241,7 +241,7 @@ Belum menemukan jawaban? Hubungi kami via WhatsApp.
 Sangat mudah! Klik tombol "Daftar via WhatsApp" di halaman ini. Tim kami akan menghubungi Anda dalam 5 menit untuk mengatur jadwal trial gratis. Tidak perlu formulir panjang — cukup chat WhatsApp.
 ```
 
-#### Q: Berapa biaya kursus?
+#### Q: Berapa biaya course?
 **Lama:** "Mulai dari Rp 150.000 untuk sesi trial..."
 
 **Baru:**
@@ -254,7 +254,7 @@ Kami menawarkan 3 paket:
 Semua paket sudah termasuk monitoring online dan laporan progress.
 ```
 
-#### Q: Jam berapa kursus tersedia?
+#### Q: Jam berapa course tersedia?
 **Lama:** "Senin-Sabtu, pukul 09:00-20:00 WIB..."
 
 **Baru:**
@@ -278,12 +278,12 @@ Ya! Setiap 3 bulan, anak Anda akan mengikuti ujian untuk mengukur progress. Hasi
 Invoice dikirim otomatis setiap tanggal 5 via WhatsApp. Bayar transfer bank dengan kode unik 3 digit. Tidak ada kartu kredit, tidak ada potongan. Sederhana dan transparan.
 ```
 
-#### Q: Apakah bisa ganti guru?
+#### Q: Apakah bisa ganti instructor?
 **Lama:** "Bisa! Hubungi admin via WhatsApp..."
 
 **Baru:**
 ```
-Tentu! Kami ingin anak Anda cocok dengan gurunya. Jika tidak cocok, hubungi admin dan kami akan carikan guru yang lebih sesuai. Kepuasan anak adalah prioritas kami.
+Tentu! Kami ingin anak Anda cocok dengan their instructor. Jika tidak cocok, hubungi admin dan kami akan carikan instructor yang lebih sesuai. Kepuasan anak adalah prioritas kami.
 ```
 
 ---
@@ -311,22 +311,22 @@ Daftar sekarang dan dapatkan sesi trial gratis. Tidak cocok? Tidak bayar.
 
 ### Brand description
 ```
-BMD Music School — Membangun karakter anak melalui musik sejak 2015.
+Equalizer-Stake — Membangun karakter anak melalui music sejak 2015.
 ```
 
 ---
 
-## Prinsip Copywriting BMD
+## Prinsip Copywriting EQS
 
 ### DO:
 - Gunakan "Anda" (formal tapi personal)
-- Fokus pada benefit untuk ANAK, bukan fitur kursus
-- Gunakan angka spesifik (10+ tahun, 150+ keluarga)
+- Fokus pada benefit untuk ANAK, bukan fitur course
+- Gunakan angka spesifik (10+ tahun, 150+ pengguna)
 - Ceritakan transformasi (dulu → sekarang)
 - Gunakan kata kerja aktif ("Kami bantu", "Anak Anda belajar")
 
 ### DON'T:
 - Jangan terlalu teknis ("monitoring online" → "pantau progress anak")
 - Jangan klaim berlebihan ("terbaik", "nomor 1")
-- Jangan gunakan jargon musik yang orang tua tidak paham
+- Jangan gunakan jargon music yang orang tua tidak paham
 - Jangan bicara tentang diri sendiri terlalu banyak — fokus pada anak dan orang tua

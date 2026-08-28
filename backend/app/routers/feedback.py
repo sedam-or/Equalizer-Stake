@@ -1,4 +1,4 @@
-"""Feedback router — Guru → Wali Murid feedback."""
+"""Feedback router — Instructor → Guardian feedback."""
 
 from uuid import UUID
 
@@ -28,7 +28,7 @@ async def create_feedback(
     user: User = Depends(require_role("teacher")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Guru kirim feedback ke wali murid."""
+    """Instructor kirim feedback ke guardian."""
     from app.models.feedback import Feedback
     from app.models.session import Session
     from app.models.teacher import Teacher
@@ -93,7 +93,7 @@ async def list_my_feedback(
     user: User = Depends(require_role("guardian")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Wali murid lihat feedback dari guru."""
+    """Guardian lihat feedback dari instructor."""
     from app.models.feedback import Feedback
     from app.models.guardian import Guardian
     from sqlalchemy import select

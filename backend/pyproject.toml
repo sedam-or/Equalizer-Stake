@@ -1,7 +1,7 @@
 [project]
 name = "equalizer-stake-backend"
 version = "0.1.0"
-description = "Equalizer-Stake — BMD Music School Scheduling & Reservation System"
+description = "Equalizer-Stake: Deterministic Reservation Engine"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",

@@ -92,7 +92,7 @@ export default function AttendancePage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-6">
       <h1 className="text-2xl font-bold text-gray-900">Absensi</h1>
-      <p className="mt-1 text-sm text-gray-500">Verifikasi kehadiran guru — foto + GPS bukti</p>
+      <p className="mt-1 text-sm text-gray-500">Verifikasi kehadiran instructor — foto + GPS bukti</p>
 
       <div className="mt-4 flex gap-2">
         {["semua", "pending", "verified", "rejected"].map(f => (
@@ -111,8 +111,8 @@ export default function AttendancePage() {
               <tr className="border-b border-gray-200 text-left text-gray-500">
                 <th className="px-4 py-3">Tanggal</th>
                 <th className="px-4 py-3">Jam</th>
-                <th className="px-4 py-3">Siswa</th>
-                <th className="px-4 py-3">Guru</th>
+                <th className="px-4 py-3">Student</th>
+                <th className="px-4 py-3">Instructor</th>
                 <th className="px-4 py-3">Ruangan</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Aksi</th>
@@ -174,8 +174,8 @@ export default function AttendancePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               <div><span className="text-gray-500">Tanggal:</span> <span className="text-gray-900">{selected.session_date}</span></div>
               <div><span className="text-gray-500">Jam:</span> <span className="text-gray-900">{selected.start_time} - {selected.end_time}</span></div>
-              <div><span className="text-gray-500">Siswa:</span> <span className="text-gray-900">{selected.student_name || "-"}</span></div>
-              <div><span className="text-gray-500">Guru:</span> <span className="text-gray-900">{selected.teacher_name || "-"}</span></div>
+              <div><span className="text-gray-500">Student:</span> <span className="text-gray-900">{selected.student_name || "-"}</span></div>
+              <div><span className="text-gray-500">Instructor:</span> <span className="text-gray-900">{selected.teacher_name || "-"}</span></div>
               <div><span className="text-gray-500">Ruangan:</span> <span className="text-gray-900">{selected.room_name || "-"}</span></div>
               <div><span className="text-gray-500">Status:</span> <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadge[selected.verification_status]}`}>{selected.verification_status}</span></div>
             </div>

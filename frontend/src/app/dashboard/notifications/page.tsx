@@ -52,7 +52,7 @@ export default function NotificationsPage() {
             Notifikasi
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Notifikasi dikelompokkan per wali siswa
+            Notifikasi dikelompokkan per guardian
           </p>
         </div>
         <div className="flex gap-2">

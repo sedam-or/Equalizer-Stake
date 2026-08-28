@@ -7,8 +7,7 @@ Dokumen ini wajib dibaca oleh SEMUA agent sebelum mengerjakan task apapun.
 ## 1. Identitas Project
 
 - **Nama**: Equalizer-Stake
-- **Klien**: BMD Music School, Jl. Seturan No. 15, Yogyakarta
-- **Tujuan**: Sistem penjadwalan kursus & reservasi studio berbasis web (PWA)
+- **Tujuan**: Sistem penjadwalan course & reservasi studio berbasis web (PWA)
 - **Standar**: ISO/IEC/IEEE 29148:2018, UU PDP No. 27/2022, OWASP Top 10, ISO 27001
 
 ## 2. Stack Teknis (Final)
@@ -27,7 +26,7 @@ Dokumen ini wajib dibaca oleh SEMUA agent sebelum mengerjakan task apapun.
 ### 3.1 Keamanan (Non-Negotiable)
 - Semua PII wajib AES-256-GCM encryption at-rest
 - TLS 1.2+ untuk semua koneksi in-transit
-- JWT: HS256, role-based expiry (Owner 30m, Admin 15m, Guru 30m, Guardian 60m)
+- JWT: HS256, role-based expiry (Owner 30m, Admin 15m, Instructor 30m, Guardian 60m)
 - Rate limiting: 100 req/min per user pada endpoint kritis
 - Input validation: server-side untuk SEMUA user input
 - Password: bcrypt, minimal 8 karakter, alphanumeric
@@ -54,14 +53,14 @@ Dokumen ini wajib dibaca oleh SEMUA agent sebelum mengerjakan task apapun.
 - Jam operasional: Sen-Jum 14:30-17:00 WIB, Sab 08:00-12:00 WIB
 - Jeda antar-sesi: 10 menit wajib
 - Minggu ke-5: Non-Credit Theory Class (30 menit)
-- Cuti siswa: maksimal 1 bulan, lebih = re-register
+- Cuti student: maksimal 1 bulan, lebih = re-register
 
 ### 3.5 Notifikasi
 - Kritis (pembayaran, freeze): email utama, WhatsApp cadangan
 - Non-kritis (reminder 1 jam): WhatsApp utama, email cadangan
 - Retry 3x: 10s → 20s → 40s sebelum fallback
 - Circuit breaker: >5 consecutive failures → nonaktifkan sementara WhatsApp
-- Semua ke Wali Murid, bukan per siswa
+- Semua ke Guardian, bukan per student
 
 ### 3.6 Attendance Validation
 - 3 aspek kumulatif: GPS 150m dari (-7.7265, 110.4162), waktu server, wajah ≥30% frame
@@ -77,7 +76,7 @@ Dokumen ini wajib dibaca oleh SEMUA agent sebelum mengerjakan task apapun.
 - AI/ML atau analitik prediktif
 - Multi-cabang
 - Streaming/rekaman sesi daring
-- Inventaris peralatan musik
+- Inventaris peralatan music
 - Sistem akuntansi eksternal
 
 ## 5. Error Handling Standard

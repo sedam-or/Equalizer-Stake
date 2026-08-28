@@ -18,13 +18,13 @@ export default function CtaSection() {
         />
 
         <p className="mx-auto mt-6 max-w-lg text-lg leading-relaxed text-blue-100">
-          Lihat langsung fasilitas kami, bertemu dengan guru, dan rasakan atmosfer belajar yang kami ciptakan untuk anak-anak.
+          Lihat langsung fasilitas kami, bertemu dengan instructor, dan rasakan atmosfer belajar yang kami ciptakan untuk anak-anak.
         </p>
 
         {/* CTA buttons */}
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
-            href="https://wa.me/6281234567890?text=Halo,%20saya%20ingin%20jadwalkan%20kunjungan%20ke%20BMD%20Music%20School"
+            href="https://wa.me/6281234567890?text=Halo,%20saya%20ingin%20jadwalkan%20kunjungan%20ke%20Equalizer-Stake"
             target="_blank"
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-2 rounded-lg bg-white px-8 py-4 text-sm font-bold text-[#2563EB] shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-white/20"
@@ -42,7 +42,7 @@ export default function CtaSection() {
 
         {/* Trust */}
         <div className="mt-12 flex items-center justify-center gap-6 text-blue-200/50">
-          <span className="text-xs">📍 Seturan, Yogyakarta</span>
+          <span className="text-xs">📍 Lokasi Kami</span>
           <span className="h-3 w-px bg-blue-200/20" />
           <span className="text-xs">📞 0812-3456-7890</span>
           <span className="h-3 w-px bg-blue-200/20" />

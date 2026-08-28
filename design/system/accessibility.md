@@ -1,4 +1,4 @@
-# Accessibility — Landing Page BMD Music School
+# Accessibility — Landing Page Equalizer-Stake
 
 Checklist WCAG 2.1 Level AA untuk landing page.
 

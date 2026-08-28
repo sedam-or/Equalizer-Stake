@@ -26,11 +26,11 @@ const navSections: NavSection[] = [
       { href: "/dashboard/schedule", label: "Jadwal", icon: "📅" },
       { href: "/dashboard/attendance", label: "Absensi", icon: "📷" },
       { href: "/dashboard/billing", label: "Tagihan", icon: "💰" },
-      { href: "/dashboard/students", label: "Siswa", icon: "👨‍🎓" },
+      { href: "/dashboard/students", label: "Student", icon: "👨‍🎓" },
       { href: "/dashboard/payments", label: "Pembayaran", icon: "💳" },
       { href: "/dashboard/holidays", label: "Libur", icon: "🏖️" },
       { href: "/dashboard/studio", label: "Studio", icon: "🎵" },
-      { href: "/dashboard/teachers", label: "Guru", icon: "👨‍🏫" },
+      { href: "/dashboard/teachers", label: "Instructor", icon: "👨‍🏫" },
       { href: "/dashboard/registrations", label: "Pendaftaran", icon: "📝" },
       { href: "/dashboard/assign-session", label: "Assign Sesi", icon: "🔗" },
     ],
@@ -48,7 +48,7 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    label: "Guru",
+    label: "Instructor",
     roles: ["teacher"],
     items: [
       { href: "/dashboard/my-schedule", label: "Jadwal Mengajar", icon: "📅" },
@@ -57,7 +57,7 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    label: "Wali Murid",
+    label: "Guardian",
     roles: ["guardian"],
     items: [
       { href: "/dashboard/my-schedule", label: "Jadwal Anak", icon: "📅" },
@@ -71,8 +71,8 @@ const navSections: NavSection[] = [
 const roleLabels: Record<Role, string> = {
   owner: "Owner",
   admin: "Admin Operasional",
-  teacher: "Guru Musik",
-  guardian: "Wali Murid",
+  teacher: "Instructor",
+  guardian: "Guardian",
 };
 
 function SidebarNav({ role, pathname, collapsed, onLinkClick }: { role: Role; pathname: string; collapsed: boolean; onLinkClick?: () => void }) {
@@ -82,7 +82,7 @@ function SidebarNav({ role, pathname, collapsed, onLinkClick }: { role: Role; pa
       <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
         <Link href="/dashboard" onClick={onLinkClick} className="flex items-center gap-2">
           <span className="font-heading text-xl font-bold text-white">
-            BMD <span className="text-[#D4AF37]">Music</span>
+            Equalizer-Stake <span className="text-[#D4AF37]">Music</span>
           </span>
           {!collapsed && (
             <span className="rounded-full bg-[#D4AF37]/10 px-2 py-0.5 text-[10px] font-semibold text-[#D4AF37]">
@@ -254,7 +254,7 @@ export default function Sidebar() {
         <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
           <Link href="/dashboard" className="flex items-center gap-2">
             <span className="font-heading text-xl font-bold text-white">
-              BMD <span className="text-[#D4AF37]">Music</span>
+              Equalizer-Stake <span className="text-[#D4AF37]">Music</span>
             </span>
             {!collapsed && (
               <span className="rounded-full bg-[#D4AF37]/10 px-2 py-0.5 text-[10px] font-semibold text-[#D4AF37]">

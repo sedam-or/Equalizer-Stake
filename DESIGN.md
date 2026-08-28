@@ -1,8 +1,8 @@
-# DESIGN.md — BMD Music School (Equalizer-Stake)
+# DESIGN.md — Equalizer-Stake
 
 **Version:** 2.0
 **Date:** 2026-07-05
-**Source:** SRS ISO/IEC/IEEE 29148:2018 + SRS Addendum (Data Asli BMD MS)
+**Source:** SRS ISO/IEC/IEEE 29148:2018
 **Register:** Product UI — design SERVES the product
 
 ---
@@ -10,17 +10,16 @@
 ## 1. PRODUCT OVERVIEW
 
 ### 1.1 Apa ini?
-Sistem Penjadwalan Kursus & Reservasi Studio Berbasis Web untuk BMD Music School, Yogyakarta.
-Web app untuk manajemen kursus musik: pendaftaran siswa, penjadwalan, penagihan, kehadiran, notifikasi.
+Deterministic Course & Studio Reservation Engine — a web-based system for scheduling, billing, attendance, and notifications.
 
 ### 1.2 Siapa penggunanya?
 
 | Peran | Fungsi | Session Timeout |
 |-------|--------|-----------------|
 | **Owner / Superadmin** | Dashboard read-only, manajemen Admin, override operasional, audit full, pengaturan sistem | 30 menit |
-| **Admin Operasional** | Manajemen harian (jadwal, tagihan, siswa, guru) | 30 menit |
-| **Guru Musik** | Absensi, lihat jadwal mengajar, feedback ke wali murid | 30 menit |
-| **Wali Murid** | Portal 1:N siswa, pembayaran, jadwal, rating guru | 60 menit |
+| **Admin Operasional** | Manajemen harian (jadwal, tagihan, student, instructor) | 30 menit |
+| **Instructor** | Absensi, lihat jadwal mengajar, feedback ke guardian | 30 menit |
+| **Guardian** | Portal 1:N student, pembayaran, jadwal, rating instructor | 60 menit |
 
 ### 1.3 Stack
 - **Backend**: FastAPI + SQLAlchemy async + PostgreSQL + Redis
@@ -104,52 +103,52 @@ Web app untuk manajemen kursus musik: pendaftaran siswa, penjadwalan, penagihan,
 ### 3.1 Buttons
 
 ```
-Primary:    bg-[#2563EB] text-white hover:bg-[#1D4ED8] rounded-lg px-4 py-2.5
-Secondary:  border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2.5
-Danger:     bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2.5
-Ghost:      text-gray-700 hover:bg-gray-100 rounded-lg px-4 py-2.5
+Primary: bg-[#2563EB] text-white hover:bg-[#1D4ED8] rounded-lg px-4 py-2.5
+Secondary: border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2.5
+Danger: bg-red-500 text-white hover:bg-red-600 rounded-lg px-4 py-2.5
+Ghost: text-gray-700 hover:bg-gray-100 rounded-lg px-4 py-2.5
 ```
 
 ### 3.2 Inputs
 
 ```
-Default:    border border-gray-300 rounded-lg px-3 py-2.5 text-sm
-Focus:      border-[#2563EB] ring-2 ring-[#2563EB]/20
-Error:      border-red-500 ring-2 ring-red-500/20
-Disabled:   bg-gray-50 text-gray-400 cursor-not-allowed
+Default: border border-gray-300 rounded-lg px-3 py-2.5 text-sm
+Focus: border-[#2563EB] ring-2 ring-[#2563EB]/20
+Error: border-red-500 ring-2 ring-red-500/20
+Disabled: bg-gray-50 text-gray-400 cursor-not-allowed
 ```
 
 ### 3.3 Cards
 
 ```
-Default:    bg-white rounded-xl border border-gray-200 shadow-sm p-5
-Hover:      hover:border-gray-300 hover:shadow-md transition
+Default: bg-white rounded-xl border border-gray-200 shadow-sm p-5
+Hover: hover:border-gray-300 hover:shadow-md transition
 ```
 
 ### 3.4 Tables
 
 ```
-Desktop:    Standard table with header row
-Mobile:     MobileTable component (cards instead of rows)
+Desktop: Standard table with header row
+Mobile: MobileTable component (cards instead of rows)
 Pagination: "Menampilkan X-Y dari Z data"
 ```
 
 ### 3.5 Modals
 
 ```
-Overlay:    bg-black/50 fixed inset-0 z-50
-Content:    bg-white rounded-xl shadow-lg max-w-md mx-auto
-Header:     font-heading text-lg font-bold
-Footer:     flex justify-end gap-3
+Overlay: bg-black/50 fixed inset-0 z-50
+Content: bg-white rounded-xl shadow-lg max-w-md mx-auto
+Header: font-heading text-lg font-bold
+Footer: flex justify-end gap-3
 ```
 
 ### 3.6 Toast Notifications
 
 ```
-Success:    bg-emerald-50 border-emerald-200 text-emerald-800
-Error:      bg-red-50 border-red-200 text-red-800
-Warning:    bg-amber-50 border-amber-200 text-amber-800
-Info:       bg-blue-50 border-blue-200 text-blue-800
+Success: bg-emerald-50 border-emerald-200 text-emerald-800
+Error: bg-red-50 border-red-200 text-red-800
+Warning: bg-amber-50 border-amber-200 text-amber-800
+Info: bg-blue-50 border-blue-200 text-blue-800
 ```
 
 ---
@@ -160,17 +159,17 @@ Info:       bg-blue-50 border-blue-200 text-blue-800
 
 ```
 ┌─────────────────────────────────────────┐
-│ Sidebar (hidden mobile)  │   Content    │
-│ ┌─────────────────────┐  │ ┌─────────┐ │
-│ │ Logo                │  │ │ Breadcrumb│ │
-│ │ Navigation          │  │ │         │ │
-│ │ - Menu items        │  │ │ Page    │ │
-│ │ - Role-based        │  │ │ Content │ │
-│ │                     │  │ │         │ │
-│ │ Theme Toggle        │  │ │         │ │
-│ │ Logout              │  │ └─────────┘ │
-│ └─────────────────────┘  │             │
-│ BottomNav (mobile only)  │             │
+│ Sidebar (hidden mobile) │ Content │
+│ ┌─────────────────────┐ │ ┌─────────┐ │
+│ │ Logo │ │ │ Breadcrumb│ │
+│ │ Navigation │ │ │ │ │
+│ │ - Menu items │ │ │ Page │ │
+│ │ - Role-based │ │ │ Content │ │
+│ │ │ │ │ │ │
+│ │ Theme Toggle │ │ │ │ │
+│ │ Logout │ │ └─────────┘ │
+│ └─────────────────────┘ │ │
+│ BottomNav (mobile only) │ │
 └─────────────────────────────────────────┘
 ```
 
@@ -214,13 +213,13 @@ Dashboard page:
 | Route | Role | Purpose |
 |-------|------|---------|
 | `/dashboard` | All | Main dashboard (role-specific content) |
-| `/dashboard/students` | Admin | Manage siswa |
-| `/dashboard/teachers` | Admin | Manage guru |
+| `/dashboard/students` | Admin | Manage student |
+| `/dashboard/teachers` | Admin | Manage instructor |
 | `/dashboard/schedule` | Admin | Manage jadwal |
 | `/dashboard/billing` | Admin | Manage tagihan |
 | `/dashboard/payments` | Admin | Manage pembayaran |
 | `/dashboard/registrations` | Admin | Verifikasi pendaftaran |
-| `/dashboard/assign-session` | Admin | Assign siswa ke sesi |
+| `/dashboard/assign-session` | Admin | Assign student ke sesi |
 | `/dashboard/holidays` | Admin | Manage hari libur |
 | `/dashboard/studio` | Admin | Manage ruangan |
 | `/dashboard/pricing` | Owner | Manage harga |
@@ -232,10 +231,10 @@ Dashboard page:
 | `/dashboard/my-students` | Guardian | Anak saya |
 | `/dashboard/my-schedule` | Guardian | Jadwal anak |
 | `/dashboard/my-payments` | Guardian | Pembayaran |
-| `/dashboard/ratings` | Guardian | Rating guru |
+| `/dashboard/ratings` | Guardian | Rating instructor |
 | `/dashboard/my-schedule` | Teacher | Jadwal mengajar |
 | `/dashboard/attendance` | Teacher | Absensi |
-| `/dashboard/feedback` | Teacher | Feedback ke wali murid |
+| `/dashboard/feedback` | Teacher | Feedback ke guardian |
 | `/dashboard/profile` | All | Profil pengguna |
 | `/dashboard/notifications` | All | Notifikasi |
 
@@ -245,17 +244,17 @@ Dashboard page:
 
 ### 6.1 Billing
 
-- **Tanggal 5**: Auto-invoice generated per guardian (aggregat semua siswa aktif)
+- **Tanggal 5**: Auto-invoice generated per guardian (aggregat semua student aktif)
 - **Tanggal 10, 23:59 WIB**: Batas pembayaran
 - **Tanggal 11**: Denda Rp 100.000 + freeze akun guardian
 - **Unique code**: 3 digit per invoice untuk verifikasi transfer
 
 ### 6.2 Attendance
 
-- **GPS**: 150m radius dari lokasi BMD
+- **GPS**: 150m radius dari lokasi EQS
 - **Photo**: Upload foto kehadiran (wajib)
-- **Review**: Guru verifikasi/reject dengan alasan
-- **Siswa absen**: Jam hangus, tidak bisa diganti
+- **Review**: Instructor verifikasi/reject dengan alasan
+- **Student absen**: Jam hangus, tidak bisa diganti
 
 ### 6.3 Cuti
 
@@ -295,15 +294,15 @@ biola, piano, gitar, drum, keyboard, flute, saxophone, vokal, bass, ensemble
 
 ### 6.7 Tipe Kelas
 
-| Tipe | Siswa | Keterangan |
+| Tipe | Student | Keterangan |
 |------|-------|------------|
 | private | 1 | 1-on-1 |
-| intensif_2 | 2 | Intensif 2 siswa |
-| intensif_3 | 3 | Intensif 3 siswa |
+| intensif_2 | 2 | Intensif 2 student |
+| intensif_3 | 3 | Intensif 3 student |
 | semi_intensif | 4-6 | Semi intensif |
 | expatriate_private | 1 | English class |
-| expatriate_2 | 2 | English 2 siswa |
-| expatriate_3 | 3 | English 3 siswa |
+| expatriate_2 | 2 | English 2 student |
+| expatriate_3 | 3 | English 3 student |
 | tunas | 1 | Min usia 3.5 tahun |
 | paket_liburan | 1-4 | Paket liburan |
 
@@ -329,17 +328,17 @@ biola, piano, gitar, drum, keyboard, flute, saxophone, vokal, bass, ensemble
 ### 7.1 Landing Page
 
 **Hero:**
-- Headline: "Anak Anda Punya Bakat Musik? Kami Bantu Mengembangkannya."
-- Subheadline: "Kursus musik profesional di Yogyakarta. Guru berpengalaman, jadwal fleksibel, harga terjangkau."
-- CTA: "Daftar Kursus" → /register-course
+- Headline: "Anak Anda Punya Musical Talent? Kami Bantu Mengembangkannya."
+- Subheadline: "Course music profesional di . Instructor berpengalaman, jadwal fleksibel, harga terjangkau."
+- CTA: "Daftar Course" → /register-course
 
 **Instrumen:**
 - Title: "Pilih Instrumen Favorit Anak Anda"
 - Desc per instrumen: benefit-focused, bukan fitur
 
 **Tentang:**
-- Title: "Tentang BMD"
-- Desc: "Bukan hanya kursus musik. Kami membangun karakter anak melalui musik."
+- Title: "Tentang EQS"
+- Desc: "Bukan hanya course music. Kami membangun karakter anak melalui music."
 
 **Testimoni:**
 - Title: "Apa Kata Mereka?"
@@ -393,7 +392,7 @@ Semua UI text dalam Bahasa Indonesia:
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.01ms !important; }
+ * { animation-duration: 0.01ms !important; }
 }
 ```
 

@@ -51,10 +51,10 @@ export function exportToPDF(title: string, content: string) {
     </head>
     <body>
       <h1>${title}</h1>
-      <p>BMD Music School — Executive Summary</p>
+      <p>Equalizer-Stake — Executive Summary</p>
       ${content}
       <div class="footer">
-        Generated: ${new Date().toLocaleDateString("id-ID", { dateStyle: "full" })} — BMD Music School
+        Generated: ${new Date().toLocaleDateString("id-ID", { dateStyle: "full" })} — Equalizer-Stake
       </div>
     </body>
     </html>

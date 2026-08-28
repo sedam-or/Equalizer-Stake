@@ -85,24 +85,24 @@ Only 3 pages use refreshKey. When data changes on one page, other pages don't kn
 
 ### P0 — CRITICAL
 1. **Add refreshKey to ALL pages that fetch data:**
-   - schedule, students, teachers, billing, payments, notifications, my-schedule, my-payments
+ - schedule, students, teachers, billing, payments, notifications, my-schedule, my-payments
 
 ### P1 — HIGH
 2. **Add triggerRefresh() to ALL pages that mutate data:**
-   - assign-session, billing, registrations, override, holidays, feedback, ratings
+ - assign-session, billing, registrations, override, holidays, feedback, ratings
 
 ### P2 — MEDIUM
 3. **Add auto-refresh on focus:**
-   - When user returns to tab, refetch data
-   - Use `document.visibilitychange` event
+ - When user returns to tab, refetch data
+ - Use `document.visibilitychange` event
 
 4. **Add polling for critical data:**
-   - Notifications: refetch every 30 seconds
-   - Schedule: refetch every 5 minutes
+ - Notifications: refetch every 30 seconds
+ - Schedule: refetch every 5 minutes
 
 5. **Consider global state library:**
-   - For complex state: Zustand or React Query
-   - For simple state: DashboardContext is sufficient
+ - For complex state: Zustand or React Query
+ - For simple state: DashboardContext is sufficient
 ```
 
 **Output:** docs/audit/frontend/FRONTEND_STATE_MANAGEMENT_AUDIT.md

@@ -62,20 +62,20 @@ Modul audit log menyediakan pencatatan immutable atas semua perubahan data dan a
 ### 4.1 Alur Penghapusan
 
 ```
-Wali Murid ajukan form permintaan penghapusan
-    ↓
+Guardian ajukan form permintaan penghapusan
+ ↓
 Sistem cek: tidak ada invoice aktif?
-    ├─ Ya → lanjut ke verifikasi
-    └─ Tidak → tolak, tampilkan pesan: "Masih ada tagihan aktif"
-    ↓
-Admin verifikasi identitas Wali Murid
-    ↓
+ ├─ Ya → lanjut ke verifikasi
+ └─ Tidak → tolak, tampilkan pesan: "Masih ada tagihan aktif"
+ ↓
+Admin verifikasi identitas Guardian
+ ↓
 Sistem proses:
-    1. Anonimisasi PII → REDACTED-[SHA256 hash]
-    2. Hapus foto profil secara permanen (physical delete)
-    3. Catat di audit log dengan category = 'Tindakan Kepatuhan'
-    ↓
-Selesai — konfirmasi ke Wali Murid
+ 1. Anonimisasi PII → REDACTED-[SHA256 hash]
+ 2. Hapus foto profil secara permanen (physical delete)
+ 3. Catat di audit log dengan category = 'Tindakan Kepatuhan'
+ ↓
+Selesai — konfirmasi ke Guardian
 ```
 
 ### 4.2 SLA
@@ -99,7 +99,7 @@ Selesai — konfirmasi ke Wali Murid
 
 ### 4.4 Constraint
 
-- Permintaan penghapusan hanya dapat diajukan oleh Wali Murid yang terverifikasi.
+- Permintaan penghapusan hanya dapat diajukan oleh Guardian yang terverifikasi.
 - Jika ada invoice aktif, proses penghapusan ditolak secara otomatis.
 - Semua langkah proses penghapusan dicatat di audit log.
 - Data yang sudah dianonimisasi TIDAK BISA dikembalikan.

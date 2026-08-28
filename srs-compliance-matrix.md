@@ -8,8 +8,8 @@ Generated: 2026-07-01
 |---------|-------------|--------|----------|-----------------|
 | FR-01 §2 | Single login page, role-based dashboard redirect | DONE | `routers/auth.py:33-54` (login returns role in response) | — |
 | FR-01 §2.1 | JWT HS256, per-role payload | DONE | `services/auth.py:17` `ALGORITHM = "HS256"` | — |
-| FR-01 §2.1 | Owner/Admin/Guru timeout 30 min | DONE | `services/auth.py:19-22` `ACCESS_TOKEN_EXPIRE_MINUTES` | — |
-| FR-01 §2.1 | Wali Murid timeout 60 min | DONE | `services/auth.py:22` `"guardian": 60` | — |
+| FR-01 §2.1 | Owner/Admin/Instructor timeout 30 min | DONE | `services/auth.py:19-22` `ACCESS_TOKEN_EXPIRE_MINUTES` | — |
+| FR-01 §2.1 | Guardian timeout 60 min | DONE | `services/auth.py:22` `"guardian": 60` | — |
 | FR-01 §2.1 | Draft restored after re-login | DONE | `models/draft.py:14` 7-day TTL auto-save drafts | — |
 | FR-01 §2.2 | Max 5 failed attempts in 15 min | DONE | `services/auth.py:26-27` `MAX_FAILED_ATTEMPTS=5`, `LOCKOUT_MINUTES=15` | — |
 | FR-01 §2.2 | Account locked 15 min after 5th failure | DONE | `services/auth.py:84-85` sets `locked_until` | — |
@@ -30,15 +30,15 @@ Generated: 2026-07-01
 | FR-01 §4.4 | Inactive account → "Akun tidak aktif" | PARTIAL | `services/auth.py:78` checks `is_active` | Returns `None` (generic 401), no specific inactive message |
 | FR-01 §5 | All error conditions handled per spec | PARTIAL | See individual rows above | Inactive account and expired password messages missing |
 
-## FR-02: Penjadwalan Kursus (Scheduling)
+## FR-02: Penjadwalan Course (Scheduling)
 
 | SRS Ref | Requirement | Status | Evidence | Gap Description |
 |---------|-------------|--------|----------|-----------------|
 | FR-02 §2.1 | Real-time slot validation (teacher, room, time) | DONE | `services/scheduling.py:20-70` `validate_slot()` | — |
 | FR-02 §2.1 | Conflict must not pass to storage | DONE | `services/scheduling.py:73-74` validates before create | — |
-| FR-02 §2.2 | Teacher overlap detection | DONE | `services/scheduling.py:64` `"Guru sudah ada sesi lain"` | — |
+| FR-02 §2.2 | Teacher overlap detection | DONE | `services/scheduling.py:64` `"Instructor sudah ada sesi lain"` | — |
 | FR-02 §2.2 | Room overlap detection | DONE | `services/scheduling.py:66` `"Ruangan sudah digunakan"` | — |
-| FR-02 §2.2 | Student overlap detection | DONE | `services/scheduling.py:68` `"Siswa sudah ada sesi lain"` | — |
+| FR-02 §2.2 | Student overlap detection | DONE | `services/scheduling.py:68` `"Student sudah ada sesi lain"` | — |
 | FR-02 §2.2 | Sunday closed | DONE | `services/scheduling.py:36` `"Hari Minggu tutup"` | — |
 | FR-02 §2.3 | Operational hours validation | MISSING | No operational hours check in scheduling service | No validation against studio operating hours |
 | FR-02 §2.4 | Concurrency control (optimistic locking) | MISSING | No lock version or optimistic locking in session model | Concurrent saves could cause race condition |
@@ -87,7 +87,7 @@ Generated: 2026-07-01
 | FR-04 §3.4 | Freeze: block access + message | PARTIAL | `services/multi_student.py:78` sets frozen status | No middleware to block frozen user login |
 | FR-04 §5.4 | Admin unfreeze after full payment | DONE | `services/override.py:14` | — |
 
-## SRS-04: Validasi Kehadiran Guru (Attendance)
+## SRS-04: Validasi Kehadiran Instructor (Attendance)
 
 | SRS Ref | Requirement | Status | Evidence | Gap Description |
 |---------|-------------|--------|----------|-----------------|
@@ -101,7 +101,7 @@ Generated: 2026-07-01
 | §4.1 | Auto-verified if GPS + face OK | DONE | `services/attendance.py:80` `verified if all_valid else pending_review` | — |
 | §4.1 | Pending if GPS outside radius | DONE | `services/attendance.py:80` sets `pending_review` | — |
 | §4.2 | Admin review SLA (24h) | MISSING | `routers/attendance.py:41-57` review endpoint exists | No SLA enforcement or reminder for pending reviews |
-| §5 | Guru can only submit own sessions | PARTIAL | `routers/attendance.py:20` teacher role required | No explicit check that teacher owns the session |
+| §5 | Instructor can only submit own sessions | PARTIAL | `routers/attendance.py:20` teacher role required | No explicit check that teacher owns the session |
 | §6 | Offline mode with IndexedDB + auto-upload | PARTIAL | `models/attendance.py:36` `is_offline_submission` field | Offline storage is frontend; server accepts flag |
 | §7.1 | All valid → status "verified" | DONE | `services/attendance.py:80` | — |
 | §7.2 | GPS outside → status "pending_review" | DONE | `services/attendance.py:80` | — |
@@ -113,7 +113,7 @@ Generated: 2026-07-01
 | §10 | POST /api/attendance + PUT /{id}/review | DONE | `routers/attendance.py:17,41` | — |
 | §11 | Teacher session ownership check | PARTIAL | Role check exists, no ownership validation | Could submit attendance for another teacher's session |
 
-## SRS-09: Multi-Student per Wali Murid
+## SRS-09: Multi-Student per Guardian
 
 | SRS Ref | Requirement | Status | Evidence | Gap Description |
 |---------|-------------|--------|----------|-----------------|

@@ -1,29 +1,29 @@
-# Prompt untuk Stitch — UI/UX Rombak Total BMD Music School
-**App:** BMD Music School — Sistem Penjadwalan Kursus & Pembayaran
+# Prompt untuk Stitch — UI/UX Rombak Total Equalizer-Stake
+**App:** Equalizer-Stake — Sistem Penjadwalan Course & Pembayaran
 **Stack:** Next.js 15 PWA, dark theme, mobile-first
-**Users:** 4 role — Owner (Superadmin), Admin Operasional, Guru Musik, Wali Murid
+**Users:** 4 role — Owner (Superadmin), Admin Operasional, Instructor, Guardian
 
 ---
 
 ## DESIGN SYSTEM
 
 ```
-Background:     #000000 (hitam)
-Card:           #111111 dengan border #253900 (hijau gelap)
-Accent:         #08CB00 (hijau terang — BMD brand)
-Text Primary:   #EEEEEE
+Background: #000000 (hitam)
+Card: #111111 dengan border #253900 (hijau gelap)
+Accent: #08CB00 (hijau terang — EQS brand)
+Text Primary: #EEEEEE
 Text Secondary: #9CA3AF (gray-400)
-Input BG:       #1a1a1a
-Input Focus:    border #08CB00
+Input BG: #1a1a1a
+Input Focus: border #08CB00
 Button Primary: bg #08CB00, text #000000
-Button Danger:  bg red-500/20, text red-400
-Badge Success:  bg #08CB00/10, text #08CB00
-Badge Warning:  bg yellow-500/10, text yellow-500
-Badge Error:    bg red-500/10, text red-500
-Font:           Inter (body), Geist (headings)
-Radius:         12px (cards), 8px (buttons), 6px (inputs)
-Spacing:        16px (card padding), 24px (section gap)
-Shadow:         none (dark theme, gunakan border untuk depth)
+Button Danger: bg red-500/20, text red-400
+Badge Success: bg #08CB00/10, text #08CB00
+Badge Warning: bg yellow-500/10, text yellow-500
+Badge Error: bg red-500/10, text red-500
+Font: Inter (body), Geist (headings)
+Radius: 12px (cards), 8px (buttons), 6px (inputs)
+Spacing: 16px (card padding), 24px (section gap)
+Shadow: none (dark theme, gunakan border untuk depth)
 ```
 
 ---
@@ -33,11 +33,11 @@ Shadow:         none (dark theme, gunakan border untuk depth)
 ### GROUP 1: PUBLIC (tidak perlu login)
 
 #### 1. Landing Page (/)
-**Tujuan:** Marketing page, visitor tertarik daftar kursus
+**Tujuan:** Marketing page, visitor tertarik daftar course
 **Sections:**
-- Hero: headline "Sekolah Musik Terpercaya di Yogyakarta", subheadline "Sejak 2010", CTA "Daftar Kursus"
-- Tentang BMD: sejarah singkat, 9 instrumen, MSI standard
-- Keunggulan: guru profesional, kurikulum MSI, sertifikat ABRSM, konser orkestra
+- Hero: headline " Terpercaya di ", subheadline "Sejak 2010", CTA "Daftar Course"
+- Tentang EQS: sejarah singkat, 9 instrumen, MSI standard
+- Keunggulan: instructor profesional, kurikulum MSI, sertifikat ABRSM, konser orkestra
 - Daftar Instrumen: grid 9 kartu instrumen (Piano, Gitar, Biola, Vokal, Drum, Keyboard, Flute, Saxophone, Bass) dengan ikon
 - Harga: tabel perbandingan tipe kelas (Private, Intensif 2-3 org, Semi Intensif, Expatriate) dengan harga per bulan
 - Testimoni: 3-5 testimoni placeholder
@@ -45,8 +45,8 @@ Shadow:         none (dark theme, gunakan border untuk depth)
 - Footer: alamat, telepon, WhatsApp, jam operasional
 **Mobile:** Stack vertikal, hero full-width, instrumen grid 2 kolom
 
-#### 2. Daftar Kursus (/register-course)
-**Tujuan:** Calon siswa mendaftar kursus baru
+#### 2. Daftar Course (/register-course)
+**Tujuan:** Calon student mendaftar course baru
 **Form:**
 - Nama Lengkap (text input)
 - WhatsApp (text input, format 08xxx)
@@ -54,16 +54,16 @@ Shadow:         none (dark theme, gunakan border untuk depth)
 - Alamat (textarea)
 - Instrumen (dropdown: 9 pilihan)
 - Level (dropdown dinamis: berubah sesuai instrumen yang dipilih)
-  - Piano Klasik: Pra Elementary, Elementary, Grade 1-6
-  - Piano Pop: Beginner, Intermediate, Intermediate 2
-  - Vokal/Biola/Gitar/Keyboard/Drum/Flute/Saxophone: Basic, Intermediate, Advance
-- Tipe Kelas (dropdown: Private, Intensif 2 Siswa, Intensif 3 Siswa, Semi Intensif, Expatriate Private, Expatriate 2, Expatriate 3, Tunas/Balita, Paket Liburan)
+ - Piano Klasik: Pra Elementary, Elementary, Grade 1-6
+ - Piano Pop: Beginner, Intermediate, Intermediate 2
+ - Vokal/Biola/Gitar/Keyboard/Drum/Flute/Saxophone: Basic, Intermediate, Advance
+- Tipe Kelas (dropdown: Private, Intensif 2 Student, Intensif 3 Student, Semi Intensif, Expatriate Private, Expatriate 2, Expatriate 3, Tunas/Balita, Paket Liburan)
 - Tombol "Daftar"
 **Setelah submit:** Success message "Pendaftaran berhasil! Kami akan menghubungi Anda via WhatsApp dalam 1x24 jam."
 **Mobile:** Full-width form, single column
 
-#### 3. Login (/login)bagaimana jika profile setiap role setiap user harus ada photonya? bagaimana jika guru memberikan feedback ke wali murid yang diajar? dan bagaimana wali murid memberikan penilaian ke guru 
-kursusnya? apakah ada di srs? dan untuk tampilan dashboard wali murid, haruslah mobile friendly, setuju? dan apakah halaman verifikasi email berhasil dan gagal ketika link lupa password sudah 
+#### 3. Login (/login)bagaimana jika profile setiap role setiap user harus ada photonya? bagaimana jika instructor memberikan feedback ke guardian yang diajar? dan bagaimana guardian memberikan penilaian ke instructor
+courses? apakah ada di srs? dan untuk tampilan dashboard guardian, haruslah mobile friendly, setuju? dan apakah halaman verifikasi email berhasil dan gagal ketika link lupa password sudah
 dikirim ke email? dan bagaimana dengan page bantuan?
 
 **Tujuan:** Semua role login
@@ -72,10 +72,10 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 - Password (password input + eye toggle)
 - Tombol "Masuk"
 - Link "Lupa Password?" → /forgot-password
-- Link "Belum punya akun? Daftar Kursus" → /register-course
+- Link "Belum punya akun? Daftar Course" → /register-course
 **Error:** "Username atau password tidak valid" (generic, tidak leak info)
 **First login:** Jika first_login=true → redirect ke /change-password
-**Background:** ColorBends animated gradient (hijau BMD)
+**Background:** ColorBends animated gradient (hijau EQS)
 
 #### 4. Lupa Password (/forgot-password)
 **Tujuan:** User minta reset password via email
@@ -109,14 +109,14 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 
 ### GROUP 2: WALI MURID (MOBILE-FIRST, 320px minimum)
 
-**PENTING:** Semua halaman Wali Murid HARUS mobile-first. 60% user akses via HP. Bottom navigation di bawah, sidebar di hide di mobile.
+**PENTING:** Semua halaman Guardian HARUS mobile-first. 60% user akses via HP. Bottom navigation di bawah, sidebar di hide di mobile.
 
-#### 7. Dashboard Wali Murid (/dashboard)
-**Tujuan:** Overview ringkas untuk wali murid
-**Layout mobile:** 
+#### 7. Dashboard Guardian (/dashboard)
+**Tujuan:** Overview ringkas untuk guardian
+**Layout mobile:**
 - Header: "Halo, [Nama Wali]" + avatar
-- Kartu Anak: scrollable horizontal, setiap kartu = 1 anak (nama, instrumen, level, guru, status)
-- Jadwal Hari Ini: daftar sesi (jam, guru, ruangan, status)
+- Kartu Anak: scrollable horizontal, setiap kartu = 1 anak (nama, instrumen, level, instructor, status)
+- Jadwal Hari Ini: daftar sesi (jam, instructor, ruangan, status)
 - Tagihan: kartu ringkas (total belum bayar, jatuh tempo terdekat)
 - Quick Actions: "Bayar Sekarang", "Lihat Jadwal", "Lihat Anak"
 **Layout desktop:** Grid 2 kolom
@@ -124,16 +124,16 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 #### 8. Anak Saya (/dashboard/my-children)
 **Tujuan:** Lihat detail semua anak yang terdaftar
 **Content:**
-- Kartu per anak: nama, foto placeholder, instrumen, level, guru, status (aktif/cuti/trial)
+- Kartu per anak: nama, foto placeholder, instrumen, level, instructor, status (aktif/cuti/trial)
 - Eligible for exam badge (jika memenuhi syarat)
 - Detail: jadwal per anak, riwayat kehadiran, progress
 **Mobile:** Stack vertikal, satu kartu per baris
 
 #### 9. Jadwal Saya (/dashboard/my-schedule)
-**Tujuan:** Lihat jadwal kursus anak-anak
+**Tujuan:** Lihat jadwal course anak-anak
 **Content:**
 - Filter: minggu ini / bulan ini
-- Daftar sesi: tanggal, jam, guru, ruangan, siswa, status (pending/locked/completed/cancelled)
+- Daftar sesi: tanggal, jam, instructor, ruangan, student, status (pending/locked/completed/cancelled)
 - Warna hijau = completed, kuning = pending, abu = cancelled
 **Mobile:** List view, bukan tabel
 
@@ -164,11 +164,11 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 - Tombol "Hapus Data Saya" (UU PDP) → konfirmasi modal
 **Mobile:** Full-width form
 
-#### 13. Beri Penilaian Guru (/dashboard/rating) [BARU — belum di SRS]
-**Tujuan:** Wali murid memberikan penilaian ke guru kursus anak
+#### 13. Beri Penilaian Instructor (/dashboard/rating) [BARU — belum di SRS]
+**Tujuan:** Wali murid memberikan penilaian ke instructor course anak
 **Content:**
 - Pilih anak (dropdown jika punya >1 anak)
-- Pilih guru (auto-detect dari jadwal anak)
+- Pilih instructor (auto-detect dari jadwal anak)
 - Rating bintang (1-5)
 - Komentar (textarea, opsional)
 - Tombol "Kirim Penilaian"
@@ -179,11 +179,11 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 
 ### GROUP 3: GURU MUSIK
 
-#### 14. Dashboard Guru (/dashboard)
+#### 14. Dashboard Instructor (/dashboard)
 **Tujuan:** Overview jadwal hari ini
 **Content:**
-- Header: "Halo, [Nama Guru]"
-- Jadwal Hari Ini: daftar sesi (jam, siswa, ruangan, status)
+- Header: "Halo, [Nama Instructor]"
+- Jadwal Hari Ini: daftar sesi (jam, student, ruangan, status)
 - Statistik: total sesi bulan ini, tingkat kehadiran
 - Quick Actions: "Absen Sekarang"
 
@@ -191,7 +191,7 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 **Tujuan:** Lihat jadwal mengajar
 **Content:**
 - Filter: hari ini / minggu ini / bulan ini
-- Daftar sesi: tanggal, jam, siswa, ruangan, status
+- Daftar sesi: tanggal, jam, student, ruangan, status
 - Tombol "Absen" pada sesi hari ini yang belum di-absen
 
 #### 16. Absen (/dashboard/attendance/submit)
@@ -204,16 +204,16 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 5. Submit → status "menunggu verifikasi admin"
 **Mobile:** Full-width, tombol besar
 
-#### 17. Beri Feedback ke Wali Murid (/dashboard/feedback) [BARU — belum di SRS]
-**Tujuan:** Guru memberikan feedback progress siswa ke wali murid
+#### 17. Beri Feedback ke Guardian (/dashboard/feedback) [BARU — belum di SRS]
+**Tujuan:** Instructor memberikan feedback progress student ke guardian
 **Content:**
-- Pilih siswa (dropdown dari daftar siswa yang diajar)
+- Pilih student (dropdown dari daftar student yang diajar)
 - Kategori feedback: Kemajuan, Perilaku, Kehadiran, Rekomendasi
 - Rating (1-5) per kategori
 - Komentar (textarea)
 - Tombol "Kirim Feedback"
 - Riwayat feedback yang sudah dikirim
-- Feedback ini akan terlihat oleh wali murid di halaman "Anak Saya"
+- Feedback ini akan terlihat oleh guardian di halaman "Anak Saya"
 
 ---
 
@@ -222,38 +222,38 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 #### 18. Dashboard Admin (/dashboard)
 **Tujuan:** Overview operasional harian
 **Content:**
-- 4 KPI cards: Total Siswa Aktif, Sesi Hari Ini, Tagihan Pending, Absensi Pending
+- 4 KPI cards: Total Student Aktif, Sesi Hari Ini, Tagihan Pending, Absensi Pending
 - Jadwal hari ini (tabel)
 - Quick actions: Buat Jadwal, Verifikasi Absensi, Verifikasi Pembayaran
 
 #### 19. Pendaftaran (/dashboard/registrations)
-**Tujuan:** Review pendaftaran calon siswa baru
+**Tujuan:** Review pendaftaran calon student baru
 **Content:**
 - Tab: Pending / Disetujui / Ditolak
 - Tabel: nama, WhatsApp, instrumen, level, tipe kelas, tanggal daftar
-- Detail modal: data lengkap + tombol "Setujui" (assign guru + jadwal) / "Tolak" (alasan)
+- Detail modal: data lengkap + tombol "Setujui" (assign instructor + jadwal) / "Tolak" (alasan)
 - Saat setujui: auto-buat akun guardian + kirim notifikasi WA
 
 #### 20. Jadwal (/dashboard/schedule)
-**Tujuan:** Kelola jadwal kursus
+**Tujuan:** Kelola jadwal course
 **Content:**
-- Tabel: tanggal, jam, guru, siswa, ruangan, status
-- Tombol "+ Buat Jadwal" → form modal (guru, siswa, ruangan, tanggal, jam mulai, jam selesai)
-- Conflict detection real-time (guru/siswa/room overlap)
-- Filter: tanggal, guru, ruangan
+- Tabel: tanggal, jam, instructor, student, ruangan, status
+- Tombol "+ Buat Jadwal" → form modal (instructor, student, ruangan, tanggal, jam mulai, jam selesai)
+- Conflict detection real-time (instructor/student/room overlap)
+- Filter: tanggal, instructor, ruangan
 
 #### 21. Absensi (/dashboard/attendance)
-**Tujuan:** Verifikasi kehadiran guru
+**Tujuan:** Verifikasi kehadiran instructor
 **Content:**
 - Tab: Pending / Verified / Rejected
-- Tabel: tanggal, jam, guru, siswa, ruangan, status
+- Tabel: tanggal, jam, instructor, student, ruangan, status
 - Detail modal: foto bukti, GPS koordinat, jarak dari studio, face confidence
 - Tombol "Verifikasi" / "Tolak" (alasan)
 
-#### 22. Siswa (/dashboard/students)
-**Tujuan:** Kelola data siswa
+#### 22. Student (/dashboard/students)
+**Tujuan:** Kelola data student
 **Content:**
-- Tabel: nama, instrumen, level, tipe kelas, guru, wali murid, status
+- Tabel: nama, instrumen, level, tipe kelas, instructor, guardian, status
 - Search + filter
 - Detail modal
 
@@ -261,7 +261,7 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 **Tujuan:** Kelola tagihan dan verifikasi pembayaran
 **Content:**
 - Tab: Pending / Lunas / Overdue
-- Tabel: invoice, wali murid, periode, jumlah, jatuh tempo, kode unik, status
+- Tabel: invoice, guardian, periode, jumlah, jatuh tempo, kode unik, status
 - Detail modal: foto bukti transfer + input kode unik 3 digit
 - Verifikasi: kode harus cocok → lunas
 - Tolak: alasan
@@ -284,13 +284,13 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 - Kartu per ruangan: nama, tipe, kapasitas, peralatan, status
 
 #### 27. Harga (/dashboard/pricing)
-**Tujuan:** Kelola harga kursus
+**Tujuan:** Kelola harga course
 **Content:**
 - Tabel: instrumen, tipe kelas, level, SPP/bulan, durasi, biaya daftar
 - Filter: instrumen, tipe kelas
 
 #### 28. Notifikasi (/dashboard/notifications)
-**Content:** sama seperti Wali Murid
+**Content:** sama seperti Guardian
 
 #### 29. Pengaturan Notifikasi (/dashboard/notification-settings)
 **Tujuan:** Toggle channel notifikasi per kategori
@@ -298,7 +298,7 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 - Tabel: kategori (critical/non_critical), deskripsi, WhatsApp on/off, Email on/off
 
 #### 30. Profil (/dashboard/profile)
-**Content:** sama seperti Wali Murid
+**Content:** sama seperti Guardian
 
 ---
 
@@ -307,7 +307,7 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 #### 31. Dashboard Owner (/dashboard)
 **Tujuan:** Executive summary — read-only
 **Content:**
-- 8 KPI cards: Total Pendapatan, Pendapatan Bulan Ini, Tingkat Kehadiran, Utilitas Studio, Total Siswa, Tagihan Belum Bayar, Akun Terkunci, Frozen Accounts
+- 8 KPI cards: Total Pendapatan, Pendapatan Bulan Ini, Tingkat Kehadiran, Utilitas Studio, Total Student, Tagihan Belum Bayar, Akun Terkunci, Frozen Accounts
 - Revenue trend (6 bulan terakhir)
 - Per-studio breakdown
 - Anomaly flags
@@ -370,12 +370,12 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 **Content:**
 - Search bar (cari pertanyaan)
 - Accordion FAQ per kategori:
-  - **Umum**: Apa itu BMD MS? Bagaimana cara daftar? Berapa biaya kursus?
-  - **Akun**: Bagaimana cara login? Lupa password? Ganti password?
-  - **Pembayaran**: Bagaimana cara bayar? Apa itu kode unik? Kapan jatuh tempo? Apa yang terjadi jika terlambat?
-  - **Jadwal**: Bagaimana cara lihat jadwal? Bisakah ganti jadwal? Apa yang terjadi jika absen?
-  - **Absensi**: Bagaimana guru absen? Apa itu GPS validation? Mengapa foto wajib?
-  - **Privasi**: Bagaimana cara hapus data saya? Apa itu UU PDP?
+ - **Umum**: Apa itu EQS? Bagaimana cara daftar? Berapa biaya course?
+ - **Akun**: Bagaimana cara login? Lupa password? Ganti password?
+ - **Pembayaran**: Bagaimana cara bayar? Apa itu kode unik? Kapan jatuh tempo? Apa yang terjadi jika terlambat?
+ - **Jadwal**: Bagaimana cara lihat jadwal? Bisakah ganti jadwal? Apa yang terjadi jika absen?
+ - **Absensi**: Bagaimana instructor absen? Apa itu GPS validation? Mengapa foto wajib?
+ - **Privasi**: Bagaimana cara hapus data saya? Apa itu UU PDP?
 - Kontak: WhatsApp admin, telepon, alamat
 - Jam operasional
 **Mobile:** Full-width accordion, search bar sticky di atas
@@ -396,11 +396,11 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 **Tujuan:** FAQ dan panduan penggunaan sistem
 **Content:**
 - Accordion FAQ per kategori:
-  - **Umum:** Apa itu BMD MS? Bagaimana cara daftar? Berapa biaya?
-  - **Pembayaran:** Kapan jatuh tempo? Bagaimana cara bayar? Apa itu kode unik?
-  - **Jadwal:** Bagaimana jika terlambat? Bagaimana jika guru absen? Apakah bisa ganti jadwal?
-  - **Absensi:** Mengapa jam hangus? Berapa lama cuti? Apa yang terjadi jika lebih dari 1 bulan?
-  - **Akun:** Bagaimana cara ganti password? Bagaimana cara hapus akun?
+ - **Umum:** Apa itu EQS? Bagaimana cara daftar? Berapa biaya?
+ - **Pembayaran:** Kapan jatuh tempo? Bagaimana cara bayar? Apa itu kode unik?
+ - **Jadwal:** Bagaimana jika terlambat? Bagaimana jika instructor absen? Apakah bisa ganti jadwal?
+ - **Absensi:** Mengapa jam hangus? Berapa lama cuti? Apa yang terjadi jika lebih dari 1 bulan?
+ - **Akun:** Bagaimana cara ganti password? Bagaimana cara hapus akun?
 - Kontak: WhatsApp admin, telepon, alamat
 - Jam operasional: Senin-Jumat 14:30-17:00, Sabtu 08:00-12:00
 **Mobile:** Full-width accordion, tombol WhatsApp besar di bawah
@@ -409,10 +409,10 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 **Tujuan:** Panduan penggunaan dashboard per role
 **Content:**
 - Panduan per role (auto-detect role user):
-  - **Wali Murid:** Cara lihat tagihan, cara bayar, cara lihat jadwal anak
-  - **Guru:** Cara absen, cara lihat jadwal, cara beri feedback
-  - **Admin:** Cara buat jadwal, cara verifikasi absensi, cara verifikasi pembayaran
-  - **Owner:** Cara lihat laporan, cara kelola admin
+ - **Guardian:** Cara lihat tagihan, cara bayar, cara lihat jadwal anak
+ - **Instructor:** Cara absen, cara lihat jadwal, cara beri feedback
+ - **Admin:** Cara buat jadwal, cara verifikasi absensi, cara verifikasi pembayaran
+ - **Owner:** Cara lihat laporan, cara kelola admin
 - Link ke WhatsApp admin untuk bantuan langsung
 **Mobile:** Full-width, step-by-step guide dengan screenshot placeholder
 
@@ -420,10 +420,10 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 
 ## UAT (User Acceptance Test)
 
-### Alur 1: Visitor Daftar Kursus
+### Alur 1: Visitor Daftar Course
 ```
-1.1 Buka / → landing page tampil, tombol "Daftar Kursus" terlihat
-1.2 Klik "Daftar Kursus" → /register-course
+1.1 Buka / → landing page tampil, tombol "Daftar Course" terlihat
+1.2 Klik "Daftar Course" → /register-course
 1.3 Isi form lengkap → submit
 1.4 Success message tampil
 1.5 Login admin → menu Pendaftaran → data baru terlihat
@@ -443,14 +443,14 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 ```
 3.1 Login admin → menu Jadwal
 3.2 Klik "+ Buat Jadwal" → form tampil
-3.3 Isi guru, siswa, ruangan, tanggal, jam → submit
+3.3 Isi instructor, student, ruangan, tanggal, jam → submit
 3.4 Jadwal muncul di tabel
-3.5 Login guru → Jadwal Saya → jadwal baru terlihat
+3.5 Login instructor → Jadwal Saya → jadwal baru terlihat
 ```
 
-### Alur 4: Guru Absen
+### Alur 4: Instructor Absen
 ```
-4.1 Login guru → Jadwal Hari Ini
+4.1 Login instructor → Jadwal Hari Ini
 4.2 Klik "Absen" pada sesi
 4.3 Upload foto → GPS auto-detect → jarak tampil
 4.4 Submit → "Menunggu verifikasi admin"
@@ -507,18 +507,18 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 10.7 Login dengan password baru → berhasil
 ```
 
-### Alur 11: Guru Feedback → Wali Murid [BARU]
+### Alur 11: Instructor Feedback → Guardian [BARU]
 ```
-11.1 Login guru → menu Feedback
-11.2 Pilih siswa → isi rating + komentar
+11.1 Login instructor → menu Feedback
+11.2 Pilih student → isi rating + komentar
 11.3 Submit
-11.4 Login wali murid → Anak Saya → feedback guru terlihat
+11.4 Login guardian → Anak Saya → feedback instructor terlihat
 ```
 
-### Alur 12: Wali Murid Rating → Guru [BARU]
+### Alur 12: Guardian Rating → Instructor [BARU]
 ```
-12.1 Login wali murid → menu Penilaian Guru
-12.2 Pilih guru → isi rating bintang + komentar
+12.1 Login guardian → menu Penilaian Instructor
+12.2 Pilih instructor → isi rating bintang + komentar
 12.3 Submit
 12.4 Rating tercatat di sistem
 ```
@@ -531,18 +531,18 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 13.4 Data PII dianonimkan
 ```
 
-### Alur 14: Guru Feedback → Wali Murid [BARU]
+### Alur 14: Instructor Feedback → Guardian [BARU]
 ```
-14.1 Login guru → menu Feedback
-14.2 Pilih siswa → isi rating + komentar
+14.1 Login instructor → menu Feedback
+14.2 Pilih student → isi rating + komentar
 14.3 Submit
-14.4 Login wali murid → Anak Saya → feedback guru terlihat
+14.4 Login guardian → Anak Saya → feedback instructor terlihat
 ```
 
-### Alur 15: Wali Murid Rating → Guru [BARU]
+### Alur 15: Guardian Rating → Instructor [BARU]
 ```
-15.1 Login wali murid → menu Penilaian Guru
-15.2 Pilih guru → isi rating bintang + komentar
+15.1 Login guardian → menu Penilaian Instructor
+15.2 Pilih instructor → isi rating bintang + komentar
 15.3 Submit
 15.4 Rating tercatat di sistem
 ```
@@ -562,8 +562,8 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 | Group | Jumlah | Role |
 |-------|--------|------|
 | Public (no auth) | 8 | Visitor |
-| Wali Murid | 8 | Guardian (MOBILE-FIRST) |
-| Guru Musik | 4 | Teacher |
+| Guardian | 8 | Guardian (MOBILE-FIRST) |
+| Instructor | 4 | Teacher |
 | Admin Operasional | 13 | Admin |
 | Owner | 6 | Superadmin |
 | Khusus | 4 | Semua |
@@ -573,13 +573,13 @@ dikirim ke email? dan bagaimana dengan page bantuan?
 
 ## CATATAN UNTUK STITCH
 
-1. **MOBILE-FIRST untuk Wali Murid** — 60% user akses via HP. Bottom nav, bukan sidebar. Kartu besar, tombol besar, font besar.
+1. **MOBILE-FIRST untuk Guardian** — 60% user akses via HP. Bottom nav, bukan sidebar. Kartu besar, tombol besar, font besar.
 2. **Desktop untuk Admin/Owner** — Sidebar kiri, tabel data dense, banyak kolom.
-3. **Guru di tengah** — Bisa mobile (saat absen di studio) dan desktop (saat di rumah).
+3. **Instructor di tengah** — Bisa mobile (saat absen di studio) dan desktop (saat di rumah).
 4. **ColorBends animated gradient** di background login, register, forgot-password, reset-password.
 5. **Dark theme konsisten** — SEMUA page hitam, card #111, accent hijau.
 6. **Bahasa Indonesia** — SEMUA teks dalam Bahasa Indonesia.
-7. **Kode unik 3 digit** — WAJIB terlihat jelas di invoice wali murid (bold, hijau, besar).
+7. **Kode unik 3 digit** — WAJIB terlihat jelas di invoice guardian (bold, hijau, besar).
 8. **Foto bukti** — Placeholder "📷 Foto bukti kehadiran" atau "🧾 Bukti transfer" di modal.
 9. **GPS indicator** — Hijau jika ≤150m, merah jika >150m.
 10. **Status badges** — Hijau (lunas/verified), kuning (pending), merah (overdue/rejected).

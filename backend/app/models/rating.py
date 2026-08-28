@@ -1,4 +1,4 @@
-"""Rating model — Wali Murid → Guru rating."""
+"""Rating model — Guardian → Instructor rating."""
 
 import uuid
 from datetime import datetime

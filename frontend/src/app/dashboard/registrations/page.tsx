@@ -164,7 +164,7 @@ export default function RegistrationsPage() {
         Pendaftaran Kursus
       </h1>
       <p className="mb-6 text-sm text-gray-500">
-        Review dan kelola pendaftaran kursus baru
+        Review dan kelola pendaftaran course baru
       </p>
 
       {/* Table */}

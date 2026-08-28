@@ -27,7 +27,7 @@ def upgrade() -> None:
     student_level = postgresql.ENUM("pemula", "dasar", "menengah", "lanjut", name="student_level", create_type=False)
     enrollment_status = postgresql.ENUM("active", "cuti", "inactive", "trial", name="enrollment_status", create_type=False)
     employment_type = postgresql.ENUM("tetap", "freelance", name="employment_type", create_type=False)
-    room_type = postgresql.ENUM("kursus", "rehearsal", "recording", name="room_type", create_type=False)
+    room_type = postgresql.ENUM("course", "rehearsal", "recording", name="room_type", create_type=False)
     session_type = postgresql.ENUM("reguler", "teori", "rehearsal", "recording", "kompensasi", name="session_type", create_type=False)
     session_status = postgresql.ENUM("draft", "pending", "locked", "completed", "cancelled", "rescheduled", name="session_status", create_type=False)
     invoice_status = postgresql.ENUM("draft", "issued", "paid", "overdue", "cancelled", name="invoice_status", create_type=False)

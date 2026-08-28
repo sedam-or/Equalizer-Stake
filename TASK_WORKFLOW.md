@@ -9,90 +9,90 @@ Referensi SRS: `docs/SRS_Equalizer-Stake_*.md` dan `docs/part3_bab3.md`.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    PRE-DEBUG (4 steps)                   │
+│ PRE-DEBUG (4 steps) │
 ├─────────────────────────────────────────────────────────┤
-│  1. BACA SRS                                             │
-│     ├─ Baca srs/ modular yang relevan dengan task ini    │
-│     ├─ Atau docs/SRS_*.md untuk BAB utuh                 │
-│     ├─ Catat: FR-xx, UC-xx, business rules, constraints  │
-│     ├─ Cek NFR (Performance, Security, Reliability)      │
-│     └─ Pastikan paham 100% sebelum mulai kode            │
+│ 1. BACA SRS │
+│ ├─ Baca srs/ modular yang relevan dengan task ini │
+│ ├─ Atau docs/SRS_*.md untuk BAB utuh │
+│ ├─ Catat: FR-xx, UC-xx, business rules, constraints │
+│ ├─ Cek NFR (Performance, Security, Reliability) │
+│ └─ Pastikan paham 100% sebelum mulai kode │
 ├─────────────────────────────────────────────────────────┤
-│  2. BACA DEPENDENCIES                                    │
-│     ├─ Cek task dependencies di tasks/TASKS.md           │
-│     ├─ Baca report sebelumnya di tasks/report_tasks.md   │
-│     ├─ Pastikan dependency sudah selesai                 │
-│     └─ Cek PROJECT_RULES.md untuk constraint teknis      │
-│     └─ Baca architecture/ untuk technical implementation │
+│ 2. BACA DEPENDENCIES │
+│ ├─ Cek task dependencies di tasks/TASKS.md │
+│ ├─ Baca report sebelumnya di tasks/report_tasks.md │
+│ ├─ Pastikan dependency sudah selesai │
+│ └─ Cek PROJECT_RULES.md untuk constraint teknis │
+│ └─ Baca architecture/ untuk technical implementation │
 ├─────────────────────────────────────────────────────────┤
-│  3. BACA DESIGN REFERENCE                                │
-│     ├─ Baca design/ yang relevan (jika frontend task)    │
-│     ├─ Catat: warna, spacing, component pattern          │
-│     ├─ Mobile-first: 320px → 768px → 1024px+            │
-│     └─ WCAG 2.1 Level A, bahasa Indonesia UI             │
+│ 3. BACA DESIGN REFERENCE │
+│ ├─ Baca design/ yang relevan (jika frontend task) │
+│ ├─ Catat: warna, spacing, component pattern │
+│ ├─ Mobile-first: 320px → 768px → 1024px+ │
+│ └─ WCAG 2.1 Level A, bahasa Indonesia UI │
 ├─────────────────────────────────────────────────────────┤
-│  4. BUAT TEST PLAN                                       │
-│     ├─ Tulis: apa yang harus di-test (dari SRS criteria) │
-│     ├─ Tulis: Given-When-Then acceptance criteria        │
-│     ├─ Tulis: edge cases yang harus dicover              │
-│     └─ Simpan test plan di comment sebelum kode          │
+│ 4. BUAT TEST PLAN │
+│ ├─ Tulis: apa yang harus di-test (dari SRS criteria) │
+│ ├─ Tulis: Given-When-Then acceptance criteria │
+│ ├─ Tulis: edge cases yang harus dicover │
+│ └─ Simpan test plan di comment sebelum kode │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
-│                   DURING-DEBUG (3 steps)                 │
+│ DURING-DEBUG (3 steps) │
 ├─────────────────────────────────────────────────────────┤
-│  5. IMPLEMENTASI                                         │
-│     ├─ Tulis kode sesuai SRS + design reference          │
-│     ├─ Ikuti PROJECT_RULES.md (security, audit, dll)     │
-│     ├─ PII wajib AES-256-GCM, audit log wajib immutable │
-│     └─ Commit setiap selesai 1 subtask                   │
+│ 5. IMPLEMENTASI │
+│ ├─ Tulis kode sesuai SRS + design reference │
+│ ├─ Ikuti PROJECT_RULES.md (security, audit, dll) │
+│ ├─ PII wajib AES-256-GCM, audit log wajib immutable │
+│ └─ Commit setiap selesai 1 subtask │
 ├─────────────────────────────────────────────────────────┤
-│  6. TEST LOCALHOST                                       │
-│     ├─ Run backend + frontend di localhost               │
-│     ├─ Test semua acceptance criteria dari test plan     │
-│     ├─ Test error handling (error codes AUTH_xxx, dll)   │
-│     └─ Pastikan semua test pass sebelum lanjut           │
+│ 6. TEST LOCALHOST │
+│ ├─ Run backend + frontend di localhost │
+│ ├─ Test semua acceptance criteria dari test plan │
+│ ├─ Test error handling (error codes AUTH_xxx, dll) │
+│ └─ Pastikan semua test pass sebelum lanjut │
 ├─────────────────────────────────────────────────────────┤
-│  7. DEBUG LOOP                                           │
-│     ├─ Jika ada error: baca error message, fix, retest   │
-│     ├─ Maksimal 3 percobaan per error                    │
-│     ├─ Jika stuck > 3x: dokumentasikan dan eskalasi      │
-│     └─ Loop sampai semua test pass                        │
+│ 7. DEBUG LOOP │
+│ ├─ Jika ada error: baca error message, fix, retest │
+│ ├─ Maksimal 3 percobaan per error │
+│ ├─ Jika stuck > 3x: dokumentasikan dan eskalasi │
+│ └─ Loop sampai semua test pass │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
-│                   POST-DEBUG (5 steps)                   │
+│ POST-DEBUG (5 steps) │
 ├─────────────────────────────────────────────────────────┤
-│  8. CODE REVIEW                                          │
-│     ├─ Review kode dari sisi keamanan (OWASP Top 10)     │
-│     ├─ Review kode dari sisi performa (NFR targets)      │
-│     ├─ Review kode dari sisi UU PDP compliance           │
-│     └─ Pastikan tidak ada hardcoded secret/credential    │
+│ 8. CODE REVIEW │
+│ ├─ Review kode dari sisi keamanan (OWASP Top 10) │
+│ ├─ Review kode dari sisi performa (NFR targets) │
+│ ├─ Review kode dari sisi UU PDP compliance │
+│ └─ Pastikan tidak ada hardcoded secret/credential │
 ├─────────────────────────────────────────────────────────┤
-│  9. OPTIMIZATION                                         │
-│     ├─ Query optimization (index, eager loading)         │
-│     ├─ Cache strategy (Redis untuk slot locking)         │
-│     ├─ Response time sesuai NFR (≤2s page, ≤1s validasi) │
-│     └─ Bundle size optimization (frontend)               │
+│ 9. OPTIMIZATION │
+│ ├─ Query optimization (index, eager loading) │
+│ ├─ Cache strategy (Redis untuk slot locking) │
+│ ├─ Response time sesuai NFR (≤2s page, ≤1s validasi) │
+│ └─ Bundle size optimization (frontend) │
 ├─────────────────────────────────────────────────────────┤
-│ 10. SECURITY AUDIT                                       │
-│     ├─ Cek SEC-01..SEC-08 compliance matrix              │
-│     ├─ Input validation server-side                      │
-│     ├─ SQL injection, XSS, CSRF protection               │
-│     ├─ Rate limiting pada endpoint kritis                 │
-│     └─ JWT validation dan expiry check                   │
+│ 10. SECURITY AUDIT │
+│ ├─ Cek SEC-01..SEC-08 compliance matrix │
+│ ├─ Input validation server-side │
+│ ├─ SQL injection, XSS, CSRF protection │
+│ ├─ Rate limiting pada endpoint kritis │
+│ └─ JWT validation dan expiry check │
 ├─────────────────────────────────────────────────────────┤
-│ 11. REVISION                                             │
-│     ├─ Fix semua findings dari code review + security    │
-│     ├─ Retest setelah fix                                │
-│     ├─ Pastikan tidak ada regression                     │
-│     └─ Document perubahan di commit message              │
+│ 11. REVISION │
+│ ├─ Fix semua findings dari code review + security │
+│ ├─ Retest setelah fix │
+│ ├─ Pastikan tidak ada regression │
+│ └─ Document perubahan di commit message │
 ├─────────────────────────────────────────────────────────┤
-│ 12. WRITE REPORT & COMMIT                                │
-│     ├─ Tulis laporan di tasks/report_tasks.md            │
-│     ├─ Format: lihat template di bawah                   │
-│     ├─ Commit semua perubahan                            │
-│     └─ Update status di tasks/TASKS.md                   │
+│ 12. WRITE REPORT & COMMIT │
+│ ├─ Tulis laporan di tasks/report_tasks.md │
+│ ├─ Format: lihat template di bawah │
+│ ├─ Commit semua perubahan │
+│ └─ Update status di tasks/TASKS.md │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -108,17 +108,17 @@ Gunakan format berikut untuk SETIAP task yang selesai:
 - **Tanggal**: YYYY-MM-DD
 - **FR/UC terkait**: FR-xx, UC-xx
 - **Files changed**:
-  - `path/to/file.py` — deskripsi perubahan
-  - `path/to/file.tsx` — deskripsi perubahan
+ - `path/to/file.py` — deskripsi perubahan
+ - `path/to/file.tsx` — deskripsi perubahan
 - **Test results**:
-  - [ ] Test case 1: PASS/FAIL
-  - [ ] Test case 2: PASS/FAIL
+ - [ ] Test case 1: PASS/FAIL
+ - [ ] Test case 2: PASS/FAIL
 - **Security findings**:
-  - Finding 1: deskripsi + cara fix
-  - Finding 2: deskripsi + cara fix
+ - Finding 1: deskripsi + cara fix
+ - Finding 2: deskripsi + cara fix
 - **Performance**:
-  - Response time: Xms (target: ≤2000ms)
-  - Query count: N (optimized)
+ - Response time: Xms (target: ≤2000ms)
+ - Query count: N (optimized)
 - **Notes**: Catatan penting, known issues, technical debt
 - **Dependencies affected**: Task apa yang terdampak
 - **Rollback plan**: Cara rollback jika ada masalah

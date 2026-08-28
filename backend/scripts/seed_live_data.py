@@ -1,4 +1,4 @@
-"""Seed script — populate database with realistic BMD Music School data."""
+"""Seed script — populate database with realistic Equalizer-Stake data."""
 import asyncio
 import random
 from datetime import datetime, timedelta, time

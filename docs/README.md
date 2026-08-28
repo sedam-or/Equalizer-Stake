@@ -18,9 +18,9 @@
 
 ## Quick Reference
 
-- **System**: Equalizer-Stake — BMD Music School, Yogyakarta
+- **System**: Equalizer-Stake — Equalizer-Stake
 - **Stack**: FastAPI + Next.js (PWA) + PostgreSQL + Redis + Docker
-- **4 Roles**: Owner, Admin Operasional, Guru Musik, Wali Murid
+- **4 Roles**: Owner, Admin Operasional, Instructor, Guardian
 - **7 Modules**: Penjadwalan, Penagihan, Kehadiran, Notifikasi, Pelaporan, Audit, Dokumentasi
 - **15 FRs**: FR-01..FR-15 (13 Approved, 2 Proposed)
 - **20 UCs**: UC1..UC20

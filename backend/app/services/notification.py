@@ -219,7 +219,7 @@ async def send_notification(
                     smtp_user=settings.SMTP_USER,
                     smtp_password=settings.SMTP_PASSWORD,
                     recipient=notification.body.split("Email: ")[1].split("\n")[0] if "Email: " in notification.body else "",
-                    subject=notification.subject or "Notifikasi BMD Musik",
+                    subject=notification.subject or "Notifikasi Equalizer-Stake",
                     html_body=notification.body,
                 )
                 success = result.get("success", False)

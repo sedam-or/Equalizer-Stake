@@ -1,6 +1,6 @@
 ---
 module: overview
-title: "Equalizer-Stake — Sistem Penjadwalan Kursus & Reservasi Studio BMD Musik Yogya"
+title: "Equalizer-Stake — Sistem Penjadwalan Course & Reservasi Studio Equalizer-Stake Yogya"
 standard: "ISO/IEC/IEEE 29148:2018"
 version: "2.0"
 date: "2026-06-27"
@@ -13,28 +13,28 @@ date: "2026-06-27"
 | Field | Value |
 |---|---|
 | Nama Sistem | Equalizer-Stake |
-| Klien | BMD Music School Yogyakarta |
+| Klien | Equalizer-Stake |
 | Standar | ISO/IEC/IEEE 29148:2018 |
-| Cakupan | Penjadwalan kursus musik, reservasi studio, billing, kehadiran |
+| Cakupan | Penjadwalan course music, reservasi studio, billing, kehadiran |
 
 ## 2. Peran Pengguna
 
 | Peran | Fungsi | Session Timeout |
 |---|---|---|
 | **Owner / Superadmin** | Superadmin: dashboard, manajemen Admin, override operasional, audit full, pengaturan sistem | 30 menit |
-| **Admin Operasional** | Manajemen harian (jadwal, tagihan, siswa) | 30 menit |
-| **Guru Musik** | Absensi, lihat jadwal mengajar | 30 menit |
-| **Wali Murid** | Portal 1:N siswa, booking, pembayaran | 60 menit |
+| **Admin Operasional** | Manajemen harian (jadwal, tagihan, student) | 30 menit |
+| **Instructor** | Absensi, lihat jadwal mengajar | 30 menit |
+| **Guardian** | Portal 1:N student, booking, pembayaran | 60 menit |
 
 ## 3. Modul Sistem
 
 | # | Modul | Keterangan |
 |---|---|---|
-| 1 | **Scheduling** | Penjadwalan kursus, reservasi studio, validasi konflik real-time |
+| 1 | **Scheduling** | Penjadwalan course, reservasi studio, validasi konflik real-time |
 | 2 | **Billing** | Invoice otomatis, kode unik, denda, pembekuan |
-| 3 | **Attendance** | Absensi siswa per sesi, rekap kehadiran |
+| 3 | **Attendance** | Absensi student per sesi, rekap kehadiran |
 | 4 | **Notification** | Pengingat jadwal, tagihan, perubahan (WA/email) |
-| 5 | **Reporting** | Laporan keuangan, utilisasi guru/ruangan, KPI Owner |
+| 5 | **Reporting** | Laporan keuangan, utilisasi instructor/ruangan, KPI Owner |
 | 6 | **Audit** | Trail semua transaksi, retensi 7 tahun |
 | 7 | **User Docs** | Panduan pengguna per peran |
 
@@ -43,7 +43,7 @@ date: "2026-06-27"
 | Metrik | Target |
 |---|---|
 | Biaya admin | **-30%** dari baseline manual |
-| Retensi siswa | **+15%** dari baseline |
+| Retensi student | **+15%** dari baseline |
 | Cash flow lag | **≤ 7 hari** dari tagihan ke terima |
 | Sengketa pembayaran | **-90%** dari baseline |
 
@@ -54,7 +54,7 @@ date: "2026-06-27"
 - AI/ML (prediksi churn, rekomendasi)
 - Multi-cabang / franchise
 - Live streaming / video lesson
-- Inventory manajemen alat musik
+- Inventory manajemen alat music
 
 ## 6. Lingkungan Operasional
 

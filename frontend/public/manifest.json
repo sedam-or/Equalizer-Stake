@@ -1,7 +1,7 @@
 {
   "name": "Equalizer-Stake",
   "short_name": "EQS",
-  "description": "Sistem Penjadwalan Kursus & Reservasi Studio BMD Musik Yogyakarta",
+  "description": "Deterministic Course & Studio Reservation Engine",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F9FAFB",

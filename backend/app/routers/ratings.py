@@ -1,4 +1,4 @@
-"""Ratings router — Wali Murid → Guru rating."""
+"""Ratings router — Guardian → Instructor rating."""
 
 from uuid import UUID
 
@@ -28,7 +28,7 @@ async def create_rating(
     user: User = Depends(require_role("guardian")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Wali murid rate guru."""
+    """Guardian rate instructor."""
     from app.models.rating import Rating
     from app.models.guardian import Guardian
     from app.models.teacher import Teacher
@@ -39,7 +39,7 @@ async def create_rating(
     )
     guardian = result.scalar_one_or_none()
     if not guardian:
-        raise HTTPException(status_code=404, detail="Profil wali murid tidak ditemukan")
+        raise HTTPException(status_code=404, detail="Profil guardian tidak ditemukan")
 
     # Verify teacher exists
     teacher_result = await db.execute(
@@ -115,7 +115,7 @@ async def get_teacher_ratings(
     user: User = Depends(require_role("admin", "owner")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Admin lihat rating guru + rata-rata."""
+    """Admin lihat rating instructor + rata-rata."""
     from app.models.rating import Rating
 
     result = await db.execute(

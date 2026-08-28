@@ -85,12 +85,12 @@
 **SRS:** Upload foto profil
 **Implementation:** ✅ /api/v1/photos/profile/photo
 
-### 2.13 Feedback Guru ke Wali Murid (BARU)
-**SRS:** Guru beri catatan ke wali murid
+### 2.13 Feedback Instructor ke Guardian (BARU)
+**SRS:** Instructor beri catatan ke guardian
 **Implementation:** ✅ Feedback model + router + page
 
-### 2.14 Penilaian Wali Murid ke Guru (BARU)
-**SRS:** Wali murid beri rating ke guru
+### 2.14 Penilaian Guardian ke Instructor (BARU)
+**SRS:** Wali murid beri rating ke instructor
 **Implementation:** ✅ Rating model + router + page
 
 ### 2.15 Page Detail Instrumen dan Kelas (BARU)
@@ -105,7 +105,7 @@
 **SRS:** Reset password via email
 **Implementation:** ✅ /forgot-password + /reset-password pages
 
-### 2.18 Mobile-First Wali Murid (BARU)
+### 2.18 Mobile-First Guardian (BARU)
 **SRS:** Mobile-first design for guardian
 **Implementation:** ✅ Responsive design, mobile table component
 
@@ -115,17 +115,17 @@
 
 ### 3.1 Self-Service Registration
 **Added:** Multi-step registration flow (5 steps)
-**Purpose:** Wali Murid daftar sendiri via web
+**Purpose:** Guardian daftar sendiri via web
 **Files:** /register-course page + registrations router
 
 ### 3.2 Teacher Management Dashboard
-**Added:** Admin CRUD untuk manage guru
-**Purpose:** Admin bisa tambah/edit/nonaktifkan guru
+**Added:** Admin CRUD untuk manage instructor
+**Purpose:** Admin bisa tambah/edit/nonaktifkan instructor
 **Files:** /dashboard/teachers + teachers router
 
 ### 3.3 Student Assignment to Sessions
 **Added:** Admin assign student → session
-**Purpose:** Admin bisa assign siswa ke jadwal guru
+**Purpose:** Admin bisa assign student ke jadwal instructor
 **Files:** /dashboard/assign-session + scheduling router
 
 ### 3.4 Guardian Per-Student Sections

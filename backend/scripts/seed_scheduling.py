@@ -19,8 +19,8 @@ from app.models.teacher import Teacher
 from app.models.student import Student
 
 ROOMS = [
-    {"room_name": "Studio A", "room_type": "kursus", "capacity": 2},
-    {"room_name": "Studio B", "room_type": "kursus", "capacity": 2},
+    {"room_name": "Studio A", "room_type": "course", "capacity": 2},
+    {"room_name": "Studio B", "room_type": "course", "capacity": 2},
     {"room_name": "Studio C", "room_type": "rehearsal", "capacity": 4},
 ]
 

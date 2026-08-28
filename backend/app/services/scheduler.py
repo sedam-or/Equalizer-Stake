@@ -299,7 +299,7 @@ async def job_session_reminder():
 # ---------------------------------------------------------------------------
 # 5. Database backup — daily 03:00 WIB
 # ---------------------------------------------------------------------------
-BACKUP_DIR = "/home/kepolu/bmdmusic/backups"
+BACKUP_DIR = "/home/kepolu/equalizer-stake/backups"
 BACKUP_RETENTION_DAYS = 30
 
 

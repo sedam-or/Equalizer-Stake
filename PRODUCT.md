@@ -1,14 +1,13 @@
-# PRODUCT.md — BMD Music School
+# PRODUCT.md — Equalizer-Stake
 
 ## What is this?
-Sistem Penjadwalan Kursus & Reservasi Studio Berbasis Web untuk BMD Music School, Yogyakarta.
-Web app untuk manajemen kursus musik: pendaftaran siswa, penjadwalan, penagihan, kehadiran, notifikasi.
+Deterministic Course & Studio Reservation Engine — a web-based system for scheduling, billing, attendance, and notifications.
 
 ## Who is it for?
 - **Owner**: Read-only dashboard, monitoring, audit
 - **Admin Operasional**: Harian (schedule, billing, students, teachers)
-- **Guru Musik**: Absensi, jadwal mengajar, feedback
-- **Wali Murid**: Portal 1:N siswa, pembayaran, jadwal, rating
+- **Instructor**: Absensi, jadwal mengajar, feedback
+- **Guardian**: Portal 1:N student, pembayaran, jadwal, rating
 
 ## Stack
 - **Backend**: FastAPI + SQLAlchemy async + PostgreSQL + Redis
@@ -16,7 +15,7 @@ Web app untuk manajemen kursus musik: pendaftaran siswa, penjadwalan, penagihan,
 - **Deploy**: Docker + single server
 
 ## Register
-App UI — design SERVES the product (dashboard, admin, portal wali murid).
+App UI — design SERVES the product (dashboard, admin, portal guardian).
 
 ## Design System
 - **Theme**: Light default (#F8FAFC bg, #FFFFFF cards)
@@ -30,8 +29,8 @@ App UI — design SERVES the product (dashboard, admin, portal wali murid).
 - `/register-course` — Self-service registration (5 steps)
 - `/login` — Login page
 - `/dashboard` — Main dashboard (role-based)
-- `/dashboard/students` — Admin: manage siswa
-- `/dashboard/teachers` — Admin: manage guru
+- `/dashboard/students` — Admin: manage student
+- `/dashboard/teachers` — Admin: manage instructor
 - `/dashboard/schedule` — Admin: manage jadwal
 - `/dashboard/billing` — Admin: manage tagihan
 - `/dashboard/my-students` — Guardian: anak saya

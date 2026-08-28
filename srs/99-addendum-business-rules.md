@@ -1,6 +1,6 @@
-# SRS Addendum — Koreksi Business Rules Berdasarkan Data Asli BMD MS
+# SRS Addendum — Koreksi Business Rules Berdasarkan Data Asli EQS
 **Tanggal:** 2026-07-01
-**Sumber:** Data asli BMD Music School (website 2014 + konfirmasi owner)
+**Sumber:** Data asli Equalizer-Stake (website 2014 + konfirmasi owner)
 **Status:** APPROVED — override SRS asli jika ada konflik
 
 ---
@@ -13,12 +13,12 @@
 - Tanggal 10, 23:59 WIB: Batas pembayaran
 - Tanggal 11: Denda Rp 100.000 + freeze akun
 
-## 2. Koreksi: Kebijakan Absensi Siswa
+## 2. Koreksi: Kebijakan Absensi Student
 
 **SRS lama (salah):** Ada credit refund tier (>24h=100%, 1-24h=50%, <1h=0%)
 **Koreksi:**
-- Siswa absen → jam HANGUS, tidak bisa diganti, uang tidak bisa ditarik
-- Guru absen → diganti oleh guru pengganti atau hari lain
+- Student absen → jam HANGUS, tidak bisa diganti, uang tidak bisa ditarik
+- Instructor absen → diganti oleh instructor pengganti atau hari lain
 - Libur nasional → tidak ada penggantian jam
 - Minggu ke-5 dalam bulan → libur, diganti 1x kelas teori tambahan
 
@@ -34,9 +34,9 @@
 **SRS lama (FR-08):** Ada fitur booking studio rehearsal/recording
 **Koreksi:**
 - HAPUS fitur studio reservation dari sistem
-- Studio = tempat kursus, bukan layanan sewa terpisah
+- Studio = tempat course, bukan layanan sewa terpisah
 - Booking studio = langsung WhatsApp admin (di luar sistem)
-- Room hanya sebagai lokasi kelas kursus
+- Room hanya sebagai lokasi kelas course
 
 ## 5. Koreksi: Instrumen
 
@@ -69,15 +69,15 @@
 **SRS lama:** Tidak ada tipe kelas
 **Koreksi:**
 
-| Tipe | Jumlah Siswa | Keterangan |
+| Tipe | Jumlah Student | Keterangan |
 |------|-------------|------------|
 | private | 1 | Kelas privat 1-on-1 |
-| intensif_2 | 2 | Kelas intensif 2 siswa |
-| intensif_3 | 3 | Kelas intensif 3 siswa |
+| intensif_2 | 2 | Kelas intensif 2 student |
+| intensif_3 | 3 | Kelas intensif 3 student |
 | semi_intensif | 4-6 | Kelas semi intensif (max 6 tahun) |
 | expatriate_private | 1 | Kelas expatriate (bahasa Inggris) |
-| expatriate_2 | 2 | Kelas expatriate 2 siswa |
-| expatriate_3 | 3 | Kelas expatriate 3 siswa |
+| expatriate_2 | 2 | Kelas expatriate 2 student |
+| expatriate_3 | 3 | Kelas expatriate 3 student |
 | tunas | 1 | Kelas balita (min usia 3.5 tahun) |
 | paket_liburan | 1-4 | Kelas paket liburan |
 
@@ -100,13 +100,13 @@
 ### Vokal
 | Tipe | SPP/Bulan | Durasi |
 |------|----------|--------|
-| Private (1 siswa) | Rp 600.000 | 45 menit |
-| Intensif (2 siswa) | Rp 390.000 | 45 menit |
-| Intensif (3 siswa) | Rp 330.000 | 45 menit |
-| Semi Intensif (4 siswa) | Rp 300.000 | 45 menit |
+| Private (1 student) | Rp 600.000 | 45 menit |
+| Intensif (2 student) | Rp 390.000 | 45 menit |
+| Intensif (3 student) | Rp 330.000 | 45 menit |
+| Semi Intensif (4 student) | Rp 300.000 | 45 menit |
 | Expatriate Private | Rp 840.000 | 45 menit |
-| Expatriate 2 siswa | Rp 660.000 | 45 menit |
-| Expatriate 3 siswa | Rp 600.000 | 45 menit |
+| Expatriate 2 student | Rp 660.000 | 45 menit |
+| Expatriate 3 student | Rp 600.000 | 45 menit |
 
 ### Piano Klasik
 | Tipe | SPP/Bulan | Durasi |
@@ -146,10 +146,10 @@
 ### Paket Liburan
 | Tipe | SPP | Durasi |
 |------|-----|--------|
-| Kelas A (1 siswa) | Rp 780.000 | 45 menit |
-| Kelas B (2 siswa) | Rp 900.000 | 45 menit |
-| Kelas C (3 siswa) | Rp 1.020.000 | 45 menit |
-| Kelas D (4 siswa) | Rp 1.260.000 | 45 menit |
+| Kelas A (1 student) | Rp 780.000 | 45 menit |
+| Kelas B (2 student) | Rp 900.000 | 45 menit |
+| Kelas C (3 student) | Rp 1.020.000 | 45 menit |
+| Kelas D (4 student) | Rp 1.260.000 | 45 menit |
 
 ## 9. Syarat Usia
 | Instrumen | Usia Minimal |
@@ -172,28 +172,28 @@
 ---
 
 ## 12. Foto Profil (BARU)
-- Setiap user (owner, admin, guru, wali murid) WAJIB punya foto profil
+- Setiap user (owner, admin, instructor, guardian) WAJIB punya foto profil
 - Default: avatar lingkaran dengan inisial nama (warna random)
 - Upload: klik foto, modal crop, simpan
 - Format: JPEG/PNG, max 2MB
 - Disimpan: encrypted (AES-256-GCM) di server
 - Hapus profil = hapus foto (UU PDP Pasal 19)
 
-## 13. Feedback Guru ke Wali Murid (BARU)
-- Guru memberikan feedback progress siswa ke wali murid
+## 13. Feedback Instructor ke Guardian (BARU)
+- Instructor memberikan feedback progress student ke guardian
 - Kategori: Kemajuan, Perilaku, Kehadiran, Rekomendasi
 - Rating: 1-5 per kategori
 - Komentar: textarea, opsional
 - Wali murid bisa lihat feedback di halaman "Anak Saya"
 - Feedback tersimpan di audit log
 
-## 14. Penilaian Wali Murid ke Guru (BARU)
-- Wali murid memberikan penilaian ke guru kursus anak
+## 14. Penilaian Guardian ke Instructor (BARU)
+- Wali murid memberikan penilaian ke instructor course anak
 - Rating: 1-5 bintang
 - Komentar: textarea, opsional
-- Hanya bisa menilai guru yang mengajar anaknya
+- Hanya bisa menilai instructor yang mengajar anaknya
 - Rating tersimpan di audit log
-- Admin bisa lihat rating guru di dashboard
+- Admin bisa lihat rating instructor di dashboard
 
 ## 15. Page Detail Instrumen dan Kelas (BARU)
 - Public page: /instruments
@@ -215,7 +215,7 @@
 - Token valid: 1 jam
 - Rate limit: max 3 reset per jam per email
 
-## 18. Mobile-First Wali Murid (BARU)
+## 18. Mobile-First Guardian (BARU)
 - NFR-USA-02: mobile-first, min 320px
 - 60% user akses via HP
 - Bottom navigation (bukan sidebar) di mobile

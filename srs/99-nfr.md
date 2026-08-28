@@ -20,16 +20,16 @@ last_updated: 2026-06-27
 ### Detail
 
 - **NFR-PERF-01**: Semua halaman (termasuk dashboard, form input, laporan) harus
-  selesai dimuat dalam ≤2 detik pada koneksi 4G standar. Diukur dengan
-  Time to Interactive (TTI) via Lighthouse CI pada pipeline.
+ selesai dimuat dalam ≤2 detik pada koneksi 4G standar. Diukur dengan
+ Time to Interactive (TTI) via Lighthouse CI pada pipeline.
 - **NFR-PERF-02**: Validasi form sisi klien (format, required field) harus
-  selesai ≤1 detik. Validasi sisi server (unik, referensi) ≤2 detik.
+ selesai ≤1 detik. Validasi sisi server (unik, referensi) ≤2 detik.
 - **NFR-PERF-03**: Notifikasi WhatsApp dan Email harus terkirim ≤15 detik
-  sejak event trigger. Jika gagal, retry sesuai NFR-REL-01.
+ sejak event trigger. Jika gagal, retry sesuai NFR-REL-01.
 - **NFR-PERF-04**: Sistem harus mendukung ≤50 pengguna aktif simultan tanpa
-  degradasi performa >20% dari baseline.
-- **NFR-PERF-05**: Batch generate invoice untuk 50 siswa harus selesai
-  ≤5 menit. Monitoring via Celery/queue dashboard.
+ degradasi performa >20% dari baseline.
+- **NFR-PERF-05**: Batch generate invoice untuk 50 student harus selesai
+ ≤5 menit. Monitoring via Celery/queue dashboard.
 
 ---
 
@@ -46,20 +46,20 @@ last_updated: 2026-06-27
 ### Detail
 
 - **NFR-SEC-01**: Semua kolom PII (KTP, alamat, nama lengkap, foto) dienkripsi
-  AES-256-GCM sebelum penyimpanan. Key management via KMS/Vault.
+ AES-256-GCM sebelum penyimpanan. Key management via KMS/Vault.
 - **NFR-SEC-02**: Seluruh komunikasi client-server menggunakan TLS 1.2+.
-  HSTS header aktif. HTTP redirect ke HTTPS.
+ HSTS header aktif. HTTP redirect ke HTTPS.
 - **NFR-SEC-03**: Setelah 5 percobaan login gagal dalam 15 menit, akun
-  dikunci sementara 15 menit. Notifikasi ke admin.
+ dikunci sementara 15 menit. Notifikasi ke admin.
 - **NFR-SEC-04**: Rate limit 100 request/menit per IP/user. Melebihi batas →
-  HTTP 429 Too Many Requests. Endpoint sensitif (login, payment) limit lebih ketat.
+ HTTP 429 Too Many Requests. Endpoint sensitif (login, payment) limit lebih ketat.
 - **NFR-SEC-05**: Implementasi countermeasure OWASP A02–A07:
-  - A02: Tidak menyimpan secret di source code; enkripsi at-rest
-  - A03: Parameterized queries; ORM usage; no raw SQL
-  - A04: Threat modeling pada fase desain
-  - A05: Security headers (CSP, X-Frame-Options, X-Content-Type-Options)
-  - A06: Dependency scanning (Dependabot/Snyk) pada CI
-  - A07: MFA opsional untuk Owner; session timeout per role
+ - A02: Tidak menyimpan secret di source code; enkripsi at-rest
+ - A03: Parameterized queries; ORM usage; no raw SQL
+ - A04: Threat modeling pada fase desain
+ - A05: Security headers (CSP, X-Frame-Options, X-Content-Type-Options)
+ - A06: Dependency scanning (Dependabot/Snyk) pada CI
+ - A07: MFA opsional untuk Owner; session timeout per role
 
 ---
 
@@ -75,13 +75,13 @@ last_updated: 2026-06-27
 ### Detail
 
 - **NFR-USA-01**: Semua elemen interaktif memiliki label, kontras warna ≥4.5:1,
-  navigasi keyboard, dan alt text pada gambar.
+ navigasi keyboard, dan alt text pada gambar.
 - **NFR-USA-02**: Layout menggunakan mobile-first CSS breakpoint. Minimum
-  viewport 320px (iPhone SE). Tablet dan desktop breakpoint di 768px dan 1024px.
+ viewport 320px (iPhone SE). Tablet dan desktop breakpoint di 768px dan 1024px.
 - **NFR-USA-03**: Seluruh label, pesan error, notifikasi, dan dokumentasi
-  dalam Bahasa Indonesia.
-- **NFR-USA-04**: Admin harus dapat menjalankan fungsi dasar (CRUD siswa,
-  jadwal, tagihan) setelah ≤2 jam pelatihan.
+ dalam Bahasa Indonesia.
+- **NFR-USA-04**: Admin harus dapat menjalankan fungsi dasar (CRUD student,
+ jadwal, tagihan) setelah ≤2 jam pelatihan.
 
 ---
 
@@ -99,15 +99,15 @@ last_updated: 2026-06-27
 ### Detail
 
 - **NFR-REL-01**: Semua panggilan eksternal (WhatsApp API, Email SMTP,
-  Payment gateway) di-retry maksimal 3 kali dengan exponential backoff
-  (1s, 2s, 4s). Setelah 3 kali gagal → circuit breaker trip.
+ Payment gateway) di-retry maksimal 3 kali dengan exponential backoff
+ (1s, 2s, 4s). Setelah 3 kali gagal → circuit breaker trip.
 - **NFR-REL-02**: Circuit breaker aktif pada integrasi pihak ketiga.
-  State: Closed → Open (setelah threshold gagal) → Half-Open (setelah cooldown).
+ State: Closed → Open (setelah threshold gagal) → Half-Open (setelah cooldown).
 - **NFR-REL-03**: Proses booking jadwal menggunakan database transaction.
-  Rollback jika terjadi error di tengah proses. Tidak ada slot terkunci
-  tanpa booking tercatat.
+ Rollback jika terjadi error di tengah proses. Tidak ada slot terkunci
+ tanpa booking tercatat.
 - **NFR-REL-04**: Database di-backup otomatis setiap hari pukul 03:00 WIB.
-  Backup disimpan 30 hari. Test restore dilakukan bulanan.
+ Backup disimpan 30 hari. Test restore dilakukan bulanan.
 - **NFR-REL-05**: Jika sistem down, target recovery ≤2 jam dari waktu kejadian.
 - **NFR-REL-06**: Data yang hilang pada skenario disaster ≤1 jam terakhir.
 
@@ -123,9 +123,9 @@ last_updated: 2026-06-27
 ### Detail
 
 - **NFR-AVL-01**: Sistem harus tersedia ≥99% setiap bulan kalender. Downtime
-  terencana (maintenance) tidak dihitung.
+ terencana (maintenance) tidak dihitung.
 - **NFR-AVL-02**: Maintenance terjadwal dilakukan setiap Senin pukul 02:00–04:00
-  WIB. Pengguna diberi notifikasi H-1.
+ WIB. Pengguna diberi notifikasi H-1.
 
 ---
 

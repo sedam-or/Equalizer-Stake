@@ -56,7 +56,7 @@ export default function SettingsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Pengaturan Sistem</h1>
-          <p className="text-sm text-gray-500 mt-1">Konfigurasi sistem BMD Musik</p>
+          <p className="text-sm text-gray-500 mt-1">Konfigurasi sistem Equalizer-Stake</p>
         </div>
         <button
           onClick={() => router.push("/dashboard")}

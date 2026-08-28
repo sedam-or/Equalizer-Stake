@@ -113,7 +113,7 @@ export default function RegisterCoursePage() {
       <div className="border-b border-white/10 px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <Link href="/" className="font-heading text-xl font-bold text-white">
-            BMD <span className="text-[#D4AF37]">Music</span>
+            Equalizer-Stake <span className="text-[#D4AF37]">Music</span>
           </Link>
           <Link href="/login" className="text-sm text-gray-400 hover:text-white">
             Sudah punya akun? <span className="text-[#D4AF37]">Login</span>
@@ -253,8 +253,8 @@ export default function RegisterCoursePage() {
               <h2 className="font-heading text-lg font-bold text-white">Pembayaran</h2>
               <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                 <p className="text-sm text-gray-300">Transfer ke:</p>
-                <p className="mt-1 font-heading text-lg font-bold text-[#D4AF37]">BCA 1234567890</p>
-                <p className="text-xs text-gray-500">a.n. BMD Music School</p>
+                <p className="mt-1 font-heading text-lg font-bold text-[#D4AF37]">Bank 1234567890</p>
+                <p className="text-xs text-gray-500"></p>
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-300">Upload Bukti Transfer</label>

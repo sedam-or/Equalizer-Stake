@@ -26,7 +26,7 @@ Kehilangan data maksimal 1 menit.
 | Aktor | Peran |
 |-------|-------|
 | Admin | Mengisi formulir jadwal, tagihan |
-| Guru  | Mengisi formulir terkait jadwal mengajar |
+| Instructor | Mengisi formulir terkait jadwal mengajar |
 
 ## 3. Spesifikasi Perilaku
 
@@ -39,7 +39,7 @@ Kehilangan data maksimal 1 menit.
 ### 3.2 Pemulihan Sesi
 
 - Setelah sesi timeout dan pengguna login kembali, sistem **mendeteksi
-  draft tersimpan** di local storage.
+ draft tersimpan** di local storage.
 - Prompt: **"Pulihkan draft?"** ditampilkan.
 - Jika Ya → form terisi kembali dengan data draft.
 - Jika Tidak → draft dihapus dari local storage.
@@ -47,21 +47,21 @@ Kehilangan data maksimal 1 menit.
 ### 3.3 Penanganan Local Storage Penuh
 
 - Jika local storage penuh, sistem menampilkan **peringatan**:
-  *"Penyimpanan lokal penuh. Simpan pekerjaan Anda segera."*
+ *"Penyimpanan lokal penuh. Simpan pekerjaan Anda segera."*
 - Auto-save lokal dinonaktifkan; hanya server sync yang berjalan
-  (jika koneksi tersedia).
+ (jika koneksi tersedia).
 
 ### 3.4 Penanganan Server Sync Gagal
 
 - Jika sinkronisasi ke server gagal, indikator **"Belum Tersinkronisasi"**
-  ditampilkan di antarmuka.
+ ditampilkan di antarmuka.
 - Retry otomatis hingga 3 kali dengan exponential backoff.
 - Draft tetap tersimpan di local storage sebagai cadangan.
 
 ### 3.5 Simpan Permanen
 
 - Setelah pengguna menekan tombol **"Simpan"**, data tersimpan permanen
-  ke database.
+ ke database.
 - Data permanen **tidak dapat dikembalikan ke status draft**.
 - Draft dihapus dari local storage dan server draft table.
 

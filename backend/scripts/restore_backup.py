@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-BACKUP_DIR = "/home/kepolu/bmdmusic/backups"
+BACKUP_DIR = "/home/kepolu/equalizer-stake/backups"
 
 
 def get_latest_backup() -> str | None:

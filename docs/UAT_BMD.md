@@ -1,4 +1,4 @@
-# User Acceptance Test (UAT) — BMD Music School
+# User Acceptance Test (UAT) — Equalizer-Stake
 **Tanggal:** 2026-07-01
 **Tujuan:** Patokan test setiap alur. Jika semua PASS = sistem siap. Jika ada FAIL = ada yang belum selesai.
 **Prinsip:** Trust by Design — setiap aksi bisa di-trace ke siapa, kapan, bagaimana, dan mengapa.
@@ -12,70 +12,70 @@
 
 ---
 
-## ALUR 1: Visitor Mendaftar Kursus
-**Tujuan:** Calon siswa baru bisa mendaftar kursus melalui sistem
+## ALUR 1: Visitor Mendaftar Course
+**Tujuan:** Calon student baru bisa mendaftar course melalui sistem
 
 | # | Step | Siapa | Bagaimana | Verifikasi |
 |---|------|-------|-----------|------------|
-| 1.1 | Buka landing page | Visitor | Akses URL utama | Landing page tampil, ada tombol "Daftar Kursus" |
+| 1.1 | Buka landing page | Visitor | Akses URL utama | Landing page tampil, ada tombol "Daftar Course" |
 | 1.2 | Isi form pendaftaran | Visitor | Nama, WhatsApp, email, alamat, pilih instrumen, pilih level, pilih tipe kelas | Form valid, semua field wajib terisi |
 | 1.3 | Submit pendaftaran | Visitor | Klik "Daftar" | Status: "menunggu konfirmasi", notifikasi masuk ke admin |
 | 1.4 | Admin review pendaftaran | Admin | Buka dashboard → menu Pendaftaran → lihat daftar pending | Data pendaftaran lengkap terlihat |
-| 1.5 | Admin approve + assign guru | Admin | Pilih guru, pilih jadwal, klik "Approve" | Status berubah → akun guardian dibuat otomatis |
+| 1.5 | Admin approve + assign instructor | Admin | Pilih instructor, pilih jadwal, klik "Approve" | Status berubah → akun guardian dibuat otomatis |
 | 1.6 | Guardian terima notifikasi | Guardian | WhatsApp/email masuk | Pesan: "Akun Anda aktif, silakan login" |
 
 ---
 
 ## ALUR 2: Guardian Login & Lihat Anak
-**Tujuan:** Guardian bisa melihat data anak dan jadwal kursus
+**Tujuan:** Guardian bisa melihat data anak dan jadwal course
 
 | # | Step | Siapa | Bagaimana | Verifikasi |
 |---|------|-------|-----------|------------|
 | 2.1 | Login | Guardian | Masuk dengan username + password dari notifikasi | Berhasil masuk ke dashboard guardian |
-| 2.2 | Lihat daftar anak | Guardian | Buka menu "Anak Saya" | Daftar anak tampil (nama, instrumen, level, guru, status) |
-| 2.3 | Lihat jadwal anak | Guardian | Buka menu "Jadwal Saya" | Jadwal kursus anak tampil (hari, jam, ruangan, guru) |
+| 2.2 | Lihat daftar anak | Guardian | Buka menu "Anak Saya" | Daftar anak tampil (nama, instrumen, level, instructor, status) |
+| 2.3 | Lihat jadwal anak | Guardian | Buka menu "Jadwal Saya" | Jadwal course anak tampil (hari, jam, ruangan, instructor) |
 | 2.4 | Lihat tagihan | Guardian | Buka menu "Pembayaran Saya" | Daftar invoice tampil (periode, jumlah, status, kode unik) |
 
 ---
 
-## ALUR 3: Admin Membuat Jadwal Kursus
-**Tujuan:** Admin bisa menjadwalkan sesi kursus untuk guru + siswa
+## ALUR 3: Admin Membuat Jadwal Course
+**Tujuan:** Admin bisa menjadwalkan sesi course untuk instructor + student
 
 | # | Step | Siapa | Bagaimana | Verifikasi |
 |---|------|-------|-----------|------------|
 | 3.1 | Buka menu Jadwal | Admin | Dashboard → Jadwal | Halaman jadwal tampil dengan kalender/tabel |
-| 3.2 | Buat sesi baru | Admin | Pilih guru, siswa, ruangan, hari, jam mulai, jam selesai | Form valid, tidak ada konflik jadwal |
-| 3.3 | Konflik detection | Admin | Coba buat jadwal bentrok | Sistem menolak: "Guru/siswa/ruangan sudah dipakai jam tersebut" |
+| 3.2 | Buat sesi baru | Admin | Pilih instructor, student, ruangan, hari, jam mulai, jam selesai | Form valid, tidak ada konflik jadwal |
+| 3.3 | Konflik detection | Admin | Coba buat jadwal bentrok | Sistem menolak: "Instructor/student/ruangan sudah dipakai jam tersebut" |
 | 3.4 | Simpan jadwal | Admin | Klik "Simpan" | Jadwal tersimpan, muncul di daftar |
-| 3.5 | Guru lihat jadwal | Guru | Login → Jadwal Saya | Jadwal baru yang dibuat admin muncul |
+| 3.5 | Instructor lihat jadwal | Instructor | Login → Jadwal Saya | Jadwal baru yang dibuat admin muncul |
 
 ---
 
-## ALUR 4: Guru Submit Absensi
-**Tujuan:** Guru membuktikan kehadiran dengan foto + GPS
+## ALUR 4: Instructor Submit Absensi
+**Tujuan:** Instructor membuktikan kehadiran dengan foto + GPS
 
 | # | Step | Siapa | Bagaimana | Verifikasi |
 |---|------|-------|-----------|------------|
-| 4.1 | Buka jadwal hari ini | Guru | Login → Jadwal Saya → filter hari ini | Daftar sesi hari ini tampil |
-| 4.2 | Klik "Absen" | Guru | Pilih sesi → klik tombol Absen | Form absensi terbuka |
-| 4.3 | Ambil foto | Guru | Kamera browser atau upload foto | Foto ter-preview, ukuran ≤2MB |
+| 4.1 | Buka jadwal hari ini | Instructor | Login → Jadwal Saya → filter hari ini | Daftar sesi hari ini tampil |
+| 4.2 | Klik "Absen" | Instructor | Pilih sesi → klik tombol Absen | Form absensi terbuka |
+| 4.3 | Ambil foto | Instructor | Kamera browser atau upload foto | Foto ter-preview, ukuran ≤2MB |
 | 4.4 | GPS auto-detect | Sistem | Browser minta izin lokasi | Koordinat terisi otomatis |
 | 4.5 | Validasi GPS | Sistem | Hitung jarak ke studio (≤150m) | Jarak tampil, status ✓ atau ✗ |
-| 4.6 | Submit absensi | Guru | Klik "Kirim" | Status: "menunggu verifikasi admin" |
-| 4.7 | Admin lihat pending | Admin | Dashboard → Absensi → filter pending | Absensi guru tampil dengan foto + GPS |
+| 4.6 | Submit absensi | Instructor | Klik "Kirim" | Status: "menunggu verifikasi admin" |
+| 4.7 | Admin lihat pending | Admin | Dashboard → Absensi → filter pending | Absensi instructor tampil dengan foto + GPS |
 
 ---
 
 ## ALUR 5: Admin Verifikasi Absensi
-**Tujuan:** Admin memverifikasi kehadiran guru berdasarkan bukti foto + GPS
+**Tujuan:** Admin memverifikasi kehadiran instructor berdasarkan bukti foto + GPS
 
 | # | Step | Siapa | Bagaimana | Verifikasi |
 |---|------|-------|-----------|------------|
 | 5.1 | Buka detail absensi | Admin | Klik baris absensi pending | Modal: foto bukti, GPS, jarak, face confidence |
-| 5.2 | Review foto | Admin | Lihat foto, pastikan wajah guru terlihat | Foto jelas, wajah terdeteksi ≥30% frame |
+| 5.2 | Review foto | Admin | Lihat foto, pastikan wajah instructor terlihat | Foto jelas, wajah terdeteksi ≥30% frame |
 | 5.3 | Review GPS | Admin | Lihat koordinat + jarak | Jarak ≤150m dari studio |
-| 5.4 | Verifikasi | Admin | Klik "Verifikasi" | Status → "verified", guru dianggap hadir |
-| 5.5 | Atau Tolak | Admin | Klik "Tolak" + isi alasan | Status → "rejected", notifikasi ke guru |
+| 5.4 | Verifikasi | Admin | Klik "Verifikasi" | Status → "verified", instructor dianggap hadir |
+| 5.5 | Atau Tolak | Admin | Klik "Tolak" + isi alasan | Status → "rejected", notifikasi ke instructor |
 
 ---
 
@@ -140,9 +140,9 @@
 | 10.1 | Invoice diterbitkan (tgl 5) | WA + email | Reminder pembayaran |
 | 10.2 | Jatuh tempo besok (tgl 9) | WA | Reminder terakhir |
 | 10.3 | Denda + freeze (tgl 11) | WA + email | Informasi denda |
-| 10.4 | Absensi guru pending >24 jam | WA ke admin | Reminder review |
+| 10.4 | Absensi instructor pending >24 jam | WA ke admin | Reminder review |
 | 10.5 | Pembayaran berhasil diverifikasi | WA + email | Konfirmasi lunas |
-| 10.6 | Jadwal besok | WA | Reminder ke guru + guardian |
+| 10.6 | Jadwal besok | WA | Reminder ke instructor + guardian |
 
 ---
 
@@ -166,7 +166,7 @@
 | 1 | Visitor Daftar | ⬜ | Belum ada flow |
 | 2 | Guardian Login & Lihat Anak | ⬜ | Dummy data |
 | 3 | Admin Buat Jadwal | ⬜ | Dummy data |
-| 4 | Guru Submit Absensi | ⬜ | Belum ada page |
+| 4 | Instructor Submit Absensi | ⬜ | Belum ada page |
 | 5 | Admin Verifikasi Absensi | ⬜ | Dummy data |
 | 6 | Billing Auto-Generate | ⬜ | Backend ada, belum teruji |
 | 7 | Guardian Bayar + Upload | ⬜ | Belum ada flow |
@@ -174,8 +174,8 @@
 | 9 | Denda & Freeze | ⬜ | Backend ada, belum teruji |
 | 10 | Notifikasi Otomatis | ⬜ | Backend ada, belum teruji |
 | 11 | Data Deletion | ⬜ | Backend ada, belum teruji |
-| 12 | Guru Feedback → Wali | ⬜ | Belum ada |
-| 13 | Wali Rating → Guru | ⬜ | Belum ada |
+| 12 | Instructor Feedback → Wali | ⬜ | Belum ada |
+| 13 | Wali Rating → Instructor | ⬜ | Belum ada |
 | 14 | Foto Profil | ⬜ | Belum ada |
 | 15 | Page Instrumen Detail | ⬜ | Belum ada |
 | 16 | Page Bantuan | ⬜ | Belum ada |
@@ -188,31 +188,31 @@ Target: Semua ✅ = sistem siap produksi.
 
 ---
 
-## ALUR 12: Guru Feedback ke Wali Murid
-**Tujuan:** Guru memberikan feedback progress siswa ke wali murid
+## ALUR 12: Instructor Feedback ke Guardian
+**Tujuan:** Instructor memberikan feedback progress student ke guardian
 
 | # | Step | Siapa | Bagaimana | Verifikasi |
 |---|------|-------|-----------|------------|
-| 12.1 | Buka menu Feedback | Guru | Login → sidebar → Feedback | Halaman feedback tampil |
-| 12.2 | Pilih siswa | Guru | Dropdown daftar siswa yang diajar | Siswa terpilih, data tampil |
-| 12.3 | Isi feedback | Guru | Rating 1-5 per kategori (Kemajuan, Perilaku, Kehadiran, Rekomendasi) + komentar | Form valid |
-| 12.4 | Submit feedback | Guru | Klik "Kirim Feedback" | Success message, feedback masuk riwayat |
-| 12.5 | Wali lihat feedback | Wali | Login → Anak Saya → klik anak → tab "Feedback Guru" | Feedback guru tampil dengan rating + komentar |
+| 12.1 | Buka menu Feedback | Instructor | Login → sidebar → Feedback | Halaman feedback tampil |
+| 12.2 | Pilih student | Instructor | Dropdown daftar student yang diajar | Student terpilih, data tampil |
+| 12.3 | Isi feedback | Instructor | Rating 1-5 per kategori (Kemajuan, Perilaku, Kehadiran, Rekomendasi) + komentar | Form valid |
+| 12.4 | Submit feedback | Instructor | Klik "Kirim Feedback" | Success message, feedback masuk riwayat |
+| 12.5 | Wali lihat feedback | Wali | Login → Anak Saya → klik anak → tab "Feedback Instructor" | Feedback instructor tampil dengan rating + komentar |
 | 12.6 | Audit log | Sistem | Setiap feedback tercatat di audit_log | Log tampil di audit log admin |
 
 ---
 
-## ALUR 13: Wali Murid Rating ke Guru
-**Tujuan:** Wali murid memberikan penilaian ke guru kursus anak
+## ALUR 13: Guardian Rating ke Instructor
+**Tujuan:** Wali murid memberikan penilaian ke instructor course anak
 
 | # | Step | Siapa | Bagaimana | Verifikasi |
 |---|------|-------|-----------|------------|
-| 13.1 | Buka menu Penilaian Guru | Wali | Login → sidebar → Penilaian Guru | Halaman rating tampil |
-| 13.2 | Pilih guru | Wali | Dropdown hanya tampil guru yang mengajar anaknya (auto-detect dari jadwal) | Guru terpilih |
+| 13.1 | Buka menu Penilaian Instructor | Wali | Login → sidebar → Penilaian Instructor | Halaman rating tampil |
+| 13.2 | Pilih instructor | Wali | Dropdown hanya tampil instructor yang mengajar anaknya (auto-detect dari jadwal) | Instructor terpilih |
 | 13.3 | Beri rating | Wali | Rating bintang 1-5 + komentar (opsional) | Form valid |
 | 13.4 | Submit | Wali | Klik "Kirim Penilaian" | Success message, rating masuk riwayat |
-| 13.5 | Admin lihat rating | Admin | Dashboard → menu Rating Guru | Rating per guru tampil (rata-rata + detail) |
-| 13.6 | Validasi | Sistem | Hanya bisa menilai guru yang mengajar anaknya | Error: "Anda tidak bisa menilai guru ini" jika validasi gagal |
+| 13.5 | Admin lihat rating | Admin | Dashboard → menu Rating Instructor | Rating per instructor tampil (rata-rata + detail) |
+| 13.6 | Validasi | Sistem | Hanya bisa menilai instructor yang mengajar anaknya | Error: "Anda tidak bisa menilai instructor ini" jika validasi gagal |
 
 ---
 
@@ -237,7 +237,7 @@ Target: Semua ✅ = sistem siap produksi.
 |---|------|-------|-----------|------------|
 | 15.1 | Buka /instruments | Visitor | Klik "Lihat Instrumen" di landing page atau navbar | Page tampil dengan 9 instrumen |
 | 15.2 | Scroll per instrumen | Visitor | Scroll ke bawah, setiap instrumen punya section sendiri | Deskripsi, level, tipe kelas, harga tampil |
-| 15.3 | Lihat harga | Visitor | Tabel harga per kombinasi (tipe kelas × level) | Harga sesuai data asli BMD MS |
+| 15.3 | Lihat harga | Visitor | Tabel harga per kombinasi (tipe kelas × level) | Harga sesuai data asli EQS |
 | 15.4 | Klik CTA | Visitor | Klik "Daftar Sekarang" pada instrumen yang dipilih | Redirect ke /register-course?instrument=piano_klasik |
 | 15.5 | FAQ | Visitor | Scroll ke bawah → FAQ accordion | FAQ tampil, bisa buka/tutup |
 
@@ -271,8 +271,8 @@ Target: Semua ✅ = sistem siap produksi.
 
 ---
 
-## ALUR 18: Mobile-First Wali Murid
-**Tujuan:** Dashboard wali murid optimal di mobile (320px+)
+## ALUR 18: Mobile-First Guardian
+**Tujuan:** Dashboard guardian optimal di mobile (320px+)
 
 | # | Step | Siapa | Bagaimana | Verifikasi |
 |---|------|-------|-----------|------------|

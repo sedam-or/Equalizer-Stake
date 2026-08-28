@@ -49,40 +49,40 @@ Use **unofficial WhatsApp gateway** (e.g., WABlas, Fonnte, WA-Cloud API) as prim
 ```python
 # Notification delivery flow
 async def deliver_notification(notification: Notification):
-    # 1. Try WhatsApp (with circuit breaker + retry)
-    if whatsapp_circuit.allow_request():
-        try:
-            await whatsapp.send(phone, message)  # 3 retries, exponential backoff
-            whatsapp_circuit.record_success()
-            notification.channel = "whatsapp"
-            notification.status = "sent"
-            return
-        except Exception:
-            whatsapp_circuit.record_failure()
+ # 1. Try WhatsApp (with circuit breaker + retry)
+ if whatsapp_circuit.allow_request():
+ try:
+ await whatsapp.send(phone, message) # 3 retries, exponential backoff
+ whatsapp_circuit.record_success()
+ notification.channel = "whatsapp"
+ notification.status = "sent"
+ return
+ except Exception:
+ whatsapp_circuit.record_failure()
 
-    # 2. Fallback to email
-    try:
-        await email.send(user.email, subject, html_template)
-        notification.channel = "email"
-        notification.status = "sent"
-    except Exception:
-        notification.channel = None
-        notification.status = "failed"
+ # 2. Fallback to email
+ try:
+ await email.send(user.email, subject, html_template)
+ notification.channel = "email"
+ notification.status = "sent"
+ except Exception:
+ notification.channel = None
+ notification.status = "failed"
 ```
 
 ### Circuit breaker state machine
 
 ```
 CLOSED (normal) ──[5 failures]──► OPEN (block requests, 60s)
-                                      │
-                            [60s elapsed]
-                                      ▼
-                               HALF_OPEN (allow 1 probe)
-                                      │
-                              ┌───────┴───────┐
-                         [success]        [failure]
-                              │                │
-                           CLOSED            OPEN
+ │
+ [60s elapsed]
+ ▼
+ HALF_OPEN (allow 1 probe)
+ │
+ ┌───────┴───────┐
+ [success] [failure]
+ │ │
+ CLOSED OPEN
 ```
 
 ## Consequences

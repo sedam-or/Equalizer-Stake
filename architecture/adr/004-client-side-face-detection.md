@@ -33,19 +33,19 @@ Run face detection **entirely client-side** using face-api.js in the browser. Se
 ### Architecture
 
 ```
-Browser                              Server
-┌─────────────┐                    ┌──────────────┐
-│ Webcam      │                    │              │
-│ face-api.js │                    │ POST /attendance │
-│ detect()    │───{face_verified:──│ {session_id, │
-│             │    true,           │  gps_lat,    │
-│ confidence: │    0.87}           │  gps_lng,    │
-│    0.87     │                    │  face_verified:│
-│             │                    │   true}      │
-│ Image NOT   │                    │              │
-│ transmitted │                    │ No image     │
-│             │                    │ stored       │
-└─────────────┘                    └──────────────┘
+Browser Server
+┌─────────────┐ ┌──────────────┐
+│ Webcam │ │ │
+│ face-api.js │ │ POST /attendance │
+│ detect() │───{face_verified:──│ {session_id, │
+│ │ true, │ gps_lat, │
+│ confidence: │ 0.87} │ gps_lng, │
+│ 0.87 │ │ face_verified:│
+│ │ │ true} │
+│ Image NOT │ │ │
+│ transmitted │ │ No image │
+│ │ │ stored │
+└─────────────┘ └──────────────┘
 ```
 
 ## Consequences

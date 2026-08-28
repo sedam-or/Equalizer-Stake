@@ -1,8 +1,8 @@
 "use client";
 import { useDashboard } from "@/components/DashboardContext";
 /**
- * Guru Feedback Page — T-146
- * Guru → Wali Murid feedback
+ * Instructor Feedback Page — T-146
+ * Instructor → Guardian feedback
  */
 
 import { useState } from "react";

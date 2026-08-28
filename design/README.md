@@ -1,6 +1,6 @@
-# Design — BMD Music School
+# Design — Equalizer-Stake
 
-Dokumen desain untuk frontend BMD Music School.
+Dokumen desain untuk frontend Equalizer-Stake.
 
 ---
 
@@ -42,7 +42,7 @@ Dokumen desain untuk frontend BMD Music School.
 
 ## Design Principles
 
-1. **Business-oriented**: Website utama BMD Music
+1. **Business-oriented**: Website utama EQS
 2. **Elegant**: Hero langsung terasa profesional
 3. **Glassmorphism**: Cards transparan + backdrop blur
 4. **Green accent**: #08CB00 sebagai warna aksen

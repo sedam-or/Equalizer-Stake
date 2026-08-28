@@ -19,7 +19,7 @@ Owner di-upgrade menjadi **Superadmin** dengan hak:
 2. **Override Operasional**: Buka freeze, batalkan tagihan, revert jadwal
 3. **Audit Full Access**: Lihat semua kategori log (termasuk keamanan)
 4. **Pengaturan Sistem**: Maintenance window, alert threshold, WhatsApp gateway config
-5. **Kelola Tarif**: Ubah tarif kursus/studio (bersama Admin)
+5. **Kelola Tarif**: Ubah tarif course/studio (bersama Admin)
 
 ## Consequences
 
@@ -37,7 +37,7 @@ Owner di-upgrade menjadi **Superadmin** dengan hak:
 ### Mitigation
 - Hapus Admin: wajib ketik username untuk konfirmasi (mencegah accidental)
 - Override: semua aksi tercatat di audit log kategori "keamanan"
-- Owner tidak bisa hapus data siswa/wali murid (hanya Admin bisa)
+- Owner tidak bisa hapus data student/guardian (hanya Admin bisa)
 - Force logout semua session saat Admin dihapus
 
 ## Related

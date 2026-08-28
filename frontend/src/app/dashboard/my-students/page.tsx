@@ -95,7 +95,7 @@ export default function MyStudentsPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
           <h1 className="font-heading text-2xl font-bold text-gray-900">Anak Saya</h1>
-          <p className="text-sm text-gray-500">Kelola data anak yang terdaftar kursus</p>
+          <p className="text-sm text-gray-500">Kelola data anak yang terdaftar course</p>
         </div>
         <button onClick={openAdd} className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8]">
           + Tambah Anak

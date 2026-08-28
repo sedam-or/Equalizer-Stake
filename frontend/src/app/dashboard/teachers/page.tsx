@@ -98,7 +98,7 @@ export default function TeachersPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Yakin ingin menonaktifkan guru ini?")) return;
+    if (!confirm("Yakin ingin menonaktifkan instructor ini?")) return;
     await fetch(`/api/v1/teachers/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     fetchTeachers();
   };
@@ -107,11 +107,11 @@ export default function TeachersPage() {
     <div className="p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-gray-900">Guru Musik</h1>
-          <p className="text-sm text-gray-500">Kelola data guru dan spesialisasi instrumen</p>
+          <h1 className="font-heading text-2xl font-bold text-gray-900">Instructor</h1>
+          <p className="text-sm text-gray-500">Kelola data instructor dan spesialisasi instrumen</p>
         </div>
         <button onClick={() => { setEditId(null); setForm({ id_user: "", full_name: "", instruments_specialization: [], employment_type: "tetap", max_students_per_session: 1 }); setShowForm(true); }} className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8]">
-          + Tambah Guru
+          + Tambah Instructor
         </button>
       </div>
 
@@ -119,7 +119,7 @@ export default function TeachersPage() {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-gray-900">{editId ? "Edit Guru" : "Tambah Guru"}</h2>
+            <h2 className="text-lg font-bold text-gray-900">{editId ? "Edit Instructor" : "Tambah Instructor"}</h2>
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
             <div className="mt-4 space-y-3">
               {!editId && (
@@ -166,7 +166,7 @@ export default function TeachersPage() {
       {loading ? (
         <div className="mt-6 p-8 text-center text-gray-500">Memuat...</div>
       ) : teachers.length === 0 ? (
-        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">Belum ada guru</div>
+        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">Belum ada instructor</div>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white">
           <table className="w-full text-left text-sm">

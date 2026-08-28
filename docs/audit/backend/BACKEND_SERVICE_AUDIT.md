@@ -88,7 +88,7 @@
 
 **GPS validation:**
 - Haversine distance calculation
-- 150m radius from BMD location
+- 150m radius from EQS location
 - Server timestamp validation
 
 **Submit flow:**

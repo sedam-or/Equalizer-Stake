@@ -1,6 +1,6 @@
-# Landing Page Design — BMD Music School
+# Landing Page Design — Equalizer-Stake
 
-Dokumen referensi pembuatan frontend landing page BMD Music School.
+Dokumen referensi pembuatan frontend landing page Equalizer-Stake.
 
 ---
 

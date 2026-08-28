@@ -49,7 +49,7 @@ secret_key: str = Field(min_length=32)
 **Impact**: Attacker bisa dapat info tentang DB host, port, credentials
 **Remediasi**:
 ```python
-result["database"] = "error"  # JANGAN expose {e}
+result["database"] = "error" # JANGAN expose {e}
 ```
 
 ---

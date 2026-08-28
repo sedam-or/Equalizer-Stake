@@ -11,7 +11,7 @@ export default function TentangSection() {
               Bukan Sekadar Kursus Musik
             </h2>
             <p className="mt-6 text-lg leading-relaxed text-gray-600">
-              BMD Music School hadir untuk membantu anak-anak di Yogyakarta mengembangkan bakat musik mereka dengan cara yang benar — terstruktur, menyenangkan, dan berkelanjutan.
+              Equalizer-Stake hadir untuk membantu anak-anak mengembangkan bakat musik mereka dengan cara yang benar — terstruktur, menyenangkan, dan berkelanjutan.
             </p>
             <div className="mt-8 space-y-4">
               <div className="flex items-start gap-3">
@@ -34,7 +34,7 @@ export default function TentangSection() {
             <div className="overflow-hidden rounded-2xl bg-gray-100 shadow-lg">
               <img
                 src="/images/studio-2.jpg"
-                alt="Kelas musik di BMD Music School"
+                alt="Kelas musik"
                 className="h-[400px] w-full object-cover"
               />
             </div>

@@ -1,18 +1,18 @@
 ---
 fr:
-  - FR-02
-  - FR-12
+ - FR-02
+ - FR-12
 uc:
-  - UC-02
-  - UC-05
+ - UC-02
+ - UC-05
 status: Approved
 module: penjadwalan
-title: "Penjadwalan Kursus dengan Validasi Konflik Real-Time"
+title: "Penjadwalan Course dengan Validasi Konflik Real-Time"
 version: "2.0"
 date: "2026-06-27"
 ---
 
-# FR-02 & FR-12 — Penjadwalan Kursus
+# FR-02 & FR-12 — Penjadwalan Course
 
 ## 1. Ringkasan
 
@@ -28,18 +28,18 @@ date: "2026-06-27"
 
 ---
 
-## 2. FR-02 — Penjadwalan Kursus dengan Validasi Konflik Real-Time
+## 2. FR-02 — Penjadwalan Course dengan Validasi Konflik Real-Time
 
 ### 2.1 Spesifikasi
 
-Sistem shall memvalidasi ketersediaan slot (guru, ruangan, waktu) secara real-time saat Admin menyimpan jadwal baru atau melakukan perubahan jadwal. Konflik slot tidak boleh lolos ke penyimpanan data dalam keadaan apapun.
+Sistem shall memvalidasi ketersediaan slot (instructor, ruangan, waktu) secara real-time saat Admin menyimpan jadwal baru atau melakukan perubahan jadwal. Konflik slot tidak boleh lolos ke penyimpanan data dalam keadaan apapun.
 
 ### 2.2 Validasi Konflik
 
 | Dimensi | Rule |
 |---|---|
 | Ruangan | Waktu sesi + jeda 10 menit tidak tumpang tindih di ruangan yang sama |
-| Guru | Guru tidak dijadwalkan dua sesi bersamaan |
+| Instructor | Instructor tidak dijadwalkan dua sesi bersamaan |
 | Performa | Validasi ≤ **1 detik** dari tombol Simpan |
 
 ### 2.3 Jam Operasional
@@ -62,8 +62,8 @@ Sistem shall memvalidasi ketersediaan slot (guru, ruangan, waktu) secara real-ti
 | Pembatalan oleh | Syarat | Kredit dikembalikan |
 |---|---|---|
 | **Admin** (sesi Locked) | Error / duplikasi / konflik | **100%** (refund penuh) |
-| **Wali Murid** | Notifikasi ≥ 24 jam sebelum sesi | **50%** |
-| **Wali Murid** | Notifikasi < 24 jam sebelum sesi | **0%** (hangus) |
+| **Guardian** | Notifikasi ≥ 24 jam sebelum sesi | **50%** |
+| **Guardian** | Notifikasi < 24 jam sebelum sesi | **0%** (hangus) |
 
 Semua pembatalan wajib disertai **alasan** dan dicatat di **audit log**.
 
@@ -81,16 +81,16 @@ Semua pembatalan wajib disertai **alasan** dan dicatat di **audit log**.
 | Aspek | Detail |
 |---|---|
 | Durasi | **30 menit** |
-| Tipe | Non-Credit Theory (tidak mengurangi kredit siswa) |
+| Tipe | Non-Credit Theory (tidak mengurangi kredit student) |
 | Trigger | Bulan dengan 5 minggu, minggu ke-5 tidak ada sesi reguler |
-| Konten | Teori musik, review materi, evaluasi |
+| Konten | Teori music, review materi, evaluasi |
 
 ### 3.2 Penanganan Hari Libur Nasional
 
 1. Sistem mendeteksi jadwal yang jatuh pada hari libur nasional
 2. **Reschedule otomatis**: pindahkan ke hari yang sama minggu depan
 3. Jika minggu depan tidak ada slot tersedia → konversi ke **Theory Session** (30 menit, non-credit)
-4. Admin dan Wali Murid mendapat notifikasi perubahan
+4. Admin dan Guardian mendapat notifikasi perubahan
 
 ---
 
@@ -99,52 +99,52 @@ Semua pembatalan wajib disertai **alasan** dan dicatat di **audit log**.
 ### 4.1 Jadwal Berhasil Disimpan
 
 ```
-Given   Admin memilih slot waktu, guru, dan ruangan yang tersedia
-When    Admin menekan tombol Simpan Jadwal
-Then    Sistem memvalidasi ketersediaan ≤ 1 detik; jadwal tersimpan;
-        notifikasi dikirim ke Guru
+Given Admin memilih slot waktu, instructor, dan ruangan yang tersedia
+When Admin menekan tombol Simpan Jadwal
+Then Sistem memvalidasi ketersediaan ≤ 1 detik; jadwal tersimpan;
+ notifikasi dikirim ke Instructor
 ```
 
 ### 4.2 Konflik Terdeteksi
 
 ```
-Given   Admin memilih slot yang bentrok dengan jadwal existing
-When    Admin menekan tombol Simpan Jadwal
-Then    Sistem menampilkan daftar slot alternatif yang tersedia;
-        jadwal tidak tersimpan
+Given Admin memilih slot yang bentrok dengan jadwal existing
+When Admin menekan tombol Simpan Jadwal
+Then Sistem menampilkan daftar slot alternatif yang tersedia;
+ jadwal tidak tersimpan
 ```
 
 ### 4.3 Pembatalan oleh Admin
 
 ```
-Given   Sesi berstatus Locked dan Admin membatalkan dengan alasan
-When    Admin menekan Batalkan Sesi
-Then    Kredit siswa dikembalikan 100%; pembatalan dicatat di audit log
+Given Sesi berstatus Locked dan Admin membatalkan dengan alasan
+When Admin menekan Batalkan Sesi
+Then Kredit student dikembalikan 100%; pembatalan dicatat di audit log
 ```
 
-### 4.4 Pembatalan oleh Wali Murid (≥ 24 jam)
+### 4.4 Pembatalan oleh Guardian (≥ 24 jam)
 
 ```
-Given   Wali Murid membatalkan ≥ 24 jam sebelum sesi
-When    Konfirmasi pembatalan
-Then    Kredit dikembalikan 50%; pembatalan dicatat di audit log
+Given Guardian membatalkan ≥ 24 jam sebelum sesi
+When Konfirmasi pembatalan
+Then Kredit dikembalikan 50%; pembatalan dicatat di audit log
 ```
 
-### 4.5 Pembatalan oleh Wali Murid (< 24 jam)
+### 4.5 Pembatalan oleh Guardian (< 24 jam)
 
 ```
-Given   Wali Murid membatalkan < 24 jam sebelum sesi
-When    Konfirmasi pembatalan
-Then    Kredit hangus (0% dikembalikan); pembatalan dicatat di audit log
+Given Guardian membatalkan < 24 jam sebelum sesi
+When Konfirmasi pembatalan
+Then Kredit hangus (0% dikembalikan); pembatalan dicatat di audit log
 ```
 
 ### 4.6 Libur Nasional
 
 ```
-Given   Jadwal jatuh pada hari libur nasional
-When    Sistem memproses jadwal
-Then    Reschedule ke hari sama minggu depan; jika tidak ada slot →
-        konversi ke Theory Session 30 menit; notifikasi dikirim
+Given Jadwal jatuh pada hari libur nasional
+When Sistem memproses jadwal
+Then Reschedule ke hari sama minggu depan; jika tidak ada slot →
+ konversi ke Theory Session 30 menit; notifikasi dikirim
 ```
 
 ---
@@ -153,9 +153,9 @@ Then    Reschedule ke hari sama minggu depan; jika tidak ada slot →
 
 ### 5.1 Normal Flow — Buat Jadwal
 
-1. Admin pilih tanggal, jam, guru, ruangan
-2. Sistem validasi real-time (guru, ruangan, waktu + 10min break) ≤ 1 detik
-3. Jika tersedia → simpan jadwal, kirim notifikasi ke Guru
+1. Admin pilih tanggal, jam, instructor, ruangan
+2. Sistem validasi real-time (instructor, ruangan, waktu + 10min break) ≤ 1 detik
+3. Jika tersedia → simpan jadwal, kirim notifikasi ke Instructor
 4. Jika konflik → tampilkan slot alternatif
 
 ### 5.2 Jalur Alternatif — Konflik Concurrent

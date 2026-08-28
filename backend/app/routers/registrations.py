@@ -42,7 +42,7 @@ async def submit_registration(
     payment_proof: UploadFile = File(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Publik: buat akun + daftar kursus dalam satu request."""
+    """Publik: buat akun + daftar course dalam satu request."""
     # Check username uniqueness
     existing_user = await db.execute(select(User).where(User.username == username))
     if existing_user.scalar_one_or_none():
@@ -217,7 +217,7 @@ async def approve_registration(
     else:
         # Fallback: create new user (shouldn't happen normally)
         temp_pw = generate_temp_password()
-        user_email = reg.email or f"{reg.phone_whatsapp}@bmdmusic.local"
+        user_email = reg.email or f"{reg.phone_whatsapp}@equalizer-stake.dev"
         new_user = User(
             username=reg.phone_whatsapp,
             email=user_email,
@@ -298,7 +298,7 @@ async def approve_registration(
     notif = Notification(
         id_user=new_user.id_user,
         category="registration_approved",
-        title="Selamat Datang di BMD Musik!",
+        title="Selamat Datang di Equalizer-Stake!",
         message=f"Akun Anda sudah aktif. Username: {reg.phone_whatsapp}. Silakan login dan ganti password Anda.",
         channel="whatsapp",
         status="pending",
@@ -320,7 +320,7 @@ async def approve_registration(
             await send_email_with_retry(
                 settings.SMTP_HOST, settings.SMTP_PORT,
                 settings.SMTP_USER, settings.SMTP_PASSWORD,
-                reg.email or f"{reg.phone_whatsapp}@bmdmusic.local",
+                reg.email or f"{reg.phone_whatsapp}@equalizer-stake.dev",
                 subject, body,
             )
     except Exception:
@@ -329,7 +329,7 @@ async def approve_registration(
     await db.commit()
 
     return {
-        "message": "Pendaftaran disetujui. Akun wali murid berhasil dibuat.",
+        "message": "Pendaftaran disetujui. Akun guardian berhasil dibuat.",
         "registration_id": str(reg.id_registration),
         "user": {
             "id_user": str(new_user.id_user),

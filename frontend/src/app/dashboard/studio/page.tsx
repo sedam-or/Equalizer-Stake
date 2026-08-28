@@ -48,7 +48,7 @@ export default function StudioPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Studio Musik</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Studio</h1>
         <p className="text-sm text-gray-500">Kelola ruang studio dan peralatan</p>
       </div>
 

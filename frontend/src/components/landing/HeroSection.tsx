@@ -51,7 +51,7 @@ export default function HeroSection() {
         <div>
           {/* Eyebrow */}
           <p className="mb-6 text-sm font-semibold uppercase tracking-[0.3em] text-[#D4AF37]">
-            Kelas Privat Musik Premium — Yogyakarta
+            Kelas Privat Musik Premium
           </p>
 
           {/* Headline */}
@@ -72,7 +72,7 @@ export default function HeroSection() {
 
           {/* Sub */}
           <p className="mt-6 max-w-lg text-lg leading-relaxed text-gray-400">
-            BMD Music School — kelas privat musik premium untuk keluarga yang menghargai kualitas. Pengalaman 10+ tahun, guru berstandar internasional.
+            Equalizer-Stake — kelas privat musik premium untuk keluarga yang menghargai kualitas. Pengalaman 10+ tahun, instructor berstandar internasional.
           </p>
 
           {/* CTA */}
@@ -120,7 +120,7 @@ export default function HeroSection() {
           <div className="relative overflow-hidden rounded-sm">
             <img
               src="/images/screen.png"
-              alt="Studio BMD Music School"
+              alt="Studio Equalizer-Stake"
               className="h-[600px] w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 via-transparent to-[#0F172A]/20" />

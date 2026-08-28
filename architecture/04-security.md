@@ -5,14 +5,14 @@
 ### Token Structure
 
 ```
-Header:  { "alg": "HS256", "typ": "JWT" }
+Header: { "alg": "HS256", "typ": "JWT" }
 Payload: {
-  "sub": "uuid-of-user",
-  "role": "admin" | "teacher" | "guardian",
-  "email": "user@example.com",
-  "jti": "unique-token-id",
-  "iat": 1719475200,
-  "exp": 1719478800   # iat + 60 minutes
+ "sub": "uuid-of-user",
+ "role": "admin" | "teacher" | "guardian",
+ "email": "user@example.com",
+ "jti": "unique-token-id",
+ "iat": 1719475200,
+ "exp": 1719478800 # iat + 60 minutes
 }
 Signature: HMACSHA256(base64(header) + "." + base64(payload), JWT_SECRET)
 ```
@@ -33,9 +33,9 @@ Signature: HMACSHA256(base64(header) + "." + base64(payload), JWT_SECRET)
 ```python
 # Three roles with hierarchical permissions
 ROLE_PERMISSIONS = {
-    "admin": ["*"],                                      # all CRUD + audit + settings
-    "teacher": ["sessions:read", "attendance:*", "students:read"],
-    "guardian": ["invoices:read", "payments:*", "students:read:own"],
+ "admin": ["*"], # all CRUD + audit + settings
+ "teacher": ["sessions:read", "attendance:*", "students:read"],
+ "guardian": ["invoices:read", "payments:*", "students:read:own"],
 }
 ```
 
@@ -44,16 +44,16 @@ Router-level enforcement via `Depends(require_role(...))`:
 ```python
 @router.post("/invoices/{id}/pay")
 async def pay_invoice(
-    id: uuid.UUID,
-    payload: PaymentCreate,
-    user: User = Depends(require_role("guardian")),
-    db: AsyncSession = Depends(get_db),
+ id: uuid.UUID,
+ payload: PaymentCreate,
+ user: User = Depends(require_role("guardian")),
+ db: AsyncSession = Depends(get_db),
 ):
-    # Additional check: guardian can only pay own invoices
-    invoice = await db.get(Invoice, id)
-    if invoice.guardian_id != user.guardian_profile.id:
-        raise HTTPException(403, "Not your invoice")
-    ...
+ # Additional check: guardian can only pay own invoices
+ invoice = await db.get(Invoice, id)
+ if invoice.guardian_id != user.guardian_profile.id:
+ raise HTTPException(403, "Not your invoice")
+ ...
 ```
 
 ## AES-256-GCM Encryption for PII Fields
@@ -66,22 +66,22 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import os
 
 class EncryptionService:
-    def __init__(self, key: str):
-        # key: 256-bit hex string from settings.AES_KEY
-        self.key = bytes.fromhex(key)
-        self.aesgcm = AESGCM(self.key)
+ def __init__(self, key: str):
+ # key: 256-bit hex string from settings.AES_KEY
+ self.key = bytes.fromhex(key)
+ self.aesgcm = AESGCM(self.key)
 
-    def encrypt(self, plaintext: str) -> str:
-        """Encrypt string, return base64(nonce + ciphertext + tag)."""
-        nonce = os.urandom(12)  # 96-bit nonce, unique per encryption
-        ct = self.aesgcm.encrypt(nonce, plaintext.encode(), None)
-        return base64.b64encode(nonce + ct).decode()
+ def encrypt(self, plaintext: str) -> str:
+ """Encrypt string, return base64(nonce + ciphertext + tag)."""
+ nonce = os.urandom(12) # 96-bit nonce, unique per encryption
+ ct = self.aesgcm.encrypt(nonce, plaintext.encode(), None)
+ return base64.b64encode(nonce + ct).decode()
 
-    def decrypt(self, ciphertext: str) -> str:
-        """Decrypt base64(nonce + ciphertext + tag) back to string."""
-        raw = base64.b64decode(ciphertext)
-        nonce, ct = raw[:12], raw[12:]
-        return self.aesgcm.decrypt(nonce, ct, None).decode()
+ def decrypt(self, ciphertext: str) -> str:
+ """Decrypt base64(nonce + ciphertext + tag) back to string."""
+ raw = base64.b64decode(ciphertext)
+ nonce, ct = raw[:12], raw[12:]
+ return self.aesgcm.decrypt(nonce, ct, None).decode()
 
 enc = EncryptionService(settings.AES_KEY)
 ```
@@ -93,26 +93,26 @@ enc = EncryptionService(settings.AES_KEY)
 from sqlalchemy.types import TypeDecorator, String
 
 class EncryptedString(TypeDecorator):
-    """Transparently encrypts on write, decrypts on read."""
-    impl = String(500)
-    cache_ok = True
+ """Transparently encrypts on write, decrypts on read."""
+ impl = String(500)
+ cache_ok = True
 
-    def process_bind_param(self, value, dialect):
-        if value is not None:
-            return enc.encrypt(value)
-        return value
+ def process_bind_param(self, value, dialect):
+ if value is not None:
+ return enc.encrypt(value)
+ return value
 
-    def process_result_value(self, value, dialect):
-        if value is not None:
-            return enc.decrypt(value)
-        return value
+ def process_result_value(self, value, dialect):
+ if value is not None:
+ return enc.decrypt(value)
+ return value
 
 # Usage in models
 class Guardian(Base, TimestampMixin, SoftDeleteMixin):
-    __tablename__ = "guardians"
-    phone: Mapped[str] = mapped_column(EncryptedString(500))
-    nik: Mapped[str] = mapped_column(EncryptedString(500))
-    address: Mapped[str] = mapped_column(EncryptedString(1000))
+ __tablename__ = "guardians"
+ phone: Mapped[str] = mapped_column(EncryptedString(500))
+ nik: Mapped[str] = mapped_column(EncryptedString(500))
+ address: Mapped[str] = mapped_column(EncryptedString(1000))
 ```
 
 **Key management**: AES key stored in environment variable, rotated quarterly. Old ciphertext re-encrypted during low-traffic window via migration script.
@@ -124,15 +124,15 @@ class Guardian(Base, TimestampMixin, SoftDeleteMixin):
 ```python
 # app/middleware/rate_limit.py
 async def check_rate_limit(redis: Redis, key: str, limit: int, window: int) -> bool:
-    """Returns True if allowed, False if rate limited."""
-    now = time.time()
-    pipe = redis.pipeline()
-    pipe.zremrangebyscore(key, 0, now - window)  # remove expired entries
-    pipe.zadd(key, {str(now): now})              # add current request
-    pipe.zcard(key)                               # count requests in window
-    pipe.expire(key, window)                      # auto-cleanup
-    _, _, count, _ = await pipe.execute()
-    return count <= limit
+ """Returns True if allowed, False if rate limited."""
+ now = time.time()
+ pipe = redis.pipeline()
+ pipe.zremrangebyscore(key, 0, now - window) # remove expired entries
+ pipe.zadd(key, {str(now): now}) # add current request
+ pipe.zcard(key) # count requests in window
+ pipe.expire(key, window) # auto-cleanup
+ _, _, count, _ = await pipe.execute()
+ return count <= limit
 ```
 
 ### Rate Limit Tiers
@@ -222,36 +222,36 @@ Indonesia's Personal Data Protection Law (UU No. 27/2022):
 ```python
 # Right to access (data export)
 async def export_user_data(db: AsyncSession, user_id: uuid.UUID) -> dict:
-    user = await db.get(User, user_id)
-    guardian = await db.execute(select(Guardian).where(Guardian.user_id == user_id))
-    students = await db.execute(
-        select(Student).where(Student.guardian_id == guardian.scalar_one_or_none().id)
-    )
-    return {
-        "user": model_to_dict(user),
-        "guardian": model_to_dict(guardian.scalar_one()),
-        "students": [model_to_dict(s) for s in students.scalars()],
-        "invoices": [...],
-        "exported_at": datetime.utcnow().isoformat(),
-    }
+ user = await db.get(User, user_id)
+ guardian = await db.execute(select(Guardian).where(Guardian.user_id == user_id))
+ students = await db.execute(
+ select(Student).where(Student.guardian_id == guardian.scalar_one_or_none().id)
+ )
+ return {
+ "user": model_to_dict(user),
+ "guardian": model_to_dict(guardian.scalar_one()),
+ "students": [model_to_dict(s) for s in students.scalars()],
+ "invoices": [...],
+ "exported_at": datetime.utcnow().isoformat(),
+ }
 
 # Right to erasure (anonymization)
 async def anonymize_user(db: AsyncSession, user_id: uuid.UUID):
-    user = await db.get(User, user_id)
-    user.email = f"anonymized_{user_id}@deleted.local"
-    user.full_name = "ANONYMIZED"
-    user.is_active = False
+ user = await db.get(User, user_id)
+ user.email = f"anonymized_{user_id}@deleted.local"
+ user.full_name = "ANONYMIZED"
+ user.is_active = False
 
-    guardian = await get_guardian_by_user(db, user_id)
-    if guardian:
-        guardian.phone = enc.encrypt("ANONYMIZED")
-        guardian.nik = enc.encrypt("ANONYMIZED")
-        guardian.address = enc.encrypt("ANONYMIZED")
-        guardian.full_name = "ANONYMIZED"
+ guardian = await get_guardian_by_user(db, user_id)
+ if guardian:
+ guardian.phone = enc.encrypt("ANONYMIZED")
+ guardian.nik = enc.encrypt("ANONYMIZED")
+ guardian.address = enc.encrypt("ANONYMIZED")
+ guardian.full_name = "ANONYMIZED"
 
-    # Preserve financial records with anonymized references
-    # Invoice/payment amounts retained for accounting, personal data replaced
-    await db.commit()
+ # Preserve financial records with anonymized references
+ # Invoice/payment amounts retained for accounting, personal data replaced
+ await db.commit()
 ```
 
 ## Data Anonymization Workflow
@@ -272,12 +272,12 @@ async def anonymize_user(db: AsyncSession, user_id: uuid.UUID):
 # app/middleware/security_headers.py
 @app.middleware("http")
 async def add_security_headers(request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    return response
+ response = await call_next(request)
+ response.headers["X-Content-Type-Options"] = "nosniff"
+ response.headers["X-Frame-Options"] = "DENY"
+ response.headers["X-XSS-Protection"] = "1; mode=block"
+ response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+ response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'"
+ response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+ return response
 ```

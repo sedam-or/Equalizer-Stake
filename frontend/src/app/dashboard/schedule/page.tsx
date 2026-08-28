@@ -74,8 +74,8 @@ export default function SchedulePage() {
       .finally(() => setLoading(false));
 
     fetch("/api/v1/sessions/rooms", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : d.data || [])).catch(() => toast("error", "Gagal memuat studio"));
-    fetch("/api/v1/sessions/teachers", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setTeachers(Array.isArray(d) ? d : d.data || [])).catch(() => toast("error", "Gagal memuat guru"));
-    fetch("/api/v1/students", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setStudents(Array.isArray(d) ? d : d.data || [])).catch(() => toast("error", "Gagal memuat siswa"));
+    fetch("/api/v1/sessions/teachers", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setTeachers(Array.isArray(d) ? d : d.data || [])).catch(() => toast("error", "Gagal memuat instructor"));
+    fetch("/api/v1/students", { headers: h }).then(r => r.ok ? r.json() : []).then(d => setStudents(Array.isArray(d) ? d : d.data || [])).catch(() => toast("error", "Gagal memuat student"));
   };
 
   useEffect(() => { fetchAll(); }, [offset, refreshKey]);
@@ -140,8 +140,8 @@ export default function SchedulePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-[#0F172A]">Jadwal Kursus</h1>
-          <p className="text-sm text-gray-500">Kelola jadwal sesi kursus dengan validasi konflik real-time</p>
+          <h1 className="font-heading text-2xl font-bold text-[#0F172A]">Jadwal Course</h1>
+          <p className="text-sm text-gray-500">Kelola jadwal sesi course dengan validasi konflik real-time</p>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8]">
           {showForm ? "Tutup" : "+ Buat Jadwal"}
@@ -157,16 +157,16 @@ export default function SchedulePage() {
           <h2 className="mb-4 font-heading text-lg font-bold text-[#0F172A]">Jadwal Baru</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Guru</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Instructor</label>
               <select value={form.teacher_id} onChange={e => setForm({ ...form, teacher_id: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
-                <option value="">Pilih guru</option>
+                <option value="">Pilih instructor</option>
                 {teachers.map(t => <option key={t.id_teacher} value={t.id_teacher}>{t.full_name}</option>)}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Siswa</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Student</label>
               <select value={form.student_id} onChange={e => setForm({ ...form, student_id: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
-                <option value="">Pilih siswa</option>
+                <option value="">Pilih student</option>
                 {students.map(s => <option key={s.id_student} value={s.id_student}>{s.full_name} {s.instrument ? `(${s.instrument})` : ""}</option>)}
               </select>
             </div>
@@ -247,8 +247,8 @@ export default function SchedulePage() {
                 <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Tanggal</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Waktu</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Guru</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Siswa</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Instructor</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Student</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Studio</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
                 </tr>

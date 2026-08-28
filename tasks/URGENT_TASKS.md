@@ -42,9 +42,9 @@
 // BENAR ✅
 const [data, setData] = useState([]);
 useEffect(() => {
-  fetch('/api/endpoint', { headers: { Authorization: `Bearer ${token}` } })
-    .then(r => r.json())
-    .then(setData);
+ fetch('/api/endpoint', { headers: { Authorization: `Bearer ${token}` } })
+ .then(r => r.json())
+ .then(setData);
 }, []);
 
 // SALAH ❌

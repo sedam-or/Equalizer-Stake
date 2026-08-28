@@ -61,7 +61,7 @@ export default function Navbar() {
               onDark ? "text-white" : "text-[#0F172A]"
             }`}
           >
-            BMD <span className="text-[#D4AF37]">Music</span>
+            Equalizer-Stake <span className="text-[#D4AF37]">Music</span>
           </a>
 
           {/* Desktop nav links */}
@@ -143,7 +143,7 @@ export default function Navbar() {
       >
         <div className="flex h-16 items-center justify-between border-b border-white/10 px-6">
           <span className="font-heading text-lg font-bold text-white">
-            BMD <span className="text-[#D4AF37]">Music</span>
+            Equalizer-Stake <span className="text-[#D4AF37]">Music</span>
           </span>
           <button
             onClick={() => setMobileOpen(false)}
@@ -167,7 +167,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen(false)}
             className="block rounded-lg px-4 py-3 text-sm font-medium text-gray-300 transition-colors hover:bg-white/5 hover:text-white"
           >
-            Tentang BMD
+            Tentang Equalizer-Stake
           </a>
           <a
             href="/login"

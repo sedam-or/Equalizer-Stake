@@ -1,4 +1,4 @@
-# Animations — Landing Page BMD Music School
+# Animations — Landing Page Equalizer-Stake
 
 Scroll animations, transitions, dan micro-interactions.
 
@@ -51,11 +51,11 @@ Semua animasi harus respect `prefers-reduced-motion`:
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+ *, *::before, *::after {
+ animation-duration: 0.01ms !important;
+ animation-iteration-count: 1 !important;
+ transition-duration: 0.01ms !important;
+ }
 }
 ```
 

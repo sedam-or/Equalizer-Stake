@@ -1,12 +1,12 @@
-# Equalizer-Stake — BMD Musik
+# Equalizer-Stake
 
-Sistem Penjadwalan Kursus & Reservasi Studio Berbasis Web untuk BMD Music School, Yogyakarta.
+Deterministic Course & Studio Reservation Engine
 
 ---
 
 ## Ringkasan
 
-Equalizer-Stake menggantikan operasional manual BMD Musik (catatan kertas, spreadsheet, WhatsApp) dengan web app terotomasi berbasis PWA.
+Equalizer-Stake menggantikan operasional manual (catatan kertas, spreadsheet, WhatsApp) dengan web app terotomasi berbasis PWA.
 
 **Masalah yang dipecahkan:**
 - Double-booking 3-5x/bulan → 0
@@ -40,7 +40,7 @@ Equalizer-Stake menggantikan operasional manual BMD Musik (catatan kertas, sprea
 4. **Notifikasi** — WhatsApp + email, retry 3x, circuit breaker, fallback otomatis
 5. **Pelaporan** — Dashboard Owner read-only, laporan bulanan, ekspor cetak
 6. **Audit** — Immutable log, 7 tahun retensi, PII anonimisasi setelah 2 tahun
-7. **Dokumentasi** — Admin manual, guru quick guide, Wali Murid FAQ, tooltip kontekstual
+7. **Dokumentasi** — Admin manual, instructor quick guide, Guardian FAQ, tooltip kontekstual
 
 ---
 

@@ -1,4 +1,4 @@
--- BMD Music School — Full DDL
+-- Equalizer-Stake — Full DDL
 -- Generated from SQLAlchemy models
 -- Total tables: 18
 

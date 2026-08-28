@@ -250,7 +250,7 @@ async def get_owner_dashboard(
             "type": "low_attendance",
             "threshold": "< 5 sesi",
             "count": len(low_att_students),
-            "detail": f"{len(low_att_students)} siswa memiliki kurang dari 5 sesi kehadiran*",
+            "detail": f"{len(low_att_students)} student memiliki kurang dari 5 sesi kehadiran*",
         })
 
     # frozen > 20% of users
@@ -324,7 +324,7 @@ def render_dashboard_html(data: dict) -> str:
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<title>Laporan Dashboard Owner — BMD Musik</title>
+<title>Laporan Dashboard Owner — Equalizer-Stake</title>
 <style>
   body {{ font-family: Arial, sans-serif; margin: 24px; color: #222; }}
   h1 {{ font-size: 20px; border-bottom: 2px solid #333; padding-bottom: 6px; }}
@@ -342,7 +342,7 @@ def render_dashboard_html(data: dict) -> str:
 </style>
 </head>
 <body>
-<h1>Laporan Dashboard Owner — BMD Musik Yogyakarta</h1>
+<h1>Laporan Dashboard Owner — Equalizer-Stake</h1>
 <p>Periode: <strong>{data.get('billing_period', '-')}</strong>
  | Rentang: {dr.get('start', '-')} s/d {dr.get('end', '-')}</p>
 

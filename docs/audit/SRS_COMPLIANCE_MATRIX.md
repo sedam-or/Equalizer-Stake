@@ -1,4 +1,4 @@
-# SRS Compliance Matrix — BMD Music School
+# SRS Compliance Matrix — Equalizer-Stake
 
 **Generated:** 2026-07-05
 **Scope:** All Functional Requirements (FR-01 to FR-15) and Use Cases (UC-01 to UC-13)
@@ -15,7 +15,7 @@
 | **FR-03** | Auto-Invoice Generation with Unique Code | ✅ | `routers/billing.py` — list invoices, delete invoice<br>`routers/cron_trigger.py` — trigger/auto-invoice endpoint<br>`services/billing.py` — generate_unique_code() (3-digit 000-999), create_invoice(), verify_payment() matching unique code<br>`services/scheduler.py` — job_auto_invoice() (runs on tanggal 5)<br>`models/invoice.py` — Invoice with unique_code (CHAR 3), billing_period, due_date, status | `app/dashboard/billing/page.tsx` — invoice list<br>`app/register-course/page.tsx` — registration with pricing | None significant. |
 | **FR-04** | Auto Late Penalty & Account Freeze | ✅ | `routers/billing.py` — apply_fine_endpoint, unfreeze_account<br>`routers/cron_trigger.py` — trigger/fine-freeze<br>`services/scheduler.py` — job_fine_freeze() (scheduled)<br>`routers/multi_student.py` — freeze_household | `app/dashboard/billing/page.tsx` — fine display<br>`app/dashboard/override/page.tsx` — unfreeze | None significant. |
 | **FR-05** | Digital Attendance with Photo | ✅ | `routers/attendance.py` — list, submit, review attendance<br>`routers/photos.py` — upload/get attendance photo (encrypted)<br>`services/photo_storage.py` — validate_photo, save_attendance_photo, load_photo (encrypted)<br>`models/attendance.py` — Attendance model | `app/dashboard/attendance/page.tsx` — attendance list<br>`app/dashboard/attendance/submit/page.tsx` — submit attendance | None significant. |
-| **FR-06** | Multi-Channel Notifications (WhatsApp + Email) | ✅ | `routers/notification.py` — list, unread-count, toggle channel, circuit-breaker reset/status, test-whatsapp, email/status<br>`services/notification.py` — channel priority (critical: email→WhatsApp, non-critical: WhatsApp→email), retry policy (3x exponential backoff), group_notification_by_guardian<br>`services/whatsapp.py` — send_whatsapp_message with retry<br>`services/email.py` — send_email with TLS, circuit breaker (5 failures, 30min cooldown)<br>`models/notification.py` — Notification with channel, category, status, retry_count, error_message | `app/dashboard/notifications/page.tsx` — notification list<br>`app/dashboard/notification-settings/page.tsx` — toggle per channel/category | SRS requires `wali_murid_id` as recipient. Model uses `recipient_id → users.id_user` (generic FK). Grouping by guardian implemented in service layer but model FK points to users table. |
+| **FR-06** | Multi-Channel Notifications (WhatsApp + Email) | ✅ | `routers/notification.py` — list, unread-count, toggle channel, circuit-breaker reset/status, test-whatsapp, email/status<br>`services/notification.py` — channel priority (critical: email→WhatsApp, non-critical: WhatsApp→email), retry policy (3x exponential backoff), group_notification_by_guardian<br>`services/whatsapp.py` — send_whatsapp_message with retry<br>`services/email.py` — send_email with TLS, circuit breaker (5 failures, 30min cooldown)<br>`models/notification.py` — Notification with channel, category, status, retry_count, error_message | `app/dashboard/notifications/page.tsx` — notification list<br>`app/dashboard/notification-settings/page.tsx` — toggle per channel/category | SRS requires `guardian_id` as recipient. Model uses `recipient_id → users.id_user` (generic FK). Grouping by guardian implemented in service layer but model FK points to users table. |
 | **FR-07** | Exam Eligibility Check | ✅ | `routers/reports.py` — get_eligibility endpoint<br>`services/eligibility.py` — check_eligibility() | `app/dashboard/reports/page.tsx` — eligibility display | None significant. |
 | **FR-08** | Draft Auto-Save & Session Recovery | ⚠️ | `routers/draft.py` — list, get, save, delete draft<br>`services/draft.py` — save_draft, get_draft, delete_draft, DraftConflictError<br>`models/draft.py` — Draft model<br>`routers/cron_trigger.py` — trigger/draft-cleanup | No frontend auto-save timer found. No `setInterval`/30s auto-save hook. No "Restore draft?" prompt after session recovery. | **Frontend auto-save (30s interval) not implemented.** Backend CRUD exists but client-side auto-save loop and session-recovery prompt are missing. SRS specifies local-storage + server sync every 30s. |
 | **FR-09** | Immutable Audit Log | ✅ | `routers/audit.py` — list_audit_logs<br>`models/audit_log.py` — AuditLog model<br>`services/audit.py` — log_auth_event, log_crud_event<br>`services/audit_retention.py` — retention management | `app/dashboard/audit-log/page.tsx` — audit log viewer | Immutability enforcement (no DELETE/UPDATE endpoints) — verified by absence of mutation endpoints in `routers/audit.py`. |
@@ -61,36 +61,36 @@
 ### Critical Gaps
 
 1. **FR-08 / UC-13 — Draft Auto-Save (Frontend)**
-   - Backend API: ✅ CRUD endpoints exist
-   - Frontend 30s auto-save timer: ❌ Missing
-   - Session recovery prompt ("Restore draft?"): ❌ Missing
-   - Local storage sync: ❌ Missing
-   - **Impact:** Users lose form data on session timeout
+ - Backend API: ✅ CRUD endpoints exist
+ - Frontend 30s auto-save timer: ❌ Missing
+ - Session recovery prompt ("Restore draft?"): ❌ Missing
+ - Local storage sync: ❌ Missing
+ - **Impact:** Users lose form data on session timeout
 
 2. **FR-12 — Holiday Persistence**
-   - Holiday storage: ⚠️ In-memory only (lost on restart)
-   - DB model: ❌ Missing
-   - Week-5 handling: ❌ Not found in scheduling service
-   - **Impact:** Holiday data not persisted; no week-5 schedule adjustment
+ - Holiday storage: ⚠️ In-memory only (lost on restart)
+ - DB model: ❌ Missing
+ - Week-5 handling: ❌ Not found in scheduling service
+ - **Impact:** Holiday data not persisted; no week-5 schedule adjustment
 
 3. **UC-02, UC-05, UC-07 — Undefined Use Cases**
-   - SRS numbering references UC-01 through UC-20 but only 10 are defined
-   - **Impact:** Coverage gap — 7 use cases referenced but unspecified
+ - SRS numbering references UC-01 through UC-20 but only 10 are defined
+ - **Impact:** Coverage gap — 7 use cases referenced but unspecified
 
 ### Minor Gaps
 
 4. **FR-01 — Onboarding Email**
-   - Admin onboarding: ✅ (resend_onboarding in admin_mgmt.py)
-   - Teacher/Guardian auto-onboarding email on creation: Not verified
+ - Admin onboarding: ✅ (resend_onboarding in admin_mgmt.py)
+ - Teacher/Guardian auto-onboarding email on creation: Not verified
 
 5. **FR-06 — Notification Recipient Model**
-   - SRS specifies `wali_murid_id` as recipient
-   - Model uses `recipient_id → users.id_user` (generic FK)
-   - Grouping by guardian handled in service layer
+ - SRS specifies `guardian_id` as recipient
+ - Model uses `recipient_id → users.id_user` (generic FK)
+ - Grouping by guardian handled in service layer
 
 6. **FR-13 — PDF Export**
-   - Uses HTML printable (browser Print dialog) instead of server-side PDF
-   - Functional but not production-grade PDF generation
+ - Uses HTML printable (browser Print dialog) instead of server-side PDF
+ - Functional but not production-grade PDF generation
 
 ---
 

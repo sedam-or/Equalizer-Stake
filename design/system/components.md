@@ -1,6 +1,6 @@
-# Komponen React Bits — BMD Music School
+# Komponen React Bits — Equalizer-Stake
 
-Daftar komponen React Bits yang digunakan + konfigurasi untuk BMD Music.
+Daftar komponen React Bits yang digunakan + konfigurasi untuk EQS.
 
 ---
 
@@ -30,17 +30,17 @@ Background garis-garis animasi menggunakan Three.js.
 
 ```jsx
 <FloatingLines
-  enabledWaves={['top', 'middle', 'bottom']}
-  lineCount={[8, 12, 16]}
-  lineDistance={[8, 6, 4]}
-  bendRadius={5.0}
-  bendStrength={-0.5}
-  interactive={true}
-  parallax={true}
-  gradientStart="#08CB00"
-  gradientEnd="#000000"
-  animationSpeed={0.8}
-  mixBlendMode="screen"
+ enabledWaves={['top', 'middle', 'bottom']}
+ lineCount={[8, 12, 16]}
+ lineDistance={[8, 6, 4]}
+ bendRadius={5.0}
+ bendStrength={-0.5}
+ interactive={true}
+ parallax={true}
+ gradientStart="#08CB00"
+ gradientEnd="#000000"
+ animationSpeed={0.8}
+ mixBlendMode="screen"
 />
 ```
 
@@ -48,17 +48,17 @@ Background garis-garis animasi menggunakan Three.js.
 
 ```jsx
 <FloatingLines
-  enabledWaves={['top', 'middle', 'bottom']}
-  lineCount={[6, 10, 14]}
-  lineDistance={[10, 8, 5]}
-  bendRadius={4.0}
-  bendStrength={-0.3}
-  interactive={true}
-  parallax={true}
-  gradientStart="#253900"
-  gradientEnd="#000000"
-  animationSpeed={0.6}
-  mixBlendMode="screen"
+ enabledWaves={['top', 'middle', 'bottom']}
+ lineCount={[6, 10, 14]}
+ lineDistance={[10, 8, 5]}
+ bendRadius={4.0}
+ bendStrength={-0.3}
+ interactive={true}
+ parallax={true}
+ gradientStart="#253900"
+ gradientEnd="#000000"
+ animationSpeed={0.6}
+ mixBlendMode="screen"
 />
 ```
 
@@ -88,11 +88,11 @@ Teks dengan efek blur-in saat scroll masuk viewport.
 
 ```jsx
 <BlurText
-  text="Sistem Penjadwalan Kursus Musik & Reservasi Studio"
-  delay={150}
-  animateBy="words"
-  direction="top"
-  className="text-4xl md:text-5xl font-bold text-white"
+ text="Sistem Penjadwalan Course music & Reservasi Studio"
+ delay={150}
+ animateBy="words"
+ direction="top"
+ className="text-4xl md:text-5xl font-bold text-white"
 />
 ```
 
@@ -116,16 +116,16 @@ Teks yang berganti otomatis dengan animasi.
 
 ```jsx
 <RotatingText
-  texts={["Gitar", "Piano", "Vokal", "Drum", "Bass", "Keyboard"]}
-  mainClassName="text-2xl md:text-3xl text-[#08CB00] font-semibold"
-  staggerFrom="last"
-  initial={{ y: "100%" }}
-  animate={{ y: 0 }}
-  exit={{ y: "-120%" }}
-  staggerDuration={0.025}
-  splitLevelClassName="overflow-hidden pb-0.5"
-  transition={{ type: "spring", damping: 30, stiffness: 400 }}
-  rotationInterval={2000}
+ texts={["Gitar", "Piano", "Vokal", "Drum", "Bass", "Keyboard"]}
+ mainClassName="text-2xl md:text-3xl text-[#08CB00] font-semibold"
+ staggerFrom="last"
+ initial={{ y: "100%" }}
+ animate={{ y: 0 }}
+ exit={{ y: "-120%" }}
+ staggerDuration={0.025}
+ splitLevelClassName="overflow-hidden pb-0.5"
+ transition={{ type: "spring", damping: 30, stiffness: 400 }}
+ rotationInterval={2000}
 />
 ```
 
@@ -149,13 +149,13 @@ Teks dengan efek kilau/glow.
 
 ```jsx
 <ShinyText
-  text="BMD MUSIC SCHOOL"
-  speed={2}
-  delay={0}
-  color="#EEEEEE"
-  shineColor="#08CB00"
-  spread={120}
-  direction="left"
+ text="EQS MUSIC SCHOOL"
+ speed={2}
+ delay={0}
+ color="#EEEEEE"
+ shineColor="#08CB00"
+ spread={120}
+ direction="left"
 />
 ```
 
@@ -163,7 +163,7 @@ Teks dengan efek kilau/glow.
 
 | Prop | Type | Default | Nilai |
 |------|------|---------|-------|
-| text | string | — | "BMD MUSIC SCHOOL" |
+| text | string | — | "EQS MUSIC SCHOOL" |
 | speed | number | 2 | 2 seconds |
 | color | string | "#b5b5b5" | "#EEEEEE" |
 | shineColor | string | "#ffffff" | "#08CB00" |
@@ -180,17 +180,17 @@ Card dengan border glow saat hover.
 
 ```jsx
 <BorderGlow
-  edgeSensitivity={30}
-  glowColor="120 100 50"
-  backgroundColor="#120F17"
-  borderRadius={20}
-  glowRadius={30}
-  glowIntensity={0.8}
-  coneSpread={25}
-  animated={false}
-  colors={['#08CB00', '#253900', '#08CB00']}
+ edgeSensitivity={30}
+ glowColor="120 100 50"
+ backgroundColor="#120F17"
+ borderRadius={20}
+ glowRadius={30}
+ glowIntensity={0.8}
+ coneSpread={25}
+ animated={false}
+ colors={['#08CB00', '#253900', '#08CB00']}
 >
-  {/* Card content */}
+ {/* Card content */}
 </BorderGlow>
 ```
 
@@ -216,18 +216,18 @@ Card dengan efek glassmorphism.
 
 ```jsx
 <GlassSurface
-  width="100%"
-  height="auto"
-  borderRadius={20}
-  brightness={30}
-  opacity={0.15}
-  blur={11}
-  displace={0}
-  backgroundOpacity={0.1}
-  saturation={1.2}
-  className="p-6"
+ width="100%"
+ height="auto"
+ borderRadius={20}
+ brightness={30}
+ opacity={0.15}
+ blur={11}
+ displace={0}
+ backgroundOpacity={0.1}
+ saturation={1.2}
+ className="p-6"
 >
-  {/* Card content */}
+ {/* Card content */}
 </GlassSurface>
 ```
 
@@ -254,16 +254,16 @@ Bento grid dengan spotlight, particles, dan border glow.
 
 ```jsx
 <MagicBento
-  textAutoHide={true}
-  enableStars={true}
-  enableSpotlight={true}
-  enableBorderGlow={true}
-  enableTilt={false}
-  enableMagnetism={true}
-  clickEffect={true}
-  spotlightRadius={300}
-  particleCount={12}
-  glowColor="8, 203, 0"
+ textAutoHide={true}
+ enableStars={true}
+ enableSpotlight={true}
+ enableBorderGlow={true}
+ enableTilt={false}
+ enableMagnetism={true}
+ clickEffect={true}
+ spotlightRadius={300}
+ particleCount={12}
+ glowColor="8, 203, 0"
 />
 ```
 
@@ -292,19 +292,19 @@ Gallery melingkar dengan scroll interaktif.
 
 ```jsx
 <CircularGallery
-  bend={3}
-  textColor="#EEEEEE"
-  borderRadius={0.05}
-  scrollEase={0.02}
-  font="bold 24px Poppins"
-  items={[
-    { image: "", text: "Studio Gitar" },
-    { image: "", text: "Studio Piano" },
-    { image: "", text: "Studio Vokal" },
-    { image: "", text: "Studio Drum" },
-    { image: "", text: "Ruang Rekaman" },
-    { image: "", text: "Ruang Latihan" },
-  ]}
+ bend={3}
+ textColor="#EEEEEE"
+ borderRadius={0.05}
+ scrollEase={0.02}
+ font="bold 24px Poppins"
+ items={[
+ { image: "", text: "Studio Gitar" },
+ { image: "", text: "Studio Piano" },
+ { image: "", text: "Studio Vokal" },
+ { image: "", text: "Studio Drum" },
+ { image: "", text: "Ruang Rekaman" },
+ { image: "", text: "Ruang Latihan" },
+ ]}
 />
 ```
 
@@ -329,12 +329,12 @@ Tombol dengan border animasi bintang.
 
 ```jsx
 <StarBorder
-  as="button"
-  className="px-8 py-3 text-lg font-semibold"
-  color="#08CB00"
-  speed="5s"
+ as="button"
+ className="px-8 py-3 text-lg font-semibold"
+ color="#08CB00"
+ speed="5s"
 >
-  Jadwalkan Sekarang
+ Jadwalkan Sekarang
 </StarBorder>
 ```
 
@@ -357,17 +357,17 @@ Efek fluid cursor interaktif.
 
 ```jsx
 <SplashCursor
-  SIM_RESOLUTION={128}
-  DYE_RESOLUTION={1024}
-  DENSITY_DISSIPATION={3.5}
-  VELOCITY_DISSIPATION={2}
-  SPLAT_RADIUS={0.15}
-  SPLAT_FORCE={4000}
-  SHADING={true}
-  RAINBOW_MODE={false}
-  COLOR="#08CB00"
-  BACK_COLOR={{ r: 0, g: 0, b: 0 }}
-  TRANSPARENT={true}
+ SIM_RESOLUTION={128}
+ DYE_RESOLUTION={1024}
+ DENSITY_DISSIPATION={3.5}
+ VELOCITY_DISSIPATION={2}
+ SPLAT_RADIUS={0.15}
+ SPLAT_FORCE={4000}
+ SHADING={true}
+ RAINBOW_MODE={false}
+ COLOR="#08CB00"
+ BACK_COLOR={{ r: 0, g: 0, b: 0 }}
+ TRANSPARENT={true}
 />
 ```
 
@@ -395,19 +395,19 @@ Navigasi dengan efek gooey/bubble.
 
 ```jsx
 <GooeyNav
-  items={[
-    { label: "Beranda", href: "#" },
-    { label: "Layanan", href: "#layanan" },
-    { label: "Studio", href: "#studio" },
-    { label: "Hubungi", href: "#hubungi" },
-  ]}
-  particleCount={15}
-  particleDistances={[90, 10]}
-  particleR={100}
-  initialActiveIndex={0}
-  animationTime={600}
-  timeVariance={300}
-  colors={[1, 2, 3, 1, 2, 3, 1, 4]}
+ items={[
+ { label: "Beranda", href: "#" },
+ { label: "Layanan", href: "#layanan" },
+ { label: "Studio", href: "#studio" },
+ { label: "Hubungi", href: "#hubungi" },
+ ]}
+ particleCount={15}
+ particleDistances={[90, 10]}
+ particleR={100}
+ initialActiveIndex={0}
+ animationTime={600}
+ timeVariance={300}
+ colors={[1, 2, 3, 1, 2, 3, 1, 4]}
 />
 ```
 

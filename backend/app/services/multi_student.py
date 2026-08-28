@@ -40,7 +40,7 @@ async def add_student_to_guardian(
     )
     guardian = result.scalar_one_or_none()
     if not guardian or guardian.account_status == "inactive":
-        raise ValueError("Akun wali murid tidak aktif")
+        raise ValueError("Akun guardian tidak aktif")
 
     # Create student
     student = Student(

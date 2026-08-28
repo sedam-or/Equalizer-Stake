@@ -1,4 +1,4 @@
-# Design Tokens — BMD Music School
+# Design Tokens — Equalizer-Stake
 
 Warna, tipografi, spacing, dan breakpoints untuk seluruh website.
 

@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Sistem Penjadwalan Kursus & Reservasi Studio BMD Musik Yogyakarta",
+    description="Equalizer-Stake — Course Scheduling & Studio Reservation System",
     lifespan=lifespan,
     redirect_slashes=False,
 )

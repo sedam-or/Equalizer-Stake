@@ -10,7 +10,7 @@ export default function TestimonialSection() {
 
         {/* Quote */}
         <BlurText
-          text="Anak saya sekarang lebih percaya diri tampil di depan umum. Metode mengajar di BMD membuat anak saya mencintai piano — bukan sekadar belajar."
+          text="Anak saya sekarang lebih percaya diri tampil di depan umum. Metode mengajar di Equalizer-Stake membuat anak saya mencintai piano — bukan sekadar belajar."
           animateBy="words"
           direction="top"
           delay={80}
@@ -28,7 +28,7 @@ export default function TestimonialSection() {
             Ibu Rina
           </p>
           <p className="text-xs text-gray-500">
-            Wali Murid — Piano, 2 tahun bersama BMD
+            Guardian — Piano, 2 tahun
           </p>
         </div>
 
@@ -36,7 +36,7 @@ export default function TestimonialSection() {
         <div className="mx-auto mt-16 h-px w-16 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
 
         <p className="mt-6 text-sm text-gray-600">
-          150+ keluarga di Yogyakarta mempercayakan pendidikan musik anak kepada BMD
+          150+ pengguna mempercayakan pendidikan musik anak kepada Equalizer-Stake
         </p>
       </div>
     </section>

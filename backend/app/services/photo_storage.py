@@ -13,7 +13,7 @@ from datetime import datetime
 from app.services.encryption import encrypt_pii, decrypt_pii
 
 # Storage directories
-UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "/home/kepolu/bmdmusic/backend/uploads"))
+UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "/home/kepolu/equalizer-stake/backend/uploads"))
 ATTENDANCE_DIR = UPLOAD_DIR / "attendance"
 PROFILE_DIR = UPLOAD_DIR / "profiles"
 

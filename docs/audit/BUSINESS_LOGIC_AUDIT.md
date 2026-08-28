@@ -36,7 +36,7 @@
 **Priority:** 🟡 IMPORTANT
 
 #### 5. Durasi Sesi (30/45 Menit)
-**SRS:** Sesi kursus 30 atau 45 menit
+**SRS:** Sesi course 30 atau 45 menit
 **Current:** duration_minutes in Pricing model, no validation on Session
 **Gap:** Session model doesn't validate duration
 **Fix:** Add check constraint or validation
@@ -50,7 +50,7 @@
 **Priority:** 🟢 NICE TO HAVE
 
 #### 7. Waktu Operasional (Senin-Sabtu, 08:00-20:00)
-**SRS:** BMD buka Senin-Sabtu, 08:00-20:00
+**SRS:** EQS buka Senin-Sabtu, 08:00-20:00
 **Current:** No operational hours validation
 **Gap:** Session can be created outside operational hours
 **Fix:** Add validation in scheduling
@@ -90,11 +90,11 @@
 ## INVOICE FLOW
 
 ```
-Day 1-4:   Guardian pays previous month invoice
-Day 5:     Auto-invoice generated (job_auto_invoice)
-Day 6-10:  Guardian has time to pay
-Day 11:    Fine applied + account frozen (job_fine_freeze)
-Day 12+:   Guardian must pay fine + original to unfreeze
+Day 1-4: Guardian pays previous month invoice
+Day 5: Auto-invoice generated (job_auto_invoice)
+Day 6-10: Guardian has time to pay
+Day 11: Fine applied + account frozen (job_fine_freeze)
+Day 12+: Guardian must pay fine + original to unfreeze
 ```
 
 **Status:** ✅ Fully implemented
@@ -104,7 +104,7 @@ Day 12+:   Guardian must pay fine + original to unfreeze
 ## ATTENDANCE FLOW
 
 ```
-1. Student arrives at BMD
+1. Student arrives at EQS
 2. Opens app → submit attendance
 3. GPS validated (150m radius)
 4. Photo uploaded

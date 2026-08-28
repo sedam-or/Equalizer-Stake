@@ -10,39 +10,39 @@ Proposed = dalam evaluasi.
 
 **FR-01 Login dan Autentikasi Berbasis Peran (RBAC) ● Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Owner, Admin, Guru, Wali Murid
+ ---------------- ------------------------------------------------------
+ **Aktor** Owner, Admin, Instructor, Guardian
 
-  **Pemicu**       Pengguna membuka URL sistem
+ **Pemicu** Pengguna membuka URL sistem
 
-  **Modul**        Autentikasi
+ **Modul** Autentikasi
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-01
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-01
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
 Sistem shall menyediakan halaman login tunggal yang mengarahkan pengguna
-ke dashboard sesuai perannya (Owner, Admin, Guru, Wali Murid) setelah
+ke dashboard sesuai perannya (Owner, Admin, Instructor, Guardian) setelah
 autentikasi berhasil. Token sesi (JWT) diterbitkan dengan masa berlaku
 sesuai batas waktu per peran.
 
 ***Batasan Logika***
 
 - Percobaan login gagal maksimal 5 kali dalam 15 menit sebelum akun
-  dikunci sementara.
+ dikunci sementara.
 
-- Batas waktu sesi tidak aktif: Owner 30 menit, Admin 15 menit, Guru 30
-  menit, Wali Murid 60 menit.
+- Batas waktu sesi tidak aktif: Owner 30 menit, Admin 15 menit, Instructor 30
+ menit, Guardian 60 menit.
 
 - Setelah batas waktu, pengguna diminta login ulang; draft tersimpan
-  dipulihkan otomatis.
+ dipulihkan otomatis.
 
 **Fitur Kirim Password Awal (Onboarding) --- Perubahan v2.0:**
 
-Ketika Admin membuat akun baru untuk Guru atau Wali Murid, sistem wajib
+Ketika Admin membuat akun baru untuk Instructor atau Guardian, sistem wajib
 mengirimkan email berisi:
 
 - Link akses sistem
@@ -64,18 +64,18 @@ Perubahan password dicatat di audit log.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Pengguna memiliki akun aktif dan kredensial yang benar
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Pengguna memiliki akun aktif dan kredensial yang benar
 
-  When          Pengguna memasukkan username dan password lalu menekan
-                tombol Masuk
+ When Pengguna memasukkan username dan password lalu menekan
+ tombol Masuk
 
-  Then          Sistem menerbitkan token sesi, mencatat waktu login di
-                audit log, dan menampilkan dashboard sesuai peran dalam ≤
-                2 detik
-  ------------------------------------------------------------------------
+ Then Sistem menerbitkan token sesi, mencatat waktu login di
+ audit log, dan menampilkan dashboard sesuai peran dalam ≤
+ 2 detik
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -119,38 +119,38 @@ disimpan, flag direset, audit log dicatat
 ***Penanganan Error & Cadangan***
 
 - Kredensial salah: Tampilkan \"Username atau password tidak valid\"
-  tanpa menyebutkan mana yang salah.
+ tanpa menyebutkan mana yang salah.
 
 - Percobaan ke-5 gagal: Kunci akun 15 menit, kirim notifikasi email ke
-  Admin.
+ Admin.
 
 - Akun nonaktif: Tampilkan pesan \"Akun Anda tidak aktif. Hubungi Admin
-  BMD Musik.\"
+ Equalizer-Stake.\"
 
 - Password sementara kedaluwarsa (\>7 hari): Tampilkan pesan \"Link
-  telah kedaluwarsa. Hubungi Admin untuk mengirim ulang.\"
+ telah kedaluwarsa. Hubungi Admin untuk mengirim ulang.\"
 
 - Cadangan: Jika layanan token sesi gangguan, tampilkan pesan
-  pemeliharaan dan catat insiden di log sistem.
+ pemeliharaan dan catat insiden di log sistem.
 
-**FR-02 Penjadwalan Kursus dengan Validasi Konflik Real-Time ●
+**FR-02 Penjadwalan Course dengan Validasi Konflik Real-Time ●
 Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Admin
+ ---------------- ------------------------------------------------------
+ **Aktor** Admin
 
-  **Pemicu**       Admin menyimpan jadwal baru
+ **Pemicu** Admin menyimpan jadwal baru
 
-  **Modul**        Penjadwalan
+ **Modul** Penjadwalan
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-02
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-02
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
-Sistem shall memvalidasi ketersediaan slot (guru, ruangan, waktu) secara
+Sistem shall memvalidasi ketersediaan slot (instructor, ruangan, waktu) secara
 real-time saat Admin menyimpan jadwal baru atau melakukan perubahan
 jadwal. Konflik slot tidak boleh lolos ke penyimpanan data dalam keadaan
 apapun.
@@ -158,44 +158,44 @@ apapun.
 ***Batasan Logika***
 
 - Validasi mencakup: waktu sesi + jeda 10 menit tidak tumpang tindih di
-  ruangan yang sama; guru tidak dijadwalkan dua sesi bersamaan.
+ ruangan yang sama; instructor tidak dijadwalkan dua sesi bersamaan.
 
 - Jadwal hanya dalam jam operasional (Senin--Jumat 14.30--17.00, Sabtu
-  08.00--12.00).
+ 08.00--12.00).
 
 - Tidak ada penjadwalan di hari libur nasional atau hari Minggu.
 
 - Concurrency control wajib: mencegah dua Admin menyimpan jadwal bentrok
-  secara bersamaan.
+ secara bersamaan.
 
 **Logika Kredit untuk Pembatalan Sesi --- Perubahan v2.0:**
 
-**Pembatalan oleh Admin (sesi berstatus Locked):** Kredit siswa wajib
+**Pembatalan oleh Admin (sesi berstatus Locked):** Kredit student wajib
 dikembalikan penuh (refund kredit) dan dicatat di audit log disertai
 alasan pembatalan. Berlaku untuk pembatalan akibat error penjadwalan,
 duplikasi, atau konflik.
 
-**Pembatalan oleh Wali Murid (notifikasi ≥ 24 jam sebelum sesi):**
+**Pembatalan oleh Guardian (notifikasi ≥ 24 jam sebelum sesi):**
 Kredit dikembalikan 50%.
 
-**Pembatalan oleh Wali Murid (notifikasi \< 24 jam sebelum sesi):**
+**Pembatalan oleh Guardian (notifikasi \< 24 jam sebelum sesi):**
 Kredit hangus (tidak dikembalikan).
 
 Semua pembatalan wajib disertai alasan dan dicatat di audit log.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Admin memilih slot waktu, guru, dan ruangan tertentu
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Admin memilih slot waktu, instructor, dan ruangan tertentu
 
-  When          Admin menekan tombol Simpan Jadwal
+ When Admin menekan tombol Simpan Jadwal
 
-  Then          Sistem memvalidasi ketersediaan ≤ 1 detik; jika tersedia,
-                jadwal tersimpan dan notifikasi dikirim ke Guru; jika
-                konflik, tampilkan daftar slot alternatif yang tersedia
-  ------------------------------------------------------------------------
+ Then Sistem memvalidasi ketersediaan ≤ 1 detik; jika tersedia,
+ jadwal tersimpan dan notifikasi dikirim ke Instructor; jika
+ konflik, tampilkan daftar slot alternatif yang tersedia
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -203,7 +203,7 @@ Semua pembatalan wajib disertai alasan dan dicatat di audit log.
 
 1\. Buka form jadwal baru
 
-2\. Pilih siswa, guru, ruangan
+2\. Pilih student, instructor, ruangan
 
 3\. Pilih tanggal & waktu sesi
 
@@ -215,7 +215,7 @@ Semua pembatalan wajib disertai alasan dan dicatat di audit log.
 
 7\. Simpan status Locked + catat audit log
 
-8\. Kirim notifikasi ke Guru & Wali Murid
+8\. Kirim notifikasi ke Instructor & Guardian
 
 **Jalur Alternatif --- Konflik Slot Terdeteksi:**
 
@@ -231,47 +231,47 @@ slot
 **Jalur Alternatif --- Pembatalan Sesi Locked oleh Admin:**
 
 Admin pilih \"Batalkan Sesi\" pada sesi berstatus Locked → Sistem
-wajibkan input alasan → Kredit siswa dikembalikan penuh → Catat di audit
-log → Notifikasi ke Wali Murid & Guru
+wajibkan input alasan → Kredit student dikembalikan penuh → Catat di audit
+log → Notifikasi ke Guardian & Instructor
 
-**Jalur Alternatif --- Pembatalan oleh Wali Murid (≥ 24 jam):**
+**Jalur Alternatif --- Pembatalan oleh Guardian (≥ 24 jam):**
 
-Wali Murid ajukan pembatalan → Sistem cek selisih waktu ≥ 24 jam →
+Guardian ajukan pembatalan → Sistem cek selisih waktu ≥ 24 jam →
 Kredit dikembalikan 50% → Catat di audit log
 
-**Jalur Alternatif --- Pembatalan oleh Wali Murid (\< 24 jam):**
+**Jalur Alternatif --- Pembatalan oleh Guardian (\< 24 jam):**
 
-Wali Murid ajukan pembatalan → Sistem cek selisih waktu \< 24 jam →
+Guardian ajukan pembatalan → Sistem cek selisih waktu \< 24 jam →
 Tampilkan konfirmasi \"Kredit akan hangus\" → Jika setuju, kredit hangus
 → Catat di audit log
 
 ***Penanganan Error & Cadangan***
 
 - Konflik slot: Tampilkan detail konflik (\"Ruang A sudah digunakan
-  \[Guru X\] pukul 15.00--16.00\") + 3 slot alternatif.
+ \[Instructor X\] pukul 15.00--16.00\") + 3 slot alternatif.
 
 - Concurrency: \"Data jadwal baru saja diperbarui. Silakan periksa
-  kembali sebelum menyimpan.\"
+ kembali sebelum menyimpan.\"
 
 - Pembatalan tanpa alasan: Sistem menolak, field alasan wajib diisi
-  sebelum konfirmasi.
+ sebelum konfirmasi.
 
 - Cadangan: Draft jadwal disimpan lokal setiap 30 detik; dapat
-  dipulihkan saat kembali online.
+ dipulihkan saat kembali online.
 
 **FR-03 Penerbitan Tagihan Otomatis dan Kode Unik ● Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Sistem (otomatis); Admin (verifikasi)
+ ---------------- ------------------------------------------------------
+ **Aktor** Sistem (otomatis); Admin (verifikasi)
 
-  **Pemicu**       Tanggal 5 pukul 00:00
+ **Pemicu** Tanggal 5 pukul 00:00
 
-  **Modul**        Penagihan
+ **Modul** Penagihan
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-05
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-05
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
@@ -285,24 +285,24 @@ identifikasi pembayaran manual.
 - Kode unik tidak boleh duplikat untuk tagihan aktif di bulan yang sama.
 
 - Jika terjadi duplikasi: coba kode baru maks. 3 kali; jika masih gagal,
-  tandai untuk assignment manual Admin.
+ tandai untuk assignment manual Admin.
 
-- Satu tagihan per Wali Murid mencakup seluruh siswa yang dikelola
-  (relasi 1:N).
+- Satu tagihan per Guardian mencakup seluruh student yang dikelola
+ (relasi 1:N).
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Tanggal sistem menunjukkan tanggal 5 pukul 00:00
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Tanggal sistem menunjukkan tanggal 5 pukul 00:00
 
-  When          Proses penagihan otomatis berjalan
+ When Proses penagihan otomatis berjalan
 
-  Then          Tagihan terbit untuk semua akun Wali Murid aktif dalam ≤ 5
-                menit, notifikasi dikirim ke WhatsApp/email, setiap
-                tagihan memiliki kode unik 3 digit yang tidak duplikat
-  ------------------------------------------------------------------------
+ Then Tagihan terbit untuk semua akun Guardian aktif dalam ≤ 5
+ menit, notifikasi dikirim ke WhatsApp/email, setiap
+ tagihan memiliki kode unik 3 digit yang tidak duplikat
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -310,9 +310,9 @@ identifikasi pembayaran manual.
 
 1\. Cron job aktif tanggal 5 pukul 00:00
 
-2\. Ambil daftar Wali Murid aktif
+2\. Ambil daftar Guardian aktif
 
-3\. Hitung total biaya per Guardian (semua siswa)
+3\. Hitung total biaya per Guardian (semua student)
 
 4\. Generate kode unik 3 digit (000--999)
 
@@ -320,7 +320,7 @@ identifikasi pembayaran manual.
 
 6\. Simpan invoice ke database
 
-7\. Kirim notifikasi WhatsApp + email ke Wali Murid
+7\. Kirim notifikasi WhatsApp + email ke Guardian
 
 **Jalur Alternatif --- Kode Unik Bentrok (setelah 3x percobaan):**
 
@@ -335,39 +335,39 @@ WhatsApp gagal terkirim → Retry 3x (10/20/40 detik) → Fallback ke email
 ***Penanganan Error & Cadangan***
 
 - Kode unik bentrok 3x: Status \"Perlu Kode Manual\", Admin menerima
-  notifikasi.
+ notifikasi.
 
 - Penagihan gagal parsial: Catat tagihan gagal, retry dalam 30 menit;
-  Admin diberitahu via dashboard jika masih gagal.
+ Admin diberitahu via dashboard jika masih gagal.
 
 - Cadangan notifikasi: Jika WhatsApp gagal, otomatis kirim via email.
 
 **FR-04 Penerapan Denda Otomatis dan Pembekuan Akun ● Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Sistem (otomatis); Admin (unfreeze)
+ ---------------- ------------------------------------------------------
+ **Aktor** Sistem (otomatis); Admin (unfreeze)
 
-  **Pemicu**       Tanggal 11 pukul 00:00, tagihan belum lunas
+ **Pemicu** Tanggal 11 pukul 00:00, tagihan belum lunas
 
-  **Modul**        Penagihan
+ **Modul** Penagihan
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-07
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-07
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
 Sistem shall secara otomatis menerapkan denda flat Rp 100.000 dan
-membekukan akun Wali Murid yang tagihan bulannya belum terlunasi pada
+membekukan akun Guardian yang tagihan bulannya belum terlunasi pada
 tanggal 11 pukul 00:00.
 
 ***Batasan Logika***
 
-- Pembekuan memblokir seluruh akses siswa di bawah Wali Murid tersebut.
+- Pembekuan memblokir seluruh akses student di bawah Guardian tersebut.
 
 - DP ≥ 70% mengizinkan kehadiran hingga tanggal 10; setelah tanggal 11
-  tetap diblokir.
+ tetap diblokir.
 
 - State machine: unpaid → partial_paid → overdue → frozen.
 
@@ -375,17 +375,17 @@ tanggal 11 pukul 00:00.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Tagihan Wali Murid belum lunas pada tanggal 11 pukul 00:00
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Tagihan Guardian belum lunas pada tanggal 11 pukul 00:00
 
-  When          Proses otomatis berjalan
+ When Proses otomatis berjalan
 
-  Then          Denda Rp 100.000 ditambahkan, akun dibekukan, notifikasi
-                dikirim ke Wali Murid (WhatsApp + email), status tercatat
-                di audit log
-  ------------------------------------------------------------------------
+ Then Denda Rp 100.000 ditambahkan, akun dibekukan, notifikasi
+ dikirim ke Guardian (WhatsApp + email), status tercatat
+ di audit log
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -401,52 +401,52 @@ tanggal 11 pukul 00:00.
 
 5\. Catat di audit log
 
-6\. Kirim notifikasi WhatsApp + email ke Wali Murid
+6\. Kirim notifikasi WhatsApp + email ke Guardian
 
 **Jalur Alternatif --- Pembukaan Akun (Unfreeze) setelah Pelunasan:**
 
-Wali Murid transfer (pokok + denda) → Kirim bukti ke Admin → Admin
+Guardian transfer (pokok + denda) → Kirim bukti ke Admin → Admin
 verifikasi → Ubah status → Aktif (Paid) → Catat audit log → Kirim
-konfirmasi ke Wali Murid
+konfirmasi ke Guardian
 
 ***Penanganan Error & Cadangan***
 
 - Proses otomatis gagal: Catat kegagalan, Admin menerima peringatan di
-  dashboard, proses dapat dijalankan ulang manual.
+ dashboard, proses dapat dijalankan ulang manual.
 
-- Wali Murid mengklaim sudah bayar: Admin dapat menangguhkan pembekuan
-  sementara sambil verifikasi, dengan catatan di audit log.
+- Guardian mengklaim sudah bayar: Admin dapat menangguhkan pembekuan
+ sementara sambil verifikasi, dengan catatan di audit log.
 
 **FR-05 Absensi Digital dengan Validasi Foto, GPS, dan Waktu ●
 Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Guru; Admin (verifikasi)
+ ---------------- ------------------------------------------------------
+ **Aktor** Instructor; Admin (verifikasi)
 
-  **Pemicu**       Guru membuka form absensi sesi aktif
+ **Pemicu** Instructor membuka form absensi sesi aktif
 
-  **Modul**        Kehadiran
+ **Modul** Kehadiran
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-03
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-03
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
 Sistem shall memvalidasi tiga aspek secara bersamaan: (a) waktu
 berdasarkan jam server, (b) lokasi GPS dalam radius 150 meter dari
 studio (koordinat: -7.7265, 110.4162) --- radius final pasca uji
-lapangan, (c) wajah siswa terlihat minimal 30% dari area foto. Gagal
+lapangan, (c) wajah student terlihat minimal 30% dari area foto. Gagal
 satu aspek → status pending_verification, bukan langsung ditolak.
 
 ***Batasan Logika***
 
 - Tiga validasi bersifat kumulatif; satu gagal → pending_verification,
-  Admin menerima notifikasi.
+ Admin menerima notifikasi.
 
-- Guru tidak dapat mengubah data absensi setelah dikirim; hanya Admin
-  yang dapat koreksi (dengan audit log).
+- Instructor tidak dapat mengubah data absensi setelah dikirim; hanya Admin
+ yang dapat koreksi (dengan audit log).
 
 - Status PendingVerification wajib direview Admin ≤ 2 jam.
 
@@ -458,30 +458,30 @@ face-api.js atau MediaPipe Face Detection). Tujuan:
 
 - Mengurangi beban server --- mencegah bottleneck di cloud hosting
 
-- Memberikan umpan balik instan kepada Guru (≤ 1 detik)
+- Memberikan umpan balik instan kepada Instructor (≤ 1 detik)
 
 - Mengurangi penggunaan bandwidth --- hanya foto yang lolos validasi
-  yang dikirim ke server
+ yang dikirim ke server
 
 Server tetap melakukan validasi redundant (verifikasi ulang) untuk
 keamanan, namun proses utama tetap di client.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Guru berada di lokasi studio dan sesi kursus sedang
-                berlangsung
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Instructor berada di lokasi studio dan sesi course sedang
+ berlangsung
 
-  When          Guru mengunggah foto siswa dan menekan tombol Konfirmasi
-                Absensi
+ When Instructor mengunggah foto student dan menekan tombol Konfirmasi
+ Absensi
 
-  Then          Sistem memvalidasi waktu, GPS, dan foto dalam ≤ 5 detik;
-                jika semua valid → status \"Hadir\"; jika ada validasi
-                gagal → status \"Menunggu Verifikasi\" dan Admin
-                diberitahu
-  ------------------------------------------------------------------------
+ Then Sistem memvalidasi waktu, GPS, dan foto dalam ≤ 5 detik;
+ jika semua valid → status \"Hadir\"; jika ada validasi
+ gagal → status \"Menunggu Verifikasi\" dan Admin
+ diberitahu
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -491,7 +491,7 @@ keamanan, namun proses utama tetap di client.
 
 2\. Pilih sesi aktif
 
-3\. Ambil foto siswa via kamera
+3\. Ambil foto student via kamera
 
 4\. Client-side: validasi proporsi wajah ≥ 30% (face-api.js / MediaPipe)
 ≤ 1 detik
@@ -507,12 +507,12 @@ server
 
 9\. Simpan status \"Hadir\" + potong kredit
 
-10\. Kirim notifikasi hadir ke Wali Murid
+10\. Kirim notifikasi hadir ke Guardian
 
 **Jalur Alternatif --- Wajah Tidak Lolos Validasi Client-Side:**
 
 face-api.js gagal deteksi wajah ≥ 30% → Tampilkan panduan \"Pastikan
-wajah mengisi minimal 1/3 area foto\" → Guru ambil ulang foto → Tidak
+wajah mengisi minimal 1/3 area foto\" → Instructor ambil ulang foto → Tidak
 ada request ke server
 
 **Jalur Alternatif --- GPS Luar Radius (Validasi Server):**
@@ -527,63 +527,63 @@ koneksi kembali (≤ 5 menit) → Timestamp server saat upload diterima
 
 ***Penanganan Error & Cadangan***
 
-- Wajah tidak terdeteksi (client-side): \"Wajah siswa belum terlihat
-  jelas. Pastikan wajah mengisi minimal sepertiga area foto.\" --- tidak
-  ada request ke server.
+- Wajah tidak terdeteksi (client-side): \"Wajah student belum terlihat
+ jelas. Pastikan wajah mengisi minimal sepertiga area foto.\" --- tidak
+ ada request ke server.
 
 - GPS luar radius 150m: \"Lokasi Anda berada di luar area studio.
-  Absensi perlu verifikasi Admin.\"
+ Absensi perlu verifikasi Admin.\"
 
 - Koneksi terputus: Foto tersimpan di perangkat, upload otomatis saat
-  kembali online.
+ kembali online.
 
 - Server validasi wajah gagal (redundant check): Catat sebagai
-  PendingVerification; tidak langsung ditolak.
+ PendingVerification; tidak langsung ditolak.
 
 **FR-06 Notifikasi Multi-Saluran dengan Sistem Cadangan ● Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Sistem (otomatis); Admin (konfigurasi)
+ ---------------- ------------------------------------------------------
+ **Aktor** Sistem (otomatis); Admin (konfigurasi)
 
-  **Pemicu**       Event bisnis (jadwal, pembayaran, freeze)
+ **Pemicu** Event bisnis (jadwal, pembayaran, freeze)
 
-  **Modul**        Notifikasi
+ **Modul** Notifikasi
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-04
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-04
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
 Sistem shall mengirimkan notifikasi melalui WhatsApp (non-kritis) dan
 email (kritis) dengan mekanisme percobaan ulang otomatis dan peralihan
-saluran jika pengiriman gagal. Semua notifikasi dikirim ke Wali Murid,
-bukan per siswa.
+saluran jika pengiriman gagal. Semua notifikasi dikirim ke Guardian,
+bukan per student.
 
 ***Batasan Logika***
 
 - Kritis (konfirmasi pembayaran, freeze/unfreeze): email utama, WhatsApp
-  cadangan.
+ cadangan.
 
 - Non-kritis (reminder 1 jam sebelum sesi): WhatsApp utama, email
-  cadangan.
+ cadangan.
 
 - Retry 3x: jeda 10 detik → 20 detik → 40 detik sebelum fallback ke
-  saluran cadangan.
+ saluran cadangan.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Pemicu notifikasi terjadi (contoh: 1 jam sebelum sesi)
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Pemicu notifikasi terjadi (contoh: 1 jam sebelum sesi)
 
-  When          Sistem memproses antrian notifikasi
+ When Sistem memproses antrian notifikasi
 
-  Then          Notifikasi terkirim ke Wali Murid dalam ≤ 15 detik; status
-                pengiriman tercatat di log yang dapat dilihat Admin
-  ------------------------------------------------------------------------
+ Then Notifikasi terkirim ke Guardian dalam ≤ 15 detik; status
+ pengiriman tercatat di log yang dapat dilihat Admin
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -612,59 +612,59 @@ manual
 ***Penanganan Error & Cadangan***
 
 - WhatsApp gagal 3x: Otomatis kirim via email, catat \"Fallback ke
-  Email\" di log.
+ Email\" di log.
 
 - Email gagal: Admin menerima peringatan dashboard; notifikasi dapat
-  dikirim ulang manual.
+ dikirim ulang manual.
 
 - Gateway tidak tersedia: Blokir notifikasi non-kritis; alihkan semua
-  komunikasi kritis ke email.
+ komunikasi kritis ke email.
 
-**FR-07 Pelacakan Kelayakan Ujian Siswa ● Proposed**
+**FR-07 Pelacakan Kelayakan Ujian Student ● Proposed**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Sistem (otomatis); Admin, Owner
+ ---------------- ------------------------------------------------------
+ **Aktor** Sistem (otomatis); Admin, Owner
 
-  **Pemicu**       Admin/Owner membuka laporan kelayakan
+ **Pemicu** Admin/Owner membuka laporan kelayakan
 
-  **Modul**        Kehadiran
+ **Modul** Kehadiran
 
-  **Verifikasi**   Analysis
+ **Verifikasi** Analysis
 
-  **UC Linked**    UC-09
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-09
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
 Sistem shall secara otomatis menghitung dan menampilkan status kelayakan
-ujian setiap siswa berdasarkan rekam kehadiran dalam 3 bulan terakhir.
+ujian setiap student berdasarkan rekam kehadiran dalam 3 bulan terakhir.
 Kriteria \"Siap Ujian\": akun aktif + kehadiran ≥ 90% + absen tanpa
 kabar ≤ 1 kali.
 
 ***Batasan Logika***
 
 - Semua tiga kondisi harus terpenuhi sekaligus; satu gagal → \"Belum
-  Siap Ujian\" dengan alasan tampil.
+ Siap Ujian\" dengan alasan tampil.
 
-- Siswa baru (data \< 3 bulan): ditampilkan dengan catatan \"Data
-  kehadiran belum lengkap (X bulan)\".
+- Student baru (data \< 3 bulan): ditampilkan dengan catatan \"Data
+ kehadiran belum lengkap (X bulan)\".
 
 - Absensi berstatus PendingVerification: status kelayakan sementara
-  dengan tanda peringatan.
+ dengan tanda peringatan.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Admin atau Owner mengakses laporan kelayakan ujian
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Admin atau Owner mengakses laporan kelayakan ujian
 
-  When          Halaman laporan dibuka
+ When Halaman laporan dibuka
 
-  Then          Sistem menampilkan daftar siswa beserta status \"Siap
-                Ujian\"/\"Belum Siap Ujian\" dengan persentase kehadiran
-                dan jumlah absen tanpa kabar, diperbarui real-time
-  ------------------------------------------------------------------------
+ Then Sistem menampilkan daftar student beserta status \"Siap
+ Ujian\"/\"Belum Siap Ujian\" dengan persentase kehadiran
+ dan jumlah absen tanpa kabar, diperbarui real-time
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -672,11 +672,11 @@ kabar ≤ 1 kali.
 
 1\. Admin/Owner buka laporan kelayakan ujian
 
-2\. Ambil data kehadiran 3 bulan terakhir per siswa
+2\. Ambil data kehadiran 3 bulan terakhir per student
 
 3\. Cek status akun (aktif/beku)
 
-4\. Hitung % kehadiran per siswa
+4\. Hitung % kehadiran per student
 
 5\. Hitung jumlah absen tanpa kabar
 
@@ -687,25 +687,25 @@ alasan
 
 ***Penanganan Error & Cadangan***
 
-- Siswa baru (\< 3 bulan): Tampilkan \"Data kehadiran belum lengkap (X
-  bulan)\", hitung dari data tersedia.
+- Student baru (\< 3 bulan): Tampilkan \"Data kehadiran belum lengkap (X
+ bulan)\", hitung dari data tersedia.
 
 - Absensi PendingVerification: Tampilkan status sementara dengan tanda
-  peringatan.
+ peringatan.
 
 **FR-08 Penyimpanan Draft Otomatis dan Pemulihan Sesi ● Proposed**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Admin, Guru
+ ---------------- ------------------------------------------------------
+ **Aktor** Admin, Instructor
 
-  **Pemicu**       Sesi berakhir saat pengisian form aktif
+ **Pemicu** Sesi berakhir saat pengisian form aktif
 
-  **Modul**        Penjadwalan / Umum
+ **Modul** Penjadwalan / Umum
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-13
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-13
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
@@ -717,25 +717,25 @@ tanpa kehilangan data \> 1 menit terakhir.
 ***Batasan Logika***
 
 - Draft disimpan di penyimpanan lokal perangkat + sinkronisasi ke server
-  saat ada jaringan.
+ saat ada jaringan.
 
 - Draft permanen (setelah klik \"Simpan\") tidak dapat dikembalikan ke
-  draft.
+ draft.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Admin sedang mengisi formulir jadwal \> 30 detik dan sesi
-                berakhir karena tidak aktif
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Admin sedang mengisi formulir jadwal \> 30 detik dan sesi
+ berakhir karena tidak aktif
 
-  When          Admin login kembali
+ When Admin login kembali
 
-  Then          Sistem menampilkan \"Draft sebelumnya ditemukan.
-                Pulihkan?\" dan mengembalikan semua data tanpa kehilangan
-                data \> 1 menit terakhir
-  ------------------------------------------------------------------------
+ Then Sistem menampilkan \"Draft sebelumnya ditemukan.
+ Pulihkan?\" dan mengembalikan semua data tanpa kehilangan
+ data \> 1 menit terakhir
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -760,25 +760,25 @@ tanpa kehilangan data \> 1 menit terakhir.
 ***Penanganan Error & Cadangan***
 
 - Penyimpanan lokal penuh: Beri peringatan, minta pengguna membersihkan
-  cache browser.
+ cache browser.
 
 - Sinkronisasi server gagal: Draft tetap tersimpan lokal; tanda \"Belum
-  Tersinkronisasi\" di antarmuka.
+ Tersinkronisasi\" di antarmuka.
 
 **FR-09 Prosedur Hak Penghapusan Data Pribadi (UU PDP Pasal 19) ●
 Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Wali Murid/Guru (pengaju); Admin (verifikator)
+ ---------------- ------------------------------------------------------
+ **Aktor** Guardian/Instructor (pengaju); Admin (verifikator)
 
-  **Pemicu**       Wali Murid/Guru mengajukan permintaan hapus data
+ **Pemicu** Guardian/Instructor mengajukan permintaan hapus data
 
-  **Modul**        Kepatuhan / Governance
+ **Modul** Kepatuhan / Governance
 
-  **Verifikasi**   Inspection
+ **Verifikasi** Inspection
 
-  **UC Linked**    UC-12
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-12
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
@@ -792,33 +792,33 @@ dalam bentuk anonim.
 - Data PII dianonimkan dengan pola REDACTED-\[kode hash\].
 
 - Permintaan ditolak jika akun masih memiliki tagihan aktif; alasan
-  wajib dikirim ke pemohon.
+ wajib dikirim ke pemohon.
 
 - Seluruh proses tercatat di audit log dengan kategori \"Tindakan
-  Kepatuhan\".
+ Kepatuhan\".
 
 - Eksekusi penghapusan ≤ 14 hari kerja setelah persetujuan Admin.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Wali Murid mengajukan permintaan penghapusan data melalui
-                formulir sistem
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Guardian mengajukan permintaan penghapusan data melalui
+ formulir sistem
 
-  When          Admin memverifikasi identitas dan menyetujui permintaan
+ When Admin memverifikasi identitas dan menyetujui permintaan
 
-  Then          Sistem mengeksekusi anonimisasi PII, menghapus foto,
-                mempertahankan metadata anonim di audit log, dan
-                mengirimkan konfirmasi ke Wali Murid dalam ≤ 14 hari kerja
-  ------------------------------------------------------------------------
+ Then Sistem mengeksekusi anonimisasi PII, menghapus foto,
+ mempertahankan metadata anonim di audit log, dan
+ mengirimkan konfirmasi ke Guardian dalam ≤ 14 hari kerja
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
 **Normal Flow:**
 
-1\. Wali Murid isi formulir hapus data
+1\. Guardian isi formulir hapus data
 
 2\. Sistem cek kelayakan (tidak ada tagihan aktif)
 
@@ -834,103 +834,103 @@ dalam bentuk anonim.
 
 8\. Catat di audit log kategori \"Tindakan Kepatuhan\"
 
-9\. Kirim konfirmasi ke Wali Murid (≤ 14 hari kerja)
+9\. Kirim konfirmasi ke Guardian (≤ 14 hari kerja)
 
 **Jalur Alternatif --- Permintaan Ditolak (Tagihan Aktif):**
 
 Tagihan aktif belum lunas terdeteksi → Generate notifikasi penolakan +
-alasan → Kirim ke Wali Murid dengan panduan langkah selanjutnya
+alasan → Kirim ke Guardian dengan panduan langkah selanjutnya
 
 ***Penanganan Error & Cadangan***
 
 - Ditolak (tagihan aktif): Kirim notifikasi penolakan + alasan + panduan
-  langkah selanjutnya.
+ langkah selanjutnya.
 
 - Penghapusan foto gagal teknis: Catat insiden di log, eskalasi ke tim
-  teknis, informasikan Admin dengan tenggat pemulihan.
+ teknis, informasikan Admin dengan tenggat pemulihan.
 
-**FR-10 Manajemen Akun Multi-Siswa oleh Wali Murid ● Approved**
+**FR-10 Manajemen Akun Multi-Student oleh Guardian ● Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Wali Murid, Admin
+ ---------------- ------------------------------------------------------
+ **Aktor** Guardian, Admin
 
-  **Pemicu**       Wali Murid masuk ke dashboard
+ **Pemicu** Guardian masuk ke dashboard
 
-  **Modul**        Manajemen Akun
+ **Modul** Manajemen Akun
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-08
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-08
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
-Sistem shall memungkinkan satu akun Wali Murid mengelola informasi,
-jadwal, tagihan, dan riwayat kehadiran untuk banyak siswa (relasi 1
+Sistem shall memungkinkan satu akun Guardian mengelola informasi,
+jadwal, tagihan, dan riwayat kehadiran untuk banyak student (relasi 1
 Guardian : N Student) melalui antarmuka terpadu dengan switching antar
-profil siswa.
+profil student.
 
 ***Batasan Logika***
 
-- Penambahan siswa ke akun Guardian hanya oleh Admin (setelah
-  pendaftaran + audisi level).
+- Penambahan student ke akun Guardian hanya oleh Admin (setelah
+ pendaftaran + audisi level).
 
-- Satu invoice mencakup semua siswa di bawah satu Guardian.
+- Satu invoice mencakup semua student di bawah satu Guardian.
 
-- Pembekuan akun Guardian berlaku untuk semua siswa di bawahnya.
+- Pembekuan akun Guardian berlaku untuk semua student di bawahnya.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Wali Murid memiliki dua anak yang terdaftar di BMD Musik
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Guardian memiliki dua anak yang terdaftar di Equalizer-Stake
 
-  When          Wali Murid masuk ke dashboard
+ When Guardian masuk ke dashboard
 
-  Then          Sistem menampilkan jadwal, status kehadiran, dan tagihan
-                kedua siswa dalam satu tampilan terpadu, dengan kemampuan
-                beralih antar profil siswa
-  ------------------------------------------------------------------------
+ Then Sistem menampilkan jadwal, status kehadiran, dan tagihan
+ kedua student dalam satu tampilan terpadu, dengan kemampuan
+ beralih antar profil student
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
 **Normal Flow:**
 
-1\. Wali Murid login ke sistem
+1\. Guardian login ke sistem
 
-2\. Load daftar semua siswa terdaftar di akun ini
+2\. Load daftar semua student terdaftar di akun ini
 
 3\. Tampilkan dashboard terpadu (jadwal + kehadiran + tagihan)
 
-4\. Wali Murid klik nama siswa untuk switch profil
+4\. Guardian klik nama student untuk switch profil
 
-5\. Dashboard refresh menampilkan data siswa yang dipilih
+5\. Dashboard refresh menampilkan data student yang dipilih
 
-**Jalur Alternatif --- Salah Satu Siswa Akun Beku:**
+**Jalur Alternatif --- Salah Satu Student Akun Beku:**
 
-Siswa A aktif, Siswa B beku → Dashboard tampilkan status per siswa
-(badge berbeda) → Notifikasi spesifik mengenai siswa yang akunnya beku
+Student A aktif, Student B beku → Dashboard tampilkan status per student
+(badge berbeda) → Notifikasi spesifik mengenai student yang akunnya beku
 
 ***Penanganan Error & Cadangan***
 
-- Satu siswa beku, satu aktif: Dashboard tampilkan status per siswa
-  dengan notifikasi khusus mengenai yang beku.
+- Satu student beku, satu aktif: Dashboard tampilkan status per student
+ dengan notifikasi khusus mengenai yang beku.
 
 **FR-11 Audit Log Permanen dan Tidak Dapat Diubah (Immutable) ●
 Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Sistem (pencatat); Owner, Admin (pembaca)
+ ---------------- ------------------------------------------------------
+ **Aktor** Sistem (pencatat); Owner, Admin (pembaca)
 
-  **Pemicu**       Setiap perubahan data kritis
+ **Pemicu** Setiap perubahan data kritis
 
-  **Modul**        Audit / Governance
+ **Modul** Audit / Governance
 
-  **Verifikasi**   Inspection
+ **Verifikasi** Inspection
 
-  **UC Linked**    UC-11
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-11
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
@@ -941,26 +941,26 @@ termasuk Admin. Jika pencatatan log gagal, perubahan data di-rollback.
 ***Batasan Logika***
 
 - Setiap entri memuat: timestamp server, ID pengguna pelaku, tindakan,
-  before state, after state.
+ before state, after state.
 
 - Disimpan 7 tahun; data PII dianonimkan setelah 2 tahun.
 
 - Owner: akses seluruh log; Admin: akses log operasional (bukan log
-  keamanan khusus Owner).
+ keamanan khusus Owner).
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Admin mengubah jadwal sesi yang sudah terkunci
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Admin mengubah jadwal sesi yang sudah terkunci
 
-  When          Perubahan disimpan
+ When Perubahan disimpan
 
-  Then          Sistem membuat entri audit log yang mencatat waktu
-                perubahan, ID Admin, jadwal sebelum dan sesudah, dan
-                alasan Admin --- entri tidak dapat diedit atau dihapus
-  ------------------------------------------------------------------------
+ Then Sistem membuat entri audit log yang mencatat waktu
+ perubahan, ID Admin, jadwal sebelum dan sesudah, dan
+ alasan Admin --- entri tidak dapat diedit atau dihapus
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -986,29 +986,29 @@ Tampilkan error ke pengguna → Catat insiden di log sistem terpisah
 ***Penanganan Error & Cadangan***
 
 - Pencatatan log gagal: Perubahan data di-rollback; operasi dikembalikan
-  ke before state.
+ ke before state.
 
 - Kapasitas storage \> 80%: Kirim peringatan otomatis ke Admin dan
-  Owner.
+ Owner.
 
 **FR-12 Pengelolaan Libur Nasional dan Minggu ke-5 ● Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Admin (konfigurasi); Sistem (eksekusi)
+ ---------------- ------------------------------------------------------
+ **Aktor** Admin (konfigurasi); Sistem (eksekusi)
 
-  **Pemicu**       Kalender memuat hari libur / minggu ke-5
+ **Pemicu** Kalender memuat hari libur / minggu ke-5
 
-  **Modul**        Penjadwalan
+ **Modul** Penjadwalan
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-05
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-05
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
 Sistem shall mengelola penyesuaian jadwal secara otomatis untuk hari
-libur nasional dan minggu ke-5 sesuai aturan bisnis BMD Musik:
+libur nasional dan minggu ke-5 sesuai aturan bisnis Equalizer-Stake:
 reschedule otomatis, Kelas Teori Non-Kredit di minggu ke-5, dan
 prioritas libur nasional di atas Kelas Teori.
 
@@ -1017,41 +1017,41 @@ prioritas libur nasional di atas Kelas Teori.
 - Daftar libur nasional diinput Admin di awal tahun ajaran.
 
 - Sesi di hari libur → dipindah ke minggu berikutnya dalam bulan yang
-  sama; jika tidak ada slot → Sesi Teori Pengganti.
+ sama; jika tidak ada slot → Sesi Teori Pengganti.
 
 - Minggu ke-5 → otomatis Non-Kredit; slot Kelas Teori 30 menit dibuka.
 
 - Libur nasional di minggu ke-5 → libur nasional diprioritaskan; Kelas
-  Teori dibatalkan.
+ Teori dibatalkan.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Kalender memuat hari libur nasional pada hari kursus
-                reguler
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Kalender memuat hari libur nasional pada hari course
+ reguler
 
-  When          Sistem memproses kalender bulanan
+ When Sistem memproses kalender bulanan
 
-  Then          Jadwal sesi dipindah ke hari yang sama minggu berikutnya;
-                Wali Murid dan Guru menerima notifikasi; kredit siswa
-                tidak terpotong untuk sesi yang dipindah
-  ------------------------------------------------------------------------
+ Then Jadwal sesi dipindah ke hari yang sama minggu berikutnya;
+ Guardian dan Instructor menerima notifikasi; kredit student
+ tidak terpotong untuk sesi yang dipindah
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
 **Normal Flow:**
 
-1\. Sistem deteksi hari kursus = hari libur nasional
+1\. Sistem deteksi hari course = hari libur nasional
 
 2\. Cari slot tersedia minggu berikutnya (hari yang sama)
 
 3\. Pindahkan jadwal ke slot baru
 
-4\. Kredit siswa tidak dipotong
+4\. Kredit student tidak dipotong
 
-5\. Kirim notifikasi perubahan jadwal ke Guru & Wali Murid
+5\. Kirim notifikasi perubahan jadwal ke Instructor & Guardian
 
 **Jalur Alternatif --- Tidak Ada Slot Reschedule:**
 
@@ -1061,52 +1061,52 @@ sebagai Sesi Teori Pengganti → Admin diberitahu untuk konfirmasi manual
 ***Penanganan Error & Cadangan***
 
 - Tidak ada slot reschedule: Otomatis jadi Sesi Teori Pengganti; Admin
-  diberitahu.
+ diberitahu.
 
 - Konflik reschedule: Sistem tampilkan konflik, minta Admin pilih slot
-  alternatif manual.
+ alternatif manual.
 
 **FR-13 Dashboard Monitoring untuk Owner (Read-Only) ● Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Owner
+ ---------------- ------------------------------------------------------
+ **Aktor** Owner
 
-  **Pemicu**       Owner membuka dashboard monitoring
+ **Pemicu** Owner membuka dashboard monitoring
 
-  **Modul**        Pelaporan
+ **Modul** Pelaporan
 
-  **Verifikasi**   Demonstration
+ **Verifikasi** Demonstration
 
-  **UC Linked**    UC-10
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-10
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
 Sistem shall menyediakan dashboard monitoring yang menampilkan ringkasan
-operasional BMD Musik secara real-time untuk Owner. Owner hanya dapat
+operasional Equalizer-Stake secara real-time untuk Owner. Owner hanya dapat
 melihat dan mengekspor; tidak dapat mengubah data operasional apapun.
 
 ***Batasan Logika***
 
 - Dashboard menampilkan: total pendapatan berjalan, tingkat kehadiran,
-  jumlah akun beku, utilisasi studio, audit log ringkas.
+ jumlah akun beku, utilisasi studio, audit log ringkas.
 
 - Owner dapat ekspor laporan ke format cetak; Owner tidak dapat
-  input/ubah jadwal, tagihan, atau data pengguna.
+ input/ubah jadwal, tagihan, atau data pengguna.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Owner masuk ke sistem
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Owner masuk ke sistem
 
-  When          Owner membuka dashboard monitoring
+ When Owner membuka dashboard monitoring
 
-  Then          Sistem menampilkan semua ringkasan operasional diperbarui
-                dalam ≤ 3 detik, dengan visualisasi data yang mudah dibaca
-                tanpa keahlian teknis
-  ------------------------------------------------------------------------
+ Then Sistem menampilkan semua ringkasan operasional diperbarui
+ dalam ≤ 3 detik, dengan visualisasi data yang mudah dibaca
+ tanpa keahlian teknis
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
@@ -1129,22 +1129,22 @@ melihat dan mengekspor; tidak dapat mengubah data operasional apapun.
 ***Penanganan Error & Cadangan***
 
 - Data laporan gagal dimuat: \"Data sedang diperbarui. Coba lagi dalam
-  beberapa saat\"; tampilkan data terakhir yang tersimpan.
+ beberapa saat\"; tampilkan data terakhir yang tersimpan.
 
 **FR-14 Reservasi Studio Rehearsal dan Recording ● Proposed**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Wali Murid/Pengguna (pengaju); Admin (persetujuan
-                   recording)
+ ---------------- ------------------------------------------------------
+ **Aktor** Guardian/Pengguna (pengaju); Admin (persetujuan
+ recording)
 
-  **Pemicu**       Wali Murid memilih slot studio
+ **Pemicu** Guardian memilih slot studio
 
-  **Modul**        Penjadwalan
+ **Modul** Penjadwalan
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-06
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-06
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
@@ -1156,31 +1156,31 @@ dikonfirmasi).
 ***Batasan Logika***
 
 - Studio rehearsal: booking mandiri 09.00--21.00, validasi konflik
-  real-time.
+ real-time.
 
 - Studio recording: memerlukan alur konsultasi dan persetujuan Admin
-  sebelum slot dikonfirmasi.
+ sebelum slot dikonfirmasi.
 
 - Tarif studio sebagai data master; hanya Admin yang dapat ubah.
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Wali Murid memilih slot studio rehearsal yang tersedia
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Guardian memilih slot studio rehearsal yang tersedia
 
-  When          Wali Murid mengkonfirmasi reservasi
+ When Guardian mengkonfirmasi reservasi
 
-  Then          Slot terkunci, notifikasi konfirmasi dikirim ke Wali
-                Murid, slot tidak lagi tersedia untuk pengguna lain
-  ------------------------------------------------------------------------
+ Then Slot terkunci, notifikasi konfirmasi dikirim ke Wali
+ Murid, slot tidak lagi tersedia untuk pengguna lain
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
 **Normal Flow:**
 
-1\. Wali Murid buka kalender studio
+1\. Guardian buka kalender studio
 
 2\. Pilih tipe: Rehearsal
 
@@ -1192,12 +1192,12 @@ dikonfirmasi).
 
 6\. Kunci slot
 
-7\. Kirim notifikasi konfirmasi ke Wali Murid
+7\. Kirim notifikasi konfirmasi ke Guardian
 
 **Jalur Alternatif --- Flow Recording (Perlu Persetujuan Admin):**
 
 Pilih tipe: Recording → Sistem buka alur konsultasi harga → Admin review
-& setujui → Slot dikunci setelah approval → Konfirmasi ke Wali Murid
+& setujui → Slot dikunci setelah approval → Konfirmasi ke Guardian
 
 **Jalur Alternatif --- Slot Baru Saja Dipesan (Concurrency):**
 
@@ -1207,21 +1207,21 @@ dipesan\" → Tampilkan slot tersedia terdekat
 ***Penanganan Error & Cadangan***
 
 - Slot baru dipesan (concurrency): \"Slot ini baru saja dipesan. Silakan
-  pilih waktu lain\" + tampilkan slot tersedia terdekat.
+ pilih waktu lain\" + tampilkan slot tersedia terdekat.
 
 **FR-15 Verifikasi Pembayaran Manual oleh Admin ● Approved**
 
-  ---------------- ------------------------------------------------------
-  **Aktor**        Admin
+ ---------------- ------------------------------------------------------
+ **Aktor** Admin
 
-  **Pemicu**       Admin menerima bukti transfer dari Wali Murid
+ **Pemicu** Admin menerima bukti transfer dari Guardian
 
-  **Modul**        Penagihan
+ **Modul** Penagihan
 
-  **Verifikasi**   Test
+ **Verifikasi** Test
 
-  **UC Linked**    UC-08
-  ---------------- ------------------------------------------------------
+ **UC Linked** UC-08
+ ---------------- ------------------------------------------------------
 
 ***Spesifikasi***
 
@@ -1233,39 +1233,39 @@ dan timestamp.
 ***Batasan Logika***
 
 - Admin cocokkan nominal transfer (termasuk 3 digit unik) dengan tagihan
-  di sistem.
+ di sistem.
 
 - Setelah verifikasi: status tagihan → \"Lunas\", akun aktif kembali
-  (jika sebelumnya beku).
+ (jika sebelumnya beku).
 
 - Admin tidak dapat mengubah nominal tagihan tanpa persetujuan Owner.
 
 - Idempotency: konfirmasi ganda pada tagihan yang sama dicegah (unique
-  constraint invoice_id + unique_code).
+ constraint invoice_id + unique_code).
 
 ***Kriteria Penerimaan (Given-When-Then)***
 
-  ------------------------------------------------------------------------
-  **Kondisi**   **Pernyataan**
-  ------------- ----------------------------------------------------------
-  Given         Wali Murid telah melakukan transfer dengan nominal yang
-                mengandung kode unik yang benar
+ ------------------------------------------------------------------------
+ **Kondisi** **Pernyataan**
+ ------------- ----------------------------------------------------------
+ Given Guardian telah melakukan transfer dengan nominal yang
+ mengandung kode unik yang benar
 
-  When          Admin memilih tagihan di dashboard dan menekan tombol
-                \"Konfirmasi Pembayaran\"
+ When Admin memilih tagihan di dashboard dan menekan tombol
+ \"Konfirmasi Pembayaran\"
 
-  Then          Status tagihan berubah ke \"Lunas\", akun aktif kembali
-                (jika beku), notifikasi terkirim ke Wali Murid, dan
-                tindakan tercatat di audit log dalam ≤ 2 menit
-  ------------------------------------------------------------------------
+ Then Status tagihan berubah ke \"Lunas\", akun aktif kembali
+ (jika beku), notifikasi terkirim ke Guardian, dan
+ tindakan tercatat di audit log dalam ≤ 2 menit
+ ------------------------------------------------------------------------
 
 ***Tahapan Alur (Flow Steps)***
 
 **Normal Flow:**
 
-1\. Wali Murid transfer (nominal + kode unik 3 digit)
+1\. Guardian transfer (nominal + kode unik 3 digit)
 
-2\. Wali Murid kirim bukti transfer ke Admin
+2\. Guardian kirim bukti transfer ke Admin
 
 3\. Admin buka dashboard tagihan
 
@@ -1275,16 +1275,16 @@ dan timestamp.
 
 6\. Status tagihan → \"Lunas\"
 
-7\. Akun Wali Murid → Aktif (jika sebelumnya beku)
+7\. Akun Guardian → Aktif (jika sebelumnya beku)
 
 8\. Catat di audit log (ID Admin + timestamp)
 
-9\. Kirim notifikasi konfirmasi ke Wali Murid
+9\. Kirim notifikasi konfirmasi ke Guardian
 
 **Jalur Alternatif --- Kode Unik Tidak Cocok:**
 
 Admin input kode tidak ditemukan → Peringatan \"Kode tidak ditemukan.
-Periksa ulang nominal\" → Admin hubungi Wali Murid untuk klarifikasi
+Periksa ulang nominal\" → Admin hubungi Guardian untuk klarifikasi
 
 **Jalur Alternatif --- Konfirmasi Ganda (Idempotency Guard):**
 
@@ -1294,10 +1294,10 @@ Admin coba konfirmasi tagihan yang sudah lunas → Sistem cegah duplikasi
 ***Penanganan Error & Cadangan***
 
 - Kode tidak cocok: \"Kode tidak ditemukan. Periksa kembali nominal
-  transfer atau hubungi Wali Murid.\"
+ transfer atau hubungi Guardian.\"
 
 - Konfirmasi ganda: Sistem mencegah duplikasi; tampilkan detail
-  konfirmasi awal yang sudah ada.
+ konfirmasi awal yang sudah ada.
 
 **3.1.1 Ringkasan Prioritas FR (Analytical Scoring)**
 
@@ -1306,56 +1306,56 @@ Skala Wiegers: Benefit/Penalty/Cost/Risk (1--9). Skor = Value% /
 
 **Tabel 3.1 Ringkasan Prioritas Functional Requirement**
 
-  -----------------------------------------------------------------------------------------------------------
-  **Kode**   **Deskripsi \"shall\"     **Status**   **Nilai**   **Biaya**   **Risiko**   **Skor**   **UC**
-             Behavior**                                                                             
-  ---------- ------------------------- ------------ ----------- ----------- ------------ ---------- ---------
-  FR-01      Validasi kredensial,      Approved     5           2           1            1.67       UC-01
-             terbitkan JWT, onboarding                                                              
-             password awal                                                                          
+ -----------------------------------------------------------------------------------------------------------
+ **Kode** **Deskripsi \"shall\" **Status** **Nilai** **Biaya** **Risiko** **Skor** **UC**
+ Behavior**
+ ---------- ------------------------- ------------ ----------- ----------- ------------ ---------- ---------
+ FR-01 Validasi kredensial, Approved 5 2 1 1.67 UC-01
+ terbitkan JWT, onboarding
+ password awal
 
-  FR-02      Validasi slot real-time + Approved     5           3           2            1.00       UC-02
-             logika kredit pembatalan                                                               
+ FR-02 Validasi slot real-time + Approved 5 3 2 1.00 UC-02
+ logika kredit pembatalan
 
-  FR-03      Terbitkan tagihan         Approved     4           2           1            1.33       UC-05
-             otomatis dengan kode unik                                                              
+ FR-03 Terbitkan tagihan Approved 4 2 1 1.33 UC-05
+ otomatis dengan kode unik
 
-  FR-04      Terapkan denda & freeze   Approved     4           1           1            1.00\*     UC-07
-             tanggal 11                                                                             
+ FR-04 Terapkan denda & freeze Approved 4 1 1 1.00\* UC-07
+ tanggal 11
 
-  FR-05      Validasi absensi (GPS +   Approved     5           3           3            0.42       UC-03
-             Waktu + Wajah                                                                          
-             client-side)                                                                           
+ FR-05 Validasi absensi (GPS + Approved 5 3 3 0.42 UC-03
+ Waktu + Wajah
+ client-side)
 
-  FR-06      Notifikasi                Approved     4           2           2            0.50       UC-04
-             multi-saluran + fallback                                                               
+ FR-06 Notifikasi Approved 4 2 2 0.50 UC-04
+ multi-saluran + fallback
 
-  FR-07      Hitung kelayakan ujian    Proposed     3           1           1            0.75       UC-09
-             otomatis                                                                               
+ FR-07 Hitung kelayakan ujian Proposed 3 1 1 0.75 UC-09
+ otomatis
 
-  FR-08      Auto-save draft &         Proposed     2           2           1            0.33       UC-13
-             pemulihan sesi                                                                         
+ FR-08 Auto-save draft & Proposed 2 2 1 0.33 UC-13
+ pemulihan sesi
 
-  FR-09      Hak penghapusan data (UU  Approved     5           3           4            0.36       UC-12
-             PDP) ⚠                                                                                 
+ FR-09 Hak penghapusan data (UU Approved 5 3 4 0.36 UC-12
+ PDP) ⚠
 
-  FR-10      Dashboard multi-siswa     Approved     4           2           1            1.33       UC-08
-             terpadu                                                                                
+ FR-10 Dashboard multi-student Approved 4 2 1 1.33 UC-08
+ terpadu
 
-  FR-11      Audit log permanen &      Approved     5           1           1            1.67       UC-11
-             immutable                                                                              
+ FR-11 Audit log permanen & Approved 5 1 1 1.67 UC-11
+ immutable
 
-  FR-12      Kelola libur nasional &   Approved     3           2           2            0.38       UC-05
-             minggu ke-5                                                                            
+ FR-12 Kelola libur nasional & Approved 3 2 2 0.38 UC-05
+ minggu ke-5
 
-  FR-13      Dashboard read-only Owner Approved     3           1           1            0.75       UC-10
+ FR-13 Dashboard read-only Owner Approved 3 1 1 0.75 UC-10
 
-  FR-14      Reservasi studio          Proposed     3           3           2            0.30       UC-06
-             rehearsal/recording                                                                    
+ FR-14 Reservasi studio Proposed 3 3 2 0.30 UC-06
+ rehearsal/recording
 
-  FR-15      Verifikasi pembayaran     Approved     5           1           1            1.67       UC-08
-             manual Admin                                                                           
-  -----------------------------------------------------------------------------------------------------------
+ FR-15 Verifikasi pembayaran Approved 5 1 1 1.67 UC-08
+ manual Admin
+ -----------------------------------------------------------------------------------------------------------
 
 *⚠ FR-09: Skor analitis rendah (0.36) namun wajib legal (UU PDP No.
 27/2022 Pasal 19). Tidak dapat di-defer. Rekomendasi: pisahkan kolom
@@ -1371,234 +1371,234 @@ awal.*
 
 **Tabel 3.2 Non-Functional Requirement --- Kinerja**
 
-  ------------------------------------------------------------------------
-  **Metrik**          **Target**       **Toleransi**     **Cara
-                                                         Pemantauan**
-  ------------------- ---------------- ----------------- -----------------
-  Waktu respons       ≤ 2 detik untuk  Maksimal 5 detik  Log waktu respons
-  halaman             95% permintaan   untuk 99%         server;
-                                       permintaan        peringatan jika
-                                                         \> 3 detik
+ ------------------------------------------------------------------------
+ **Metrik** **Target** **Toleransi** **Cara
+ Pemantauan**
+ ------------------- ---------------- ----------------- -----------------
+ Waktu respons ≤ 2 detik untuk Maksimal 5 detik Log waktu respons
+ halaman 95% permintaan untuk 99% server;
+ permintaan peringatan jika
+ \> 3 detik
 
-  Waktu respons       ≤ 1 detik        Maksimal 3 detik  Log API endpoint
-  validasi jadwal                                        penjadwalan
+ Waktu respons ≤ 1 detik Maksimal 3 detik Log API endpoint
+ validasi jadwal penjadwalan
 
-  Pengiriman          ≤ 15 detik       Maksimal 60 detik Log antrian
-  notifikasi          setelah pemicu                     notifikasi;
-                                                         peringatan jika
-                                                         \> 30 detik
+ Pengiriman ≤ 15 detik Maksimal 60 detik Log antrian
+ notifikasi setelah pemicu notifikasi;
+ peringatan jika
+ \> 30 detik
 
-  Beban pengguna      ≤ 50 pengguna    Degradasi         Monitor CPU &
-  bersamaan           aktif            bertahap di atas  memori server
-                                       50; tidak crash   setiap 5 menit
+ Beban pengguna ≤ 50 pengguna Degradasi Monitor CPU &
+ bersamaan aktif bertahap di atas memori server
+ 50; tidak crash setiap 5 menit
 
-  Penerbitan tagihan  ≤ 5 menit untuk  Maksimal 15 menit Log proses
-  massal              50 tagihan                         penagihan
-                                                         otomatis tanggal
-                                                         5
-  ------------------------------------------------------------------------
+ Penerbitan tagihan ≤ 5 menit untuk Maksimal 15 menit Log proses
+ massal 50 tagihan penagihan
+ otomatis tanggal
+ 5
+ ------------------------------------------------------------------------
 
 ***B. Keamanan (Security)***
 
 **Tabel 3.3 Non-Functional Requirement --- Keamanan**
 
-  ------------------------------------------------------------------------
-  **Aspek**         **Spesifikasi**           **Mitigasi Risiko**
-  ----------------- ------------------------- ----------------------------
-  Enkripsi data     AES-256-GCM untuk semua   Mengurangi risiko kebocoran
-  tersimpan         data PII (nama, nomor HP, data (OWASP A02:2021)
-                    foto, alamat)             
+ ------------------------------------------------------------------------
+ **Aspek** **Spesifikasi** **Mitigasi Risiko**
+ ----------------- ------------------------- ----------------------------
+ Enkripsi data AES-256-GCM untuk semua Mengurangi risiko kebocoran
+ tersimpan data PII (nama, nomor HP, data (OWASP A02:2021)
+ foto, alamat)
 
-  Enkripsi data     TLS 1.2 atau lebih baru   Mencegah penyadapan data
-  dikirim           untuk semua koneksi       saat transit (OWASP
-                                              A02:2021)
+ Enkripsi data TLS 1.2 atau lebih baru Mencegah penyadapan data
+ dikirim untuk semua koneksi saat transit (OWASP
+ A02:2021)
 
-  Pembatasan        Maksimal 5 percobaan      Mencegah serangan tebak kata
-  percobaan login   gagal dalam 15 menit;     sandi (OWASP A07:2021)
-                    kunci akun sementara      
+ Pembatasan Maksimal 5 percobaan Mencegah serangan tebak kata
+ percobaan login gagal dalam 15 menit; sandi (OWASP A07:2021)
+ kunci akun sementara
 
-  Validasi input    Semua input pengguna      Mencegah injeksi kode
-                    divalidasi di sisi server berbahaya (OWASP A03:2021)
-                    sebelum diproses          
+ Validasi input Semua input pengguna Mencegah injeksi kode
+ divalidasi di sisi server berbahaya (OWASP A03:2021)
+ sebelum diproses
 
-  Token sesi (JWT)  Masa berlaku sesuai       Mencegah pembajakan sesi
-                    peran; tidak disimpan di  (OWASP A07:2021)
-                    URL; diperbarui setelah   
-                    login ulang               
+ Token sesi (JWT) Masa berlaku sesuai Mencegah pembajakan sesi
+ peran; tidak disimpan di (OWASP A07:2021)
+ URL; diperbarui setelah
+ login ulang
 
-  Kepatuhan UU PDP  Minimasi data (Pasal 16), Audit tahunan kepatuhan;
-                    keamanan data (Pasal 20), prosedur penghapusan data
-                    hak penghapusan (Pasal    terdokumentasi
-                    19), transfer data (Pasal 
-                    17)                       
+ Kepatuhan UU PDP Minimasi data (Pasal 16), Audit tahunan kepatuhan;
+ keamanan data (Pasal 20), prosedur penghapusan data
+ hak penghapusan (Pasal terdokumentasi
+ 19), transfer data (Pasal
+ 17)
 
-  Pembatasan laju   Maksimal 100              Mencegah penyalahgunaan API
-  permintaan        permintaan/menit per      (OWASP A04:2021)
-                    pengguna untuk endpoint   
-                    kritis                    
-  ------------------------------------------------------------------------
+ Pembatasan laju Maksimal 100 Mencegah penyalahgunaan API
+ permintaan permintaan/menit per (OWASP A04:2021)
+ pengguna untuk endpoint
+ kritis
+ ------------------------------------------------------------------------
 
 ***C. Kemudahan Penggunaan (Usability)***
 
 - Antarmuka memenuhi standar aksesibilitas WCAG 2.1 Level A.
 
 - Desain mobile-first: dioptimalkan untuk layar HP (320px--480px),
-  tablet (768px), dan laptop (1024px ke atas).
+ tablet (768px), dan laptop (1024px ke atas).
 
 - Pesan error menggunakan bahasa Indonesia yang mudah dipahami,
-  konsisten, dan selalu menyertakan langkah tindakan yang disarankan.
+ konsisten, dan selalu menyertakan langkah tindakan yang disarankan.
 
 - Admin baru dapat menguasai fungsi utama sistem dalam ≤ 2 jam
-  pelatihan.
+ pelatihan.
 
 - Seluruh teks tombol, label, dan navigasi menggunakan bahasa Indonesia,
-  kecuali istilah teknis yang tercantum di glosarium.
+ kecuali istilah teknis yang tercantum di glosarium.
 
 ***D. Keandalan (Reliability)***
 
 **Tabel 3.4 Non-Functional Requirement --- Keandalan**
 
-  -----------------------------------------------------------------------
-  **Aspek**                 **Spesifikasi**
-  ------------------------- ---------------------------------------------
-  Percobaan ulang           Otomatis 3 kali dengan jeda bertambah (10,
-  notifikasi                20, 40 detik) sebelum beralih ke saluran
-                            cadangan.
+ -----------------------------------------------------------------------
+ **Aspek** **Spesifikasi**
+ ------------------------- ---------------------------------------------
+ Percobaan ulang Otomatis 3 kali dengan jeda bertambah (10,
+ notifikasi 20, 40 detik) sebelum beralih ke saluran
+ cadangan.
 
-  Pemutus sirkuit (circuit  Jika WhatsApp gateway gagal \> 5 kali
-  breaker)                  berturut-turut, sistem otomatis menonaktifkan
-                            sementara dan beralih ke email, mencegah
-                            kegagalan berantai.
+ Pemutus sirkuit (circuit Jika WhatsApp gateway gagal \> 5 kali
+ breaker) berturut-turut, sistem otomatis menonaktifkan
+ sementara dan beralih ke email, mencegah
+ kegagalan berantai.
 
-  Konsistensi data booking  Operasi booking bersifat atomik --- berhasil
-                            sepenuhnya atau dibatalkan sepenuhnya; tidak
-                            ada kondisi data setengah tersimpan.
+ Konsistensi data booking Operasi booking bersifat atomik --- berhasil
+ sepenuhnya atau dibatalkan sepenuhnya; tidak
+ ada kondisi data setengah tersimpan.
 
-  Pencadangan data          Backup harian otomatis; data dapat dipulihkan
-                            ke kondisi 24 jam sebelumnya jika terjadi
-                            kegagalan sistem.
+ Pencadangan data Backup harian otomatis; data dapat dipulihkan
+ ke kondisi 24 jam sebelumnya jika terjadi
+ kegagalan sistem.
 
-  Pemulihan setelah         Sistem kembali beroperasi dalam ≤ 2 jam
-  gangguan                  setelah gangguan server (RTO); kehilangan
-                            data maksimal 1 jam terakhir (RPO).
-  -----------------------------------------------------------------------
+ Pemulihan setelah Sistem kembali beroperasi dalam ≤ 2 jam
+ gangguan setelah gangguan server (RTO); kehilangan
+ data maksimal 1 jam terakhir (RPO).
+ -----------------------------------------------------------------------
 
 ***E. Ketersediaan (Availability)***
 
 - Target ketersediaan sistem: 99% per bulan (maksimal ≈ 7,2 jam downtime
-  per bulan).
+ per bulan).
 
 - Jendela pemeliharaan terjadwal: Senin pukul 02.00--04.00 WIB, di luar
-  jam operasional kursus.
+ jam operasional course.
 
 - Halaman pemeliharaan ditampilkan saat sistem dalam perbaikan, dengan
-  estimasi waktu selesai.
+ estimasi waktu selesai.
 
 - Endpoint pemantauan kesehatan sistem (health check) tersedia untuk
-  monitoring otomatis.
+ monitoring otomatis.
 
 - Notifikasi pemeliharaan dikirimkan ke Admin dan Owner minimal 24 jam
-  sebelum pemeliharaan terjadwal.
+ sebelum pemeliharaan terjadwal.
 
 ***F. Analisis Trade-Offs Atribut Kualitas***
 
 **Tabel 3.5 Analisis Trade-Offs Atribut Kualitas**
 
-  -------------------------------------------------------------------------
-  **Atribut      **Skenario Konflik  **Prioritas      **Mitigasi**
-  Bentrok**      Desain**            Keputusan**      
-  -------------- ------------------- ---------------- ---------------------
-  Keamanan vs    Enkripsi            Keamanan         Cache read-only untuk
-  Kinerja        AES-256-GCM pada    diprioritaskan   dashboard; enkripsi
-                 PII & validasi GPS                   asinkron pada
-                 menambah latency                     background worker
-                 \~150ms/request                      
+ -------------------------------------------------------------------------
+ **Atribut **Skenario Konflik **Prioritas **Mitigasi**
+ Bentrok** Desain** Keputusan**
+ -------------- ------------------- ---------------- ---------------------
+ Keamanan vs Enkripsi Keamanan Cache read-only untuk
+ Kinerja AES-256-GCM pada diprioritaskan dashboard; enkripsi
+ PII & validasi GPS asinkron pada
+ menambah latency background worker
+ \~150ms/request
 
-  Keandalan vs   Retry notifikasi    Keandalan        SMTP sebagai fallback
-  Biaya          3x + fallback SMTP  diprioritaskan   utama pesan kritis;
-                 meningkatkan biaya                   WhatsApp hanya untuk
-                 gateway & storage                    reminder non-kritis
-                 log                                  
+ Keandalan vs Retry notifikasi Keandalan SMTP sebagai fallback
+ Biaya 3x + fallback SMTP diprioritaskan utama pesan kritis;
+ meningkatkan biaya WhatsApp hanya untuk
+ gateway & storage reminder non-kritis
+ log
 
-  Kemudahan vs   Session timeout     Keamanan         Implementasi \"ingat
-  Keamanan       ketat (Admin 15     diprioritaskan   perangkat\" dengan
-                 menit) mengganggu                    token refresh aman &
-                 alur kerja panjang                   re-autentikasi
-                                                      biometrik/PIN lokal
+ Kemudahan vs Session timeout Keamanan Implementasi \"ingat
+ Keamanan ketat (Admin 15 diprioritaskan perangkat\" dengan
+ menit) mengganggu token refresh aman &
+ alur kerja panjang re-autentikasi
+ biometrik/PIN lokal
 
-  Kinerja vs     Beban puncak \> 50  Ketersediaan     Auto-scaling
-  Skalabilitas   pengguna bersamaan  diprioritaskan   dikonfigurasi;
-                 pada infrastruktur                   matikan fitur
-                 cloud                                non-kritis (animasi
-                                                      dashboard, ekspor PDF
-                                                      real-time) saat CPU
-                                                      \> 80%
-  -------------------------------------------------------------------------
+ Kinerja vs Beban puncak \> 50 Ketersediaan Auto-scaling
+ Skalabilitas pengguna bersamaan diprioritaskan dikonfigurasi;
+ pada infrastruktur matikan fitur
+ cloud non-kritis (animasi
+ dashboard, ekspor PDF
+ real-time) saat CPU
+ \> 80%
+ -------------------------------------------------------------------------
 
 **3.3 External Interface Requirement**
 
 ***A. Antarmuka Pengguna (User Interface)***
 
 - Sistem diakses melalui browser modern (Chrome 90+, Safari 14+, Firefox
-  88+, Edge 90+) tanpa instalasi tambahan.
+ 88+, Edge 90+) tanpa instalasi tambahan.
 
 - Antarmuka dibangun sebagai PWA --- pengguna dapat \"memasang\"
-  aplikasi di layar utama HP seperti aplikasi biasa.
+ aplikasi di layar utama HP seperti aplikasi biasa.
 
 - Fungsi offline dasar tersedia melalui PWA: melihat jadwal terakhir
-  yang tersimpan, bahkan tanpa koneksi internet.
+ yang tersimpan, bahkan tanpa koneksi internet.
 
 - Strategi penyimpanan cache: data jadwal dan profil pengguna di-cache
-  untuk akses cepat dan penggunaan offline.
+ untuk akses cepat dan penggunaan offline.
 
 ***B. Perangkat (Hardware)***
 
 **Tabel 3.6 Spesifikasi Perangkat**
 
-  -----------------------------------------------------------------------
-  **Komponen**              **Spesifikasi Minimum**
-  ------------------------- ---------------------------------------------
-  Server aplikasi           2 vCPU, 4 GB RAM, 40 GB penyimpanan SSD
-                            (cloud scalable); auto-scaling dikonfigurasi
-                            jika pengguna melampaui 50 orang aktif.
+ -----------------------------------------------------------------------
+ **Komponen** **Spesifikasi Minimum**
+ ------------------------- ---------------------------------------------
+ Server aplikasi 2 vCPU, 4 GB RAM, 40 GB penyimpanan SSD
+ (cloud scalable); auto-scaling dikonfigurasi
+ jika pengguna melampaui 50 orang aktif.
 
-  Perangkat klien           Smartphone Android 8+ atau iOS 13+; laptop
-  (pengguna)                dengan browser modern; koneksi internet
-                            minimal 4G/WiFi.
+ Perangkat klien Smartphone Android 8+ atau iOS 13+; laptop
+ (pengguna) dengan browser modern; koneksi internet
+ minimal 4G/WiFi.
 
-  Pertumbuhan penyimpanan   Estimasi 500 MB/tahun untuk foto absensi (50
-                            siswa × 4 sesi/bulan × 12 bulan × rata-rata
-                            \~200KB/foto); ditinjau setiap 6 bulan.
-  -----------------------------------------------------------------------
+ Pertumbuhan penyimpanan Estimasi 500 MB/tahun untuk foto absensi (50
+ student × 4 sesi/bulan × 12 bulan × rata-rata
+ \~200KB/foto); ditinjau setiap 6 bulan.
+ -----------------------------------------------------------------------
 
 ***C. Perangkat Lunak dan Integrasi (Software)***
 
 **Tabel 3.7 Spesifikasi Integrasi Layanan Eksternal**
 
-  -----------------------------------------------------------------------
-  **Layanan**         **Spesifikasi Integrasi**
-  ------------------- ---------------------------------------------------
-  WhatsApp Gateway    Endpoint REST API; autentikasi via API key di
-  (tidak resmi)       header; payload JSON; kode error yang ditangani:
-                      429 (batas kirim) → tunda 60 detik; 5xx →
-                      exponential backoff 3x. Kontak admin gateway untuk
-                      eskalasi.
+ -----------------------------------------------------------------------
+ **Layanan** **Spesifikasi Integrasi**
+ ------------------- ---------------------------------------------------
+ WhatsApp Gateway Endpoint REST API; autentikasi via API key di
+ (tidak resmi) header; payload JSON; kode error yang ditangani:
+ 429 (batas kirim) → tunda 60 detik; 5xx →
+ exponential backoff 3x. Kontak admin gateway untuk
+ eskalasi.
 
-  Email SMTP          Server SMTP penyedia cloud; port 587 (TLS STARTTLS)
-  (cadangan kritis)   atau 465 (SSL); autentikasi username & password;
-                      digunakan untuk komunikasi kritis dan cadangan
-                      WhatsApp.
+ Email SMTP Server SMTP penyedia cloud; port 587 (TLS STARTTLS)
+ (cadangan kritis) atau 465 (SSL); autentikasi username & password;
+ digunakan untuk komunikasi kritis dan cadangan
+ WhatsApp.
 
-  Token sesi (JWT)    Struktur: header (algoritma HS256), payload (ID
-                      pengguna, peran, waktu terbit, waktu kedaluwarsa),
-                      tanda tangan. Token diperbarui saat login dan tidak
-                      disimpan di URL.
+ Token sesi (JWT) Struktur: header (algoritma HS256), payload (ID
+ pengguna, peran, waktu terbit, waktu kedaluwarsa),
+ tanda tangan. Token diperbarui saat login dan tidak
+ disimpan di URL.
 
-  Webhook notifikasi  Sistem mendukung pengiriman webhook ke Admin Panel
-                      saat terjadi kegagalan notifikasi berulang (\> 5
-                      kali/hari); payload berisi detail kegagalan dan
-                      saran tindakan.
-  -----------------------------------------------------------------------
+ Webhook notifikasi Sistem mendukung pengiriman webhook ke Admin Panel
+ saat terjadi kegagalan notifikasi berulang (\> 5
+ kali/hari); payload berisi detail kegagalan dan
+ saran tindakan.
+ -----------------------------------------------------------------------
 
 ***D. Peta Navigasi Antarmuka (Dialog Map)***
 
@@ -1610,10 +1610,10 @@ jelas dan mencegah dead-end state pada antarmuka PWA.
 **Aturan Navigasi:**
 
 - Tombol \"Batal\" pada form input selalu mengembalikan ke layar
-  sebelumnya tanpa menyimpan data parsial.
+ sebelumnya tanpa menyimpan data parsial.
 
 - Tombol \"Kembali\" pada dashboard memicu konfirmasi logout jika sesi
-  hampir habis.
+ hampir habis.
 
 - Tidak ada layar yang berada di leaf node tanpa opsi navigasi ke
-  dashboard utama atau aksi pembatalan.
+ dashboard utama atau aksi pembatalan.

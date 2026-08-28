@@ -25,8 +25,8 @@ interface Profile {
 const ROLE_LABELS: Record<string, string> = {
   owner: "Owner / Superadmin",
   admin: "Admin Operasional",
-  teacher: "Guru Musik",
-  guardian: "Wali Murid",
+  teacher: "Instructor",
+  guardian: "Guardian",
 };
 
 export default function ProfilePage() {

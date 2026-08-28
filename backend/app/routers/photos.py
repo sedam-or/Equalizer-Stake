@@ -56,7 +56,7 @@ async def get_attendance_photo(
     from pathlib import Path
     import os
     
-    photo_dir = Path(os.getenv("UPLOAD_DIR", "/home/kepolu/bmdmusic/backend/uploads")) / "attendance"
+    photo_dir = Path(os.getenv("UPLOAD_DIR", "/home/kepolu/equalizer-stake/backend/uploads")) / "attendance"
     files = list(photo_dir.glob(f"{session_id}_*.enc"))
     
     if not files:
@@ -94,7 +94,7 @@ async def get_profile_photo(
     import os
     from pathlib import Path
     
-    photo_dir = Path(os.getenv("UPLOAD_DIR", "/home/kepolu/bmdmusic/backend/uploads")) / "profiles"
+    photo_dir = Path(os.getenv("UPLOAD_DIR", "/home/kepolu/equalizer-stake/backend/uploads")) / "profiles"
     filepath = photo_dir / f"{user.id_user}.enc"
     
     if not filepath.exists():
@@ -112,7 +112,7 @@ async def delete_profile_photo(
     import os
     from pathlib import Path
     
-    photo_dir = Path(os.getenv("UPLOAD_DIR", "/home/kepolu/bmdmusic/backend/uploads")) / "profiles"
+    photo_dir = Path(os.getenv("UPLOAD_DIR", "/home/kepolu/equalizer-stake/backend/uploads")) / "profiles"
     filepath = photo_dir / f"{user.id_user}.enc"
     
     if filepath.exists():

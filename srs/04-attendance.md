@@ -5,11 +5,11 @@ status: Approved
 module: kehadiran
 ---
 
-# SRS-04: Validasi Kehadiran Guru
+# SRS-04: Validasi Kehadiran Instructor
 
 ## 1. Deskripsi Modul
 
-Sistem absensi guru dengan validasi berlapis (GPS, waktu server, verifikasi wajah) untuk memastikan kehadiran fisik guru di studio BMD Music. Setiap submission menghasilkan foto bukti yang diverifikasi secara lokal (client-side) dan redundan di server. Gagal validasi tidak langsung menolak — status menjadi `pending_verification` untuk review Admin.
+Sistem absensi instructor dengan validasi berlapis (GPS, waktu server, verifikasi wajah) untuk memastikan kehadiran fisik instructor di studio EQS. Setiap submission menghasilkan foto bukti yang diverifikasi secara lokal (client-side) dan redundan di server. Gagal validasi tidak langsung menolak — status menjadi `pending_verification` untuk review Admin.
 
 ## 2. Validasi Kumulatif
 
@@ -25,7 +25,7 @@ Validasi berjalan secara **kumulatif** — semua tiga syarat harus lolos untuk s
 | Sumber koordinat | Browser Geolocation API (`enableHighAccuracy: true`) |
 | Tolerance | GPS jitter ≤15m dikompensasi (effective radius 165m) |
 
-**Rule**: Jarak guru dari titik referensi > 150m → `pending_verification`.
+**Rule**: Jarak instructor dari titik referensi > 150m → `pending_verification`.
 
 ### 2.2 Validasi Waktu Server
 
@@ -54,44 +54,44 @@ Validasi berjalan secara **kumulatif** — semua tiga syarat harus lolos untuk s
 
 ```
 ┌─────────────────────┐
-│  Guru buka form     │
-│  absensi            │
+│ Instructor buka form │
+│ absensi │
 └──────────┬──────────┘
-           │
-     ┌─────▼─────┐
-     │ Ambil GPS  │──── Gagal ──→ Tampilkan error, minta aktifkan lokasi
-     └─────┬─────┘
-           │ OK
-     ┌─────▼──────────┐
-     │ Ambil foto via  │
-     │ kamera          │
-     └─────┬──────────┘
-           │
-     ┌─────▼───────────────┐
-     │ face-api.js/MediaPipe│
-     │ detect face ≥30%?    │
-     └─────┬───────────────┘
-           │ Yes
-     ┌─────▼──────────┐
-     │ Kirim ke server │
-     │ (GPS + foto +   │
-     │  timestamp)     │
-     └─────┬──────────┘
-           │
-     ┌─────▼──────────────┐
-     │ Server validates:   │
-     │ 1. GPS distance     │
-     │ 2. Time window      │
-     │ 3. Face re-check    │
-     └─────┬──────────────┘
-           │
-     ┌─────▼──────────┐
-     │ Semua lolos?    │
-     └──┬──────────┬──┘
-        │ Yes      │ No
-   ┌────▼───┐ ┌───▼──────────────┐
-   │verified│ │pending_verification│
-   └────────┘ └────────────────────┘
+ │
+ ┌─────▼─────┐
+ │ Ambil GPS │──── Gagal ──→ Tampilkan error, minta aktifkan lokasi
+ └─────┬─────┘
+ │ OK
+ ┌─────▼──────────┐
+ │ Ambil foto via │
+ │ kamera │
+ └─────┬──────────┘
+ │
+ ┌─────▼───────────────┐
+ │ face-api.js/MediaPipe│
+ │ detect face ≥30%? │
+ └─────┬───────────────┘
+ │ Yes
+ ┌─────▼──────────┐
+ │ Kirim ke server │
+ │ (GPS + foto + │
+ │ timestamp) │
+ └─────┬──────────┘
+ │
+ ┌─────▼──────────────┐
+ │ Server validates: │
+ │ 1. GPS distance │
+ │ 2. Time window │
+ │ 3. Face re-check │
+ └─────┬──────────────┘
+ │
+ ┌─────▼──────────┐
+ │ Semua lolos? │
+ └──┬──────────┬──┘
+ │ Yes │ No
+ ┌────▼───┐ ┌───▼──────────────┐
+ │verified│ │pending_verification│
+ └────────┘ └────────────────────┘
 ```
 
 ## 4. Status Kehadiran
@@ -99,8 +99,8 @@ Validasi berjalan secara **kumulatif** — semua tiga syarat harus lolos untuk s
 ### 4.1 State Machine
 
 ```
-pending_verification ──→ verified      (Admin approve)
-pending_verification ──→ rejected      (Admin reject, ≤2h SLA)
+pending_verification ──→ verified (Admin approve)
+pending_verification ──→ rejected (Admin reject, ≤2h SLA)
 ```
 
 | Status | Keterangan |
@@ -116,11 +116,11 @@ pending_verification ──→ rejected      (Admin reject, ≤2h SLA)
 - Reminder otomatis jika >1 jam belum direview.
 - Jika >2 jam, eskalasi ke Owner.
 
-## 5. Constraint Guru
+## 5. Constraint Instructor
 
 | Constraint | Detail |
 |------------|--------|
-| Edit setelah submit | **TIDAK BOLEH** — data absensi immutable setelah guru menekan submit |
+| Edit setelah submit | **TIDAK BOLEH** — data absensi immutable setelah instructor menekan submit |
 | Submit ulang | Tidak bisa — satu sesi = satu submission |
 | Bukti foto | Disimpan sebagai `photo_url` (KRITIS, dienkripsi AES-256-GCM) |
 
@@ -132,7 +132,7 @@ pending_verification ──→ rejected      (Admin reject, ≤2h SLA)
 | Data tersimpan | GPS coords, foto (base64), timestamp client, session_id |
 | Auto-upload | Ketika koneksi pulih, otomatis upload dalam **≤5 menit** |
 | Conflict handling | Jika sesi sudah ada attendance record → log duplicate, skip upload |
-| Notification | Guru diberi notif "Absensi tersimpan offline, akan dikirim otomatis" |
+| Notification | Instructor diberi notif "Absensi tersimpan offline, akan dikirim otomatis" |
 
 ### 6.1 Offline Flow
 
@@ -140,27 +140,27 @@ pending_verification ──→ rejected      (Admin reject, ≤2h SLA)
 ┌────────────────┐
 │ Submit absensi │
 └───────┬────────┘
-        │
-  ┌─────▼───────┐
-  │ Online?      │
-  └──┬────────┬──┘
-     │ Yes    │ No
-     │   ┌────▼──────────────┐
-     │   │ Save to IndexedDB │
-     │   │ + base64 foto     │
-     │   │ Show toast:       │
-     │   │ "Tersimpan offline"│
-     │   └────┬──────────────┘
-     │        │
-     │   ┌────▼──────────────┐
-     │   │ Service Worker    │
-     │   │ background sync   │
-     │   │ ≤5 menit          │
-     │   └────┬──────────────┘
-     │        │
-     └────┬───┘
-          ▼
-   Normal server validation
+ │
+ ┌─────▼───────┐
+ │ Online? │
+ └──┬────────┬──┘
+ │ Yes │ No
+ │ ┌────▼──────────────┐
+ │ │ Save to IndexedDB │
+ │ │ + base64 foto │
+ │ │ Show toast: │
+ │ │ "Tersimpan offline"│
+ │ └────┬──────────────┘
+ │ │
+ │ ┌────▼──────────────┐
+ │ │ Service Worker │
+ │ │ background sync │
+ │ │ ≤5 menit │
+ │ └────┬──────────────┘
+ │ │
+ └────┬───┘
+ ▼
+ Normal server validation
 ```
 
 ## 7. Given-When-Then Scenarios
@@ -168,10 +168,10 @@ pending_verification ──→ rejected      (Admin reject, ≤2h SLA)
 ### Scenario 7.1: Absensi Berhasil (Semua Validasi Lolos)
 
 ```gherkin
-Given guru berada dalam radius 150m dari studio (-7.7265, 110.4162)
+Given instructor berada dalam radius 150m dari studio (-7.7265, 110.4162)
 And waktu saat ini dalam window [-30min, +15min] dari jadwal sesi
-And guru mengambil foto dengan wajah terdeteksi ≥30% frame
-When guru menekan tombol "Submit Absensi"
+And instructor mengambil foto dengan wajah terdeteksi ≥30% frame
+When instructor menekan tombol "Submit Absensi"
 Then sistem menyimpan data dengan status "verified"
 And foto disimpan terenkripsi di storage
 And audit log mencatat attendance verified
@@ -180,21 +180,21 @@ And audit log mencatat attendance verified
 ### Scenario 7.2: GPS Di Luar Radius
 
 ```gherkin
-Given guru berada 200m dari studio (-7.7265, 110.4162)
+Given instructor berada 200m dari studio (-7.7265, 110.4162)
 And waktu dan foto memenuhi syarat
-When guru menekan tombol "Submit Absensi"
+When instructor menekan tombol "Submit Absensi"
 Then sistem menyimpan data dengan status "pending_verification"
 And notifikasi dikirim ke Admin
-And guru melihat pesan "Absensi menunggu verifikasi admin"
+And instructor melihat pesan "Absensi menunggu verifikasi admin"
 ```
 
 ### Scenario 7.3: Face Tidak Terdeteksi
 
 ```gherkin
-Given guru berada dalam radius 150m dari studio
+Given instructor berada dalam radius 150m dari studio
 And waktu memenuhi syarat
 And foto yang diambil tidak memiliki wajah yang terdeteksi ≥30% frame
-When guru menekan tombol "Submit Absensi"
+When instructor menekan tombol "Submit Absensi"
 Then sistem menolak submission di sisi klien
 And menampilkan pesan "Wajah tidak terdeteksi. Pastikan wajah terlihat jelas."
 And data TIDAK dikirim ke server
@@ -203,11 +203,11 @@ And data TIDAK dikirim ke server
 ### Scenario 7.4: Mode Offline
 
 ```gherkin
-Given guru berada di studio tanpa koneksi internet
+Given instructor berada di studio tanpa koneksi internet
 And GPS, waktu, dan foto memenuhi syarat
-When guru menekan tombol "Submit Absensi"
+When instructor menekan tombol "Submit Absensi"
 Then data tersimpan di IndexedDB (terenkripsi)
-And guru melihat notifikasi "Tersimpan offline"
+And instructor melihat notifikasi "Tersimpan offline"
 When koneksi internet pulih dalam 5 menit
 Then sistem otomatis mengupload data ke server
 And server memproses validasi normal
@@ -222,7 +222,7 @@ When admin membuka detail absensi
 Then admin melihat foto, GPS coords, dan alasan pending
 When admin menekan "Approve"
 Then status berubah menjadi "verified"
-And guru menerima notifikasi konfirmasi
+And instructor menerima notifikasi konfirmasi
 ```
 
 ## 8. Error Handling
@@ -237,7 +237,7 @@ And guru menerima notifikasi konfirmasi
 | Server unreachable | Simpan ke IndexedDB, auto-upload saat online (lihat §6). |
 | Server error (5xx) | Retry 3x exponential backoff. Jika tetap gagal → simpan offline. |
 | Duplicate submission | Server cek: jika attendance untuk session_id sudah ada → HTTP 409, log. |
-| Session tidak ditemukan | HTTP 404, tampilkan "Sesi tidak valid" ke guru. |
+| Session tidak ditemukan | HTTP 404, tampilkan "Sesi tidak valid" ke instructor. |
 | Waktu server mismatch | Gunakan server time. Jika client-server clock skew >5min → log warning. |
 
 ## 9. Data Model — Attendance Record
@@ -248,12 +248,12 @@ And guru menerima notifikasi konfirmasi
 | `session_id` | UUID FK | Relasi ke Session |
 | `teacher_id` | UUID FK | Relasi ke Teacher |
 | `photo_url` | TEXT | KRITIS — dienkripsi AES-256-GCM |
-| `gps_lat` | DECIMAL(10,7) | Latitude guru saat submit |
-| `gps_lng` | DECIMAL(10,7) | Longitude guru saat submit |
+| `gps_lat` | DECIMAL(10,7) | Latitude instructor saat submit |
+| `gps_lng` | DECIMAL(10,7) | Longitude instructor saat submit |
 | `gps_distance_m` | FLOAT | Jarak dari titik studio (computed) |
 | `face_valid` | BOOLEAN | Hasil face detection server-side |
 | `face_confidence` | FLOAT | Confidence score face detection |
-| `client_timestamp` | TIMESTAMP | Waktu dari device guru |
+| `client_timestamp` | TIMESTAMP | Waktu dari device instructor |
 | `server_timestamp` | TIMESTAMP | Waktu server saat terima (authoritative) |
 | `verification_status` | ENUM | `verified`, `pending_review`, `rejected` |
 | `rejection_reason` | TEXT | Alasan reject (nullable) |

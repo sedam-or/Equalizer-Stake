@@ -61,7 +61,7 @@
 ## 2. GAP PENTING (Fix segera setelah MVP)
 
 ### 2.1 FR-05: Guardian Notification Grouping
-- **SRS §4**: "Jika 1 Wali Murid memiliki N siswa, notifikasi digabungkan menjadi 1 pesan"
+- **SRS §4**: "Jika 1 Guardian memiliki N student, notifikasi digabungkan menjadi 1 pesan"
 - **Implementasi**: `group_notification_by_guardian` ada di service, TAPI router tidak panggil
 - **Impact**: Guardian dapat N notifikasi terpisah (spammy)
 
@@ -120,7 +120,7 @@
 - **Implementasi**: Belum ada OpenAPI/Swagger export
 
 ### 3.3 User Documentation
-- **SRS Phase 7**: Manual untuk Admin, Guru, Wali Murid
+- **SRS Phase 7**: Manual untuk Admin, Instructor, Guardian
 - **Implementasi**: Belum ada
 
 ---

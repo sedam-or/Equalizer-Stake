@@ -1,12 +1,12 @@
 ---
 fr:
-  - FR-03
-  - FR-04
-  - FR-15
+ - FR-03
+ - FR-04
+ - FR-15
 uc:
-  - UC-05
-  - UC-07
-  - UC-08
+ - UC-05
+ - UC-07
+ - UC-08
 status: Approved
 module: penagihan
 title: "Penagihan Otomatis, Denda, dan Verifikasi Pembayaran"
@@ -22,7 +22,7 @@ date: "2026-06-27"
 |---|---|
 | Kode | FR-03, FR-04, FR-15 |
 | Status | **Approved** |
-| Aktor | Admin Operasional, Wali Murid |
+| Aktor | Admin Operasional, Guardian |
 | Modul | Penagihan |
 | UC Linked | UC-05, UC-07, UC-08 |
 | Verifikasi | Test |
@@ -33,17 +33,17 @@ date: "2026-06-27"
 
 ### 2.1 Spesifikasi
 
-Sistem shall menerbitkan tagihan secara otomatis setiap tanggal 5 pukul 00:00 untuk semua Wali Murid yang memiliki siswa aktif. Setiap tagihan dilengkapi kode unik 3 digit untuk verifikasi pembayaran.
+Sistem shall menerbitkan tagihan secara otomatis setiap tanggal 5 pukul 00:00 untuk semua Guardian yang memiliki student aktif. Setiap tagihan dilengkapi kode unik 3 digit untuk verifikasi pembayaran.
 
 ### 2.2 Aturan Tagihan
 
 | Aspek | Detail |
 |---|---|
 | Penerbitan | Otomatis tanggal **5 pukul 00:00** |
-| Scope | **1 invoice per Wali Murid** (1:N siswa digabung) |
+| Scope | **1 invoice per Guardian** (1:N student digabung) |
 | Kode Unik | 3 digit (000–999), di-generate otomatis |
 | Collision | Max **3 retry** generate → status "Perlu Kode Manual", notifikasi ke Admin |
-| DP | Wali Murid boleh bayar **≥ 70%** sebagai DP sampai tanggal 10 |
+| DP | Guardian boleh bayar **≥ 70%** sebagai DP sampai tanggal 10 |
 
 ### 2.3 Kode Unik
 
@@ -67,7 +67,7 @@ Sistem shall menerbitkan tagihan secara otomatis setiap tanggal 5 pukul 00:00 un
 
 ### 3.1 Spesifikasi
 
-Sistem shall menerapkan denda otomatis dan membekukan akses Wali Murid yang belum melunasi tagihan setelah batas waktu.
+Sistem shall menerapkan denda otomatis dan membekukan akses Guardian yang belum melunasi tagihan setelah batas waktu.
 
 ### 3.2 Timeline Denda & Freeze
 
@@ -83,10 +83,10 @@ Sistem shall menerapkan denda otomatis dan membekukan akses Wali Murid yang belu
 unpaid → partial_paid → overdue → frozen
 
 Detail:
-- unpaid        : Invoice diterbitkan, belum ada pembayaran
-- partial_paid  : Sudah bayar sebagian (≥ 1 pembayaran, belum lunas)
-- overdue       : Lewat tanggal 10, belum lunas → denda diterapkan
-- frozen        : Lewat tanggal 11 → akses dibekukan
+- unpaid : Invoice diterbitkan, belum ada pembayaran
+- partial_paid : Sudah bayar sebagian (≥ 1 pembayaran, belum lunas)
+- overdue : Lewat tanggal 10, belum lunas → denda diterapkan
+- frozen : Lewat tanggal 11 → akses dibekukan
 ```
 
 ### 3.4 Pembekuan
@@ -94,7 +94,7 @@ Detail:
 | Aspek | Detail |
 |---|---|
 | Trigger | Tanggal 11 pukul 00:00, tagihan belum lunas |
-| Dampak | Wali Murid tidak bisa akses booking, jadwal siswa di-freeze |
+| Dampak | Guardian tidak bisa akses booking, jadwal student di-freeze |
 | Unfreeze | **Hanya Admin** setelah verifikasi pembayaran **lunas** |
 
 ---
@@ -103,11 +103,11 @@ Detail:
 
 ### 4.1 Spesifikasi
 
-Sistem shall menyediakan antarmuka bagi Admin untuk memverifikasi bukti transfer yang dikirim oleh Wali Murid, dengan pencocokan kode unik.
+Sistem shall menyediakan antarmuka bagi Admin untuk memverifikasi bukti transfer yang dikirim oleh Guardian, dengan pencocokan kode unik.
 
 ### 4.2 Proses Verifikasi
 
-1. Wali Murid kirim bukti transfer ke Admin (WhatsApp / upload)
+1. Guardian kirim bukti transfer ke Admin (WhatsApp / upload)
 2. Admin buka dashboard verifikasi pembayaran
 3. Admin cocokkan **kode unik 3 digit** dari bukti transfer dengan invoice
 4. Jika cocok → Admin approve → status invoice berubah
@@ -128,51 +128,51 @@ Sistem shall menyediakan antarmuka bagi Admin untuk memverifikasi bukti transfer
 ### 5.1 Invoice Otomatis Terbit
 
 ```
-Given   Tanggal 5 pukul 00:00 dan terdapat Wali Murid dengan siswa aktif
-When    Cron job penerbitan berjalan
-Then    Invoice diterbitkan untuk setiap Wali Murid dengan kode unik 3 digit;
-        notifikasi terkirim via WhatsApp/email ≤ 15 detik
+Given Tanggal 5 pukul 00:00 dan terdapat Guardian dengan student aktif
+When Cron job penerbitan berjalan
+Then Invoice diterbitkan untuk setiap Guardian dengan kode unik 3 digit;
+ notifikasi terkirim via WhatsApp/email ≤ 15 detik
 ```
 
 ### 5.2 Kode Unik Collision
 
 ```
-Given   Sistem sudah 3x generate kode unik yang bentrok
-When    Retry ke-3 gagal
-Then    Invoice ditandai "Perlu Kode Manual"; Admin menerima notifikasi
+Given Sistem sudah 3x generate kode unik yang bentrok
+When Retry ke-3 gagal
+Then Invoice ditandai "Perlu Kode Manual"; Admin menerima notifikasi
 ```
 
 ### 5.3 Denda Otomatis
 
 ```
-Given   Tanggal 11 pukul 00:00 dan tagihan belum lunas
-When    Cron job denda berjalan
-Then    Denda Rp 100.000 ditambahkan; status → overdue; akun Wali Murid dibekukan;
-        notifikasi dikirim
+Given Tanggal 11 pukul 00:00 dan tagihan belum lunas
+When Cron job denda berjalan
+Then Denda Rp 100.000 ditambahkan; status → overdue; akun Guardian dibekukan;
+ notifikasi dikirim
 ```
 
 ### 5.4 Unfreeze oleh Admin
 
 ```
-Given   Wali Murid sudah melunasi semua tagihan + denda
-When    Admin verifikasi pembayaran dan klik Unfreeze
-Then    Status → lunas; akun Wali Murid aktif kembali; audit log dicatat
+Given Guardian sudah melunasi semua tagihan + denda
+When Admin verifikasi pembayaran dan klik Unfreeze
+Then Status → lunas; akun Guardian aktif kembali; audit log dicatat
 ```
 
 ### 5.5 Verifikasi Pembayaran
 
 ```
-Given   Admin menerima bukti transfer dengan kode unik 234
-When    Admin input kode 234 dan cocokkan dengan invoice
-Then    Invoice status berubah sesuai jumlah bayar; audit log dicatat
+Given Admin menerima bukti transfer dengan kode unik 234
+When Admin input kode 234 dan cocokkan dengan invoice
+Then Invoice status berubah sesuai jumlah bayar; audit log dicatat
 ```
 
 ### 5.6 Duplicate Payment
 
 ```
-Given   Kode unik sudah pernah diverifikasi sebelumnya
-When    Admin mencoba verifikasi kode yang sama
-Then    Alert "Pembayaran sudah diverifikasi sebelumnya"; tidak ada perubahan status
+Given Kode unik sudah pernah diverifikasi sebelumnya
+When Admin mencoba verifikasi kode yang sama
+Then Alert "Pembayaran sudah diverifikasi sebelumnya"; tidak ada perubahan status
 ```
 
 ---
@@ -182,9 +182,9 @@ Then    Alert "Pembayaran sudah diverifikasi sebelumnya"; tidak ada perubahan st
 ### 6.1 Normal Flow — Siklus Tagihan
 
 1. Tanggal 5, 00:00: cron terbitkan invoice + kode unik
-2. Notifikasi WA/email ke Wali Murid
-3. Wali Murid bayar (full atau DP ≥ 70%)
-4. Wali Murid kirim bukti transfer
+2. Notifikasi WA/email ke Guardian
+3. Guardian bayar (full atau DP ≥ 70%)
+4. Guardian kirim bukti transfer
 5. Admin verifikasi kode unik → approve
 6. Status berubah (`partial_paid` atau lunas)
 
@@ -192,8 +192,8 @@ Then    Alert "Pembayaran sudah diverifikasi sebelumnya"; tidak ada perubahan st
 
 1. Tanggal 10: deadline DP/lewat
 2. Tanggal 11, 00:00: denda Rp 100k + freeze
-3. Notifikasi ke Wali Murid
-4. Wali Murid bayar lunas + denda
+3. Notifikasi ke Guardian
+4. Guardian bayar lunas + denda
 5. Admin verifikasi → unfreeze
 
 ### 6.3 Jalur Alternatif — WA Gagal

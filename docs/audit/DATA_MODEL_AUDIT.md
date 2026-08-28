@@ -27,8 +27,8 @@ Level HARUS per instrumen, bukan universal.
 **Current Model (WRONG):**
 ```python
 level: Mapped[str] = mapped_column(
-    Enum("pemula", "dasar", "menengah", "lanjut", name="student_level"),
-    nullable=False, default="pemula"
+ Enum("pemula", "dasar", "menengah", "lanjut", name="student_level"),
+ nullable=False, default="pemula"
 )
 ```
 
@@ -46,8 +46,8 @@ Instruments: biola, piano, gitar, drum, keyboard, flute, saxophone, vokal, ensem
 **Current Model:**
 ```python
 instrument: Mapped[str] = mapped_column(
-    Enum("biola", "piano", "gitar", "drum", "keyboard", "flute", "saxophone", "vokal", "ensemble", name="instrument_type"),
-    nullable=False
+ Enum("biola", "piano", "gitar", "drum", "keyboard", "flute", "saxophone", "vokal", "ensemble", name="instrument_type"),
+ nullable=False
 )
 ```
 
@@ -116,7 +116,7 @@ class_type: Mapped[str] = mapped_column(String(50), nullable=False)
 
 ### 9. Room — CORRECT
 
-**SRS:** room_name, room_type (kursus, rehearsal, recording), capacity, is_available
+**SRS:** room_name, room_type (course, rehearsal, recording), capacity, is_available
 **Model:** All fields present
 **Status:** ✅ Match
 

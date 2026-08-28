@@ -1,4 +1,4 @@
-# UI/UX Design System — BMD Music School
+# UI/UX Design System — Equalizer-Stake
 
 **Status:** Primary Reference (menggantikan design-tokens.md lama)
 **Last Updated:** 2026-07-03
@@ -13,8 +13,8 @@
 | Token | Hex | Kegunaan |
 |-------|-----|----------|
 | PRIMARY | #2563EB | Biru — trust, profesional, navigasi |
-| SECONDARY | #7C3AED | Ungu — kreativitas, musik |
-| ACCENT | #F59E0B | Emas — premium, CTA, "mewah" brand BMD |
+| SECONDARY | #7C3AED | Ungu — kreativitas, music |
+| ACCENT | #F59E0B | Emas — premium, CTA, "mewah" brand EQS |
 
 ### Semantic Colors
 
@@ -240,11 +240,11 @@ Action column: right-aligned, icon buttons
 
 ```
 ┌──────────┬────────────────────────────────────────┐
-│ Sidebar  │ Header: [Greeting] [Notif] [Profile]  │
+│ Sidebar │ Header: [Greeting] [Notif] [Profile] │
 │ (desktop)│────────────────────────────────────────│
-│          │ Content area (max-w: 1280px, mx-auto) │
+│ │ Content area (max-w: 1280px, mx-auto) │
 ├──────────┴────────────────────────────────────────┤
-│ Bottom Nav (mobile)                               │
+│ Bottom Nav (mobile) │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -256,21 +256,21 @@ Date: "Kamis, 3 Juli 2026"
 
 KPI Cards (4):
 ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐
-│ 12   │ │ 3    │ │ 5    │ │ 2    │
+│ 12 │ │ 3 │ │ 5 │ │ 2 │
 │ Sesi │ │Pending│ │Overdue│ │Notif │
 │ Hari │ │Absen │ │Bayar │ │Gagal │
 └──────┘ └──────┘ └──────┘ └──────┘
 
 Content:
 ┌─────────────────────┐ ┌─────────────────────┐
-│ Jadwal Hari Ini     │ │ Perlu Review         │
-│ [table: jam, siswa, │ │ • Absen pending (3)  │
-│  guru, status]      │ │ • Tagihan overdue    │
+│ Jadwal Hari Ini │ │ Perlu Review │
+│ [table: jam, student, │ │ • Absen pending (3) │
+│ instructor, status] │ │ • Tagihan overdue │
 └─────────────────────┘ └─────────────────────┘
 
 ┌─────────────────────────────────────────────┐
-│ Revenue Bulan Ini                           │
-│ Rp 15.200.000 │ ▲ 12% dari bulan lalu      │
+│ Revenue Bulan Ini │
+│ Rp 15.200.000 │ ▲ 12% dari bulan lalu │
 └─────────────────────────────────────────────┘
 ```
 
@@ -281,17 +281,17 @@ Greeting: "Selamat pagi, Pak/Bu [Nama]"
 Child: "Anak: Andi Pratama" (auto-select if single)
 
 ┌─────────────────────┐ ┌─────────────────────┐
-│ Jadwal Minggu Ini   │ │ Tagihan              │
-│ • Sen: Piano 10:00 │ │ Rp 350.000           │
-│ • Rab: Gitar 14:00 │ │ Jatuh tempo: 10 Jul  │
-│ • Jum: Drum 09:00  │ │ [Bayar Sekarang]     │
+│ Jadwal Minggu Ini │ │ Tagihan │
+│ • Sen: Piano 10:00 │ │ Rp 350.000 │
+│ • Rab: Gitar 14:00 │ │ Jatuh tempo: 10 Jul │
+│ • Jum: Drum 09:00 │ │ [Bayar Sekarang] │
 └─────────────────────┘ └─────────────────────┘
 
 ┌─────────────────────┐ ┌─────────────────────┐
-│ Absensi Terakhir    │ │ Kelayakan Ujian      │
-│ ✅ 1 Jul - Hadir   │ │ ████████░░ 80%       │
-│ ✅ 29 Jun - Hadir  │ │ 8/10 sesi hadir      │
-│ ❌ 28 Jun - Absen  │ │                      │
+│ Absensi Terakhir │ │ Kelayakan Ujian │
+│ ✅ 1 Jul - Hadir │ │ ████████░░ 80% │
+│ ✅ 29 Jun - Hadir │ │ 8/10 sesi hadir │
+│ ❌ 28 Jun - Absen │ │ │
 └─────────────────────┘ └─────────────────────┘
 ```
 
@@ -302,16 +302,16 @@ Greeting: "Selamat pagi, [Nama]"
 Summary: "Hari ini: 4 sesi"
 
 ┌─────────────────────────────────────────────┐
-│ Jadwal Hari Ini                    [Absen]  │
-│ 09:00-10:00 Andi (Gitar)            [📷]   │
-│ 10:00-11:00 Rina (Piano)            [📷]   │
-│ 13:00-14:00 Budi (Drum)             [📷]   │
-│ 14:30-15:30 Dewi (Vokal)            [📷]   │
+│ Jadwal Hari Ini [Absen] │
+│ 09:00-10:00 Andi (Gitar) [📷] │
+│ 10:00-11:00 Rina (Piano) [📷] │
+│ 13:00-14:00 Budi (Drum) [📷] │
+│ 14:30-15:30 Dewi (Vokal) [📷] │
 └─────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────┐
-│ Ringkasan Minggu Ini                       │
-│ 12 sesi │ 10 hadir │ 2 pending verifikasi  │
+│ Ringkasan Minggu Ini │
+│ 12 sesi │ 10 hadir │ 2 pending verifikasi │
 └─────────────────────────────────────────────┘
 ```
 
@@ -321,13 +321,13 @@ Summary: "Hari ini: 4 sesi"
 Greeting: "Selamat pagi, [Nama]"
 
 ┌─────────────────────────────────────────────┐
-│ Revenue Trend (chart) │ Occupancy Rate      │
-│ ████████████ 75%      │ 85% (28/33 slots)  │
+│ Revenue Trend (chart) │ Occupancy Rate │
+│ ████████████ 75% │ 85% (28/33 slots) │
 └─────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────┐
-│ Student Retention │ Pending Issues          │
-│ 92% (bulan ini)  │ 3 absen, 2 tagihan     │
+│ Student Retention │ Pending Issues │
+│ 92% (bulan ini) │ 3 absen, 2 tagihan │
 └─────────────────────────────────────────────┘
 ```
 
@@ -340,8 +340,8 @@ Greeting: "Selamat pagi, [Nama]"
 1. **Navbar** (sticky) — navigasi
 2. **Hero** — emotional hook + CTA
 3. **Trust Bar** — social proof angka
-4. **Program Kursus** — card grid instrumen
-5. **Kenapa BMD** — benefit > fitur
+4. **Program Course** — card grid instrumen
+5. **Kenapa EQS** — benefit > fitur
 6. **Studio** — full-width image
 7. **Testimonial** — quote style
 8. **Harga** — pricing table
@@ -358,16 +358,16 @@ Greeting: "Selamat pagi, [Nama]"
 ### Copywriting Rules
 
 1. **Emosional > Deskriptif**
-   - ✅ "Musik Membangun Masa Depan"
-   - ❌ "Belajar Musik dengan Nyaman"
+ - ✅ "Music Builds the Future"
+ - ❌ "Learn Music dengan Nyaman"
 
 2. **Benefit > Fitur**
-   - ✅ "Studio yang Bikin Anak Betah"
-   - ❌ "Studio Premium"
+ - ✅ "Studio yang Bikin Anak Betah"
+ - ❌ "Studio Premium"
 
 3. **Specific > General**
-   - ✅ "150+ keluarga", "Rp 350.000/bulan"
-   - ❌ "banyak siswa", "murah"
+ - ✅ "150+ pengguna", "Rp 350.000/bulan"
+ - ❌ "banyak student", "murah"
 
 4. **Social Proof: Angka + nama real + foto**
 
@@ -378,21 +378,21 @@ Greeting: "Selamat pagi, [Nama]"
 ### Hero Section
 
 ```
-Headline: "Musik Bukan Sekadar Hobi.
-           Musik Membangun Masa Depan."
+Headline: "Music Beyond Hobbies.
+ Music Builds the Future."
 
-Subhead: "Kursus musik premium untuk anak usia 5-18 tahun
-          di Yogyakarta. Guru berpengalaman, sistem digital,
-          hasil nyata."
+Subhead: "Course music premium untuk anak usia 5-18 tahun
+ di . Instructor berpengalaman, sistem digital,
+ hasil nyata."
 
 CTA: [Mulai Gratis Trial] ← white button
-     Sudah punya akun? Masuk →
+ Sudah punya akun? Masuk →
 ```
 
 ### Trust Bar
 
 ```
-"150+ Siswa Aktif · 9 Instrumen · 10+ Tahun · 4.9★ Google"
+"150+ Student Aktif · 9 Instrumen · 10+ Tahun · 4.9★ Google"
 (single line, centered, emas #F59E0B)
 ```
 
@@ -401,7 +401,7 @@ CTA: [Mulai Gratis Trial] ← white button
 | Section | Header |
 |---------|--------|
 | Program | "Pilih Instrumen yang Mencerminkan Bakat Anak" |
-| Kenapa | "Yang Membedakan BMD dari Kursus Lainnya" |
+| Kenapa | "Yang Membedakan EQS dari Course Lainnya" |
 | Studio | "Studio yang Bikin Anak Betah Belajar" |
 | Testimonial | "150+ Keluarga Sudah Membuktikan" |
 | Harga | "Investasi untuk Masa Depan Anak" |
@@ -455,9 +455,9 @@ Style: rounded-lg, shadow-lg, border-left colored
 Animation: slide in from right (0.2s)
 
 SUCCESS: [✓] + green border + 3s auto-dismiss
-ERROR:   [✗] + red border + 5s + "Coba lagi" button
+ERROR: [✗] + red border + 5s + "Coba lagi" button
 WARNING: [!] + yellow border + manual dismiss
-INFO:    [i] + blue border + 3s auto-dismiss
+INFO: [i] + blue border + 3s auto-dismiss
 ```
 
 ---
@@ -483,10 +483,10 @@ INFO:    [i] + blue border + 3s auto-dismiss
 ### Visual Indicators
 
 ```
-✓ Valid:   green border + check icon (✓)
+✓ Valid: green border + check icon (✓)
 ✗ Invalid: red border + X icon (✗) + message below
-Empty:     gray border (no indicator)
-Focused:   2px ring primary color
+Empty: gray border (no indicator)
+Focused: 2px ring primary color
 ```
 
 ---
@@ -543,9 +543,9 @@ dayjs.extend(relativeTime)
 ### Pattern: Custom Rupiah Formatter
 
 ```javascript
-formatRupiah(350000)      // "Rp 350.000"
-formatRupiah(1500000)     // "Rp 1.500.000"
-formatRupiahShort(350000)  // "Rp 350rb"
+formatRupiah(350000) // "Rp 350.000"
+formatRupiah(1500000) // "Rp 1.500.000"
+formatRupiahShort(350000) // "Rp 350rb"
 formatRupiahShort(1500000) // "Rp 1,5jt"
 ```
 
@@ -578,8 +578,8 @@ formatRupiahShort(1500000) // "Rp 1,5jt"
 |------|------|-----------|-------------|
 | Owner | 40-55 | Overview cepat, revenue | Dashboard ringkas |
 | Admin | 25-40 | Efisiensi operasional | Banyak data, filter |
-| Guru | 25-45 | Mobile-first, cepat | Large buttons, minimal |
-| Wali Murid | 35-55 | Simpel, jelas, tenang | Large text, sedikit menu |
+| Instructor | 25-45 | Mobile-first, cepat | Large buttons, minimal |
+| Guardian | 35-55 | Simpel, jelas, tenang | Large text, sedikit menu |
 
 ---
 
@@ -657,11 +657,11 @@ Disabled: opacity 50%, no click
 
 ```
 @media print {
-  - Hide: sidebar, bottom nav, buttons, toast
-  - Show: content only
-  - Font: black on white
-  - No shadows, no gradients
-  - Page break: avoid inside tables
+ - Hide: sidebar, bottom nav, buttons, toast
+ - Show: content only
+ - Font: black on white
+ - No shadows, no gradients
+ - Page break: avoid inside tables
 }
 ```
 

@@ -1,6 +1,6 @@
-# BMD Music School — Reference Site Analysis & Synthesis
+# Equalizer-Stake — Reference Site Analysis & Synthesis
 
-> Analisis 4 reference sites → sintesis untuk BMD Music School
+> Analisis 4 reference sites → sintesis untuk Equalizer-Stake
 
 ---
 
@@ -19,10 +19,10 @@
 - **Typography:** Large bold sans-serif, high whitespace
 - **Social proof:** Numbers (10M+ users, 500+ songs)
 
-**What doesn't work for BMD:**
-- Green color ≠ BMD brand (we use blue + gold)
+**What doesn't work for EQS:**
+- Green color ≠ EQS brand (we use blue + gold)
 - App-focused (we're physical location)
-- Global audience (we're local Yogyakarta)
+- Global audience (we're local )
 
 ---
 
@@ -37,7 +37,7 @@
 - **Progress visualization:** Shows student journey
 - **Testimonials:** Video testimonials (higher trust than text)
 
-**What doesn't work for BMD:**
+**What doesn't work for EQS:**
 - Dark theme (we use light)
 - App/platform focused
 - Global audience
@@ -55,14 +55,14 @@
 - **Social proof:** "Join 10M+ students"
 - **Upsell:** "Get All Access" bundle pricing
 
-**What doesn't work for BMD:**
+**What doesn't work for EQS:**
 - Celebrity-focused (we're local teachers)
 - Premium pricing ($180/year) — different market
 - Video-heavy (performance burden)
 
 ---
 
-### D. General Music School Landing Pages
+### D. General Landing Pages
 
 **Common patterns across local music schools:**
 
@@ -76,7 +76,7 @@
 
 ---
 
-## 2. Synthesis: What BMD Should ADOPT
+## 2. Synthesis: What EQS Should ADOPT
 
 ### From Yousician:
 ✅ **Split hero layout** — text left, image right (not full-width gradient)
@@ -94,19 +94,19 @@
 ✅ **Premium feel through whitespace** — less is more
 ✅ **Bundle pricing** — family discount / multiple instrument pricing
 
-### From Local Music Schools:
+### From Local s:
 ✅ **WhatsApp as primary CTA** — Indonesian users prefer WhatsApp
 ✅ **Studio gallery** — photos build trust more than words
 ✅ **Teacher profiles** — names + credentials + photos
 
 ---
 
-## 3. Synthesis: What BMD Should REMOVE
+## 3. Synthesis: What EQS Should REMOVE
 
-### From current BMD:
+### From current EQS:
 ❌ **Full-width gradient hero** — too "app-like", not premium enough
 ❌ **ALL CAPS everywhere** — too aggressive, feels shouting
-❌ **Generic "Kenapa BMD" section** — doesn't differentiate
+❌ **Generic "Kenapa EQS" section** — doesn't differentiate
 ❌ **Static testimonial cards** — no real photos, no video
 ❌ **No studio photos** — missing visual proof
 ❌ **No teacher profiles** — missing trust element
@@ -119,7 +119,7 @@
 
 ---
 
-## 4. Synthesis: What BMD Should ADD
+## 4. Synthesis: What EQS Should ADD
 
 ### HIGH IMPACT (must have):
 1. **Split hero** — text left, studio photo right
@@ -154,7 +154,7 @@ Navbar → Hero (split: text + studio photo) → Instruments (grid) → Tentang 
 ```
 
 **Removed:**
-- "Kenapa BMD" section → merged into "Tentang"
+- "Kenapa EQS" section → merged into "Tentang"
 - FAQ section → move to separate page or inline accordion in Pricing
 
 **Added:**
@@ -175,8 +175,8 @@ Navbar → Hero (split: text + studio photo) → Instruments (grid) → Tentang 
 ### Recommended addition:
 - **Success green:** #10B981 — for "free trial" badge or "150+ families" highlight
 - **Hero accent:** Consider warm gradient (gold → orange) instead of blue → purple
-  - Reason: Warm colors = more emotional, better for music/education
-  - Blue → purple = more tech/SaaS feel
+ - Reason: Warm colors = more emotional, better for music/education
+ - Blue → purple = more tech/SaaS feel
 
 ### Color usage rules:
 1. **Hero:** Warm gradient (gold → orange) OR keep blue but make it feel premium
@@ -217,24 +217,24 @@ Navbar → Hero (split: text + studio photo) → Instruments (grid) → Tentang 
 ## 8. Content Strategy
 
 ### Hero message hierarchy:
-1. **Problem/Desire:** "Anak Anda punya bakat musik?"
+1. **Problem/Desire:** "Anak Anda punya bakat music?"
 2. **Solution:** "Kami bantu mengembangkannya"
-3. **Proof:** "150+ keluarga di Yogyakarta"
+3. **Proof:** "150+ pengguna "
 4. **CTA:** "Coba Gratis Sekarang"
 
 ### Section messaging:
 | Section | One-line message |
 |---------|-----------------|
-| Hero | "Anak Anda punya bakat musik? Kami bantu mengembangkannya." |
+| Hero | "Anak Anda punya bakat music? Kami bantu mengembangkannya." |
 | Instruments | "Pilih instrumen favorit anak Anda." |
-| Tentang | "Guru berpengalaman + studio profesional = hasil nyata." |
+| Tentang | "Instructor berpengalaman + studio profesional = hasil nyata." |
 | Testimonials | "Dengarkan langsung dari orang tua yang puas." |
 | Pricing | "Investasi untuk masa depan anak. Mulai dari Rp 150rb." |
 | CTA | "Siap memberikan yang terbaik untuk anak?" |
 
 ---
 
-## 9. Summary: BMD Design Direction
+## 9. Summary: EQS Design Direction
 
 ### The Vibe:
 **"Premium tapi hangat. Profesional tapi ramah."**
@@ -255,8 +255,8 @@ Navbar → Hero (split: text + studio photo) → Instruments (grid) → Tentang 
 - Hero CTA → WhatsApp chat → Trial session → Register → Pay
 - Every section should have ONE clear next step
 
-### What Makes BMD Different:
-1. **Local** — Yogyakarta, Seturan (not generic online course)
-2. **Personal** — Guru tetap, jadwal fleksibel
+### What Makes EQS Different:
+1. **Local** — (not generic online course)
+2. **Personal** — Instructor tetap, jadwal fleksibel
 3. **Proven** — 10+ tahun, 500+ alumni
-4. **Holistic** — Bukan hanya musik, tapi karakter
+4. **Holistic** — Bukan hanya music, tapi karakter

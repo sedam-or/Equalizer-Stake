@@ -25,7 +25,7 @@ export default function ReportsPage() {
     if (!data) return;
     const exportData = [
       { metric: "Total Pendapatan", value: data.total_revenue || 0 },
-      { metric: "Siswa Aktif", value: data.total_students || 0 },
+      { metric: "Student Aktif", value: data.total_students || 0 },
       { metric: "Tingkat Kehadiran", value: `${data.attendance_rate || 0}%` },
       { metric: "Akun Dibekukan", value: data.frozen_accounts || 0 },
       ...(data.instrument_distribution || []).map((i: any) => ({
@@ -37,7 +37,7 @@ export default function ReportsPage() {
         value: p.value,
       })),
     ];
-    exportToCSV(exportData, `bmd-report-${period}`);
+    exportToCSV(exportData, `eqs-report-${period}`);
   };
 
   const handleExportPDF = () => {
@@ -49,7 +49,7 @@ export default function ReportsPage() {
       </div>
       <div class="stat">
         <div class="stat-value">${data.total_students || 0}</div>
-        <div class="stat-label">Siswa Aktif</div>
+        <div class="stat-label">Student Aktif</div>
       </div>
       <div class="stat">
         <div class="stat-value">${data.attendance_rate || 0}%</div>
@@ -62,7 +62,7 @@ export default function ReportsPage() {
 
       <h2>Distribusi Instrumen</h2>
       <table>
-        <tr><th>Instrumen</th><th>Jumlah Siswa</th></tr>
+        <tr><th>Instrumen</th><th>Jumlah Student</th></tr>
         ${(data.instrument_distribution || []).map((i: any) => `<tr><td>${i.name}</td><td>${i.value}</td></tr>`).join("")}
       </table>
 
@@ -147,7 +147,7 @@ export default function ReportsPage() {
           trend={{ value: 12, isPositive: true }}
         />
         <StatCard
-          label="Siswa Aktif"
+          label="Student Aktif"
           value={data?.total_students || 0}
           icon="👥"
           gradient="from-[#2563EB] to-[#1E40AF]"

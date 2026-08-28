@@ -17,7 +17,7 @@ Modul reservasi studio menyediakan pemesanan studio untuk dua keperluan: latihan
 
 | Aspek | Detail |
 |-------|--------|
-| Booking | Self-booking oleh Wali Murid via dashboard |
+| Booking | Self-booking oleh Guardian via dashboard |
 | Jam operasional | 09:00 — 21:00 WIB |
 | Conflict check | Real-time saat proses booking |
 | Durasi minimum | 1 jam |
@@ -29,7 +29,7 @@ Modul reservasi studio menyediakan pemesanan studio untuk dua keperluan: latihan
 | Aspek | Detail |
 |-------|--------|
 | Booking | Memerlukan konsultasi + persetujuan Admin |
-| Alur | Wali Murid ajukan jadwal → Admin konsultasi → Admin setujui/tolak |
+| Alur | Guardian ajukan jadwal → Admin konsultasi → Admin setujui/tolak |
 | Jam operasional | 09:00 — 21:00 WIB |
 | Durasi | Ditentukan saat konsultasi dengan Admin |
 | Booking window | Maksimal 30 hari ke depan |
@@ -57,7 +57,7 @@ Modul reservasi studio menyediakan pemesanan studio untuk dua keperluan: latihan
 
 ### 4.1 Real-Time Conflict Check
 
-- Saat Wali Murid memilih slot waktu, sistem melakukan pengecekan real-time.
+- Saat Guardian memilih slot waktu, sistem melakukan pengecekan real-time.
 - Jika slot sudah ditempati, tampilkan pesan: "Slot sudah dipesan" beserta **alternatif terdekat**.
 
 ### 4.2 Alternatif Terdekat

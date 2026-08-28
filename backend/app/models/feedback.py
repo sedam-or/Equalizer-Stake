@@ -1,4 +1,4 @@
-"""Feedback model — Guru → Wali Murid feedback."""
+"""Feedback model — Instructor → Guardian feedback."""
 
 import uuid
 from datetime import datetime

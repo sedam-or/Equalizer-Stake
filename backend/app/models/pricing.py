@@ -1,7 +1,7 @@
-"""Pricing model — tarif kursus BMD MS per instrument, class_type, level.
+"""Pricing model — course tariff per instrument, class_type, level.
 
 SRS Addendum: 9 instrumen, 9 tipe kelas, level per instrumen.
-Harga asli BMD MS +20% (update 2024).
+Harga asli +20% (update 2024).
 """
 
 import uuid

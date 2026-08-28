@@ -6,7 +6,7 @@ Targets (NFR-PERF):
 - PERF-04: ≤50 concurrent users
 
 Usage:
-    cd /home/kepolu/bmdmusic/backend
+    cd /home/kepolu/equalizer-stake/backend
     python -m tests.load_test
 """
 

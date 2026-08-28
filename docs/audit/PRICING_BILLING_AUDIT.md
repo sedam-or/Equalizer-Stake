@@ -43,13 +43,13 @@
 #### Vokal
 | Tipe | SRS | Landing Page | Status |
 |------|-----|--------------|--------|
-| Private (1 siswa) | 600.000 | 600.000 | ✅ |
-| Intensif (2 siswa) | 390.000 | 390.000 | ✅ |
-| Intensif (3 siswa) | 330.000 | ❌ MISSING | GAP |
-| Semi Intensif (4 siswa) | 300.000 | 300.000 | ✅ |
+| Private (1 student) | 600.000 | 600.000 | ✅ |
+| Intensif (2 student) | 390.000 | 390.000 | ✅ |
+| Intensif (3 student) | 330.000 | ❌ MISSING | GAP |
+| Semi Intensif (4 student) | 300.000 | 300.000 | ✅ |
 | Expatriate Private | 840.000 | ❌ MISSING | GAP |
-| Expatriate 2 siswa | 660.000 | ❌ MISSING | GAP |
-| Expatriate 3 siswa | 600.000 | ❌ MISSING | GAP |
+| Expatriate 2 student | 660.000 | ❌ MISSING | GAP |
+| Expatriate 3 student | 600.000 | ❌ MISSING | GAP |
 
 #### Other Instruments (Biola, Gitar, Keyboard, Drum, Flute, Saxophone)
 | Tipe | SRS | Landing Page | Status |
@@ -90,10 +90,10 @@
 
 ### 1. Missing Pricing Tiers — ⚠️
 **SRS has but landing page missing:**
-- Vokal Intensif 3 siswa: Rp 330.000
+- Vokal Intensif 3 student: Rp 330.000
 - Vokal Expatriate Private: Rp 840.000
-- Vokal Expatriate 2 siswa: Rp 660.000
-- Vokal Expatriate 3 siswa: Rp 600.000
+- Vokal Expatriate 2 student: Rp 660.000
+- Vokal Expatriate 3 student: Rp 600.000
 
 **Impact:** Users can't see all pricing options
 **Fix:** Add missing tiers to HargaSection.tsx

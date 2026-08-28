@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="mb-8 text-center">
           <Link href="/" className="font-heading text-2xl font-bold text-white">
-            BMD <span className="text-[#D4AF37]">Music</span>
+            Equalizer-Stake <span className="text-[#D4AF37]">Music</span>
           </Link>
         </div>
 

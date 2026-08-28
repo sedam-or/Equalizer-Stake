@@ -149,7 +149,7 @@ export default function AttendanceSubmitPage() {
   };
 
   const calcDistance = (lat: number, lng: number) => {
-    // BMD MS coordinates: -7.737428, 110.429669 (Seturan, Yogyakarta)
+    // Studio coordinates
     const studioLat = -7.737428;
     const studioLng = 110.429669;
     const R = 6371000; // meters

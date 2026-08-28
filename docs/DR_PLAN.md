@@ -1,4 +1,4 @@
-# Disaster Recovery Plan — Equalizer-Stake (BMD Music School)
+# Disaster Recovery Plan — Equalizer-Stake (Equalizer-Stake)
 
 ## Overview
 
@@ -12,7 +12,7 @@
 ### Automated Daily Backup
 - **Schedule**: Daily 03:00 WIB via APScheduler
 - **Method**: pg_dump (primary) / Python SQL dump (fallback)
-- **Location**: `/home/kepolu/bmdmusic/backups/`
+- **Location**: `/home/kepolu/equalizer-stake/backups/`
 - **Format**: Compressed SQL (`backup_YYYYMMDD_HHMMSS.sql.gz`)
 - **Retention**: 30 days
 - **SRS Reference**: NFR-REL-04
@@ -71,8 +71,8 @@ python3 backend/scripts/verify_restore.py
 
 | Role | Contact | Responsibility |
 |------|---------|---------------|
-| System Admin | Admin BMD | First responder, server management |
-| Database Admin | Admin BMD | Database restore, integrity check |
+| System Admin | Admin EQS | First responder, server management |
+| Database Admin | Admin EQS | Database restore, integrity check |
 | Developer | sedam-or | Code issues, deployment |
 
 ### Escalation Path
@@ -97,7 +97,7 @@ python3 backend/scripts/verify_restore.py
 ## Known Gaps
 
 1. **RPO gap**: Daily backup means up to 24h data loss. For true ≤1h RPO, need:
-   - PostgreSQL WAL archiving to S3/GCS
-   - Or continuous replication to standby
+ - PostgreSQL WAL archiving to S3/GCS
+ - Or continuous replication to standby
 2. **Offsite backup**: Currently local only. Needs S3/GCS upload (T-116)
 3. **Automated restore testing**: Not yet implemented

@@ -21,13 +21,13 @@ export default function InstrumentsPage() {
       <div className="bg-[#0F172A] px-6 py-20 md:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <Link href="/" className="mb-6 inline-block font-heading text-xl font-bold tracking-tight text-white">
-            BMD <span className="text-[#D4AF37]">Music</span>
+            Equalizer-Stake <span className="text-[#D4AF37]">Music</span>
           </Link>
           <h1 className="text-balance font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Instrumen yang Kami Ajarkan
           </h1>
           <p className="mt-4 text-gray-400">
-            9 instrumen dengan guru spesialis di bidangnya masing-masing
+            9 instrumen dengan instructor spesialis di bidangnya masing-masing
           </p>
         </div>
       </div>

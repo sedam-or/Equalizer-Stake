@@ -20,8 +20,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "BMD Music School — Sistem Penjadwalan Kursus Musik",
-  description: "Sistem Penjadwalan Kursus & Reservasi Studio BMD Musik Yogyakarta",
+  title: "Equalizer-Stake — Deterministic Reservation Engine",
+  description: "Deterministic Course & Studio Reservation Engine",
   manifest: "/manifest.json",
 };
 

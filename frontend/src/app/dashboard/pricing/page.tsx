@@ -145,7 +145,7 @@ export default function PricingPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Kelola Tarif</h1>
-          <p className="text-sm text-gray-500 mt-1">Atur tarif kursus per instrumen dan level</p>
+          <p className="text-sm text-gray-500 mt-1">Atur tarif course per instrumen dan level</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => { resetForm(); setShowForm(true); }} className="px-4 py-2 text-sm bg-[#2563EB] text-black font-semibold rounded-lg hover:bg-[#1d4ed8]">

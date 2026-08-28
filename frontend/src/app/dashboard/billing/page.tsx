@@ -101,7 +101,7 @@ export default function BillingPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-6">
       <h1 className="text-2xl font-bold text-gray-900">Tagihan & Verifikasi Pembayaran</h1>
-      <p className="mt-1 text-sm text-gray-500">Verifikasi bukti transfer Wali Murid dengan kode unik 3 digit</p>
+      <p className="mt-1 text-sm text-gray-500">Verifikasi bukti transfer Guardian dengan kode unik 3 digit</p>
 
       <div className="mt-4 flex gap-2">
         {["semua", "issued", "pending", "paid", "overdue"].map(f => (
@@ -119,7 +119,7 @@ export default function BillingPage() {
             <thead>
               <tr className="border-b border-gray-200 text-left text-gray-500">
                 <th className="px-4 py-3">Invoice</th>
-                <th className="px-4 py-3">Wali Murid</th>
+                <th className="px-4 py-3">Guardian</th>
                 <th className="px-4 py-3">Periode</th>
                 <th className="px-4 py-3">Jumlah</th>
                 <th className="px-4 py-3">Jatuh Tempo</th>
@@ -173,7 +173,7 @@ export default function BillingPage() {
 
             <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
               <div className="text-4xl mb-2">🧾</div>
-              <p className="text-sm text-gray-500">Bukti transfer dari Wali Murid</p>
+              <p className="text-sm text-gray-500">Bukti transfer dari Guardian</p>
             </div>
 
             <div className="mb-4">

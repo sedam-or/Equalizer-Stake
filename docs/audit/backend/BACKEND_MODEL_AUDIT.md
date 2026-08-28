@@ -39,8 +39,8 @@
 **Current Model:**
 ```python
 level: Mapped[str] = mapped_column(
-    Enum("pemula", "dasar", "menengah", "lanjut", name="student_level"),
-    nullable=False, default="pemula"
+ Enum("pemula", "dasar", "menengah", "lanjut", name="student_level"),
+ nullable=False, default="pemula"
 )
 ```
 
@@ -69,8 +69,8 @@ Level HARUS per instrumen, bukan universal.
 **Current Model:**
 ```python
 instrument: Mapped[str] = mapped_column(
-    Enum("biola", "piano", "gitar", "drum", "keyboard", "flute", "saxophone", "vokal", "ensemble", name="instrument_type"),
-    nullable=False
+ Enum("biola", "piano", "gitar", "drum", "keyboard", "flute", "saxophone", "vokal", "ensemble", name="instrument_type"),
+ nullable=False
 )
 ```
 

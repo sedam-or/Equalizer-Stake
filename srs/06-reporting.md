@@ -15,7 +15,7 @@ Modul reporting menyediakan dashboard untuk Owner dan fitur pengecekan eligibili
 
 ### 2.1 Kriteria Eligibility
 
-Siswa memenuhi syarat ujian jika **semua** kondisi berikut terpenuhi:
+Student memenuhi syarat ujian jika **semua** kondisi berikut terpenuhi:
 
 | No | Kriteria | Field | Threshold |
 |----|----------|-------|-----------|
@@ -27,14 +27,14 @@ Siswa memenuhi syarat ujian jika **semua** kondisi berikut terpenuhi:
 
 | Kondisi | Perlakuan |
 |---------|-----------|
-| Siswa baru (<3 bulan terdaftar) | Tampilkan badge "Data Tidak Lengkap" dengan catatan: periode observasi belum selesai |
+| Student baru (<3 bulan terdaftar) | Tampilkan badge "Data Tidak Lengkap" dengan catatan: periode observasi belum selesai |
 | Status `PendingVerification` | Tampilkan warning flag kuning: "Verifikasi belum selesai — eligibility tidak dapat ditentukan" |
 
 ### 2.3 Business Rule
 
 - Perhitungan attendance_rate berdasarkan total sesi hadir / total sesi terjadwal sejak pendaftaran.
 - No-show dihitung per event (bukan per kelas). Reset rolling window setiap 3 bulan.
-- Hasil eligibility ditampilkan per siswa di halaman profil dan di dashboard Owner.
+- Hasil eligibility ditampilkan per student di halaman profil dan di dashboard Owner.
 
 ## 3. Owner Dashboard (FR-13 / UC-10)
 

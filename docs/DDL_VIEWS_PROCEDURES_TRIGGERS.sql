@@ -1,5 +1,5 @@
 -- =====================================================
--- BMD Music School — Views, Stored Procedures, Triggers
+-- Equalizer-Stake — Views, Stored Procedures, Triggers
 -- Generated: 2026-07-05
 -- =====================================================
 
@@ -524,7 +524,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     -- Check if Sunday (weekday 0 in PostgreSQL)
     IF EXTRACT(DOW FROM NEW.session_date) = 0 THEN
-        RAISE EXCEPTION 'BMD is closed on Sundays';
+        RAISE EXCEPTION 'Studio is closed on Sundays';
     END IF;
     
     -- Check operational hours (08:00-20:00)

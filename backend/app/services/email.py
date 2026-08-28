@@ -55,49 +55,49 @@ def get_circuit_status() -> dict:
 # Email templates
 TEMPLATES = {
     "invoice": {
-        "subject": "Tagihan BMD Musik — {{billing_period}}",
+        "subject": "Tagihan Equalizer-Stake — {{billing_period}}",
         "body": """
-<h2>Tagihan BMD Musik</h2>
+<h2>Tagihan Equalizer-Stake</h2>
 <p>Kepada Yth. {{guardian_name}},</p>
 <p>Berikut tagihan untuk periode <strong>{{billing_period}}</strong>:</p>
 <table border="1" cellpadding="8" cellspacing="0">
-  <tr><th>Siswa</th><th>Detail</th><th>Jumlah</th></tr>
+  <tr><th>Student</th><th>Detail</th><th>Jumlah</th></tr>
   {{items}}
 </table>
 <p><strong>Total: Rp {{total_amount}}</strong></p>
 <p>Jatuh tempo: {{due_date}}</p>
 <p>Kode unik: {{unique_code}}</p>
-<br><p>Salam,<br>BMD Musik Yogyakarta</p>
+<br><p>Salam,<br>Equalizer-Stake</p>
 """,
     },
     "reminder": {
-        "subject": "Pengingat Jadwal BMD Musik",
+        "subject": "Pengingat Jadwal Equalizer-Stake",
         "body": """
 <h2>Pengingat Jadwal</h2>
 <p>Halo {{guardian_name}},</p>
-<p>Ini pengingat bahwa jadwal kursus akan dimulai dalam 1 jam:</p>
+<p>Ini pengingat bahwa jadwal course akan dimulai dalam 1 jam:</p>
 <ul>
-  <li><strong>Siswa:</strong> {{student_name}}</li>
+  <li><strong>Student:</strong> {{student_name}}</li>
   <li><strong>Waktu:</strong> {{session_time}}</li>
   <li><strong>Ruangan:</strong> {{room_name}}</li>
 </ul>
 <p>Mohon hadir tepat waktu.</p>
-<br><p>Salam,<br>BMD Musik Yogyakarta</p>
+<br><p>Salam,<br>Equalizer-Stake</p>
 """,
     },
     "freeze": {
-        "subject": "Pemberitahuan Pembekuan Akun — BMD Musik",
+        "subject": "Pemberitahuan Pembekuan Akun — Equalizer-Stake",
         "body": """
 <h2>Pemberitahuan Pembekuan Akun</h2>
 <p>Kepada Yth. {{guardian_name}},</p>
 <p>Akun Anda telah <strong>dibekukan</strong> karena tagihan yang melewati jatuh tempo.</p>
 <p><strong>Alasan:</strong> {{reason}}</p>
 <p>Silakan hubungi admin untuk informasi lebih lanjut.</p>
-<br><p>Salam,<br>BMD Musik Yogyakarta</p>
+<br><p>Salam,<br>Equalizer-Stake</p>
 """,
     },
     "reset_password": {
-        "subject": "Reset Password — BMD Musik",
+        "subject": "Reset Password — Equalizer-Stake",
         "body": """
 <h2>Reset Password</h2>
 <p>Halo {{name}},</p>
@@ -106,20 +106,20 @@ TEMPLATES = {
 <p><a href="{{reset_url}}" style="display:inline-block;padding:12px 24px;background:#08CB00;color:#000;text-decoration:none;border-radius:8px;font-weight:bold;">Reset Password</a></p>
 <p>Link ini berlaku selama <strong>1 jam</strong>.</p>
 <p>Jika Anda tidak meminta reset password, abaikan email ini.</p>
-<br><p>Salam,<br>BMD Musik Yogyakarta</p>
+<br><p>Salam,<br>Equalizer-Stake</p>
 """,
     },
     "welcome": {
-        "subject": "Selamat Datang di BMD Musik!",
+        "subject": "Selamat Datang di Equalizer-Stake!",
         "body": """
 <h2>Selamat Datang!</h2>
 <p>Halo {{name}},</p>
-<p>Akun BMD Musik Anda sudah aktif.</p>
+<p>Akun Equalizer-Stake Anda sudah aktif.</p>
 <p><strong>Username:</strong> {{username}}</p>
 <p><strong>Password sementara:</strong> {{temp_password}}</p>
 <p>Silakan login dan ganti password Anda segera.</p>
 <p><a href="{{login_url}}" style="display:inline-block;padding:12px 24px;background:#08CB00;color:#000;text-decoration:none;border-radius:8px;font-weight:bold;">Login Sekarang</a></p>
-<br><p>Salam,<br>BMD Musik Yogyakarta</p>
+<br><p>Salam,<br>Equalizer-Stake</p>
 """,
     },
 }
@@ -145,7 +145,7 @@ async def send_email(
     recipient: str,
     subject: str,
     html_body: str,
-    sender_name: str = "BMD Musik",
+    sender_name: str = "Equalizer-Stake",
 ) -> dict:
     """Send email via SMTP with TLS.
     

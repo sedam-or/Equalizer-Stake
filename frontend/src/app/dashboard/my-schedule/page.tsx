@@ -109,7 +109,7 @@ export default function MySchedulePage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Jadwal Saya</h1>
         <p className="text-sm text-gray-500">
-          {role === "teacher" ? "Jadwal mengajar Anda" : "Jadwal kursus anak-anak Anda"}
+          {role === "teacher" ? "Jadwal mengajar Anda" : "Jadwal course anak-anak Anda"}
         </p>
       </div>
 

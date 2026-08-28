@@ -3,10 +3,10 @@
  */
 
 export const WHATSAPP_URL =
-  "https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20dengan%20kursus%20musik%20di%20BMD";
+  "https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20dengan%20kursus%20musik%20di%20Equalizer-Stake";
 
 export const WHATSAPP_URL_REGISTRATION =
-  "https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20daftar%20kursus%20musik%20di%20BMD";
+  "https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20daftar%20kursus%20musik%20di%20Equalizer-Stake";
 
 export const SECTION_HEADER_CLASS = "font-heading text-4xl font-extrabold uppercase tracking-tighter text-gray-900 sm:text-5xl md:text-6xl";
 export const SECTION_SUBTITLE_CLASS = "mt-4 text-lg text-gray-500 md:text-xl";

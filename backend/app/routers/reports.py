@@ -462,7 +462,7 @@ async def export_csv(
                 s.enrollment_status,
                 "Ya" if s.eligible_for_exam else "Belum",
             ])
-        filename = "laporan-siswa.csv"
+        filename = "laporan-student.csv"
 
     else:
         raise HTTPException(status_code=400, detail="Tipe report tidak valid. Gunakan: revenue, attendance, students")

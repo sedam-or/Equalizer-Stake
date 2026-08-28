@@ -1,4 +1,4 @@
-# Mobile Rules — Landing Page BMD Music School
+# Mobile Rules — Landing Page Equalizer-Stake
 
 Perubahan layout dan komponen untuk perangkat mobile (320px - 768px).
 

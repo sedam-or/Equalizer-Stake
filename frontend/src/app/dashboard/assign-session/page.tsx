@@ -61,7 +61,7 @@ export default function AssignSessionPage() {
   return (
     <div className="p-6">
       <h1 className="font-heading text-2xl font-bold text-gray-900">Assign Sesi</h1>
-      <p className="text-sm text-gray-500">Assign siswa ke sesi kursus (guru + ruangan + jadwal)</p>
+      <p className="text-sm text-gray-500">Assign student ke sesi course (instructor + ruangan + jadwal)</p>
 
       {loading ? <div className="mt-6 p-8 text-center text-gray-500">Memuat...</div> : (
         <div className="mt-6 max-w-xl rounded-xl border border-gray-200 bg-white p-6">
@@ -70,16 +70,16 @@ export default function AssignSessionPage() {
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Siswa *</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Student *</label>
               <select value={form.id_student} onChange={(e) => setForm({ ...form, id_student: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
-                <option value="">Pilih siswa</option>
+                <option value="">Pilih student</option>
                 {students.map((s) => <option key={s.id_student} value={s.id_student}>{s.full_name} ({s.instrument})</option>)}
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Guru *</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Instructor *</label>
               <select value={form.id_teacher} onChange={(e) => setForm({ ...form, id_teacher: e.target.value })} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm">
-                <option value="">Pilih guru</option>
+                <option value="">Pilih instructor</option>
                 {teachers.map((t) => <option key={t.id_teacher} value={t.id_teacher}>{t.full_name} ({(Array.isArray(t.instruments) ? t.instruments : Object.values(t.instruments)).join(", ")})</option>)}
               </select>
             </div>

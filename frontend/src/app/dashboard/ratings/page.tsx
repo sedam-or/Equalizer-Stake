@@ -2,7 +2,7 @@
 import { useDashboard } from "@/components/DashboardContext";
 /**
  * Guardian Rating Page — T-147
- * Wali Murid → Guru rating
+ * Guardian → Instructor rating
  */
 
 import { useState } from "react";
@@ -17,7 +17,7 @@ export default function RatingsPage() {
   const [error, setError] = useState("");
 
   const handleSubmit = async () => {
-    if (!teacherId) { setError("Masukkan ID guru"); return; }
+    if (!teacherId) { setError("Masukkan ID instructor"); return; }
     setError(""); setSuccess("");
     const token = localStorage.getItem("access_token");
     try {
@@ -34,13 +34,13 @@ export default function RatingsPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: "Rating Guru" }]} />
-      <h1 className="font-heading text-2xl font-bold text-gray-900">Rate Guru</h1>
+      <Breadcrumbs items={[{ label: "Rating Instructor" }]} />
+      <h1 className="font-heading text-2xl font-bold text-gray-900">Rate Instructor</h1>
 
       <div className="max-w-lg space-y-4 rounded-xl border border-gray-200 bg-white p-6">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">ID Guru</label>
-          <input value={teacherId} onChange={e => setTeacherId(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#2563EB] focus:outline-none" placeholder="ID guru" />
+          <label className="mb-1 block text-sm font-medium text-gray-700">ID Instructor</label>
+          <input value={teacherId} onChange={e => setTeacherId(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#2563EB] focus:outline-none" placeholder="ID instructor" />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Rating (1-5)</label>

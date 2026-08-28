@@ -43,7 +43,7 @@ export default function StudentsPage() {
     })
       .then(r => r.json())
       .then(d => { setStudents(d.data || []); setTotal(d.total || 0); })
-      .catch(() => { setStudents([]); toast("error", "Gagal memuat data siswa"); })
+      .catch(() => { setStudents([]); toast("error", "Gagal memuat data student"); })
       .finally(() => setLoading(false));
   };
 
@@ -58,8 +58,8 @@ export default function StudentsPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal menambah siswa"); }
-      toast("success", "Siswa berhasil ditambahkan");
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal menambah student"); }
+      toast("success", "Student berhasil ditambahkan");
       setShowForm(false);
       setForm({ full_name: "", instrument: "piano", level: "pemula" });
       fetchStudents();
@@ -77,8 +77,8 @@ export default function StudentsPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal mengupdate siswa"); }
-      toast("success", "Siswa berhasil diupdate");
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal mengupdate student"); }
+      toast("success", "Student berhasil diupdate");
       setEditStudent(null);
       setForm({ full_name: "", instrument: "piano", level: "pemula" });
       fetchStudents();
@@ -94,8 +94,8 @@ export default function StudentsPage() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal menghapus siswa"); }
-      toast("success", "Siswa berhasil dihapus");
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || "Gagal menghapus student"); }
+      toast("success", "Student berhasil dihapus");
       fetchStudents();
     } catch (err) { toast("error", err instanceof Error ? err.message : "Terjadi kesalahan"); }
   };
@@ -109,22 +109,22 @@ export default function StudentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-[#0F172A]">Siswa</h1>
-          <p className="text-sm text-gray-500">{total} siswa terdaftar</p>
+          <h1 className="font-heading text-2xl font-bold text-[#0F172A]">Student</h1>
+          <p className="text-sm text-gray-500">{total} student terdaftar</p>
         </div>
         <button onClick={() => { setShowForm(!showForm); setEditStudent(null); }} className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1D4ED8]">
-          {showForm ? "Tutup" : "+ Tambah Siswa"}
+          {showForm ? "Tutup" : "+ Tambah Student"}
         </button>
       </div>
 
       {/* Create Form */}
       {showForm && (
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 font-heading text-lg font-bold text-[#0F172A]">Tambah Siswa Baru</h2>
+          <h2 className="mb-4 font-heading text-lg font-bold text-[#0F172A]">Tambah Student Baru</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Nama Lengkap</label>
-              <input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} placeholder="Nama siswa" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" />
+              <input value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} placeholder="Nama student" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm" />
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">Instrumen</label>
@@ -155,7 +155,7 @@ export default function StudentsPage() {
       {editStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditStudent(null)}>
           <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-            <h2 className="font-heading text-lg font-bold text-[#0F172A]">Edit Siswa</h2>
+            <h2 className="font-heading text-lg font-bold text-[#0F172A]">Edit Student</h2>
             <div className="mt-4 space-y-3">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">Nama</label>
@@ -192,7 +192,7 @@ export default function StudentsPage() {
         <SkeletonTable />
       ) : students.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-12 text-center">
-          <p className="text-gray-500">Belum ada siswa terdaftar.</p>
+          <p className="text-gray-500">Belum ada student terdaftar.</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

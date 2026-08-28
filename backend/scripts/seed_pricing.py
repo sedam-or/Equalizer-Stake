@@ -1,4 +1,4 @@
-"""Seed master data — Instrumen, Level, Tipe Kelas, Harga (BMD MS +20%).
+"""Seed master data — Instrumen, Level, Tipe Kelas, Harga.
 
 Usage:
     cd backend
@@ -20,7 +20,7 @@ from sqlalchemy import select
 
 EFFECTIVE_DATE = date(2024, 1, 1)
 
-# Registration fees per instrument (BMD MS 2014 +20%)
+# Registration fees per instrument
 REGISTRATION_FEES = {
     "piano_klasik": 420000,
     "piano_pop": 420000,

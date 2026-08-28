@@ -4,45 +4,45 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    PRESENTATION LAYER                     │
-│  Next.js 15 PWA (React 18, Tailwind CSS, face-api.js)   │
-│  Service Worker │ IndexedDB │ Manifest                   │
+│ PRESENTATION LAYER │
+│ Next.js 15 PWA (React 18, Tailwind CSS, face-api.js) │
+│ Service Worker │ IndexedDB │ Manifest │
 └──────────────────────────┬──────────────────────────────┘
-                           │ HTTPS / REST + JSON
-                           ▼
+ │ HTTPS / REST + JSON
+ ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    API GATEWAY LAYER                      │
-│  FastAPI (Uvicorn/ASGI, Python 3.12+)                    │
-│  CORS │ JWT Auth │ Rate Limiting │ Audit Middleware       │
+│ API GATEWAY LAYER │
+│ FastAPI (Uvicorn/ASGI, Python 3.12+) │
+│ CORS │ JWT Auth │ Rate Limiting │ Audit Middleware │
 └──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
+ │
+ ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    SERVICE LAYER                          │
-│  Business logic: Billing, Attendance, Notification, etc. │
-│  Pydantic v2 schemas │ Dependency injection              │
+│ SERVICE LAYER │
+│ Business logic: Billing, Attendance, Notification, etc. │
+│ Pydantic v2 schemas │ Dependency injection │
 └──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
+ │
+ ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    DOMAIN LAYER                           │
-│  SQLAlchemy async ORM models (11 entities)               │
-│  User│Guardian│Student│Teacher│Room│Session│Invoice      │
-│  Payment│Attendance│Notification│AuditLog                │
+│ DOMAIN LAYER │
+│ SQLAlchemy async ORM models (11 entities) │
+│ User│Guardian│Student│Teacher│Room│Session│Invoice │
+│ Payment│Attendance│Notification│AuditLog │
 └──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
+ │
+ ▼
 ┌─────────────────────────────────────────────────────────┐
-│                  DATA ACCESS LAYER                        │
-│  asyncpg connection pool │ Alembic migrations            │
-│  AES-256-GCM encrypt/decrypt for PII columns             │
+│ DATA ACCESS LAYER │
+│ asyncpg connection pool │ Alembic migrations │
+│ AES-256-GCM encrypt/decrypt for PII columns │
 └──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
+ │
+ ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    DATABASE LAYER                         │
-│  PostgreSQL 16         │  Redis 7                        │
-│  (primary datastore)   │  (sessions, rate-limit, cache)  │
+│ DATABASE LAYER │
+│ PostgreSQL 16 │ Redis 7 │
+│ (primary datastore) │ (sessions, rate-limit, cache) │
 └─────────────────────────────────────────────────────────┘
 ```
 

@@ -115,7 +115,7 @@ export default function MyPaymentsPage() {
       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
         <h3 className="text-sm font-semibold text-blue-800">💡 Cara Membayar</h3>
         <ol className="mt-1 space-y-1 text-sm text-blue-700">
-          <li>1. Transfer ke rekening <strong>BCA 1234567890</strong> (a.n. BMD Music School)</li>
+          <li>1. Transfer ke rekening <strong>Bank 1234567890</strong></li>
           <li>2. Jumlah transfer = Tagihan + Kode Unik (contoh: Rp 500.847)</li>
           <li>3. Klik "Bayar" → upload bukti transfer → Submit</li>
           <li>4. Admin akan memverifikasi dalam 1×24 jam</li>

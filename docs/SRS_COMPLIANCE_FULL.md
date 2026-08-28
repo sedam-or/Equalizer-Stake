@@ -49,7 +49,7 @@
 ### 4. Studio Reservation (FR-08) — MOST INCOMPLETE
 - No guardian self-booking (only admin can create sessions)
 - No recording approval workflow
-- No studio hourly pricing (only kursus pricing exists)
+- No studio hourly pricing (only course pricing exists)
 - No alternative slot suggestions on conflict
 - No DB-level unique constraint for double-booking prevention
 - Cancel session is TODO stub

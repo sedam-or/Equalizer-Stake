@@ -1,7 +1,7 @@
 /**
- * BMD Landing Page — Premium v3
+ * Equalizer-Stake Landing Page — Premium v3
  * Dark navy + gold accent, scroll snap, micro-interactions
- * 5 sections: Hero → WhyBMD → Program → Testimonial → CTA
+ * 5 sections: Hero → WhyEQS → Program → Testimonial → CTA
  */
 
 "use client";
@@ -9,7 +9,7 @@
 import { useEffect } from "react";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
-import WhyBMD from "@/components/landing/WhyBMD";
+import WhyEQS from "@/components/landing/WhyEQS";
 import ProgramKursusSection from "@/components/landing/ProgramKursusSection";
 import TeachersSection from "@/components/landing/TeachersSection";
 import TestimonialSection from "@/components/landing/TestimonialSection";
@@ -42,7 +42,7 @@ export default function HomePage() {
       <Navbar />
       <div id="main-content">
         <HeroSection />
-        <WhyBMD />
+        <WhyEQS />
         <ProgramKursusSection />
         <TeachersSection />
         <TestimonialSection />

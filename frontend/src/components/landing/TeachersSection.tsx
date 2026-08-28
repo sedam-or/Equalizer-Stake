@@ -54,7 +54,7 @@ export default function TeachersSection() {
             className="mt-2 text-balance font-heading text-3xl font-bold leading-tight tracking-tight text-[#D4AF37] sm:text-4xl"
           />
           <p className="mt-6 max-w-lg text-gray-400">
-            Semua guru kami memiliki latar belakang pendidikan musik formal dan pengalaman mengajar anak. Mereka tidak hanya mengajarkan teknik, tapi juga membangun kecintaan pada musik.
+            Semua instructor kami memiliki latar belakang pendidikan musik formal dan pengalaman mengajar anak. Mereka tidak hanya mengajarkan teknik, tapi juga membangun kecintaan pada musik.
           </p>
         </div>
 

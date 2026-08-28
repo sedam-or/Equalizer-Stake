@@ -38,7 +38,7 @@ export default function HelpPage() {
         <div className="mt-10 rounded-xl border border-gray-200 bg-white p-6">
           <h2 className="font-heading text-lg font-bold text-gray-900">Hubungi Kami</h2>
           <p className="mt-2 text-sm text-gray-500">
-            📍 Jl. Seturan No. XX, Yogyakarta
+            📍 Jl. Contoh No. 1, Kota
             <br />📱 +62 812-3456-7890 (WhatsApp)
             <br />🕐 Senin-Sabtu 09:00-20:00
           </p>

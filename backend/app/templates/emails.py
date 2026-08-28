@@ -13,12 +13,12 @@ def onboarding_credentials_email(
     Returns (subject, html_body).
     Actual SMTP sending is handled by notification service.
     """
-    subject = "Selamat Datang di BMD Musik — Akun Anda Siap"
+    subject = "Selamat Datang di Equalizer-Stake — Akun Anda Siap"
     body = f"""<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-  <h2 style="color: #2c3e50;">Selamat Datang di BMD Musik!</h2>
+  <h2 style="color: #2c3e50;">Selamat Datang di Equalizer-Stake!</h2>
   <p>Halo <strong>{full_name}</strong>,</p>
   <p>Akun Anda telah dibuat oleh administrator. Berikut adalah kredensial login Anda:</p>
   <table style="border-collapse: collapse; margin: 16px 0;">
@@ -45,7 +45,7 @@ def onboarding_credentials_email(
     </a>
   </p>
   <p style="color: #888; font-size: 12px; margin-top: 24px;">
-    Email ini dikirim otomatis oleh sistem BMD Musik. Jika Anda tidak merasa mendaftar, abaikan email ini.
+    Email ini dikirim otomatis oleh sistem Equalizer-Stake. Jika Anda tidak merasa mendaftar, abaikan email ini.
   </p>
 </body>
 </html>"""

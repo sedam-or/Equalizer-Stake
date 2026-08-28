@@ -1,4 +1,4 @@
-# BMD Music School — Comprehensive UI/UX Design Specification
+# Equalizer-Stake — Comprehensive UI/UX Design Specification
 
 > **Version**: 2.0
 > **Date**: 2026-07-04
@@ -29,22 +29,22 @@
 ## 1. Brand Identity
 
 ### 1.1 Brand Essence
-- **Nama**: BMD Music School (Sekolah Musik BMD)
-- **Tagline**: "Musik Bukan Sekadar Hobi. Musik Membangun Masa Depan."
-- **Lokasi**: Seturan, Yogyakarta
-- **Positioning**: Premium music school untuk keluarga kelas menengah-atas
-- **Target Users**: Anak usia 5-17 tahun (siswa), Orang tua 30-55 tahun (wali murid)
+- **Nama**: Equalizer-Stake (EQS)
+- **Tagline**: "Music Beyond Hobbies. Music Builds the Future."
+- **Lokasi**:
+- **Positioning**: Premium music school untuk pengguna kelas menengah-atas
+- **Target Users**: Anak usia 5-17 tahun (student), Orang tua 30-55 tahun (guardian)
 
 ### 1.2 Brand Values
-- Profesional (guru berpengalaman)
+- Profesional (instructor berpengalaman)
 - Terjangkau (harga premium tapi worth it)
-- Personal (perhatian per siswa)
-- Modern (teknologi + musik)
+- Personal (perhatian per student)
+- Modern (teknologi + music)
 
 ### 1.3 Tone of Voice
 - Formal tapi hangat (Bahasa Indonesia)
 - Percaya diri, bukan sombong
-- Benefit-over-feature ("Anak Anda tampil percaya diri" bukan "Kursus 8 pertemuan")
+- Benefit-over-feature ("Anak Anda tampil percaya diri" bukan "Course 8 pertemuan")
 - Emosional headline, fakta body
 
 ---
@@ -429,11 +429,11 @@ Height: 100vh (fixed)
 Background: bg-white
 Border: border-r border-gray-200
 Sections:
-  - Logo area: py-6 px-4
-  - Nav items: px-3, each with icon + label
-  - Active: bg-[#2563EB] text-black (NOTE: dark text on blue)
-  - Inactive: text-gray-500 hover:bg-gray-100
-  - Theme toggle at bottom
+ - Logo area: py-6 px-4
+ - Nav items: px-3, each with icon + label
+ - Active: bg-[#2563EB] text-black (NOTE: dark text on blue)
+ - Inactive: text-gray-500 hover:bg-gray-100
+ - Theme toggle at bottom
 ```
 
 ### 5.15 Bottom Nav (Mobile)
@@ -470,19 +470,19 @@ Animation: icon swap (no transition needed)
 #### 6.1.1 Navbar
 - Position: sticky top-0
 - Background: bg-white, border-b border-gray-100
-- Left: Logo text "BMD" (font-heading font-bold text-xl)
+- Left: Logo text "EQS" (font-heading font-bold text-xl)
 - Center: Nav links (Beranda, Instrumen, Tentang, Kontak)
-- Right: "Masuk" (text link) + "Daftar Kursus" (primary button)
+- Right: "Masuk" (text link) + "Daftar Course" (primary button)
 - Mobile: hamburger menu
 
 #### 6.1.2 Hero Section
 - Background: bg-gradient-to-br from-[#2563EB] to-[#7C3AED]
 - Padding: py-24
-- Headline: "Musik Bukan Sekadar Hobi." (text-white, hero size)
-- Subheadline: "Musik Membangun Masa Depan." (text-white/80)
-- Description: "Bersama BMD Music School, anak Anda belajar musik dari guru profesional..." (text-white/70)
+- Headline: "Music Beyond Hobbies." (text-white, hero size)
+- Subheadline: "Music Builds the Future." (text-white/80)
+- Description: "Bersama Equalizer-Stake, anak Anda learn music dari instructor profesional..." (text-white/70)
 - CTA: Gold WhatsApp button + secondary white outline button
-- Trust bar: 4 items (150+ Siswa, 9 Instrumen, 10+ Tahun, 4.9★)
+- Trust bar: 4 items (150+ Student, 9 Instrumen, 10+ Tahun, 4.9★)
 
 #### 6.1.3 Instruments Section
 - Background: bg-[#F8FAFC]
@@ -491,7 +491,7 @@ Animation: icon swap (no transition needed)
 
 #### 6.1.4 Benefits Section
 - Background: bg-white
-- 3-column cards: "Guru Profesional", "Jadwal Fleksibel", "Studio Lengkap"
+- 3-column cards: "Instructor Profesional", "Jadwal Fleksibel", "Studio Lengkap"
 
 #### 6.1.5 Testimonials Section
 - Background: bg-[#F8FAFC]
@@ -523,7 +523,7 @@ Animation: icon swap (no transition needed)
 - Centered layout with AuthLayout (light gradient bg)
 - White card (max-w-md, p-8)
 - Title: "Masuk" (blue, font-heading)
-- Subtitle: "Kelola jadwal musik Anda dalam satu tempat"
+- Subtitle: "Kelola jadwal music Anda dalam satu tempat"
 - Fields: Username, Password (with eye toggle)
 - Button: "Masuk" (primary, full-width)
 - Links: "Belum punya akun? Daftar" + "Lupa Password?"
@@ -544,30 +544,30 @@ Animation: icon swap (no transition needed)
 - Greeting: "Selamat pagi, [Nama]"
 - Date: "Senin, 7 Juli 2026"
 - KPI cards (4-column grid):
-  - Total Siswa Aktif (number, icon 👨‍🎓)
-  - Sesi Bulan Ini (number, icon 📅)
-  - Tagihan Pending (number + Rp format, icon 💰)
-  - Tingkat Kehadiran (percentage, icon 📊)
+ - Total Student Aktif (number, icon 👨‍🎓)
+ - Sesi Bulan Ini (number, icon 📅)
+ - Tagihan Pending (number + Rp format, icon 💰)
+ - Tingkat Kehadiran (percentage, icon 📊)
 - Recent Sessions table (5 rows)
 - Recent Audit Log (5 rows)
 - Quick links: Students, Schedule, Billing, Reports
 
 #### 6.4.2 Teacher Dashboard
-- Greeting: "Selamat pagi, [Nama Guru]"
+- Greeting: "Selamat pagi, [Nama Instructor]"
 - KPI cards (4-column):
-  - Sesi Hari Ini
-  - Sesi Minggu Ini
-  - Terverifikasi
-  - Pending Verifikasi
+ - Sesi Hari Ini
+ - Sesi Minggu Ini
+ - Terverifikasi
+ - Pending Verifikasi
 - Today's Sessions list (cards, not table)
 - Quick links: Lihat Jadwal, Absensi
 
 #### 6.4.3 Guardian Dashboard
 - Greeting: "Selamat pagi, [Nama Wali]"
 - Children cards (1 per child):
-  - Name + instrument + level
-  - Upcoming sessions (max 2)
-  - Pending invoice (if any)
+ - Name + instrument + level
+ - Upcoming sessions (max 2)
+ - Pending invoice (if any)
 - Quick links: Anak Saya, Jadwal, Tagihan, Profil
 
 ### 6.5 My Schedule (/dashboard/my-schedule)
@@ -581,23 +581,23 @@ Animation: icon swap (no transition needed)
 
 ### 6.6 Students List (/dashboard/students)
 
-- Breadcrumbs: Dashboard / Siswa
+- Breadcrumbs: Dashboard / Student
 - Search input + filter chips (status: active, inactive, all)
 - Table (desktop) / Cards (mobile)
 - Columns: Name, Guardian, Instrument, Level, Status, Actions
 - Actions: View, Edit, Delete (with confirmation dialog)
 - Pagination: "Menampilkan 1-20 dari X data"
-- Empty state: "Belum ada siswa terdaftar"
+- Empty state: "Belum ada student terdaftar"
 
 ### 6.7 Attendance (/dashboard/attendance)
 
 - Breadcrumbs: Dashboard / Absensi
 - Date picker at top
 - Session cards with:
-  - Student name, time, instrument
-  - GPS status (within/outside radius)
-  - Photo upload area
-  - Submit button (disabled until photo taken)
+ - Student name, time, instrument
+ - GPS status (within/outside radius)
+ - Photo upload area
+ - Submit button (disabled until photo taken)
 - Offline indicator: sync count badge
 
 ### 6.8 Billing (/dashboard/billing)
@@ -632,16 +632,16 @@ Animation: icon swap (no transition needed)
 - Theme toggle (light/dark)
 - Language (Indonesian only for now)
 
-### 6.12 Feedback (/dashboard/feedback) — Guru only
+### 6.12 Feedback (/dashboard/feedback) — Instructor only
 
 - Breadcrumbs: Dashboard / Feedback
 - Form: Session ID, Rating (1-5 slider), Category (dropdown), Comment (textarea)
 - Submit button
 - Success toast on submit
 
-### 6.13 Ratings (/dashboard/ratings) — Wali Murid only
+### 6.13 Ratings (/dashboard/ratings) — Guardian only
 
-- Breadcrumbs: Dashboard / Rating Guru
+- Breadcrumbs: Dashboard / Rating Instructor
 - Form: Teacher ID, Rating (1-5 slider), Comment (textarea)
 - Submit button (gold theme)
 - Success toast on submit
@@ -666,7 +666,7 @@ Animation: icon swap (no transition needed)
 
 ### 7.1 New Student Registration Flow
 ```
-1. Landing page → Click "Daftar Kursus"
+1. Landing page → Click "Daftar Course"
 2. Register page → Fill form (name, phone, email, instrument, schedule preference)
 3. Submit → Success message → Redirect to login
 4. Admin reviews → Creates student + guardian records
@@ -681,9 +681,9 @@ Animation: icon swap (no transition needed)
 3. Validate → If error: show inline error below field
 4. If success → Store token + role in localStorage
 5. Redirect based on role:
-   - admin/owner → /dashboard (admin view)
-   - teacher → /dashboard (teacher view)
-   - guardian → /dashboard (guardian view)
+ - admin/owner → /dashboard (admin view)
+ - teacher → /dashboard (teacher view)
+ - guardian → /dashboard (guardian view)
 ```
 
 ### 7.3 Attendance Flow (Teacher)
@@ -713,7 +713,7 @@ Animation: icon swap (no transition needed)
 2. Clicks "Buat Sesi Baru"
 3. Fills: teacher, student, room, date, time
 4. System checks: room availability, teacher schedule
-5. If conflict → Error: "Ruangan/guru sudah terjadwal"
+5. If conflict → Error: "Ruangan/instructor sudah terjadwal"
 6. If OK → Create session → Notification to teacher + guardian
 ```
 
@@ -820,10 +820,10 @@ Animation: icon swap (no transition needed)
 ### 10.3 Reduced Motion
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
+ *, *::before, *::after {
+ animation-duration: 0.01ms !important;
+ transition-duration: 0.01ms !important;
+ }
 }
 ```
 
@@ -851,9 +851,9 @@ Animation: icon swap (no transition needed)
 
 ### 11.4 Empty States
 - Icon: relevant emoji (📭 for no data, 🔍 for no search results)
-- Title: descriptive (e.g., "Belum ada siswa terdaftar")
+- Title: descriptive (e.g., "Belum ada student terdaftar")
 - Description: helpful context
-- CTA: action to fill data (e.g., "Tambah Siswa")
+- CTA: action to fill data (e.g., "Tambah Student")
 
 ### 11.5 Confirmation Dialogs
 
@@ -914,10 +914,10 @@ Animation: icon swap (no transition needed)
 |----------|-------|------|------|-----------|
 | UAT-04.1 | Admin on students page | Search by name | Table filters to matching students | |
 | UAT-04.2 | Admin on students page | Click filter chip "Active" | Only active students shown | |
-| UAT-04.3 | Admin on students page | Click "Tambah Siswa" | Student form opens | |
+| UAT-04.3 | Admin on students page | Click "Tambah Student" | Student form opens | |
 | UAT-04.4 | Admin filling student form | Leave required field empty | Inline error shown | |
 | UAT-04.5 | Admin on students page | Click delete on student | Confirmation dialog appears | |
-| UAT-04.6 | Admin on delete dialog | Click "Hapus" | Student deleted, toast "Siswa berhasil dihapus" | |
+| UAT-04.6 | Admin on delete dialog | Click "Hapus" | Student deleted, toast "Student berhasil dihapus" | |
 | UAT-04.7 | Admin on students page | Click delete, then "Batal" | Dialog closes, nothing deleted | |
 | UAT-04.8 | Admin on students page | View pagination | Shows "Menampilkan 1-20 dari X data" | |
 | UAT-04.9 | Admin on students page | No students exist | Empty state shown with CTA | |
@@ -928,7 +928,7 @@ Animation: icon swap (no transition needed)
 |----------|-------|------|------|-----------|
 | UAT-05.1 | Admin on schedule page | Create session (teacher + student + room + date + time) | Session created, notification sent | |
 | UAT-05.2 | Admin on schedule page | Create session with conflicting room | Error "Ruangan sudah terjadwal" | |
-| UAT-05.3 | Admin on schedule page | Create session with conflicting teacher | Error "Guru sudah terjadwal" | |
+| UAT-05.3 | Admin on schedule page | Create session with conflicting teacher | Error "Instructor sudah terjadwal" | |
 | UAT-05.4 | Teacher on schedule page | View schedule | Only own sessions shown | |
 | UAT-05.5 | Teacher on schedule page | Filter by instrument | Sessions filtered correctly | |
 | UAT-05.6 | Guardian on schedule page | Select child from dropdown | Sessions for that child shown | |
@@ -1019,11 +1019,11 @@ Animation: icon swap (no transition needed)
 | TC-15 | List students | 1. Login as admin<br>2. Navigate to /dashboard/students | Table shows all students | P0 |
 | TC-16 | Search students | 1. Navigate to students<br>2. Type name in search | Table filters in real-time (300ms debounce) | P1 |
 | TC-17 | Filter students by status | 1. Navigate to students<br>2. Click "Active" filter chip | Only active students shown | P1 |
-| TC-18 | Add new student | 1. Click "Tambah Siswa"<br>2. Fill form<br>3. Submit | Student created, appears in list | P0 |
+| TC-18 | Add new student | 1. Click "Tambah Student"<br>2. Fill form<br>3. Submit | Student created, appears in list | P0 |
 | TC-19 | Edit student | 1. Click edit on student<br>2. Change name<br>3. Save | Student updated, toast "Berhasil" | P1 |
 | TC-20 | Delete student | 1. Click delete<br>2. Confirm in dialog | Student removed, toast "Berhasil dihapus" | P0 |
 | TC-21 | Pagination | 1. Have 45+ students<br>2. View list | "Menampilkan 1-20 dari 45 data"<br>Next button enabled | P1 |
-| TC-22 | Empty students list | 1. No students in DB<br>2. View list | Empty state with CTA "Tambah Siswa" | P2 |
+| TC-22 | Empty students list | 1. No students in DB<br>2. View list | Empty state with CTA "Tambah Student" | P2 |
 
 ### 13.4 Schedule Test Cases
 

@@ -93,7 +93,7 @@ export default function PaymentsPage() {
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Tanggal</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Wali Murid</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Guardian</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Periode</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Jumlah</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Metode</th>
@@ -145,7 +145,7 @@ export default function PaymentsPage() {
             {/* Details */}
             <div className="mt-6 space-y-3">
               <div className="flex justify-between border-b border-gray-100 pb-3">
-                <span className="text-sm text-gray-500">Wali Murid</span>
+                <span className="text-sm text-gray-500">Guardian</span>
                 <span className="text-sm font-medium text-[#0F172A]">{selected.guardian_name || "-"}</span>
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-3">

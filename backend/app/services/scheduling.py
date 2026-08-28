@@ -307,7 +307,7 @@ async def book_studio_rehearsal(
     """Guardian self-booking for rehearsal studio session."""
     # Validate guardian owns student
     if not await _validate_guardian_owns_student(db, user_id, student_id):
-        raise PermissionError("Anda tidak memiliki akses ke data siswa ini")
+        raise PermissionError("Anda tidak memiliki akses ke data student ini")
 
     # Booking window: max 14 days ahead
     if session_date > date.today() + timedelta(days=14):
@@ -349,7 +349,7 @@ async def request_recording_session(
 ) -> Session:
     """Guardian requests a recording session (pending admin approval)."""
     if not await _validate_guardian_owns_student(db, user_id, student_id):
-        raise PermissionError("Anda tidak memiliki akses ke data siswa ini")
+        raise PermissionError("Anda tidak memiliki akses ke data student ini")
 
     if session_date > date.today() + timedelta(days=30):
         raise ValueError("Booking recording maksimal 30 hari ke depan")
