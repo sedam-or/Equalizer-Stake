@@ -1,20 +1,10 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-*.egg-info/
-dist/
-build/
-
-# Node
-node_modules/
-.next/
-out/
+# Go
+/bin/
+/vendor/
+*.exe
+*.test
+*.out
+*.prof
 
 # Environment
 .env
@@ -26,6 +16,7 @@ out/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
@@ -34,28 +25,10 @@ Thumbs.db
 # Docker
 docker-compose.override.yml
 
-# Media uploads
-backend/media/*
-!backend/media/.gitkeep
-
-# Logs
-*.log
-
 # Database
-*.db
-*.sqlite3
+*.sql.gz
+*.sql.bak
 
-# Coverage
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-
-# Ruff
-.ruff_cache/
-
-# Pytest
-.pytest_cache/
-
-# Alembic
-backend/alembic/versions/*.pyc
+# Build
+/bin/
+/tmp/

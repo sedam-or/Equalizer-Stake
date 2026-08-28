@@ -1,27 +1,80 @@
+version: "3.8"
+
 services:
+  app:
+    build: .
+    container_name: eqs-app
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_PORT=8080
+      - APP_ENV=development
+      - APP_DEBUG=true
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=equalizer_stake
+      - POSTGRES_USER=eqs
+      - POSTGRES_PASSWORD=secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=change-me-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - equalizer-net
+    restart: unless-stopped
+
+  worker:
+    build: .
+    container_name: eqs-worker
+    command: ["/app/bin/worker"]
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=equalizer_stake
+      - POSTGRES_USER=eqs
+      - POSTGRES_PASSWORD=secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=change-me-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - equalizer-net
+    restart: unless-stopped
+
   postgres:
     image: postgres:16-alpine
     container_name: eqs-postgres
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-equalizer_stake}
-      POSTGRES_USER: ${POSTGRES_USER:-eqs_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eqs_dev_password}
     ports:
-      - "5433:5432"
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=equalizer_stake
+      - POSTGRES_USER=eqs
+      - POSTGRES_PASSWORD=secret
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/001_init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-eqs_admin}"]
+      test: ["CMD-SHELL", "pg_isready -U eqs -d equalizer_stake"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - equalizer-net
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     container_name: eqs-redis
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -29,44 +82,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: eqs-backend
-    environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-eqs_admin}:${POSTGRES_PASSWORD:-eqs_dev_password}@postgres:5432/${POSTGRES_DB:-equalizer_stake}
-      REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-    ports:
-      - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - media_data:/app/media
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: eqs-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
-    depends_on:
-      - backend
+    networks:
+      - equalizer-net
     restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
-  media_data:
+
+networks:
+  equalizer-net:
+    driver: bridge

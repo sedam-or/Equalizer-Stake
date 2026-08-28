@@ -1,19 +1,20 @@
 # Equalizer-Stake
 
-Deterministic Course & Studio Reservation Engine
+[![CI](https://github.com/sedam-or/Equalizer-Stake/actions/workflows/ci.yml/badge.svg)](https://github.com/sedam-or/Equalizer-Stake/actions)
+[![Go Report](https://goreportcard.com/badge/github.com/sedam-or/Equalizer-Stake)](https://goreportcard.com/report/github.com/sedam-or/Equalizer-Stake)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+An open-source, deterministic course reservation and studio allocation engine built for zero double-bookings and absolute concurrency control.
 
 ---
 
-## Ringkasan
+## Why Equalizer-Stake
 
-Equalizer-Stake menggantikan operasional manual (catatan kertas, spreadsheet, WhatsApp) dengan web app terotomasi berbasis PWA.
+Most booking tools break under pressure. Equalizer-Stake locks tight.
 
-**Masalah yang dipecahkan:**
-- Double-booking 3-5x/bulan → 0
-- No-show 20-30% → ≤8%
-- Admin kerja manual 2-3 jam/hari → ≤45 menit
-- Invoice manual penuh error → otomatis + kode unik
-- Tidak ada audit trail → immutable log 7 tahun
+- **Deterministic Core** — Time slots computed using exact spatial-temporal interval logic. Same inputs produce the same schedule, every time.
+- **Atomic Race Safety** — PostgreSQL exclusion constraints + Redis distributed locks prevent race conditions. 50 concurrent requests to the same slot? Exactly 1 succeeds, 49 fail gracefully with 409 Conflict.
+- **Contract-First Design** — Strict OpenAPI definitions ensure seamless integrations across web, mobile, or headless kiosk interfaces.
 
 ---
 
@@ -21,76 +22,95 @@ Equalizer-Stake menggantikan operasional manual (catatan kertas, spreadsheet, Wh
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Python 3.12+ / FastAPI / SQLAlchemy async / Pydantic v2 |
-| Frontend | Next.js 15 / React 18 / Tailwind CSS (PWA) |
-| Database | PostgreSQL 16 (asyncpg) |
-| Cache | Redis 7 (sessions, locking, rate limit, queue) |
-| Auth | JWT HS256, role-based (Owner/Admin/Teacher/Guardian) |
-| Notification | WhatsApp Gateway + SMTP email fallback |
-| Storage | Object storage (attendance photos) |
-| Deploy | Docker, cloud Jakarta region, auto-scaling |
+| Backend | Go 1.23 / Chi router / Clean Architecture |
+| Database | PostgreSQL 16 with btree_gist + GIST exclusion constraints |
+| Cache & Locks | Redis 7 (distributed locks, rate limiting) |
+| Auth | JWT HS256, RBAC (Super Admin, Resource Manager, Instructor, Member) |
+| Container | Docker Compose (App + PostgreSQL + Redis + Worker) |
+| Frontend | Minimalist dashboard (TailwindCSS) |
 
 ---
 
-## Fitur Utama (7 Modul)
+## Core Modules
 
-1. **Penjadwalan** — Real-time conflict prevention, concurrency control, libur nasional, minggu ke-5
-2. **Penagihan** — Auto-invoice tanggal 5, kode unik 3 digit, denda Rp100k tanggal 11, freeze akun
-3. **Kehadiran** — Foto + GPS 150m + face-api.js client-side ≥30%, server verify
-4. **Notifikasi** — WhatsApp + email, retry 3x, circuit breaker, fallback otomatis
-5. **Pelaporan** — Dashboard Owner read-only, laporan bulanan, ekspor cetak
-6. **Audit** — Immutable log, 7 tahun retensi, PII anonimisasi setelah 2 tahun
-7. **Dokumentasi** — Admin manual, instructor quick guide, Guardian FAQ, tooltip kontekstual
-
----
-
-## Compliance
-
-- **UU PDP No. 27/2022** — Minimasi data, hak penghapusan, keamanan data, transfer data
-- **OWASP Top 10 (2021)** — Mitigasi A02..A07
-- **ISO 27001:2022** — Kontrol keamanan informasi
-- **WCAG 2.1 Level A** — Aksesibilitas web
+1. **Resource Management** — Studio rooms, equipment, dynamic operating hours, buffer time enforcement
+2. **Course & Instructor Scheduling** — Multi-week modules, availability grid, anti-overlap logic
+3. **Reservation Engine** — DRAFT → PENDING_PAYMENT → CONFIRMED → COMPLETED → CANCELLED → EXPIRED
+4. **Identity & Access Control** — Stateless JWT with fine-grained RBAC policies
+5. **Analytics & Reconciliation** — Utilization rates, peak hours heatmaps, booking pressure indicators
 
 ---
 
 ## Quick Start
 
 ```bash
-# Backend
-cd backend
-pip install -r requirements.txt
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# Clone
+git clone https://github.com/sedam-or/Equalizer-Stake.git
+cd Equalizer-Stake
 
-# Frontend
-cd frontend
-npm install --legacy-peer-deps
-npm run dev
+# Setup
+make setup
+make up
 
-# Database (PostgreSQL 16 — langsung dari awal)
-cd backend
-alembic upgrade head
+# Migrate
+make migrate
 
-# Docker (full stack — PostgreSQL + Redis + Backend + Frontend)
-docker-compose up -d
+# Test
+make test
+
+# Open
+open http://localhost:8080
+```
+
+Requires Docker and Make.
+
+---
+
+## Project Structure
+
+```
+Equalizer-Stake/
+├── cmd/
+│   ├── server/main.go          # HTTP server entry
+│   └── worker/main.go          # Background worker entry
+├── internal/
+│   ├── config/                  # App configuration
+│   ├── domain/                  # Business logic (resource, reservation, identity, analytics)
+│   ├── infrastructure/          # PostgreSQL, Redis, JWT implementations
+│   └── api/                     # HTTP handlers, middleware, router, DTOs
+├── migrations/                  # SQL schema with GIST exclusion constraints
+├── tests/                       # Unit, integration, and concurrency tests
+├── Dockerfile                   # Multi-stage Go build
+├── docker-compose.yml           # App + PostgreSQL + Redis + Worker
+├── Makefile                     # setup, up, migrate, test, build
+└── LICENSE                      # MIT
 ```
 
 ---
 
-## Dokumen
+## API Endpoints
 
-| Dokumen | Lokasi |
-|---------|--------|
-| SRS Modular (per fitur) | `srs/` |
-| SRS Asli (BAB utuh) | `docs/SRS_Equalizer-Stake_*.md` |
-| System Architecture | `architecture/` |
-| ADRs | `architecture/adr/` |
-| Task List | `tasks/TASKS.md` |
-| Task Reports | `tasks/report_tasks.md` |
-| Workflow | `TASK_WORKFLOW.md` |
-| Design System | `design/` |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/availability` | Get open/booked/buffered slots for a resource |
+| POST | `/api/v1/reservations` | Atomic slot reservation with distributed lock |
+| POST | `/api/v1/reservations/{id}/confirm` | Transition to CONFIRMED |
+| POST | `/api/v1/reservations/{id}/cancel` | Release slot, compute refund |
+| GET | `/api/v1/analytics/utilization` | Usage density metrics |
 
 ---
 
-## Tim
+## Testing
 
-Kelompok 7 — Program Studi Rekayasa Keamanan Siber, 2026
+```bash
+make test              # All tests (unit + integration + concurrency)
+make test-unit         # Slot math, state machine, buffer time
+make test-integration  # Full reservation lifecycle via HTTP
+make test-concurrency  # 50 concurrent requests → exactly 1 succeeds
+```
+
+---
+
+## License
+
+[MIT](LICENSE) — © 2026 Equalizer-Stake Contributors
