@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & help
+    url: https://github.com/sedam-or/Equalizer-Stake/discussions
+    about: Ask and answer questions in Discussions.
+  - name: Security vulnerability
+    url: https://github.com/sedam-or/Equalizer-Stake/security/advisories/new
+    about: Report privately, never in a public issue.

@@ -1,0 +1,14 @@
+name: Feature request
+description: Suggest an improvement
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes: { label: What problem does your school have?, description: Describe the situation before the solution. }
+    validations: { required: true }
+  - type: textarea
+    id: idea
+    attributes: { label: Your idea }
+  - type: input
+    id: school
+    attributes: { label: Type of school, placeholder: "music, dance, tutoring, studio rental…" }

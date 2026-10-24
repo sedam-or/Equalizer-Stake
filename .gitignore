@@ -1,34 +1,23 @@
-# Go
-/bin/
-/vendor/
-*.exe
-*.test
-*.out
-*.prof
-
-# Environment
+# Rust
+/target/
+**/*.rs.bk
+# sqlx offline data is committed (.sqlx/), keep it
+# Web
+/web/node_modules/
+/web/dist/
+/web/.vite/
+/web/test-results/
+/web/playwright-report/
+# Desktop
+/apps/desktop/src-tauri/target/
+# Local env & data
 .env
-.env.local
-.env.production
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
+.env.*
+!.env.example
+/data/
+*.eqbak
+# OS / editors
 .DS_Store
-Thumbs.db
-
-# Docker
-docker-compose.override.yml
-
-# Database
-*.sql.gz
-*.sql.bak
-
-# Build
-/bin/
-/tmp/
+.idea/
+.vscode/*
+!.vscode/extensions.json
