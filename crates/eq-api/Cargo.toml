@@ -1,0 +1,32 @@
+[package]
+name = "eq-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+default = ["enrollment", "billing", "attendance", "rental", "notify", "reports", "feedback"]
+enrollment = ["dep:eq-enrollment"]
+billing = ["dep:eq-billing"]
+attendance = ["dep:eq-attendance"]
+rental = ["dep:eq-rental"]
+notify = ["dep:eq-notify"]
+reports = ["dep:eq-reports"]
+feedback = ["dep:eq-feedback"]
+
+[dependencies]
+eq-audit.workspace = true
+eq-core.workspace = true
+eq-identity.workspace = true
+eq-scheduling.workspace = true
+eq-enrollment = { workspace = true, optional = true }
+eq-billing = { workspace = true, optional = true }
+eq-attendance = { workspace = true, optional = true }
+eq-rental = { workspace = true, optional = true }
+eq-notify = { workspace = true, optional = true }
+eq-reports = { workspace = true, optional = true }
+eq-feedback = { workspace = true, optional = true }
+
+[lints]
+workspace = true

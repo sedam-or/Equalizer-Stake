@@ -1,0 +1,13 @@
+too-many-lines-threshold = 80
+too-many-arguments-threshold = 7
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-print-in-tests = true
+disallowed-methods = [
+  { path = "chrono::Utc::now", reason = "use the injected eq_core::clock::Clock (ARC-10)" },
+  { path = "chrono::Local::now", reason = "use Clock + the tenant timezone" },
+  { path = "std::time::SystemTime::now", reason = "use Clock" },
+  { path = "std::env::var", reason = "read config only through eq_core::config (OPS-01)" },
+  { path = "std::thread::sleep", reason = "blocks the runtime; use tokio::time::sleep" },
+]

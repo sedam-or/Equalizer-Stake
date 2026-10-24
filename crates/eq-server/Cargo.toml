@@ -1,0 +1,27 @@
+[package]
+name = "eq-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "ritma"
+path = "src/main.rs"
+
+[features]
+default = ["enrollment", "billing", "attendance", "rental", "notify", "reports", "feedback"]
+enrollment = ["eq-api/enrollment"]
+billing = ["eq-api/billing"]
+attendance = ["eq-api/attendance"]
+rental = ["eq-api/rental"]
+notify = ["eq-api/notify"]
+reports = ["eq-api/reports"]
+feedback = ["eq-api/feedback"]
+
+[dependencies]
+clap.workspace = true
+eq-api = { workspace = true, default-features = false }
+
+[lints]
+workspace = true

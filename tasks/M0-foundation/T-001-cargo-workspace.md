@@ -2,7 +2,7 @@
 id: T-001
 title: Create the Cargo workspace, toolchain, lints and empty crates
 milestone: M0
-status: todo
+status: review
 depends_on: []
 spec_refs: [ARC-01, ARC-02, ADR-0001, CQ-14, CQ-20, CQ-21, SBD-49, SBD-50]
 estimated_size: S
@@ -179,19 +179,119 @@ None.
 | `crates/eq-server/tests/cli.rs` | `prints_version` (spawn the binary with `--version`, assert stdout) |
 
 ## Definition of done
-- [ ] `cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace` pass
-- [ ] `cargo build -p eq-server --no-default-features` passes
-- [ ] `scripts/check-deps.sh` passes
-- [ ] Commit `chore(workspace): create cargo workspace and crates [T-001]`, signed off
+- [x] `cargo fmt --all --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace` pass
+- [x] `cargo build -p eq-server --no-default-features` passes
+- [x] `scripts/check-deps.sh` passes
+- [x] Commit `chore(workspace): create cargo workspace and crates [T-001]`, signed off
 
 ## Report
-- Analysis: T-001 is the lowest-ID `todo` task with no dependencies. The repository has no v2 Cargo workspace or application crates yet; this task establishes that foundation before later backend and web tasks.
-- Blocker: Scope → In requires stable Rust and only stable rustfmt options, but also explicitly requires `imports_granularity = "Crate"` and `group_imports = "StdExternalCrate"`. Both options require nightly rustfmt.
-- Verification: installed `rustc 1.99.1` and `rustfmt 1.10.0`; a temporary `/tmp` fixture with the requested configuration produced warnings that both settings are unavailable on stable. Although `rustfmt --check` exited 0, it ignored those settings. Official documentation confirms both are unstable: https://github.com/rust-lang/rustfmt/blob/main/Configurations.md#imports_granularity and https://github.com/rust-lang/rustfmt/blob/main/Configurations.md#group_imports.
-- Files changed: this task's status, Report and Questions; the T-001 status in `tasks/INDEX.md`.
-- Implementation and Definition of done checks have not started. Per `AGENTS.md` §0, implementation stops until the conflicting requirements are resolved.
-- Recommended resolution: retain pinned stable Rust and `max_width = 110`; omit the two nightly-only settings. No scope or requirement changes have been applied.
+**Plan** —
+1. Add the root Cargo workspace, pinned stable toolchain and formatting/lint/editor configuration → verify with Cargo metadata and the required format check.
+2. Add the 14 crate manifests with only the dependency edges and feature wiring specified by T-001 → verify with `cargo metadata` and `scripts/check-deps.sh`.
+3. Add crate docs, the `ritma --version` CLI and `prints_version` integration test → verify with the test and binary output.
+4. Build the full workspace and the server without optional features → verify both acceptance commands.
+5. Exercise the dependency guard against a deliberately invalid optional-crate edge, then restore the valid manifest → verify the guard fails with both crate names and passes after restoration.
+
+**Assumptions** — Use the repository URL reported by the checked-out `origin` remote. Pin the locally installed stable compiler version if it satisfies the task's minimum; the current compiler is 1.99.1. No business rules or schema assumptions.
+
+**Test plan** —
+- AC1: Given the workspace, when `cargo build --workspace` runs and `ritma --version` is invoked, then the build succeeds and prints `ritma 0.1.0` → `crates/eq-server/tests/cli.rs::prints_version` plus the build command.
+- AC2: Given optional features, when `cargo build -p eq-server --no-default-features` runs, then it succeeds without compiling optional module crates → the exact build command.
+- AC3: Given valid dependency edges, when `scripts/check-deps.sh` runs, then it exits 0; when an optional crate depends on another optional crate, then it exits 1 and names both crates → positive and negative manual guard checks.
+- Edge/error cases: validate both forbidden graph shapes (optional-to-optional and eq-core-to-eq-*); no business input or HTTP error cases exist in this scaffold task.
+- Abuse cases: n/a; T-001 declares `subtle`/`secrecy` dependencies but creates or processes no tokens, secrets, PII or request input.
+
+**Step 0 — Start** — Clean start commit `1c1cbbf790d13943003cbef640bb2e679d61326c`; all 56 M0–M3 tasks are `todo`; this task has no dependencies. Branch and index checks are recorded in `RUN_LOG.md`.
+**Step 1 — Task/spec** — Read the full task and the sections listed below. No policy values are introduced.
+**Step 2 — Dependencies** — n/a; `depends_on` is empty.
+**Step 3 — Design reference** — n/a; no UI files.
+
+**Step 5 — Implement** — Added the shared workspace/toolchain configuration, 14 layered crates, optional feature forwarding, a Clap version command and the dependency-edge guard.
+
+**Summary** — The Rust workspace now builds all 14 crates and exposes the `ritma` binary. The CLI reports the workspace version, optional modules can be disabled from `eq-server`, and the guard rejects forbidden dependency edges.
+
+**Spec read** — `spec/02-architecture.md` §1–2; `spec/adr/0001-rust-modular-monolith.md`; `spec/16-code-quality.md` CQ-14/20/21, §9 and §12; `spec/17-clean-architecture.md` §1 and §4; `spec/18-security-by-design.md` §5.3; `spec/19-error-handling.md` §10.
+
+**Files** —
+- `.cargo/config.toml`
+- `.editorconfig`
+- `Cargo.toml`
+- `Cargo.lock` (generated)
+- `clippy.toml`
+- `rust-toolchain.toml`
+- `rustfmt.toml`
+- `scripts/check-deps.sh`
+- `crates/eq-core/Cargo.toml`
+- `crates/eq-core/src/lib.rs`
+- `crates/eq-audit/Cargo.toml`
+- `crates/eq-audit/src/lib.rs`
+- `crates/eq-identity/Cargo.toml`
+- `crates/eq-identity/src/lib.rs`
+- `crates/eq-scheduling/Cargo.toml`
+- `crates/eq-scheduling/src/lib.rs`
+- `crates/eq-enrollment/Cargo.toml`
+- `crates/eq-enrollment/src/lib.rs`
+- `crates/eq-billing/Cargo.toml`
+- `crates/eq-billing/src/lib.rs`
+- `crates/eq-attendance/Cargo.toml`
+- `crates/eq-attendance/src/lib.rs`
+- `crates/eq-rental/Cargo.toml`
+- `crates/eq-rental/src/lib.rs`
+- `crates/eq-notify/Cargo.toml`
+- `crates/eq-notify/src/lib.rs`
+- `crates/eq-reports/Cargo.toml`
+- `crates/eq-reports/src/lib.rs`
+- `crates/eq-feedback/Cargo.toml`
+- `crates/eq-feedback/src/lib.rs`
+- `crates/eq-api/Cargo.toml`
+- `crates/eq-api/src/lib.rs`
+- `crates/eq-server/Cargo.toml`
+- `crates/eq-server/src/main.rs`
+- `crates/eq-server/tests/cli.rs`
+- `crates/eq-testkit/Cargo.toml`
+- `crates/eq-testkit/src/lib.rs`
+- `tasks/M0-foundation/T-001-cargo-workspace.md`
+- `tasks/INDEX.md` (generated by `scripts/tasks-index.sh`)
+
+**Acceptance criteria → tests** —
+| AC | Test | Result |
+|---|---|---|
+| AC1 | `prints_version`; `cargo build --workspace`; `ritma --version` | ✅ Build and exact version output passed. The test failed against an empty main (expected red), then passed after version handling was added. |
+| AC2 | `cargo build -p eq-server --no-default-features`; `cargo tree` feature check | ✅ Build passed; tree contained no optional crates with defaults disabled and all seven with defaults enabled. |
+| AC3 | `scripts/check-deps.sh`; temporary optional-to-optional and core-to-eq dependency probes | ✅ Valid graph passed; each invalid edge failed and named both crates. Manifests were restored. |
+
+**Step 8 — Self-review** — Reviewed the staged change against `spec/16-code-quality.md` §9, `spec/17-clean-architecture.md` and `spec/19-error-handling.md`. The 14 package edges match ARC-02; no business logic or HTTP handlers were introduced. The no-default feature tree excludes all optional crates.
+
+**Step 11 — Revise and full verification / Checks run** —
+- ✅ `cargo fmt --all --check`
+- ✅ `cargo clippy --workspace --all-targets -- -D warnings`
+- ✅ `cargo test --workspace`
+- ✅ `cargo build --workspace`
+- ✅ `cargo build -p eq-server --no-default-features`
+- ✅ `scripts/check-deps.sh` (valid graph and both negative probes)
+- ✅ `cargo metadata --format-version 1 --no-deps` (14 workspace packages)
+- ✅ Cargo metadata assertions for all 14 dependency edges, default features, server feature forwarding and `eq-testkit` `publish = false`
+- ✅ Temporary dependency-resolution manifest: `cargo generate-lockfile` resolved every external workspace dependency and feature set.
+- ✅ `sh -n scripts/check-deps.sh`, `git diff --check`, `scripts/tasks-index.sh --check`, required-file and hygiene scan
+- n/a: web checks; no web files are in this task.
+- n/a: `scripts/check-literals.sh`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`; these scripts are introduced by T-006 and WORKFLOW.md §3 Step 11 allows skipping scripts that do not exist yet.
+- n/a: `make api` and `cargo sqlx prepare --workspace`; no API or SQL query changed.
+
+**Step 6 — Manual checks** — `target/debug/ritma --version` and `cargo run -q -p eq-server --no-default-features -- --version` both printed `ritma 0.1.0`. `make dev` is not applicable: this task has only CLI behavior, and the Makefile/server runtime arrive in later tasks.
+
+**Debug log** — One ad hoc feature-tree assertion initially parsed the tree's branch glyphs as package names. The verifier was corrected to match package-version lines; it then confirmed both default and no-default feature graphs. No implementation failure remained.
+
+**Step 9 — Optimize / Performance** — n/a; no runtime path was added.
+
+**Step 10 — Security** — No SBD-30 trigger or user data handling. `subtle` and `secrecy` are declared for the future token/secret seams in SBD-49/50; this task adds no token or secret processing. No secret literals were introduced. `gitleaks` is not installed, so that optional local scan was unavailable.
+
+**Deviations** — Added the generated `Cargo.lock` to record resolved versions under `spec/24-open-source-stack.md` OSS-04; the task's Files table did not list it explicitly. No other deviations.
+
+**Dependencies affected** — None beyond the dependency graph specified by T-001.
+
+**Rollback plan** — Revert the signed T-001 commit; there are no database or external-service changes.
+
+**Follow-ups** — PostgreSQL 16 availability will be checked when T-006 adds the dev database configuration. No T-001 follow-up is required.
 
 ## Questions
 - **Resolved (maintainer, 2026-10-25):** Q1 — yes. Stable rustfmt only. The nightly-only options were removed from Scope → In and replaced by CQ-20's stable options. Import grouping is now a review rule (spec/16 CQ-20). The lint set was extended per CQ-21. Restart from Scope → In.
-- Q1 (blocking): May T-001 omit `imports_granularity` and `group_imports` from `rustfmt.toml` to satisfy its stable-only requirement? Recommended: yes. Retaining both settings would require an explicit exception for nightly formatting and a revised toolchain/check requirement.
