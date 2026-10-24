@@ -5,6 +5,7 @@
 - **Order:** [`INDEX.md`](INDEX.md). Pick the lowest-ID `todo` task whose dependencies are all `done`. The full loop is in `/AGENTS.md` §1.
 - **Statuses:** `todo` → `in_progress` → `review` → `done`. `blocked` (see the task's Questions). `draft` = written, but may be revised after earlier milestones; don't start it until it is promoted to `todo`.
 - **Size:** S < 150 LOC, M < 400 LOC (excluding generated code and tests). L tasks are split before starting.
+- **Security sections:** a task that hits a security trigger (spec/18 SBD-30) has a `## Security` section (threats, controls, abuse-case tests). A `draft` task with triggers is promoted to `todo` only once that section is written.
 - **Each milestone ends with an integration task** (the last ID in the milestone, titled "Mx integration") that proves the milestone end to end.
 
 | Milestone | Folder | Status of task files |

@@ -10,4 +10,5 @@ Task / spec: <!-- e.g. T-212, SCH-03 -->
 - [ ] Migrations are forward-only, and `sqlx prepare` was run
 - [ ] Docs updated for user-visible changes
 - [ ] Follows `spec/16-code-quality.md`; any `#[expect]` / `biome-ignore` has a reason; PR ≤ ~400 changed lines (excl. generated)
+- [ ] Security: new fields classified (SBD-10). If this touches auth, tenancy, PII, files, exports, money or external systems, the `security-review` label is set and the abuse-case tests are added (`spec/18-security-by-design.md`)
 - [ ] Commits signed off (`-s`), Conventional Commit messages

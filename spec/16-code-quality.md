@@ -383,7 +383,7 @@ Path alias `@/` → `src/`. Use relative imports only within the same folder.
 1. **Spec:** does the change do what the task and spec IDs say, and nothing beyond Scope → In?
 2. **Business values:** are any literals ones that should be policy fields (POL-02)?
 3. **Transactions:** is every state change in tx → domain → repo → audit → outbox → commit (ARC-04/05)?
-4. **Tenancy and security:** RLS on new tables? Permission check in every handler? No PII in logs or errors? Parameterised SQL?
+4. **Tenancy and security:** RLS on new tables? Permission check in every handler? No PII in logs or errors? Parameterised SQL? For PRs with security triggers, also run the `18-security-by-design.md` §8 checklist (SBD-81).
 5. **Types:** newtype ids, `Money`/`Bps`, enums for state, validated constructors?
 6. **Errors:** no swallowed errors, no `unwrap` in request paths, stable problem codes?
 7. **Layering:** `domain/` pure, SQL only in `repo.rs`, no cross-module imports (backend or web)?
@@ -427,4 +427,5 @@ Path alias `@/` → `src/`. Use relative imports only within the same folder.
 - [ ] `scripts/check-deps.sh && scripts/check-literals.sh && scripts/check-web-boundaries.sh && scripts/check-layers.sh`
 - [ ] Generated files regenerated (`make api`, `cargo sqlx prepare --workspace`) if the API or queries changed
 - [ ] No new `#[expect]` / `biome-ignore` without a reason; no TODO without a task or issue id
+- [ ] Security (`18-security-by-design.md`): new fields classified (SBD-10). If the task has triggers (SBD-30), its `## Security` controls and abuse-case tests are done, and the Report lists them
 - [ ] Commit message per CQ-100, signed off

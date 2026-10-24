@@ -14,7 +14,7 @@ estimated_size: M
 Schools pay for the cloud in the way that is normal for them (VA/QRIS/e-wallet or card).
 
 ## Context
-- CLD-20/21: `SubscriptionProvider` trait, webhook verification, dunning 3/7/14 days, downgrade never deletes.
+- CLD-20/21: `SubscriptionProvider` trait, webhook verification, dunning 3/7/14 days, downgrade never deletes. Webhooks follow SBD-63: verify the signature (constant-time) before parsing, check timestamp tolerance, dedupe by provider event id, never log the raw body. Abuse-case test: `replayed_webhook_is_ignored`.
 
 ## Scope
 ### In

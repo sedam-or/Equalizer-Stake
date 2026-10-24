@@ -4,7 +4,7 @@ title: Add the CI workflow, Makefile, dev database compose and guard scripts
 milestone: M0
 status: todo
 depends_on: [T-005]
-spec_refs: [TST-14, ARC-02, SEC-22, TST-01, CQ-64, CQ-80, CQ-100, CQ-101, CA-01]
+spec_refs: [TST-14, ARC-02, SEC-22, TST-01, CQ-64, CQ-80, CQ-100, CQ-101, CA-01, SBD-51, SBD-74, SBD-75]
 estimated_size: M
 ---
 
@@ -20,6 +20,8 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
   5. `scripts`: `check-deps.sh`, `check-literals.sh`, `check-web-boundaries.sh`, `check-layers.sh`
   6. `pr-title` (pull_request only): the title must match Conventional Commits `^(feat|fix|refactor|perf|test|docs|build|ci|chore)(\([a-z0-9-]+\))?: .+` (CQ-100/101). A small inline script is fine; no third-party action needed.
 - CQ-64 `scripts/check-web-boundaries.sh`: for each `web/src/modules/<a>/`, fail if any file imports from `@/modules/<b>/` or `../<b>/` with `b ≠ a` (`registry.ts` at `web/src/modules/` is exempt). Print file:line.
+  7. `security`: `gitleaks detect --redact` over the PR diff (SBD-51/74), with a `.gitleaks.toml` that allow-lists only `.env.example` placeholders and test fixtures named `test-secret-*`.
+- `.github/workflows/security.yml` (scheduled daily + manual): `cargo audit` and `pnpm -C web audit --prod` (SEC-22, SBD-75). Failures open or update an issue labelled `security`, or at minimum fail visibly.
 - CA-01 `scripts/check-layers.sh`: fail with file:line if (a) any file under `crates/*/src/domain/` mentions `sqlx`, `axum`, `reqwest`, `tokio`, `tracing`, `std::env`, `std::fs`, or the identifiers `Clock` / `Tx` (word match, ignoring comments and `#[cfg(test)]` modules is optional; keep it a simple grep with an allow-list file `scripts/check-layers.allow` if needed); (b) any `crates/*/src/http.rs` or `http/**` mentions `sqlx::`; (c) any `repo.rs` or `repo/**` mentions `axum`.
 - TST-01 coverage: the `rust` job runs `cargo llvm-cov --workspace` and fails if line coverage of files under `crates/*/src/domain/` is < 90%. While no `domain/` files exist, the gate passes.
 - TST-14 `scripts/check-literals.sh`:
@@ -46,7 +48,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
 ## Files
 | Path | Action |
 |---|---|
-| `.github/workflows/ci.yml`, `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `scripts/tests/*.sh`, `renovate.json` | create |
+| `.github/workflows/ci.yml`, `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `scripts/tests/*.sh`, `renovate.json`, `.github/workflows/security.yml`, `.gitleaks.toml` | create |
 
 ## Business rules
 None.

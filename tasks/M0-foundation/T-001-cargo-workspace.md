@@ -4,7 +4,7 @@ title: Create the Cargo workspace, toolchain, lints and empty crates
 milestone: M0
 status: todo
 depends_on: []
-spec_refs: [ARC-01, ARC-02, ADR-0001, CQ-14, CQ-20, CQ-21]
+spec_refs: [ARC-01, ARC-02, ADR-0001, CQ-14, CQ-20, CQ-21, SBD-49, SBD-50]
 estimated_size: S
 ---
 
@@ -77,6 +77,8 @@ hmac = "0.12"
 sha2 = "0.10"
 rand = "0.8"
 zeroize = { version = "1", features = ["derive"] }
+subtle = "2"
+secrecy = "0.10"
 base64 = "0.22"
 rust-embed = { version = "8", features = ["mime-guess"] }
 async-trait = "0.1"

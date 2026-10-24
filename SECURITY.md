@@ -20,6 +20,10 @@ What to expect:
 - A fix or mitigation plan within **30 days** for high/critical issues.
 - Coordinated disclosure: we publish an advisory and a CVE once a fix is released, at most **90 days** after the report unless we agree otherwise. We credit you if you wish.
 
+## How we build securely
+
+Our security-by-design standard (`spec/18-security-by-design.md`) defines data classes, trust boundaries, threat modelling per change, secure coding rules, security tests and review. The product's controls are in `spec/10-security-privacy.md`.
+
 ## Scope
 
 In scope: the `ritma` server, the web app, the desktop app, the official deploy templates and install script, and the managed cloud.

@@ -40,6 +40,7 @@
 4. `e2e`: build the binary with the embedded web → start Postgres service → Playwright (TST-07, 11, 12).
 5. `scripts`: `check-deps.sh` (ARC-02), `check-literals.sh` (TST-14), `check-web-boundaries.sh` (CQ-64), `check-layers.sh` (CA-01).
 6. `pr-title`: Conventional Commits title check (CQ-100/101).
+7. `security`: `gitleaks` secret scan on every PR. A scheduled daily workflow runs `cargo audit` and `pnpm audit --prod` (SBD-74/75). The security test catalogue is in `18-security-by-design.md` §7.
 
 The `rust` job also enforces the TST-01 coverage gate on `domain/` with `cargo llvm-cov`.
 

@@ -2,7 +2,7 @@
 
 | Name | GitHub | Areas |
 |---|---|---|
-| Founding maintainer | @sedam-or | everything |
+| Founding maintainer | @sedam-or | everything, including **Security** (approves `security-review` PRs, SBD-80) |
 
 ## Contacts
 

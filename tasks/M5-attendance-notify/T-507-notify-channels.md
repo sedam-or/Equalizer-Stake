@@ -16,7 +16,7 @@ A school connects its own email and WhatsApp in a settings screen, and secrets n
 ## Context
 - NTF-08 in `spec/modules/notify.md`: SMTP via `lettre` (rustls); WhatsApp through a `WhatsAppProvider` trait with a first implementation per the spec (Cloud API) plus a mock for tests.
 - SEC-23: credentials encrypted (T-103), returned redacted; changing them requires the current password for non-owners (step-up). Module AC7: GET never returns secrets; logs never contain addresses.
-- `POST /settings/channels/{channel}/test` sends a test message to the caller.
+- `POST /settings/channels/{channel}/test` sends a test message to the caller. **Security (spec/18):** create `eq_core::outbound`, the single shared HTTP client (rustls, TLS verification on, connect and total timeouts from config, redirects disabled, host allow-list per channel), and use it for every channel (SBD-47). Hold channel credentials as `secrecy::SecretString` after decryption (SBD-50). Never log request or response bodies.
 
 ## Scope
 ### In

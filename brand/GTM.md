@@ -50,7 +50,7 @@ A Bahasa Indonesia README (`README.id.md`) is linked at the top.
   3. Docs and screenshots.
   4. `good first issue` (labelled; each one has a task file).
   5. Module work through an RFC.
-- **Labels:** `good first issue`, `help wanted`, `preset`, `i18n`, `module:<id>`, `rfc`, `needs-repro`, `security` (private).
+- **Labels:** `good first issue`, `help wanted`, `preset`, `i18n`, `module:<id>`, `rfc`, `needs-repro`, `security-review` (PRs that need a security approval, spec/18 SBD-80), `security` (private).
 - **Recognition:** all-contributors bot, a monthly "contributor spotlight", and a CONTRIBUTORS section in release notes.
 - **Response SLAs** (maintainer): issues triaged ≤ 3 days; PR first review ≤ 5 days; security ≤ 48 h.
 - **Honest growth only:** no star buying, no fake reviews, no spam DMs. Stars come from the demo, the GIF, the concurrency story and helpful posts.

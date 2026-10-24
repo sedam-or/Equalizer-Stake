@@ -16,7 +16,7 @@ Ship v1.0 with evidence: every USP has its proof, every checklist item is green.
 ## Context
 - `brand/GTM.md` §2–3 (README funnel order, badges including the concurrency proof), `brand/BRAND.md` §4 (USP proofs) and §8 (assets), `SECURITY.md` supported versions.
 - OPS-10 upgrade path verified: replace binary/image, restart, migrations auto-apply (upgrade test from the previous tag).
-- Performance: idle RSS ≤ 150 MB, p95 API latency targets from `spec/11-ops.md` OPS-07 under the 50-concurrent-user profile (k6 or oha script).
+- Performance: idle RSS ≤ 150 MB, p95 API latency targets from `spec/11-ops.md` OPS-07 under the 50-concurrent-user profile (k6 or oha script). **Security evidence (spec/18 §7, §9):** an OWASP ZAP baseline scan against the release build in the e2e job (SBD-77), with no high findings; `cargo-fuzz` targets for the CSV/XLSX import, multipart parsing, preset YAML and signed-URL verification, run nightly (SBD-76); `docs/runbooks/{breach,key-compromise,vulnerable-dependency}.md` (SBD-91); and the SBD-81 checklist run over the v1 diff.
 
 ## Scope
 ### In

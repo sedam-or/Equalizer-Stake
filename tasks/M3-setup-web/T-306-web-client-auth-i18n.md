@@ -24,7 +24,7 @@ Every screen talks to the server through one typed client, stays logged in safel
   - Schedule a refresh 60 s before `exp` (decode without verifying).
   - `BroadcastChannel('eq-auth')` messages: `token`, `logout`. A tab receiving `token` adopts it; on `logout`, it clears.
   - Single-flight: concurrent `refresh()` calls share one promise.
-  - `logout()`: POST `/auth/logout`, `queryClient.clear()`, broadcast, navigate `/login`.
+  - `logout()`: POST `/auth/logout`, `queryClient.clear()`, **remove every `localStorage` key starting with `eq:` and run the registered `onLogout` cleanup hooks** (`registerLogoutCleanup(fn)` exported from `lib/auth.ts`; the offline queue registers one in M5), broadcast, navigate `/login`. A tab receiving the `logout` broadcast runs the same cleanup (SBD-58).
   - `switchRole(role)`.
   - **Never** touch localStorage or sessionStorage for tokens (a lint rule: grep in `check-raw-colors.mjs`'s sibling `check-storage.mjs` for `localStorage.*token`).
 - Bootstrap (FE-10): `GET /meta/app` → if `setup_required` or `/setup/status.completed == false` → `/setup`; else `POST /auth/refresh` → on success `GET /me` + `GET /meta/modules`; else `/login`. Exposed as the `useSession()` hook: `{status: 'loading'|'anonymous'|'authenticated', me, modules, nav, app}`.

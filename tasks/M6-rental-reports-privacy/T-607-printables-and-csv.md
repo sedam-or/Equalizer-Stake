@@ -14,7 +14,7 @@ estimated_size: S
 Schools can print monthly reports and take any list into a spreadsheet.
 
 ## Context
-- RPT-04 printable HTML with a print stylesheet; RPT-05 CSV for students, sessions, invoices, payments, marks — the export is audited (AUD-01) and PII columns follow `read_pii` permission. Data access per spec 17 CA-30: no SQL on other modules' tables; use ports or `rv_<owner>_<name>` read views created by the owning module.
+- RPT-04 printable HTML with a print stylesheet; RPT-05 CSV for students, sessions, invoices, payments, marks — the export is audited (AUD-01) and PII columns follow `read_pii` permission. CSV cells starting with `=`, `+`, `-`, `@`, tab or CR are prefixed with `'` (SBD-46). Abuse-case test: `csv_export_neutralises_formulas`. Data access per spec 17 CA-30: no SQL on other modules' tables; use ports or `rv_<owner>_<name>` read views created by the owning module.
 
 ## Scope
 ### In

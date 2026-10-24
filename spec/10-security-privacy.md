@@ -1,5 +1,7 @@
 # 10 — Security & Privacy
 
+This document lists the **controls** the product has. How every change is designed, coded, tested and reviewed securely (data classes, trust boundaries, task threat modelling, secure coding rules, OWASP mapping) is in `18-security-by-design.md` (SBD-\*).
+
 ## 1. Threat model (summary)
 
 | Asset | Threat | Primary control |
@@ -80,7 +82,7 @@
 - **SEC-21. Logging hygiene.**
   - `tracing` fields named `email`, `phone`, `password`, `token`, `legal_name`, `address` or `birth_date` are rejected by a custom layer in debug builds (panic in tests) and redacted in release builds.
   - Request bodies are never logged.
-  - TST-15 includes a log-capture test.
+  - TST-16 includes a log-capture test.
 - **SEC-22. Supply chain.**
   - `cargo-deny` (licenses: allow MIT, Apache-2.0, BSD-2/3, ISC, Zlib, MPL-2.0, Unicode-3.0, AGPL-3.0-only for own crates; advisories: deny), `cargo-audit` daily, `pnpm audit --prod`, Renovate weekly.
   - Release artefacts are signed with cosign (keyless, GitHub OIDC) and published with an SBOM (CycloneDX for Rust and npm).

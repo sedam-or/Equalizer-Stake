@@ -51,7 +51,7 @@ A service function reads like a short recipe, with **no `if` on business rules**
 - **Domain type** in `domain/`: invariants, behaviour.
 - **Row** in `repo.rs`: the `query_as!` target, mirrors SQL.
 
-A row type never leaks into the domain, and a domain type is never returned as JSON directly. This lets the DB, the API and the rules evolve separately (CQ-24).
+A row type never leaks into the domain, and a domain type is never returned as JSON directly. `http.rs` is also trust boundary B1 (`18-security-by-design.md` SBD-20): DTO parsing is where untrusted input becomes typed values. This lets the DB, the API and the rules evolve separately (CQ-24).
 
 ## 2. Ports and adapters (where we abstract, and where we deliberately don't)
 

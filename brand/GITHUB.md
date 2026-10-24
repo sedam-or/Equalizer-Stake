@@ -171,7 +171,7 @@ gh repo edit ritmahq/ritma \
 
 **Step 5: create the labels.**
 ```sh
-for l in "good first issue:7057ff" "help wanted:008672" "preset:0e8a16" "i18n:1d76db" "rfc:5319e7" "needs-repro:fbca04"; do
+for l in "good first issue:7057ff" "help wanted:008672" "preset:0e8a16" "i18n:1d76db" "rfc:5319e7" "needs-repro:fbca04" "security-review:b60205"; do
   gh label create "${l%%:*}" --color "${l##*:}" --force -R ritmahq/ritma
 done
 for m in core identity audit scheduling enrollment billing attendance rental notify reports feedback; do

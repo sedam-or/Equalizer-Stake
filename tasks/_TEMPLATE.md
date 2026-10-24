@@ -30,6 +30,13 @@ Exact Rust signatures / SQL DDL / endpoints (method, path, request, response, er
 ## Business rules
 1. Rule, with policy key and default. Never a literal in code.
 
+## Security
+<!-- Required when a trigger from spec/18 SBD-30 applies (T1–T8); otherwise write "No triggers." -->
+- Triggers: T…
+- Data classes touched: S…
+- Threats (STRIDE, relevant letters only) → control (spec/SBD id):
+- Abuse-case acceptance criteria (with test names):
+
 ## Implementation notes
 Ordered steps, pitfalls, crates and versions.
 

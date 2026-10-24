@@ -16,7 +16,7 @@ An instructor checks in with one tap and a selfie, even with bad signal, and nev
 ## Context
 - ATT-06 client face detection with `@mediapipe/tasks-vision` (lazy-loaded on `/checkin` only), computing the face/frame ratio sent as evidence; ATT-07 offline queue in IndexedDB with retry and visible status.
 - Camera and geolocation require a secure context (DST-22); show a clear explanation when not available.
-- Permissions-Policy allows camera and geolocation for self (SEC-20).
+- Permissions-Policy allows camera and geolocation for self (SEC-20). **Security (SBD-58):** the offline check-in queue registers a `registerLogoutCleanup` hook (T-306) that wipes its IndexedDB store and queued photos on logout.
 
 ## Scope
 ### In
