@@ -28,10 +28,11 @@ This folder is the **single source of truth** for v2. It defines *what* and *why
 | 16 | `16-code-quality.md` | Code-quality standard: lints, layering, naming, tests, PR and review rules (applies to every task) |
 | 17 | `17-clean-architecture.md` | Clean & modular architecture: layers and the dependency rule, ports, module anatomy and boundaries, table ownership, toggle safety |
 | 18 | `18-security-by-design.md` | Security-by-design standard: principles, data classes, trust boundaries, task threat modelling, secure coding rules, security tests, review and incidents, OWASP mapping |
+| 19 | `19-error-handling.md` | Error standard: taxonomy and HTTP mapping, code registry, problem shape, per-layer rules, DB mapping, retries, frontend UX, tests |
 | — | `modules/*.md` | One spec per module (identity, scheduling, enrollment, rental, billing, attendance, notify, audit, reports, feedback) |
 | — | `adr/*.md` | Architecture Decision Records |
 
-The execution procedure for tasks (pick, claim, implement, verify, report, block, review) is [`/WORKFLOW.md`](../WORKFLOW.md).
+Commit messages follow [`/COMMIT_CONVENTION.md`](../COMMIT_CONVENTION.md). The execution procedure for tasks (pick, claim, implement, verify, report, block, review) is [`/WORKFLOW.md`](../WORKFLOW.md).
 
 Business and OSS docs live outside `spec/`: `brand/BRAND.md`, `brand/GTM.md`, `brand/GITHUB.md`, and the governance files at the repo root.
 
@@ -58,6 +59,7 @@ Each requirement has a stable ID: `<AREA>-<NN>`. Tasks reference them in their `
 | CQ | Code quality | 16 |
 | CA | Clean architecture | 17 |
 | SBD | Security by design | 18 |
+| ERR | Error handling | 19 |
 | IDN, SCH, ENR, RNT, BIL, ATT, NTF, AUD, RPT, FBK | Module specs | `modules/*.md` |
 
 Normative keywords follow RFC 2119: **MUST**, **MUST NOT**, **SHOULD**, **MAY**.

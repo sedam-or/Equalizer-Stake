@@ -73,4 +73,5 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 - Rust: edition 2024, `thiserror` for library errors, `anyhow` only in binaries and jobs, no `unwrap()`/`expect()` outside tests and startup, and modules laid out per `spec/02-architecture.md` §3. Doc comments on public items cite spec IDs (`/// SCH-03: …`).
 - SQL: snake_case, explicit column lists, no `SELECT *` in app code.
 - TS: strict, no `any`, named exports, components in PascalCase files, hooks `useX`.
-- Commits: Conventional Commits, imperative mood, task id in brackets.
+- Commits: `COMMIT_CONVENTION.md` (Conventional Commits, scopes, `[T-xxx]` refs, sign-off).
+- Errors: `spec/19-error-handling.md` (codes registered in `errors.rs`, translated en+id, one log at the edge).
