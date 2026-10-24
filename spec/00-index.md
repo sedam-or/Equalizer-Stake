@@ -29,6 +29,11 @@ This folder is the **single source of truth** for v2. It defines *what* and *why
 | 17 | `17-clean-architecture.md` | Clean & modular architecture: layers and the dependency rule, ports, module anatomy and boundaries, table ownership, toggle safety |
 | 18 | `18-security-by-design.md` | Security-by-design standard: principles, data classes, trust boundaries, task threat modelling, secure coding rules, security tests, review and incidents, OWASP mapping |
 | 19 | `19-error-handling.md` | Error standard: taxonomy and HTTP mapping, code registry, problem shape, per-layer rules, DB mapping, retries, frontend UX, tests |
+| 20 | `20-state-machines.md` | Every server and client state machine: states, transitions, triggers, guards, effects, events, error codes |
+| 21 | `21-data-flows.md` | End-to-end data flows (sequence diagrams) for every write, read, event, job and user journey, plus data lineage |
+| 22 | `22-validation-and-sanitization.md` | Validation pipeline, sanitising profiles, field kinds, per-request validation matrix, client-side generation and parity |
+| 23 | `23-contracts-and-canonical-forms.md` | Canonical wire forms of every value, DTO and header rules, events, jobs, hashes, files, versioning, contract tests |
+| 24 | `24-open-source-stack.md` | Open-source building blocks per concern (adopt, don't build), licenses, and the GitHub CI/CD pipeline |
 | — | `modules/*.md` | One spec per module (identity, scheduling, enrollment, rental, billing, attendance, notify, audit, reports, feedback) |
 | — | `adr/*.md` | Architecture Decision Records |
 
@@ -60,6 +65,11 @@ Each requirement has a stable ID: `<AREA>-<NN>`. Tasks reference them in their `
 | CA | Clean architecture | 17 |
 | SBD | Security by design | 18 |
 | ERR | Error handling | 19 |
+| STM | State machines | 20 |
+| FLW | Data flows | 21 |
+| VAL | Validation and sanitisation | 22 |
+| CAN | Contracts and canonical forms | 23 |
+| OSS | Open-source stack and CI/CD | 24 |
 | IDN, SCH, ENR, RNT, BIL, ATT, NTF, AUD, RPT, FBK | Module specs | `modules/*.md` |
 
 Normative keywords follow RFC 2119: **MUST**, **MUST NOT**, **SHOULD**, **MAY**.

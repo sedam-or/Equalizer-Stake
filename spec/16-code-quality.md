@@ -12,6 +12,8 @@ This standard applies to **every** change in this repo: Rust, SQL, TypeScript, s
 
 ## 1. Principles
 
+**Adopt, don't build.** Before writing infrastructure code (parsing, validation, canonical JSON, crypto, storage, templating, CI tooling), use the project listed for that concern in `24-open-source-stack.md` (OSS-01..06). A new dependency must be on that map or added to it in the same PR, with its license on the `deny.toml` allow-list.
+
 - **CQ-01. Correct, then clear, then fast.** Optimise only with a measurement in the PR description.
 - **CQ-02. Consistency beats preference.** Follow the surrounding code and this document, even when you'd do it differently. Propose style changes as a PR to this file, never inside a feature PR.
 - **CQ-03. Make illegal states unrepresentable.** Prefer types, enums and DB constraints over runtime checks and comments.

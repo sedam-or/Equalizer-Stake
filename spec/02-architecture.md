@@ -170,6 +170,8 @@ The variants are `NotFound`, `Conflict`, `Validation`, `Forbidden`, `ForbiddenRu
 
 ## 11. Technology pins (versions are minimums; use the latest compatible patch)
 
+This table pins the core crates. The complete map of open-source building blocks per concern (validation, canonical JSON, phone/email parsing, file storage, templates, metrics, CI/CD tools), with licenses and the rule "adopt, don't build", is `24-open-source-stack.md` (OSS-*). When the two disagree, spec 24 wins for anything not listed here.
+
 | Concern | Choice |
 |---|---|
 | Language | Rust stable (edition 2024), MSRV pinned in `rust-toolchain.toml` |

@@ -99,7 +99,7 @@ The layers in spec 17 line up with these boundaries:
 
 ### 5.2 Input and output
 
-- **SBD-44. Parse at the boundary.**
+- **SBD-44. Parse at the boundary.** The full rules (pipeline stages, sanitising profiles, forbidden characters, field kinds, per-request matrix, file and import limits) are `22-validation-and-sanitization.md`.
   - DTO fields have explicit bounds: string length, list length, numeric range.
   - Enum inputs are closed. An unknown value is a 422, never a silent default.
   - Identifiers are normalised (NFC, trimmed, case rules per SEC-04) before comparison or lookup.

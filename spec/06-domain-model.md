@@ -882,6 +882,8 @@ RLS applies to every table above except `audit.checkpoints`. `audit.entries` **d
 
 Transitions that aren't listed are rejected with `409 invalid_transition`. Every transition writes an audit entry.
 
+This section is the summary. The complete, normative transition tables (trigger, actor, guard, effects, events, error codes) for these and every other stateful entity are in `20-state-machines.md` (STM-*). Where the two differ, spec 20 wins.
+
 ### 5.1 Session
 
 ```mermaid
@@ -889,6 +891,7 @@ stateDiagram-v2
   [*] --> scheduled: create / materialize
   scheduled --> scheduled: reschedule (new range, holds rewritten)
   scheduled --> cancelled: cancel(reason)
+  cancelled --> scheduled: owner revert before end (holds re-acquired, STM-31 t5)
   scheduled --> completed: complete (auto at end+lock window, or instructor)
   completed --> [*]
   cancelled --> [*]

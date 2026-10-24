@@ -6,6 +6,8 @@
 
 **API-03. Auth.** `Authorization: Bearer <access JWT>` (IDN-03). Cookie-based endpoints are listed in IDN-04/05. Unauthenticated → 401 problem.
 
+**Canonical forms and validation.** The exact wire form of every value (ids, money, instants, dates, phones, locales, cursors), DTO naming, absent-vs-null and PATCH semantics, headers and query rules are in `23-contracts-and-canonical-forms.md` (CAN-*). How every input is sanitised and validated, on the server and in the SPA, is `22-validation-and-sanitization.md` (VAL-*). Request DTOs reject unknown fields (`deny_unknown_fields`, CAN-21).
+
 **API-04. Errors.** RFC 9457 `application/problem+json`. The complete standard (taxonomy, code registry, field errors, retries, UI handling) is `19-error-handling.md`. This section is the summary.
 
 ```json

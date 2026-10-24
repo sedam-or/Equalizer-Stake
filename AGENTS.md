@@ -78,4 +78,6 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 - SQL: snake_case, explicit column lists, no `SELECT *` in app code.
 - TS: strict, no `any`, named exports, components in PascalCase files, hooks `useX`.
 - Commits: `COMMIT_CONVENTION.md` (Conventional Commits, scopes, `[T-xxx]` refs, sign-off).
+- States, flows, validation, contracts: transitions follow `spec/20-state-machines.md` (STM-\*), multi-step behaviour follows `spec/21-data-flows.md` (FLW-\*), every input goes through a field kind and the pipeline in `spec/22-validation-and-sanitization.md` (VAL-\*), and every wire value uses its canonical form from `spec/23-contracts-and-canonical-forms.md` (CAN-\*).
+- Dependencies: adopt the open-source project listed in `spec/24-open-source-stack.md` (OSS-\*) instead of writing your own. A dependency that isn't on that map needs a task that says so; otherwise block and ask.
 - Errors: `spec/19-error-handling.md` (codes registered in `errors.rs`, translated en+id, one log at the edge).

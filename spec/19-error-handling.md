@@ -83,7 +83,7 @@ Every task follows it. Tags: **[tool]** = CI enforces it, **[review]** = the rev
 **ERR-31. Field errors** (`validation`, and policy errors that point at a field):
 - Each entry is `{ "pointer": "/cycle/due_day", "code": "must_be_gte", "params": { "other": "/cycle/issue_day" } }`.
 - `pointer` is a JSON Pointer (RFC 6901) into the **request body**.
-- Field codes come from a small shared set: `required`, `too_short`, `too_long`, `must_be_gte`, `must_be_lte`, `invalid_format`, `not_allowed`, `not_unique`, `unknown_reference`. The SPA translates them as `errors.field.<code>` (POL-10).
+- Field codes come from a small, closed shared set (VAL-03): `required`, `invalid_type`, `too_short`, `too_long`, `too_few_items`, `too_many_items`, `must_be_gte`, `must_be_lte`, `invalid_format`, `invalid_characters`, `not_allowed`, `not_unique`, `unknown_reference`. JSON Schema keywords map to them per VAL-22. The SPA translates them as `errors.field.<code>` (POL-10).
 - All field errors are returned together in one response, never one at a time.
 
 ## 5. Rust: per-layer rules

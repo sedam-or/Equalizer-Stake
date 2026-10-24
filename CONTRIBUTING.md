@@ -18,6 +18,9 @@ There's a way to help at every skill level. Pick the one that suits you:
 - **Specs come first.** Behaviour is defined in `spec/`, and work is broken into `tasks/**/T-*.md`. If code and spec disagree, the spec wins. To change the spec, open a PR to `spec/` (and an RFC for big changes).
 - **Code quality:** follow [`spec/16-code-quality.md`](spec/16-code-quality.md): lints, layering, naming, tests, PR size (≤ ~400 lines) and the review checklist. CI enforces most of it. Architecture rules (layers, module boundaries) are in [`spec/17-clean-architecture.md`](spec/17-clean-architecture.md).
 - **Security by design:** read [`spec/18-security-by-design.md`](spec/18-security-by-design.md) before touching auth, tenancy, PII, files, exports, money or external integrations. Such PRs get a `security-review`.
+- **States, flows, validation and contracts:** [`spec/20-state-machines.md`](spec/20-state-machines.md), [`spec/21-data-flows.md`](spec/21-data-flows.md), [`spec/22-validation-and-sanitization.md`](spec/22-validation-and-sanitization.md) and [`spec/23-contracts-and-canonical-forms.md`](spec/23-contracts-and-canonical-forms.md) define every transition, flow, input rule and wire format. Client-side validation is generated from the OpenAPI document; don't hand-write bounds.
+- **Adopt, don't build:** use the open-source tool or library listed in [`spec/24-open-source-stack.md`](spec/24-open-source-stack.md) for each concern. Propose additions there (with the license) in the same PR.
+- **CI:** the single required check is `ci-ok`. Locally you can run the same doc checks with `scripts/tasks-index.sh --check`, `typos` and `lychee --offline './**/*.md'`; workflow changes are checked with `actionlint` and `zizmor`.
 - **Never hard-code a business value** (a fee, a day of the month, opening hours, a radius, a timezone, a currency). Add a policy field instead (`spec/04-policy-engine.md`). CI checks this.
 
 ## Development setup

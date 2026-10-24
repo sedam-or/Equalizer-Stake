@@ -10,15 +10,19 @@
 | Routing | TanStack Router (file-based, type-safe search params) |
 | Server state | TanStack Query 5 |
 | API client | `openapi-fetch` + `openapi-typescript` types generated from `web/openapi.json` (`pnpm gen:api`) |
-| Forms | react-hook-form + zod (hand-written forms); a custom `PolicyForm` renderer + `ajv` (policy forms, FE-20) |
+| Forms | react-hook-form + `@hookform/resolvers` + zod 4 schemas **generated** from `web/openapi.json` by `@hey-api/openapi-ts` (zod plugin only), wrapped by `useRitmaForm` (VAL-30..34); a custom `PolicyForm` renderer + `ajv` (policy forms, FE-20) |
+| Phone input | `libphonenumber-js` (min metadata), same canonical E.164 as the server (VAL-32) |
+| Complex UI flows | `xstate` 5 (check-in capture and offline queue only, STM-96/97) |
 | I18n | i18next + react-i18next + i18next-icu (ICU MessageFormat), catalogs in `src/locales/{en,id}/*.json` |
 | Dates | `date-fns` 4 + `@date-fns/tz` (tenant timezone aware) |
 | Charts | Recharts |
-| Map pin | Leaflet + react-leaflet, tile URL from `meta/app` (default OSM, configurable) |
+| Map pin | Leaflet used directly through a small `MapPin` wrapper (not `react-leaflet`, D-56), tile URL from `meta/app` (default OSM, configurable) |
 | Face detection | `@mediapipe/tasks-vision` (lazy, check-in route only) |
 | PWA | `vite-plugin-pwa` (Workbox): installable, offline shell, read-only cached schedule |
 | Tests | Vitest + Testing Library + `@axe-core/react` (dev) / `vitest-axe`; Playwright e2e (`web/e2e`) |
-| Lint/format | Biome |
+| Lint/format | Biome; `knip` for dead code; `size-limit` for FE-02 |
+
+The full frontend map with licenses is `24-open-source-stack.md` §3. Client UI state machines (auth session, view states, form submission, drafts, wizard, check-in) are STM-90..97.
 
 **FE-01.** No SSR. The SPA is built to `web/dist` and embedded into the binary (`rust-embed`) by `eq-api`. Serving rules:
 - `/assets/*` (hashed) get `Cache-Control: public, max-age=31536000, immutable`.

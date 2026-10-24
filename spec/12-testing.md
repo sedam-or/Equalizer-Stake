@@ -20,6 +20,8 @@
 | TST-14 | No hard-coded business values | `scripts/check-literals.sh` | In `crates/*/src/{domain,service}*.rs`, grep for timezone names, `WIB`, currency codes, money-looking integer literals ≥ 1000 not in `const` with `// technical:`, `day() == <n>`, coordinate literals | Required (POL-02) |
 | TST-15 | Time travel | `Clock` mock + `JobRunner::run_due(now)` | Month-end, overdue, reminders, materialisation, review SLA, retention jobs | Every cron job has a time-travel test |
 | TST-16 | Log hygiene | `tracing-test` capture | No PII field names or values in logs during the e2e-like API suite | Required |
+| TST-17 | Validation parity and contract snapshots | Rust + Vitest over `contracts/validation/cases/*.json`; JSON Schema snapshots in `contracts/events/` | Server and client give the same canonical value or field code for every case (VAL-31, CAN-98); event payload schemas only change additively or with a new `.vN` (CAN-61) | Required |
+| TST-18 | API fuzzing | Schemathesis against a seeded server (`scripts/ci/api-fuzz.sh`) | No 5xx; every error is problem+json with a registered `code`; 2xx bodies match their schemas; unknown fields rejected (CAN-96) | Required |
 
 ## 2. Fixtures
 
@@ -34,9 +36,11 @@
 
 ## 3. CI pipeline (`.github/workflows/ci.yml`)
 
+The workflows exist from day one and switch jobs on as their inputs appear (a `detect` job checks for `Cargo.toml`, `web/package.json`, `web/openapi.json`, the guard scripts and the e2e target). Every action is pinned by commit SHA, and the single required status check is `ci-ok`, which fails if any job failed or was cancelled. Always-on jobs: `docs` (`scripts/tasks-index.sh --check`, `typos`, `lychee --offline`), `meta` (`actionlint`, `zizmor`), `pr-title`, `secrets` (gitleaks). Other workflows: `codeql.yml`, `security.yml` (daily `cargo audit`, `pnpm audit`, OSV-Scanner), `scorecard.yml`, `release-please.yml` → `release.yml` (binaries, GHCR image signed with cosign, SBOM, provenance). Details: `24-open-source-stack.md` §6 (OSS-20..22).
+
 1. `rust`: fmt check → clippy `-D warnings` → `cargo deny check` → `cargo test --workspace` (includes TST-01..06, 08, 09, 13–16) → coverage report.
 2. `web`: `pnpm install --frozen-lockfile` → biome → typecheck → vitest → `i18n:check` → `size-limit` → build.
-3. `contract`: TST-10.
+3. `contract`: TST-10, plus TST-18 (`scripts/ci/api-fuzz.sh`) once it exists.
 4. `e2e`: build the binary with the embedded web → start Postgres service → Playwright (TST-07, 11, 12).
 5. `scripts`: `check-deps.sh` (ARC-02), `check-literals.sh` (TST-14), `check-web-boundaries.sh` (CQ-64), `check-layers.sh` (CA-01).
 6. `pr-title`: Conventional Commits title check (CQ-100/101).
