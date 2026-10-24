@@ -118,7 +118,7 @@ This file maps every concern to its chosen project, says what we wrap and what w
 | Load tests | `k6` (scripts in `tests/load/`) | manual / release (BIL-02 target, TST-05 extended) |
 | Release versioning and changelog | `release-please` (`googleapis/release-please-action`) | `release-please.yml` (RELEASING.md) |
 | Cross-compiled static binaries | `cargo-zigbuild` (musl) | `release.yml` (DST-05) |
-| Container build | Docker Buildx (`docker/*` actions), distroless base | `release.yml` |
+| Container build | Docker Buildx (`docker/*` actions), digest-pinned Alpine runtime base (ADR-0019, spec 26 CTR-02) | `release.yml` |
 | Signing, SBOM, provenance | `cosign` keyless (Sigstore), Syft via `anchore/sbom-action` (CycloneDX), `actions/attest-build-provenance` (SLSA) | `release.yml` (SEC-22) |
 | Image vulnerability scan | Trivy (`aquasecurity/trivy-action`) | `release.yml` |
 | Dependency updates | Dependabot (`.github/dependabot.yml`) | weekly, grouped |

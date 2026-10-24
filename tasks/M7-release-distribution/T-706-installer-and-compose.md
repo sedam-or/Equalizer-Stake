@@ -14,6 +14,7 @@ estimated_size: M
 A school's IT friend runs one command on a $5 server and gets HTTPS and a setup link.
 
 ## Context
+- Runtime hardening for the app service exactly as `spec/26-containers-and-caching.md` CTR-10 (read-only root FS, tmpfs `/tmp`, uid 10001, `cap_drop: [ALL]`, `no-new-privileges`, limits, healthcheck); `postgres` and `caddy` pinned by digest; Caddy without a response cache (CACHE-24..26).
 - DST-30 behaviour 1–5 (detect, ask domain + email, write `/opt/ritma/` with compose, `.env` 600, Caddyfile, wait for `/readyz`, print the setup URL, idempotent re-run) and DST-31 in `spec/14-distribution.md` §6.
 - POSIX `sh`, shellcheck clean; non-interactive flags for automation.
 

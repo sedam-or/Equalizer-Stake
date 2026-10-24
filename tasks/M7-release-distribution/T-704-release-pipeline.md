@@ -14,11 +14,11 @@ estimated_size: M
 One tag produces every artifact every channel needs, signed and reproducible.
 
 ## Context
-- DST-05 steps 1–6 in `spec/14-distribution.md` §2 (targets, distroless image ≤ 60 MB with pg_dump, non-root uid 10001, SBOM CycloneDX, cosign keyless, `latest.json`).
+- DST-05 steps 1–6 in `spec/14-distribution.md` §2 (targets, Alpine image ≤ 60 MB with pg_dump (ADR-0019), non-root uid 10001, SBOM CycloneDX, cosign keyless, `latest.json`).
 - release-please config for Conventional Commits; `RELEASING.md` already describes the human steps.
 
 - **Alignment with spec 20–24** (added with the canonical-behaviour specs):
-  - `.github/workflows/release-please.yml`, `.github/workflows/release.yml`, `release-please-config.json` and `.release-please-manifest.json` already exist (OSS-20). This task completes them: write `deploy/docker/Dockerfile` (distroless, non-root uid 10001, copies the prebuilt `ritma` musl binary for `TARGETARCH` from `dist/`), verify the release-please `rust` + `cargo-workspace` config against the real workspace, add `latest.json` publishing, and do a dry run with `workflow_dispatch`.
+  - `.github/workflows/release-please.yml`, `.github/workflows/release.yml`, `release-please-config.json` and `.release-please-manifest.json` already exist (OSS-20). This task completes them: write `deploy/docker/Dockerfile` exactly as `spec/26-containers-and-caching.md` §2 (digest-pinned Alpine + `postgresql16-client`, ADR-0019; non-root uid 10001, copies the prebuilt `ritma` musl binary for `TARGETARCH` from `dist/`), verify the release-please `rust` + `cargo-workspace` config against the real workspace, add `latest.json` publishing, and do a dry run with `workflow_dispatch`.
 
 - **Maintenance releases (BRANCHING.md §5, RELEASING.md):** `release-please.yml` already accepts `target-branch`. When the released tag is not the highest semver tag (a patch from `release/vX.Y`), `release.yml` must not mark the GitHub release as latest, must not push the image `latest` tag (`docker/metadata-action` `flavor: latest=false`) and must not update `latest.json`.
 

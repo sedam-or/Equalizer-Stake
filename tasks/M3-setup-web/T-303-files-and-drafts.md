@@ -33,7 +33,7 @@ One safe path for every uploaded file (logos and avatars now; photos, payment pr
 - Storage: `FileStore` trait with `LocalFileStore` (`RITMA_DATA_DIR/files/{tenant}/{yyyy}/{mm}/{file_id}`) and `S3FileStore` (`RITMA_FILES_BACKEND=s3`, `RITMA_S3_*` env vars; crate `object_store` with the aws feature). Add the config fields to T-002's config if missing: `RITMA_FILES_BACKEND=local|s3`, `RITMA_S3_BUCKET`, `RITMA_S3_REGION`, `RITMA_S3_ENDPOINT?`, `RITMA_S3_ACCESS_KEY_ID`, `RITMA_S3_SECRET_ACCESS_KEY`.
 - SEC-15 signed URLs:
   - `GET /api/v1/files/{id}?exp=<unix>&sig=<base64url(HMAC-SHA256(Keys.filesig, tenant|id|exp|actor))>`, valid ≤ 5 min (technical const), bound to the actor (the actor's person id or `anon`).
-  - Avatars and logos skip the signature: `GET /api/v1/files/{id}` is enough when purpose is avatar|logo, with `Cache-Control: public, max-age=3600`.
+  - Avatars and logos skip the signature: `GET /api/v1/files/{id}` is enough when purpose is avatar|logo, with `Cache-Control: private, max-age=3600` for avatars and `public, max-age=3600` for the logo (spec 26 CACHE-24/25, D-67).
   - Others require a valid sig and an authenticated actor that matches. Responses get `X-Content-Type-Options: nosniff` and `Content-Disposition: attachment` for PDFs and imports.
 - API:
   - `POST /api/v1/files` multipart (`file` + `json {purpose}`), perm by purpose: avatar → any authenticated (own); logo → `core.policy.write`; others → used internally by module endpoints, **not** exposed here (module endpoints call `FileService::store`). Returns `{file_id, url}`.

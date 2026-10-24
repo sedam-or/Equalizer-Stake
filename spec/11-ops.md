@@ -43,6 +43,7 @@
 | `rotate-keys [--master] [--tenant-dek]` | SEC-01/02 |
 | `seed-demo` | Demo data (DST-30); refuses unless `RITMA_DEMO=1` |
 | `version` | Version, commit, build features |
+| `healthcheck` | Exit 0 if `GET http://127.0.0.1:<port>/healthz` answers 200 within 2 s, else 1. Used by the container `HEALTHCHECK` (CTR-05) |
 
 ## 3. Runtime
 

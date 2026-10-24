@@ -17,7 +17,7 @@ The `ritma serve` binary runs the full M1 stack: tenant resolution, auth, module
   1. Outbox dispatcher (T-107)
   2. Job runner + cron planner (T-108)
   3. Audit sealer, a 10 s interval (T-109)
-  4. Cache invalidation listeners for `eq_modules_changed` and `eq_policy_changed`
+  4. Cache invalidation listeners for `eq_modules_changed` and `eq_policy_changed`. When the listener connection reconnects, clear every NOTIFY-backed cache (spec 26 CACHE-04, D-71)
 - `ritma seed-dev`, **dev only** (refuses unless `RITMA_ENV=dev`): creates tenant `dev` (slug `dev`, timezone `Asia/Jakarta`, currency IDR, locale id), an owner `owner@dev.test` and an admin `admin@dev.test` with password `devpassword123`, all optional modules enabled, and policies at their defaults. **It must call the same services the API uses** (no raw inserts except the tenant row, because setup comes in M3). Document the dev credentials in `CONTRIBUTING.md` under "Dev login" (one line).
 - `/readyz` checks DB connectivity, that migrations are applied (`_sqlx_migrations` count equals embedded), and that the dispatcher and runner tasks are alive.
 

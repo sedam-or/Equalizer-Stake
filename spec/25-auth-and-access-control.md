@@ -50,7 +50,7 @@ All secret values in Rust are `SecretString`/`SecretBox` (`secrecy`), compared w
 | Lifetime | 600 s (`exp - iat`), technical constant |
 | Claims | `sub` person id · `tid` tenant id · `role` active role · `sid` refresh session id · `iat` · `exp` · `ver` = `credentials.password_changed_at` epoch |
 | Transport | Response body → SPA memory → `Authorization: Bearer …`. Never in `localStorage`, `sessionStorage`, cookies or URLs (FE-12) |
-| Verification per request | signature, `exp` (30 s leeway), `tid` = resolved tenant, `ver` = current (cached 60 s, invalidated in-process on password change), membership for `role` still `active` with the permission set cached 30 s (T-110, CACHE-03) |
+| Verification per request | signature, `exp` (30 s leeway), `tid` = resolved tenant, `ver` = current (cached 60 s, invalidated in-process on password change), membership for `role` still `active` with the permission set cached 30 s (T-110, CACHE-14) |
 | Failure | 401 `unauthenticated`; the SPA refreshes once and retries (FE-11) |
 
 ### 3.2 Refresh token (cookie)

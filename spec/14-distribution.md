@@ -21,7 +21,7 @@ flowchart LR
 
 **DST-05.** `.github/workflows/release.yml` triggers on tag `vX.Y.Z`:
 1. Build the web (`pnpm build`), then build the binaries with `cargo build --release --locked` for `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `x86_64-apple-darwin`, `aarch64-apple-darwin` and `x86_64-pc-windows-msvc`. musl is used for static Linux builds; `rustls` everywhere, no OpenSSL.
-2. Build the container `FROM gcr.io/distroless/static` plus `pg_dump` (copied from `postgres:16-alpine` as a static build, or use `alpine` + `postgresql16-client` if static is impractical; the image size target is ≤ 60 MB). The image runs as non-root uid 10001 with `RITMA_DATA_DIR=/data` as a volume.
+2. Build the container from a digest-pinned `alpine` base plus `postgresql16-client` for `pg_dump` (ADR-0019; distroless was dropped because `pg_dump` is dynamically linked). The image size target is ≤ 60 MB. The image runs as non-root uid 10001 with `RITMA_DATA_DIR=/data` as a volume. The full image and runtime hardening spec is `26-containers-and-caching.md` Part A.
 3. Build the Tauri desktop bundles (DST-20), signed with an Apple Developer ID plus notarisation and a Windows Authenticode certificate. Until certificates are available, ship unsigned builds with documented SmartScreen and Gatekeeper steps.
 4. Create the SBOM (CycloneDX), checksums (`SHA256SUMS`) and cosign signatures (keyless).
 5. Create the GitHub Release with the changelog from release-please, and publish `releases.<domain>/latest.json` with `{version, notes_url, assets: {...}}`.

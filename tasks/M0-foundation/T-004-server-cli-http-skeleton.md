@@ -12,7 +12,7 @@ estimated_size: M
 `ritma serve` loads the config, runs migrations, and serves `/healthz` and `/readyz` through the standard tower layer stack, with request ids and structured logs. SIGTERM shuts it down gracefully.
 
 ## Context
-- OPS-02 CLI: `serve` (default), `migrate`, `openapi`, `backup`, `restore`, `doctor`, `create-owner`, `rotate-keys`, `seed-demo`, `version`. This task implements `serve`, `migrate` and `version`. The others print "not implemented yet" and exit with code 2.
+- OPS-02 CLI: `serve` (default), `migrate`, `openapi`, `backup`, `restore`, `doctor`, `create-owner`, `rotate-keys`, `seed-demo`, `version`. This task implements `serve`, `migrate`, `version` and `healthcheck` (exit 0 if `GET http://127.0.0.1:<port>/healthz` returns 200 within 2 s, else 1; used by the container `HEALTHCHECK`, spec 26 CTR-05). The others print "not implemented yet" and exit with code 2.
 - ARC-04 layers, in order:
   1. request id (UUIDv7) → `TraceLayer` with span fields request_id, tenant_id, actor_id (later), method, path, status, latency
   2. compression
@@ -60,13 +60,14 @@ None.
 - AC1. With a DB available, `GET /healthz` → 200 and the `X-Request-Id` header is present (UUID). → `eq-api/tests/health.rs::healthz_ok`
 - AC2. With the DB stopped, `GET /readyz` → 503 `db_unreachable` within 1 s. → `readyz_db_down`
 - AC3. `ritma migrate` against an empty DB applies 0001 and exits 0. → `eq-server/tests/cli.rs::migrate_applies`
+- AC3b. `ritma healthcheck` exits 0 while the server is up and 1 when nothing listens on the port. → `eq-server/tests/cli.rs::healthcheck_exit_codes`
 - AC4. A Problem body produced inside a request contains the same `request_id` as the header. → `problem_has_request_id` (add a test-only route)
 
 ## Tests to write
 | File | Test names |
 |---|---|
 | `crates/eq-api/tests/health.rs` | `healthz_ok`, `readyz_db_down`, `problem_has_request_id` |
-| `crates/eq-server/tests/cli.rs` | `migrate_applies`, `unimplemented_subcommand_exits_2` |
+| `crates/eq-server/tests/cli.rs` | `migrate_applies`, `unimplemented_subcommand_exits_2`, `healthcheck_exit_codes` |
 
 ## Definition of done
 - [ ] Rust checks pass
