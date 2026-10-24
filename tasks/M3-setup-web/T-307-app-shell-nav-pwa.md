@@ -31,7 +31,7 @@ After login, every role lands in a shell whose navigation is built from the serv
 - PWA (FE-35) with `vite-plugin-pwa`:
   - Manifest: name from `brand.ts`, icons from `web/public/icons/` (192/512 maskable placeholders generated from the brand mark; real assets come later), `display: standalone`, theme colour from tokens at build time (light primary).
   - Workbox: precache the app shell. `NetworkFirst` for `/api/v1/me/schedule` with a 14-day max-age cache (read-only offline). Everything else under `/api` is `NetworkOnly`.
-  - An offline toast ("You're offline. Changes are disabled.") via `navigator.onLine` events, and a `useOnline()` hook for disabling buttons.
+  - The app-level `banner.offline` while offline and the `toast.generic.back_online` toast on reconnect (spec 27 §5, §7), via `navigator.onLine` events, and a `useOnline()` hook for disabling buttons.
 - The shell has skip-to-content, landmark roles, and focus moves to the page `h1` on navigation.
 
 ## Scope

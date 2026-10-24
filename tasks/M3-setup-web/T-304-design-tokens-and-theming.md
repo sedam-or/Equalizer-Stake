@@ -29,7 +29,7 @@ Every visual value comes from one token file. Tenants can safely change hue, cor
 | 950 | 0.150 0.012 255 | 0.20 0.07 255 | 0.27 0.06 55 |
 
   - `gray-0` = white. Status ramps green 150, amber 75, red 25, blue 240, violet 300 use the brand L/C ramp with C capped at 0.17.
-- **Semantic tokens:** the complete table in spec 09 §2.2 (bg, surface, surface-sunken, surface-raised, border, border-strong, text, text-muted, text-subtle, primary, primary-hover, primary-fg, primary-subtle, accent, success/warning/danger/info with `-subtle` and `-fg`, focus-ring, overlay), each in light and dark. **Copy that table into `tokens.css` comments and implement every row.**
+- **Semantic tokens:** the complete table in spec 09 §2.2 (bg, surface, surface-sunken, surface-raised, border, border-strong, border-input (gray-500 light and dark, D-73), text, text-muted, text-subtle, primary, primary-hover, primary-fg, primary-subtle, accent, success/warning/danger/info with `-subtle` and `-fg` (light `warning-fg` is white, D-72), focus-ring, overlay), each in light and dark. **Copy that table into `tokens.css` comments and implement every row.**
 - **Domain status tokens** (spec 09 §2.2): `--status-<domain>-<status>-{bg,fg,border}`, generated from the tone table: session, participant, invoice, payer, check-in, enrollment, reservation. Tones: info, neutral, neutral-muted, success, warning, danger.
 - **Chart palette:** `--chart-1..8` at L 0.62–0.72, C 0.14, hues [255, 150, 75, 300, 25, 195, 120, 340].
 - **Typography** (spec 09 §2.3):
@@ -58,6 +58,7 @@ Every visual value comes from one token file. Tenants can safely change hue, cor
 - AC2. Hue 90 (yellow) → `primary-fg` is brand-950 (dark text). Hue 255 → white. → `theme.test.ts › fg choice`
 - AC3. The guard script fails on a fixture file containing `bg-blue-600` and `#fff`. → `check-raw-colors.test.ts`
 - AC4. Light and dark semantic tokens resolve (snapshot of computed styles in jsdom for 5 tokens). → `tokens.test.ts`
+- AC5. The contrast pairs in spec 09 §2.6 (text, muted, primary, status foregrounds, `border-input`) meet their targets in light and dark, computed from `tokens.css` with `culori`. → `tokens.test.ts › contrast pairs`
 
 ## Tests to write
 | File | Test names |

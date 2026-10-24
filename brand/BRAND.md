@@ -125,7 +125,7 @@ Rules: second person, active voice, no blame, no exclamation marks in errors. In
   - The mark is a circle divided like a bar of music with **one segment highlighted**: one beat, one time slot taken, the others free. It reads as a clock, a rhythm and a calendar slot at the same time.
   - The wordmark is set in Plus Jakarta Sans 700, lowercase, tight tracking (−1%).
   - The mark must work at 16 px (favicon) and in one colour.
-- **Colour:** brand blue (OKLCH 0.49 0.20 255 ≈ #2456E0) as primary, with warm amber accent (0.75 0.16 70) used sparingly for "moments" (success confetti, highlights). Neutrals are cool grey. The source of truth is `spec/09-design-system.md` §2.
+- **Colour:** brand blue (OKLCH 0.49 0.20 255 = `#005EB9` in sRGB) as primary, with warm amber accent (0.75 0.16 70) used sparingly for "moments" (success confetti, highlights). Neutrals are cool grey. The source of truth is `spec/09-design-system.md` §2.
 - **Typography:** Plus Jakarta Sans (headings, designed by Tokotype in Jakarta, another nod to the origin) and Inter (body).
 - **Imagery:** real small-school moments (hands on piano keys, a parent's phone with the schedule, a front desk). Warm natural light. No generic stock "business people", no 3D blobs, no neon. Screenshots are always shown in a device frame, light and dark.
 - **Illustration:** simple line icons (lucide style, 1.5 px). Empty states use a single-colour line illustration in brand-200/brand-600.

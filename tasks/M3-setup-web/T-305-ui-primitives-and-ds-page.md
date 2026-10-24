@@ -17,15 +17,16 @@ Component specs (spec 09 §4). Implement exactly these variants and states:
 | Component | Variants / sizes | States / rules |
 |---|---|---|
 | Button | primary, secondary, ghost, destructive, link; sm/md/lg; icon-only requires `aria-label` (TS-enforced via a discriminated union) | default, hover, active, focus-visible, disabled, loading (spinner replaces icon, width locked) |
-| Input, Textarea, Select, Combobox | md/lg | default, focus, invalid (danger border + message), disabled, read-only; label always visible; helper and error below, linked with `aria-describedby` |
+| Input, Textarea, Select, Combobox | md/lg | border `--color-border-input`; default, focus, invalid (danger border + message), disabled, read-only; label always visible; helper and error below, linked with `aria-describedby` |
 | MoneyInput | — | currency prefix from `Intl`; stores minor units; paste-tolerant (`Rp 1.250.000` → 125000000 for IDR exponent 2) |
 | Switch (Toggle row) | md | label left, switch right, whole row clickable |
 | SegmentedControl | 2–4 options | radio-group semantics |
 | StatusBadge | tone from the domain status tokens | icon + text, never colour only; prop `domain` + `status` → tone/icon/label key `status.<domain>.<status>` |
 | Card | default, interactive, selected | padding `--space-6` (compact `--space-5`) |
 | DataTable | compact/comfortable | loading (5 skeleton rows), empty, error; below md renders as a card list (primary column = title, 2–3 key fields, trailing action); sticky header ≥ md; row click |
-| Dialog, Sheet | Sheet = bottom on mobile, right on desktop | focus trap; Esc closes unless dirty (then confirm) |
-| Toast | success, error (with "Copy request id"), info | bottom-center mobile, bottom-right desktop; 5 s, pausable on hover/focus |
+| Dialog, Sheet | types `confirm`, `destructive`, `type-to-confirm`, `alert`, `form` (spec 27 §3.3); Sheet = bottom on mobile, right on desktop | focus trap; initial focus on the safe button for destructive types; Esc closes unless dirty (then confirm); pending state disables both buttons; errors inline in the body |
+| Toast | success, error (with "Copy error ID"), info, warning; shadcn `Sonner` behind `useToast(id, params)` that accepts only spec 27 §5 ids | bottom-center mobile, bottom-right desktop; 5 s success/info, 10 s error, until dismissed with an action; pausable on hover/focus; max 3, same id replaces; `role=status` / `role=alert` (spec 27 §3.2) |
+| Banner | app-level, page-level; tones from spec 27 §3.1 | one sentence, optional action, dismiss only where spec 27 §7 allows; never moves focus |
 | PageHeader | title, description, primary action, secondary menu, breadcrumbs ≥ md | |
 | EmptyState | icon, title, one line, primary action | |
 | ErrorState | title, message, Retry, request id | |
