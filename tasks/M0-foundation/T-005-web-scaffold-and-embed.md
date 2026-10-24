@@ -4,7 +4,7 @@ title: Scaffold the web app (Vite/React/TS/Tailwind 4/Router) and embed it in th
 milestone: M0
 status: todo
 depends_on: [T-004]
-spec_refs: [FE-01, FE-02, ADR-0003, DS-02]
+spec_refs: [FE-01, FE-02, ADR-0003, DS-02, CQ-60, CQ-61, CQ-62]
 estimated_size: M
 ---
 
@@ -48,6 +48,8 @@ estimated_size: M
 None.
 
 ## Implementation notes
+- `tsconfig.json` (CQ-60): `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, `verbatimModuleSyntax`, `forceConsistentCasingInFileNames`; path alias `@/` → `src/` (also in `vite.config.ts`).
+- `biome.json` (CQ-61): `recommended` + at `error`: `noExplicitAny`, `noNonNullAssertion`, `useExhaustiveDependencies`, `noUnusedImports`, `noUnusedVariables`, `useImportType`, `noConsole`, `noDefaultExport` (override: allowed in `*.config.ts`), `noBarrelFile`, `noExcessiveCognitiveComplexity` (max 15). Formatter: 2 spaces, width 100, double quotes, semicolons, trailing commas `all`. Ignore generated files (`routeTree.gen.ts`, `src/api/schema.d.ts`). Use the rule names of the installed Biome version and note any renames in the Report.
 - Pin exact versions in `package.json` (no `^`). Commit `pnpm-lock.yaml`.
 - `packageManager: "pnpm@9.x"` in package.json.
 - MIME types come from `mime_guess`. Add `ETag` from the embedded file's hash (`rust-embed` metadata sha256) and honour `If-None-Match` with 304.

@@ -4,7 +4,7 @@ title: Create the Cargo workspace, toolchain, lints and empty crates
 milestone: M0
 status: todo
 depends_on: []
-spec_refs: [ARC-01, ARC-02, ADR-0001]
+spec_refs: [ARC-01, ARC-02, ADR-0001, CQ-14, CQ-20, CQ-21]
 estimated_size: S
 ---
 
@@ -25,7 +25,8 @@ estimated_size: S
 ### In
 - Root `Cargo.toml` with `[workspace]`, `resolver = "3"`, `members = ["crates/*"]`, `[workspace.package]` (edition 2024, license "AGPL-3.0-only", repository URL), `[workspace.dependencies]` for **all** crates listed below with versions, and `[workspace.lints]`.
 - `rust-toolchain.toml`: `channel = "stable"` pinned to a concrete version ≥ 1.85, components rustfmt and clippy.
-- `rustfmt.toml` (`max_width = 110`, `imports_granularity = "Crate"`, `group_imports = "StdExternalCrate"`; use only stable options).
+- `rustfmt.toml` with **stable options only** (CQ-20): `max_width = 110`, `use_field_init_shorthand = true`, `use_try_shorthand = true`. (Import grouping is a review rule, not a rustfmt setting.)
+- `clippy.toml` exactly as in CQ-21 (below), and `.editorconfig` per CQ-14.
 - 14 crates, each with `Cargo.toml` (inheriting workspace package and lints) and `src/lib.rs` (or `src/main.rs` for eq-server), containing a crate doc comment with its purpose and a `pub fn crate_name() -> &'static str` placeholder **only if needed for compilation**. Prefer empty libs.
 - `eq-server` produces `[[bin]] name = "ritma"` with a `main` that prints the version.
 - `scripts/check-deps.sh`: parses `cargo metadata --format-version 1 --no-deps` with `jq` and fails if any optional crate depends on another optional crate, or if `eq-core` depends on any `eq-*`.
@@ -37,7 +38,7 @@ estimated_size: S
 | Path | Action | Purpose |
 |---|---|---|
 | `Cargo.toml` | create | workspace |
-| `rust-toolchain.toml`, `rustfmt.toml`, `.cargo/config.toml` | create | toolchain; `[alias] xtask`-free; set `SQLX_OFFLINE=true` in `[env]` |
+| `rust-toolchain.toml`, `rustfmt.toml`, `clippy.toml`, `.editorconfig`, `.cargo/config.toml` | create | toolchain; `[alias] xtask`-free; set `SQLX_OFFLINE=true` in `[env]` |
 | `crates/eq-{core,audit,identity,scheduling,enrollment,billing,attendance,rental,notify,reports,feedback,api,server,testkit}/Cargo.toml` + `src/lib.rs`/`main.rs` | create | crates |
 | `scripts/check-deps.sh` | create | ARC-02 guard |
 
@@ -96,18 +97,51 @@ phonenumber = "0.3"
 ```
 If any pinned major doesn't resolve, choose the nearest available major, record it in the Report, and **don't** change APIs that later tasks assume without noting it.
 
-`[workspace.lints]`:
+`[workspace.lints]` (CQ-21; CI runs clippy with `-D warnings`):
 ```toml
 [workspace.lints.rust]
 unsafe_code = "forbid"
 missing_debug_implementations = "warn"
+unused_qualifications = "warn"
+
 [workspace.lints.clippy]
 unwrap_used = "deny"
 expect_used = "warn"
-dbg_macro = "deny"
+panic = "warn"
 todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
 print_stdout = "warn"
+print_stderr = "warn"
+cast_possible_truncation = "warn"
+cast_possible_wrap = "warn"
+cast_sign_loss = "warn"
+cast_lossless = "warn"
+allow_attributes = "deny"
+allow_attributes_without_reason = "deny"
+too_many_lines = "warn"
+semicolon_if_nothing_returned = "warn"
+redundant_else = "warn"
+manual_let_else = "warn"
+explicit_iter_loop = "warn"
 ```
+`clippy.toml`:
+```toml
+too-many-lines-threshold = 80
+too-many-arguments-threshold = 7
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-print-in-tests = true
+disallowed-methods = [
+  { path = "chrono::Utc::now", reason = "use the injected eq_core::clock::Clock (ARC-10)" },
+  { path = "chrono::Local::now", reason = "use Clock + the tenant timezone" },
+  { path = "std::time::SystemTime::now", reason = "use Clock" },
+  { path = "std::env::var", reason = "read config only through eq_core::config (OPS-01)" },
+  { path = "std::thread::sleep", reason = "blocks the runtime; use tokio::time::sleep" },
+]
+```
+Exceptions use `#[expect(lint, reason = "…")]` only; `#[allow]` is forbidden (CQ-110). The `main` that prints the version needs `#[expect(clippy::print_stdout, reason = "CLI output")]`. If a dependency's derive or proc macro trips `allow_attributes`, stop and ask (don't weaken the lint).
 `eq-billing/Cargo.toml` additionally sets `[lints.clippy] float_arithmetic = "deny"` (ARC-11). Since a crate can't both inherit and extend lints, put `#![deny(clippy::float_arithmetic)]` at the top of `eq-billing/src/lib.rs` instead.
 
 Feature wiring in `eq-api/Cargo.toml`:
@@ -149,5 +183,13 @@ None.
 - [ ] Commit `chore(workspace): create cargo workspace and crates [T-001]`, signed off
 
 ## Report
+- Analysis: T-001 is the lowest-ID `todo` task with no dependencies. The repository has no v2 Cargo workspace or application crates yet; this task establishes that foundation before later backend and web tasks.
+- Blocker: Scope → In requires stable Rust and only stable rustfmt options, but also explicitly requires `imports_granularity = "Crate"` and `group_imports = "StdExternalCrate"`. Both options require nightly rustfmt.
+- Verification: installed `rustc 1.99.1` and `rustfmt 1.10.0`; a temporary `/tmp` fixture with the requested configuration produced warnings that both settings are unavailable on stable. Although `rustfmt --check` exited 0, it ignored those settings. Official documentation confirms both are unstable: https://github.com/rust-lang/rustfmt/blob/main/Configurations.md#imports_granularity and https://github.com/rust-lang/rustfmt/blob/main/Configurations.md#group_imports.
+- Files changed: this task's status, Report and Questions; the T-001 status in `tasks/INDEX.md`.
+- Implementation and Definition of done checks have not started. Per `AGENTS.md` §0, implementation stops until the conflicting requirements are resolved.
+- Recommended resolution: retain pinned stable Rust and `max_width = 110`; omit the two nightly-only settings. No scope or requirement changes have been applied.
 
 ## Questions
+- **Resolved (maintainer, 2026-10-25):** Q1 — yes. Stable rustfmt only. The nightly-only options were removed from Scope → In and replaced by CQ-20's stable options. Import grouping is now a review rule (spec/16 CQ-20). The lint set was extended per CQ-21. Restart from Scope → In.
+- Q1 (blocking): May T-001 omit `imports_granularity` and `group_imports` from `rustfmt.toml` to satisfy its stable-only requirement? Recommended: yes. Retaining both settings would require an explicit exception for nightly formatting and a revised toolchain/check requirement.

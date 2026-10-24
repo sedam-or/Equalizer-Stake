@@ -4,7 +4,7 @@ title: Add the CI workflow, Makefile, dev database compose and guard scripts
 milestone: M0
 status: todo
 depends_on: [T-005]
-spec_refs: [TST-14, ARC-02, SEC-22]
+spec_refs: [TST-14, ARC-02, SEC-22, TST-01, CQ-64, CQ-80, CQ-100, CQ-101]
 estimated_size: M
 ---
 
@@ -17,7 +17,10 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
   2. `web`: pnpm install --frozen-lockfile → lint → typecheck → test → build → size
   3. `contract` (placeholder until T-114: `echo skip`)
   4. `e2e` (placeholder until T-008)
-  5. `scripts`: `check-deps.sh`, `check-literals.sh`
+  5. `scripts`: `check-deps.sh`, `check-literals.sh`, `check-web-boundaries.sh`
+  6. `pr-title` (pull_request only): the title must match Conventional Commits `^(feat|fix|refactor|perf|test|docs|build|ci|chore)(\([a-z0-9-]+\))?: .+` (CQ-100/101). A small inline script is fine; no third-party action needed.
+- CQ-64 `scripts/check-web-boundaries.sh`: for each `web/src/modules/<a>/`, fail if any file imports from `@/modules/<b>/` or `../<b>/` with `b ≠ a` (`registry.ts` at `web/src/modules/` is exempt). Print file:line.
+- TST-01 coverage: the `rust` job runs `cargo llvm-cov --workspace` and fails if line coverage of files under `crates/*/src/domain/` is < 90%. While no `domain/` files exist, the gate passes.
 - TST-14 `scripts/check-literals.sh`:
   - Scans `crates/*/src/**/{domain,service}*.rs` and `crates/*/src/domain/**/*.rs`.
   - Fails on IANA timezone names (`Asia/`, `America/`, `Europe/`), `WIB`, 3-letter currency codes in string literals (`"IDR"`, `"USD"`), integer literals ≥ 1000 that aren't inside a `const` item whose preceding line has `// technical:`, `.day() == <n>`, and float literals with ≥ 3 decimals (coordinates).
@@ -34,7 +37,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
   - `test`, `lint`, `api` (placeholder until T-114), `e2e` (placeholder)
   - `build` (web then release binary), `clean`
 - `deploy/dev/compose.yaml`, `.env.example` (all OPS-01 vars with comments, dev values).
-- `deny.toml`, `scripts/check-literals.sh` (+ `.allow`), `.github/dependabot.yml` or `renovate.json` (weekly, grouped).
+- `deny.toml`, `scripts/check-literals.sh` (+ `.allow`), `scripts/check-web-boundaries.sh`, `.github/dependabot.yml` or `renovate.json` (weekly, grouped).
 
 ### Out
 - Release workflow (T-706). E2E content (T-008).
@@ -42,7 +45,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
 ## Files
 | Path | Action |
 |---|---|
-| `.github/workflows/ci.yml`, `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `renovate.json` | create |
+| `.github/workflows/ci.yml`, `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/tests/*.sh`, `renovate.json` | create |
 
 ## Business rules
 None.
@@ -60,6 +63,7 @@ None.
 | File | Test names |
 |---|---|
 | `scripts/tests/check_literals_test.sh` | detects money literal; ignores technical const; detects timezone string |
+| `scripts/tests/check_web_boundaries_test.sh` | detects cross-module import; allows registry; allows same-module import |
 
 ## Definition of done
 - [ ] CI green on the PR

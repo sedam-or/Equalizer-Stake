@@ -25,6 +25,7 @@ This folder is the **single source of truth** for v2. It defines *what* and *why
 | 13 | `13-roadmap.md` | Milestones → `tasks/INDEX.md` |
 | 14 | `14-distribution.md` | One artifact, four channels (cloud, 1-click, desktop, docker) |
 | 15 | `15-cloud.md` | Managed multi-tenant hosting |
+| 16 | `16-code-quality.md` | Code-quality standard: lints, layering, naming, tests, PR and review rules (applies to every task) |
 | — | `modules/*.md` | One spec per module (identity, scheduling, enrollment, rental, billing, attendance, notify, audit, reports, feedback) |
 | — | `adr/*.md` | Architecture Decision Records |
 
@@ -50,6 +51,7 @@ Each requirement has a stable ID: `<AREA>-<NN>`. Tasks reference them in their `
 | TST | Testing | 12 |
 | DST | Distribution | 14 |
 | CLD | Cloud | 15 |
+| CQ | Code quality | 16 |
 | IDN, SCH, ENR, RNT, BIL, ATT, NTF, AUD, RPT, FBK | Module specs | `modules/*.md` |
 
 Normative keywords follow RFC 2119: **MUST**, **MUST NOT**, **SHOULD**, **MAY**.

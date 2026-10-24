@@ -16,6 +16,7 @@ There's a way to help at every skill level. Pick the one that suits you:
 - Be kind. Read the [Code of Conduct](CODE_OF_CONDUCT.md).
 - **Security issues:** never open a public issue. See [SECURITY.md](SECURITY.md).
 - **Specs come first.** Behaviour is defined in `spec/`, and work is broken into `tasks/**/T-*.md`. If code and spec disagree, the spec wins. To change the spec, open a PR to `spec/` (and an RFC for big changes).
+- **Code quality:** follow [`spec/16-code-quality.md`](spec/16-code-quality.md): lints, layering, naming, tests, PR size (≤ ~400 lines) and the review checklist. CI enforces most of it.
 - **Never hard-code a business value** (a fee, a day of the month, opening hours, a radius, a timezone, a currency). Add a policy field instead (`spec/04-policy-engine.md`). CI checks this.
 
 ## Development setup
@@ -23,7 +24,7 @@ There's a way to help at every skill level. Pick the one that suits you:
 Requirements: Rust stable (see `rust-toolchain.toml`), Node 22 + pnpm 9, Docker (for Postgres and tests).
 
 ```bash
-git clone https://github.com/<org>/<repo>.git && cd <repo>
+git clone https://github.com/ritmahq/ritma.git && cd ritma
 make dev-db        # starts postgres:16 in docker on :5433
 make dev           # runs the server (:8080) and the Vite dev server (:5173) with hot reload
 make test          # cargo test + pnpm test (uses testcontainers)

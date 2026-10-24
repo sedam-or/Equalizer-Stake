@@ -48,7 +48,7 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 | OpenAPI + TS client | `make api` (= `cargo run -p eq-server -- openapi > web/openapi.json && pnpm -C web gen:api`) |
 | Web checks | `pnpm -C web lint && pnpm -C web typecheck && pnpm -C web test && pnpm -C web i18n:check` |
 | E2E | `make e2e` |
-| Guard scripts | `scripts/check-deps.sh && scripts/check-literals.sh` |
+| Guard scripts | `scripts/check-deps.sh && scripts/check-literals.sh && scripts/check-web-boundaries.sh` |
 
 ## 4. Non-negotiable engineering rules
 
@@ -64,6 +64,8 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 10. **Don't touch** `spec/`, `brand/`, `legacy/` or other tasks' files, except the INDEX row and your own task file.
 
 ## 5. Style
+
+**The full code-quality standard is `spec/16-code-quality.md` (CQ-\*).** It applies to every task even when the task doesn't cite it, and its §12 Definition of done is added to every task's own list. Lint exceptions use `#[expect(lint, reason = "…")]` only, never `#[allow]`. The summary:
 
 - Rust: edition 2024, `thiserror` for library errors, `anyhow` only in binaries and jobs, no `unwrap()`/`expect()` outside tests and startup, and modules laid out per `spec/02-architecture.md` §3. Doc comments on public items cite spec IDs (`/// SCH-03: …`).
 - SQL: snake_case, explicit column lists, no `SELECT *` in app code.

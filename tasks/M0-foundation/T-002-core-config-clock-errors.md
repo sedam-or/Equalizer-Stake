@@ -4,7 +4,7 @@ title: Add config loading, the Clock abstraction and AppError → problem+json i
 milestone: M0
 status: todo
 depends_on: [T-001]
-spec_refs: [OPS-01, ARC-10, ARC-12, API-04]
+spec_refs: [CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04]
 estimated_size: M
 ---
 
@@ -113,6 +113,7 @@ Body fields: `type`, `title` (human title per code, English), `status`, `code`, 
 None (technical only).
 
 ## Implementation notes
+- CQ-21 forbids `chrono::Utc::now` and `std::env::var` workspace-wide. `SystemClock::now` is the one allowed caller of `Utc::now`: annotate it with `#[expect(clippy::disallowed_methods, reason = "ARC-10: SystemClock is the only wall-clock reader")]`. Config loading uses figment/envy; if you call `std::env::var` directly, do it only inside `eq_core::config` with the same kind of `#[expect]`.
 - Decode `RITMA_SECRET_KEY` as standard or URL-safe base64. If it decodes to < 32 bytes → `Invalid`.
 - `RITMA_PUBLIC_URL` must parse as http(s). A trailing slash is normalised away.
 - Wrap `Config::from_env` around a `fn from_map(HashMap<String,String>)` so tests don't touch the process env.

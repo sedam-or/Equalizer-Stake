@@ -9,4 +9,5 @@ Task / spec: <!-- e.g. T-212, SCH-03 -->
 - [ ] OpenAPI and TS client regenerated if the API changed (`make api`)
 - [ ] Migrations are forward-only, and `sqlx prepare` was run
 - [ ] Docs updated for user-visible changes
+- [ ] Follows `spec/16-code-quality.md`; any `#[expect]` / `biome-ignore` has a reason; PR ≤ ~400 changed lines (excl. generated)
 - [ ] Commits signed off (`-s`), Conventional Commit messages
