@@ -31,6 +31,8 @@ This folder is the **single source of truth** for v2. It defines *what* and *why
 | — | `modules/*.md` | One spec per module (identity, scheduling, enrollment, rental, billing, attendance, notify, audit, reports, feedback) |
 | — | `adr/*.md` | Architecture Decision Records |
 
+The execution procedure for tasks (pick, claim, implement, verify, report, block, review) is [`/WORKFLOW.md`](../WORKFLOW.md).
+
 Business and OSS docs live outside `spec/`: `brand/BRAND.md`, `brand/GTM.md`, `brand/GITHUB.md`, and the governance files at the repo root.
 
 ## 2. Requirement ID scheme

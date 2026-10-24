@@ -23,7 +23,7 @@
 
 ## Kontribusi
 
-Tambahkan template untuk jenis sekolah Anda **cukup dengan YAML, tanpa Rust**, bantu terjemahan, atau ambil issue `good first issue`. Lihat [CONTRIBUTING.md](CONTRIBUTING.md).
+Tambahkan template untuk jenis sekolah Anda **cukup dengan YAML, tanpa Rust**, bantu terjemahan, atau ambil issue `good first issue`. Lihat [CONTRIBUTING.md](CONTRIBUTING.md). Pekerjaan dipecah menjadi task kecil yang dikerjakan satu per satu ([WORKFLOW.md](WORKFLOW.md)).
 
 ## Lisensi
 

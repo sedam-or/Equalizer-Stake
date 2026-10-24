@@ -8,18 +8,21 @@ The architecture is already decided. **Your job is to implement tasks exactly as
 **Work only from a task file: `tasks/<milestone>/T-xxx-*.md`.** Each task is self-contained. It inlines the spec excerpts, interfaces, business rules and tests you need.
 - Don't start work that has no task file.
 - Don't implement beyond the task's **Scope → In**. Its **Scope → Out** is a hard boundary.
-- If a task is ambiguous, contradicts the code or the spec, or needs a decision: **stop**. Write your question under `## Questions` in the task file, set `status: blocked`, update `tasks/INDEX.md`, and end your turn. Never guess on business rules, money, security or schema.
+- If a task is ambiguous, contradicts the code or the spec, or needs a decision: **stop and block** following `WORKFLOW.md` §4. Never guess on business rules, money, security or schema.
 
 ## 1. How to pick and run a task
 
-1. Open `tasks/INDEX.md`. Pick the **lowest-ID** task with `status: todo` whose `depends_on` tasks are **all `done`**.
-2. In the task file's frontmatter, set `status: in_progress`, and update the row in `tasks/INDEX.md`.
-3. Read the whole task file. Read only the `spec/` sections it references, and only if the inlined context isn't enough.
-4. Implement. Write the tests listed in **Tests to write**, with the exact names given.
-5. Run every check in **Definition of done** and fix until they're all green.
-6. Fill in `## Report` (what changed, files, deviations and why, follow-ups). Set `status: review` in the frontmatter and in INDEX.md.
-7. Commit (one task = one commit, or one PR if large): `<type>(<scope>): <task title> [T-xxx]`. Add `Signed-off-by` (`git commit -s`).
-8. Stop. A human reviews and sets `done`.
+**Follow `WORKFLOW.md` exactly. It's the standard procedure for every task.** In short:
+
+1. **Preflight:** clean tree, `scripts/tasks-index.sh --check`, and no other task `in_progress` (WIP = 1).
+2. **Pick:** a `changes_requested` task first, otherwise the lowest-ID `todo` whose `depends_on` are all `done`.
+3. **Claim:** branch `task/T-xxx-<slug>`, set `status: in_progress` in the frontmatter, run `scripts/tasks-index.sh`. Never hand-edit `INDEX.md`.
+4. **Understand:** read the whole task, write a short Plan in `## Report`, or block (§4 of WORKFLOW).
+5. **Implement** only Scope → In, with every listed test under its exact name.
+6. **Verify:** every DoD check plus a self-review. Never tick a check you didn't run.
+7. **Report:** use the WORKFLOW §3 Step 6 structure, set `status: review`, regenerate the index.
+8. **Commit** once, signed off: `<type>(<scope>): <task title> [T-xxx]`.
+9. **Stop.** One task per session. A human reviews and sets `done`.
 
 ## 2. Repository map
 
@@ -61,7 +64,7 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 7. **API:** every handler has `#[utoipa::path]`, errors are `problem+json` with stable `code`s, mutations of versioned aggregates need `If-Match`, and money and booking creation accept `Idempotency-Key`.
 8. **UI:** no raw hex or Tailwind palette colours, only semantic tokens. Every string goes through i18n (`en` + `id`). Terminology goes through `t('term.*')`. Every list has empty, loading and error states. Meet WCAG 2.2 AA.
 9. **Tests are part of the task.** A task without its listed tests passing isn't done.
-10. **Don't touch** `spec/`, `brand/`, `legacy/` or other tasks' files, except the INDEX row and your own task file.
+10. **Don't touch** `spec/`, `brand/`, `legacy/` or other tasks' files. Exceptions: your own task file, and `tasks/INDEX.md` via `scripts/tasks-index.sh`.
 
 ## 5. Style
 

@@ -377,6 +377,7 @@ Path alias `@/` → `src/`. Use relative imports only within the same folder.
   - **`nit:`** optional;
   - **`question:`** needs an answer before approval.
 - Reviewers use the checklist in §9. "LGTM" without having read the diff isn't a review.
+- The review procedure, including the `## Review` section, `changes_requested` and the squash-merge that sets `done`, is `WORKFLOW.md` §5.
 
 ## 9. Review checklist (copy into reviews when useful)
 

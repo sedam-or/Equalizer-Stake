@@ -52,7 +52,7 @@ Architecture and decisions: [`spec/`](spec/00-index.md) · [ADRs](spec/adr/).
 ## Contributing
 
 Add a template for your kind of school **in YAML, no Rust needed**, translate, or pick a `good first issue`.
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [GOVERNANCE.md](GOVERNANCE.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [GOVERNANCE.md](GOVERNANCE.md). Work is split into small task files executed one at a time ([WORKFLOW.md](WORKFLOW.md)).
 
 ## Story
 

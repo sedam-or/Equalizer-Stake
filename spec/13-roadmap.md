@@ -1,6 +1,6 @@
 # 13 — Roadmap → tasks
 
-The milestone overview for humans is in `/ROADMAP.md`. The executable plan is `tasks/INDEX.md` (generated from task frontmatter by `scripts/tasks-index.sh`).
+The milestone overview for humans is in `/ROADMAP.md`. The executable plan is `tasks/INDEX.md` (generated from task frontmatter by `scripts/tasks-index.sh`). Tasks are executed one at a time following `/WORKFLOW.md`. A milestone's drafts are promoted only after the previous milestone's integration task is `done` (WORKFLOW §6).
 
 | Milestone | Exit criterion (proved by its integration task) |
 |---|---|

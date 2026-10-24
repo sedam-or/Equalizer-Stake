@@ -216,6 +216,7 @@ The layers in spec 17 line up with these boundaries:
 **SBD-80. Security review.**
 - A PR whose task has triggers (SBD-30), or that touches a path owned by `@security` in CODEOWNERS, gets the `security-review` label.
 - It needs approval from a maintainer with the **Security** area in `MAINTAINERS.md`. The author can't approve their own security review.
+- The reviewer records findings in the task's `## Review` section (`WORKFLOW.md` §5).
 
 **SBD-81. Security review checklist** (in addition to `16-code-quality.md` §9):
 1. **Auth chain:** auth mode declared, `require(perm)` before data access, scope in SQL, 404 versus 403 correct (SBD-40/41).

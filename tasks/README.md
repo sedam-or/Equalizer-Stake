@@ -2,8 +2,8 @@
 
 - **Who writes tasks:** the architect (spec owner). **Who implements:** Codex or human contributors.
 - **Format:** [`_TEMPLATE.md`](_TEMPLATE.md). Every task is self-contained: it inlines the spec context, interfaces, rules and tests.
-- **Order:** [`INDEX.md`](INDEX.md). Pick the lowest-ID `todo` task whose dependencies are all `done`. The full loop is in `/AGENTS.md` §1.
-- **Statuses:** `todo` → `in_progress` → `review` → `done`. `blocked` (see the task's Questions). `draft` = written, but may be revised after earlier milestones; don't start it until it is promoted to `todo`.
+- **Order:** [`INDEX.md`](INDEX.md). Pick the lowest-ID `todo` task whose dependencies are all `done`. The full procedure (pick, claim, implement, verify, report, block, review) is in [`/WORKFLOW.md`](../WORKFLOW.md).
+- **Statuses:** `draft` → `todo` → `in_progress` → `review` → `done`, plus `blocked` (see the task's Questions) and `changes_requested` (see the task's `## Review`). `draft` = written, but may be revised after earlier milestones; don't start it until it is promoted to `todo`. At most **one** task is `in_progress` (WIP = 1, checked by `scripts/tasks-index.sh --check`).
 - **Size:** S < 150 LOC, M < 400 LOC (excluding generated code and tests). L tasks are split before starting.
 - **Security sections:** a task that hits a security trigger (spec/18 SBD-30) has a `## Security` section (threats, controls, abuse-case tests). A `draft` task with triggers is promoted to `todo` only once that section is written.
 - **Each milestone ends with an integration task** (the last ID in the milestone, titled "Mx integration") that proves the milestone end to end.

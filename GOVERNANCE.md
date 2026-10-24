@@ -27,7 +27,7 @@ RFCs stay open for comments for at least **7 days**, are labelled `rfc`, and are
 |---|---|
 | Contributor | Open issues and PRs, take part in discussions and RFCs |
 | Triager | Label, close duplicates, ask for repros |
-| Maintainer | Review, merge, release, own areas in CODEOWNERS |
+| Maintainer | Review, merge, release, own areas in CODEOWNERS. Task reviews follow `WORKFLOW.md` §5 |
 
 ## Trademark
 

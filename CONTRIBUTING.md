@@ -36,7 +36,7 @@ make e2e           # Playwright against a release build
 
 1. Find or open an issue. For anything non-trivial, comment first so we can agree on the approach.
 2. Branch from `main`: `feat/<short-name>`, `fix/<short-name>`, `docs/<short-name>`.
-3. Make your change with tests. Follow the task file's Definition of Done if there is one.
+3. Make your change with tests. If you're working from a task file, follow [`WORKFLOW.md`](WORKFLOW.md) (claim, plan, verify, report) and the task's Definition of Done.
 4. Commit using [Conventional Commits](https://www.conventionalcommits.org), and reference the task or spec IDs, e.g.
    `feat(billing): apply late fee from snapshotted terms [T-412, BIL-06]`
 5. Sign off every commit (DCO): `git commit -s`. Sign the CLA once when the bot asks (see "License" below).
