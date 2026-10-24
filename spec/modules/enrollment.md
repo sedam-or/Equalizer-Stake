@@ -65,7 +65,7 @@ Legacy reference: `v0-capstone:srs/09-multi-student.md`, the addendum §3, §6, 
 | Method | Path | Perm |
 |---|---|---|
 | POST | `/public/registrations` (multipart) | none (ENR-03) |
-| GET | `/registrations?status=` / GET `/registrations/{id}` | `enrollment.registration.read` |
+| GET | `/registrations?status=` / GET `/registrations/{id}` | `enrollment.registration.read`; the applicant's name, contact and documents are `null` unless the caller also has `enrollment.registration.read_pii` (same convention as `identity.people.read_pii`, D-62) |
 | POST | `/registrations/{id}/approve` `{students:[{index, offering_id, level_id?, series_id \| new_series, starts_on}], link_guardian_id?, send_invite}` | `enrollment.registration.write` |
 | POST | `/registrations/{id}/reject` `{reason, notify}` | same |
 | POST | `/registrations/{id}/trial` `{student_index, starts_at, resource_id, instructor_id}` | same |
@@ -83,6 +83,7 @@ Legacy reference: `v0-capstone:srs/09-multi-student.md`, the addendum §3, §6, 
 | Permission | owner | admin | instructor | guardian | student |
 |---|---|---|---|---|---|
 | enrollment.registration.read/write | read | ✅ | — | — | — |
+| enrollment.registration.read_pii | ✅ | ✅ | — | — | — |
 | enrollment.read | ✅ | ✅ | own students | linked | own |
 | enrollment.write | — | ✅ | — | — | — |
 | enrollment.leave.request | — | ✅ | — | linked | own (if payer) |

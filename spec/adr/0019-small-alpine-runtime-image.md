@@ -1,6 +1,6 @@
 # ADR-0019: A digest-pinned Alpine runtime image with the PostgreSQL client
 
-- Status: Proposed (2026-10-25), accepted on merge of the PR that adds `spec/26-containers-and-caching.md`. Supersedes the "distroless" wording in DST-05 and OSS §4.
+- Status: **Accepted** (2026-10-25). Supersedes the "distroless" wording in DST-05 and OSS §4.
 
 ## Context
 The `ritma` binary is a static musl build with the SPA, migrations and presets embedded. The image also needs `pg_dump`/`pg_restore` for `ritma backup` (OPS-05). DST-05 asked for `gcr.io/distroless/static` plus a static `pg_dump`, with Alpine as the fallback.

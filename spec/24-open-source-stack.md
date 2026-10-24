@@ -152,7 +152,7 @@ Rejected for the product (OSS-05): Keycloak / Ory / Zitadel (auth server), Redis
 | `security.yml` | daily, manual | `cargo audit`, `pnpm audit --prod`, OSV-Scanner on lockfiles |
 | `scorecard.yml` | weekly, push to `main` | OpenSSF Scorecard → code scanning |
 | `release-please.yml` | push to `main` | release PR + tag once the Cargo workspace exists |
-| `release.yml` | tag `v*` (from release-please), manual dry run | static binaries (linux amd64/arm64 musl, macOS, Windows), multi-arch distroless image to GHCR, SBOM, Trivy, cosign signatures, provenance attestation, checksums, assets on the GitHub Release |
+| `release.yml` | tag `v*` (from release-please), manual dry run | static binaries (linux amd64/arm64 musl, macOS, Windows), multi-arch Alpine-based image (ADR-0019) to GHCR, SBOM, Trivy, cosign signatures, provenance attestation, checksums, assets on the GitHub Release |
 
 **OSS-21. Progressive activation.** The repository starts with specs only. Each job checks for its inputs (`Cargo.toml`, `web/package.json`, `web/openapi.json`, `web/e2e/`, guard scripts) in the `detect` job and **skips cleanly** when they don't exist yet, so `ci-ok` is green on a docs-only repo and becomes stricter automatically as T-001, T-005, T-006, T-114 and T-008 land. A skipped job is reported as skipped, never as passed silently: `ci-ok` fails if any job that *ran* failed or was cancelled.
 

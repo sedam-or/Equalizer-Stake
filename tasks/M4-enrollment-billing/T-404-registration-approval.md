@@ -20,7 +20,7 @@ One click approves a family: guardian and students are created or matched, enrol
 
 ## Scope
 ### In
-- `POST /registrations/{id}/approve|reject`, list and detail for admins (decrypted applicant for `enrollment.registration.read_pii`), auto-approval path
+- `POST /registrations/{id}/approve|reject`, list and detail for admins (decrypted applicant only for `enrollment.registration.read_pii`, granted to owner and admin, `null` for everyone else; D-62, spec 25 §6), auto-approval path
 
 ### Out
 - UI (T-417)

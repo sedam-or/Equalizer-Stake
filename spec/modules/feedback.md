@@ -21,15 +21,28 @@ Legacy reference: `v0-capstone:srs/99-addendum-business-rules.md` §13–14, `ba
   - With `anonymous_to_instructor`, instructors see averages and comments but never rater identities. Admins see everything.
 - **FBK-04. Moderation.** Admins can hide a rating comment (`hidden_at`, reason, audited). The stars still count. *(Add the columns `hidden_at`, `hidden_reason` to `instructor_ratings`.)*
 
-## 2. API
+## 2. Permissions and API
+
+| Permission | owner | admin | instructor | guardian | student |
+|---|---|---|---|---|---|
+| feedback.read | ✅ | ✅ | own | linked | own |
+| feedback.notes.write | — | — | own students | — | — |
+| feedback.notes.publish | — | ✅ | — | — | — |
+| feedback.ratings.write | — | — | — | linked | own (adult) |
+| feedback.ratings.moderate | — | ✅ | — | — | — |
+
+`feedback.read` only opens the endpoints. What each caller sees is decided by the FBK-02 visibility rules and the FBK-03 anonymity rule, and anything outside them is `404`. An instructor withdraws their own note with `feedback.notes.write` (FBK-01, 24 h); `feedback.notes.publish` is the admin's publish and withdraw. Eligibility to write a note or a rating (FBK-01, FBK-03) is a rule checked in the domain on top of the permission (D-63).
 
 | Method | Path | Perm |
 |---|---|---|
-| GET/POST | `/students/{id}/notes`; POST `/notes/{id}/publish` \| `/withdraw` | instructor (own students) / admin / guardian read |
-| GET | `/me/feedback` (guardian: notes for their students; instructor: own notes + rating summary) | any |
-| POST | `/instructors/{id}/ratings` | guardian / adult student |
-| GET | `/instructors/{id}/ratings?cursor` | staff (identities), instructor (anonymised) |
-| POST | `/ratings/{id}/hide` | admin |
+| GET | `/students/{id}/notes` | `feedback.read` |
+| POST | `/students/{id}/notes` | `feedback.notes.write` |
+| POST | `/notes/{id}/publish` | `feedback.notes.publish` |
+| POST | `/notes/{id}/withdraw` | `feedback.notes.write` (author, within 24 h) or `feedback.notes.publish` |
+| GET | `/me/feedback` (guardian: notes for their students; instructor: own notes + rating summary) | `feedback.read` |
+| POST | `/instructors/{id}/ratings` | `feedback.ratings.write` |
+| GET | `/instructors/{id}/ratings?cursor` | `feedback.read` (identities for staff, anonymised for the instructor) |
+| POST | `/ratings/{id}/hide` | `feedback.ratings.moderate` |
 
 ## 3. Acceptance criteria
 

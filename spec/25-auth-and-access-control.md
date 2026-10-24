@@ -196,7 +196,7 @@ Legend: ✅ granted (scope `All`) · `own` / `linked` / `self` = granted with th
 | **enrollment** | | | | | | |
 | `enrollment.registration.read` | read | ✅ | — | — | — | enrollment §3 |
 | `enrollment.registration.write` | — | ✅ | — | — | — | enrollment §3 |
-| `enrollment.registration.read_pii` | (open, §9 D-62) | ✅ | — | — | — | T-404 |
+| `enrollment.registration.read_pii` | ✅ | ✅ | — | — | — | enrollment §3 (D-62) |
 | `enrollment.read` | ✅ | ✅ | own students | linked | own | enrollment §3 |
 | `enrollment.write` | — | ✅ | — | — | — | enrollment §3 |
 | `enrollment.leave.request` | — | ✅ | — | linked | own, if payer | enrollment §3 |
@@ -225,7 +225,12 @@ Legend: ✅ granted (scope `All`) · `own` / `linked` / `self` = granted with th
 | `notify.log.read` | ✅ | ✅ | — | — | — | notify §3 |
 | **reports** | | | | | | |
 | `reports.revenue.read` | ✅ | — (grantable) | — | — | — | RPT-06 |
-| **feedback** | role rules in FBK §2; no permission keys declared yet (§9 D-63) | | | | | |
+| **feedback** | | | | | | |
+| `feedback.read` | ✅ | ✅ | own | linked | own | feedback §2 (D-63) |
+| `feedback.notes.write` | — | — | own students | — | — | feedback §2 |
+| `feedback.notes.publish` | — | ✅ | — | — | — | feedback §2 |
+| `feedback.ratings.write` | — | — | — | linked | own (adult) | feedback §2 |
+| `feedback.ratings.moderate` | — | ✅ | — | — | — | feedback §2 |
 
 Rules the matrix can't show:
 - **Owner override actions** (unfreeze, cancel a paid invoice, revert a session) require a reason and are audited in category `compliance` (IDN-11, BIL-08/09).
@@ -262,7 +267,7 @@ Rules the matrix can't show:
 
 | ID | Decision or open point | Status |
 |---|---|---|
-| D-62 | `enrollment.registration.read_pii` (T-404) has no row in `modules/enrollment.md` §3. Proposed grant: admin ✅, owner read. | **Open**, needs the enrollment spec updated before T-404 is promoted |
-| D-63 | Feedback actions are defined by role in FBK §2 but have no permission keys. Proposed keys `feedback.notes.write`, `feedback.notes.publish`, `feedback.ratings.write`, `feedback.ratings.moderate` with the FBK grants. | **Open**, needs `modules/feedback.md` before T-608 is promoted |
+| D-62 | `enrollment.registration.read_pii` (T-404) is granted to **owner and admin**, the same roles as `identity.people.read_pii` among staff: the owner is the data controller and sees applicants like any person, while instructors, guardians and students never see applicant PII. Without it the applicant fields are `null`. Added to `modules/enrollment.md` §2 and §3. | **Decided** 2026-10-25 |
+| D-63 | Feedback gets five keys: `feedback.read` (everyone, scoped by FBK-02/03), `feedback.notes.write` (instructor, own students), `feedback.notes.publish` (admin), `feedback.ratings.write` (guardian, adult student), `feedback.ratings.moderate` (admin). A `read` key was added to the four first proposed so that every handler checks a permission (AGENTS §4.6). Added to `modules/feedback.md` §2. | **Decided** 2026-10-25 |
 | D-64 | Privacy endpoints (AUD-10/11) are defined by requester relationship (self, guardian, staff), not by keys. Kept as relationship rules; T-609/T-610 test them in the role matrix. | Recorded |
 | D-65 | Token verification timings come from T-110: 30 s `exp` leeway, `ver` cache 60 s, permission-set cache 30 s. A deactivated person can act for at most 30 s; accepted as a technical constant. | Recorded |

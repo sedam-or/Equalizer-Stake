@@ -15,6 +15,7 @@ Teachers share progress with families, and families rate lessons fairly, under t
 
 ## Context
 - `spec/modules/feedback.md` FBK-01..04 and module ACs 1–4; DDL §4.10 + rating hidden columns (§4.11); `FeedbackPolicy` §6.11.
+- Permissions (D-63, `feedback.md` §2, spec 25 §6): `feedback.read`, `feedback.notes.write`, `feedback.notes.publish`, `feedback.ratings.write`, `feedback.ratings.moderate`, declared through `PermissionDef` with the role grants in that table. The module's `PermissionDef`s must match the spec 25 matrix test (`rbac_matrix_matches_spec`, T-113).
 
 ## Scope
 ### In
