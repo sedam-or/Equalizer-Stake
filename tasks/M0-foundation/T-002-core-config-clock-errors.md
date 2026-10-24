@@ -2,7 +2,7 @@
 id: T-002
 title: Add config loading, the Clock abstraction and AppError → problem+json in eq-core
 milestone: M0
-status: todo
+status: blocked
 depends_on: [T-001]
 spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04, VAL-03, CAN-24]
 estimated_size: M
@@ -149,4 +149,65 @@ None (technical only).
 
 ## Report
 
+**Plan** — Pending the security-interface decision in Q1:
+1. Add `config.rs` with `Config`, `Mode`, `FilesBackend`, `LogFormat`, map-based parsing, env loading, and the listed config tests → verify each exact config test.
+2. Add `clock.rs` with `Clock`, `SystemClock`, and test-only `ManualClock` → verify `manual_clock_advances` and the wall-clock lint exception.
+3. Add `error.rs` with the core code registry, `AppError`, `FieldError`, `Problem`, and response mapping → verify each exact error test and response headers/body.
+4. Wire modules and dependencies in `lib.rs` and `eq-core/Cargo.toml` → verify Cargo metadata and dependency guards.
+5. Run the task's Rust, local runtime, and repository checks → record only checks actually run.
+
+**Assumptions** — Use Figment for environment configuration because `spec/24-open-source-stack.md` OSS-04 selects it for OPS-01. No security or field-classification assumptions are made; Q1 blocks implementation until the secret-bearing `Config` contract is resolved.
+
+**Test plan** —
+- AC1: Given a config map without `DATABASE_URL`, when `from_map` parses it, then it returns `Missing("DATABASE_URL")` → `config::tests::missing_database_url`.
+- AC2: Given a 16-byte decoded secret key, when `from_map` parses it, then it returns `Invalid` for `RITMA_SECRET_KEY` → `config::tests::short_secret_rejected`.
+- AC3: Given valid required inputs and omitted optional values, when defaults are applied, then listen, mode, and backup retention match the stated defaults → `config::tests::defaults`.
+- AC4: Given a conflict error with code `slot_taken`, when rendered, then status, type URI, code, and flattened extensions match the problem contract → `error::tests::conflict_problem_json`.
+- AC5: Given an internal error containing a private message, when rendered, then the response is generic and does not expose the inner message → `error::tests::internal_hides_detail`.
+- AC6: Given a manual clock, when advanced by a duration, then `now()` reflects the advance → `clock::tests::manual_clock_advances`.
+- Additional exact tests: `config::tests::unknown_vars_reported`; `error::tests::rate_limited_sets_retry_after`; `error::tests::validation_lists_errors`; `error::tests::unavailable_sets_retry_after`; `error::tests::core_codes_valid_and_unique`.
+- Edge cases: required and optional env values; missing/empty values; 31-byte and 32-byte decoded keys; standard and URL-safe base64; URL scheme validation and trailing slash normalization; unknown `RITMA_*` variables; absent request ID; empty/non-empty validation errors; retry-after values.
+- Error cases: config `Missing` and `Invalid`; problem mappings for every listed `AppError` variant; internal detail hiding; SQL `RowNotFound`, pool timeout, and other SQL errors.
+- Abuse case pending Q1: format a config populated with obviously fake credentials/tokens and assert its `Debug` output contains none of those values (`config_debug_redacts_secrets`).
+
+**Step 0 — Start** — `scripts/tasks-index.sh --check` passed; T-002 was the lowest eligible task under the run instruction that treats T-001 `review` as satisfied. Claimed on `task/T-002-core-config-clock-errors`; only this task file and generated `tasks/INDEX.md` are changed.
+**Step 1 — Task/spec** — Read the full T-002 task. It introduces S3 configuration values and a key, but does not classify them or specify SBD-50-compliant wrappers/redaction for the declared `Config` interface.
+**Step 2 — Dependencies** — Read T-001's Report and inspected its shipped workspace/manifests. T-001 supplies the workspace and `eq-core` scaffold; no dependency deviation prevents T-002. T-001 is `review`, accepted for ordering by the run instruction.
+**Step 3 — Design reference** — n/a; no UI work.
+**Step 4 — Plan and test plan** — Recorded above. Blocked before implementation under `WORKFLOW.md` §4 because the task's interface conflicts with SBD-10/SBD-50.
+**Steps 5–11** — Not run because Step 4 requires blocking before implementation. No code, runtime, debug loop, self-review, optimization, or implementation security audit was performed. Step 11 verification is limited to the task index and diff hygiene checks recorded below.
+
+**Summary** — No implementation or tests were added. T-002 requires `Config` to derive plain `Debug` while holding key material and fields that can contain credentials or tokens; SBD-50 requires S3 values to use redacting, zeroizing secret wrappers and prohibits plain `Debug` on a struct holding secrets. SBD-10 also requires those fields to be classified and their protection specified, so the public field contract needs an explicit resolution before code can be written safely.
+
+**Spec read** — `spec/16-code-quality.md` CQ-21, CQ-22, §12; `spec/17-clean-architecture.md` §1 and §4; `spec/18-security-by-design.md` §2, §4, §5.3; `spec/19-error-handling.md` §10; `spec/24-open-source-stack.md` OSS-04.
+
+**Files** —
+- Modified `tasks/M0-foundation/T-002-core-config-clock-errors.md` with this report, Q1, and `status: blocked`.
+- Regenerated `tasks/INDEX.md` with `scripts/tasks-index.sh`.
+
+**Acceptance criteria → tests** —
+| AC | Test | Result |
+|---|---|---|
+| AC1 | `config::tests::missing_database_url` | Not run: blocked before implementation. |
+| AC2 | `config::tests::short_secret_rejected` | Not run: blocked before implementation. |
+| AC3 | `config::tests::defaults` | Not run: blocked before implementation. |
+| AC4 | `error::tests::conflict_problem_json` | Not run: blocked before implementation. |
+| AC5 | `error::tests::internal_hides_detail` | Not run: blocked before implementation. |
+| AC6 | `clock::tests::manual_clock_advances` | Not run: blocked before implementation. |
+
+**Checks run** — `scripts/tasks-index.sh --check` passed before claiming and after the blocked status was generated. `git diff --check` passed. Rust tests, format, clippy, build, `make dev`, web checks, API generation, and SQLx preparation were not run because the security interface is unresolved and no implementation was written. `gitleaks` is unavailable locally.
+
+**Manual checks** — Not run; implementation is blocked.
+**Debug log** — None; no implementation failure occurred.
+**Performance** — n/a; no runtime path was added.
+**Security** — Triggers T3 (reads S3 values) and T4 (handles key material and tokens) apply. SBD-10 requires field classification and protection; SBD-50 requires S3 values in redacting, zeroizing secret wrappers and forbids plain `Debug` on a struct holding secrets. No abuse-case test or SBD-81 implementation audit was run because the required interface decision is unresolved. Q1 records the control needed before implementation.
+**Deviations** — None; implementation has not started.
+**Dependencies affected** — T-003 and later tasks depending on T-002 cannot start until this task is resolved and completed.
+**Rollback plan** — Revert the task-block commit; it changes only the task report/status and generated index.
+**Follow-ups** — Resolve Q1, update the task interface and security acceptance criteria, then restart T-002 from its task branch procedure.
+
 ## Questions
+- **Q1 (blocking):** May T-002 amend the `Config` interface so every S3 value (including keys, setup/metrics tokens, captcha secrets, and any credential-bearing database/SMTP URLs) uses `secrecy::SecretString`/`SecretBox`, with a custom redacted `Debug` implementation and an abuse-case test proving the formatted output omits fake secret values?
+  - Context: T-002 lines 63–71 require `#[derive(Debug, Clone)]` and plain `String` fields for values that can hold credentials or tokens. `spec/18-security-by-design.md` SBD-10 requires S3 field classification/protection, and SBD-50 requires redacting, zeroizing wrappers and prohibits plain `Debug` on a struct holding secrets.
+  - Options: (a) amend the interface as stated above and classify each S3 field; (b) define a different explicit secret-bearing `Config` shape that meets SBD-10/SBD-50 and update the task tests/interfaces to match.
+  - Recommendation: (a), because it keeps the current `Config` layout while changing only the sensitive field types and debug behavior needed to meet the security spec.
