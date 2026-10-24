@@ -145,7 +145,7 @@ JSON
 
 ## 8. CI on branches
 
-- `ci.yml` runs on every pull request (any base) and on pushes to `main` and `release/**`. `ci-ok` is the only required check, so adding a job never requires changing the ruleset.
+- `ci.yml` runs on every pull request (any base, so PRs into `release/**` get the same checks) and on pushes to `main`. It deliberately has no push trigger for `release/**`: zizmor flags cache use in a workflow that looks like it publishes, and a maintenance branch only changes through PRs. `ci-ok` is the only required check, so adding a job never requires changing the ruleset.
 - `release-please.yml` runs on pushes to `main`, and manually for maintenance branches.
 - Workflows never run with write permissions on pull requests from forks (`pull_request`, not `pull_request_target`; spec 24 OSS §6).
 
