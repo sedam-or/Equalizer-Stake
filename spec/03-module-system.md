@@ -213,7 +213,7 @@ Payloads are the minimum needed to act. Consumers re-read state through ports if
 
 1. Write an RFC in `rfcs/` (GOVERNANCE.md). A new `ModuleId` is a public-API change.
 2. Add a variant to `ModuleId` and a row to the dependency table in this doc.
-3. Create `crates/eq-<name>` with the layout in 02 §3, and implement `Module`.
+3. Create `crates/eq-<name>` with the layout in 02 §3, and implement `Module`. Follow `17-clean-architecture.md`: own tables only, talk to other modules via events/ports, and keep the public surface minimal.
 4. Add the migration(s) to `migrations/` with the `<name>` tag in the filename.
 5. Add a Cargo feature to `eq-api` and `eq-server` (default-on), and the registry entry.
 6. Add the policy struct with defaults, validate, summarize and i18n keys (`en`, `id`).

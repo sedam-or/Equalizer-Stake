@@ -1,7 +1,7 @@
 # Module: reports (optional)
 
 Purpose: the owner/admin dashboard and printable reports. It adapts to whichever modules are enabled.
-Policy: `ReportsPolicy` (04 §6.10). No tables of its own in v1. It reads through ports and read-only SQL views.
+Policy: `ReportsPolicy` (04 §6.10). No tables of its own in v1. It reads through ports and read-only SQL views named `rv_<owner>_<name>`, which the owning module creates and documents as a public contract (spec 17 CA-30).
 Legacy reference: `v0-capstone:srs/06-reporting.md`, `backend/app/services/reports.py`.
 
 ## 1. Rules

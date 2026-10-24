@@ -48,7 +48,7 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 | OpenAPI + TS client | `make api` (= `cargo run -p eq-server -- openapi > web/openapi.json && pnpm -C web gen:api`) |
 | Web checks | `pnpm -C web lint && pnpm -C web typecheck && pnpm -C web test && pnpm -C web i18n:check` |
 | E2E | `make e2e` |
-| Guard scripts | `scripts/check-deps.sh && scripts/check-literals.sh && scripts/check-web-boundaries.sh` |
+| Guard scripts | `scripts/check-deps.sh && scripts/check-literals.sh && scripts/check-web-boundaries.sh && scripts/check-layers.sh` |
 
 ## 4. Non-negotiable engineering rules
 
@@ -65,7 +65,7 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 
 ## 5. Style
 
-**The full code-quality standard is `spec/16-code-quality.md` (CQ-\*).** It applies to every task even when the task doesn't cite it, and its §12 Definition of done is added to every task's own list. Lint exceptions use `#[expect(lint, reason = "…")]` only, never `#[allow]`. The summary:
+**The full code-quality standard is `spec/16-code-quality.md` (CQ-\*), and the architecture rules are `spec/17-clean-architecture.md` (CA-\*): business decisions only in pure `domain/`, services as recipes, SQL only in `repo.rs` on the module's own tables, cross-module only via events/ports.** It applies to every task even when the task doesn't cite it, and its §12 Definition of done is added to every task's own list. Lint exceptions use `#[expect(lint, reason = "…")]` only, never `#[allow]`. The summary:
 
 - Rust: edition 2024, `thiserror` for library errors, `anyhow` only in binaries and jobs, no `unwrap()`/`expect()` outside tests and startup, and modules laid out per `spec/02-architecture.md` §3. Doc comments on public items cite spec IDs (`/// SCH-03: …`).
 - SQL: snake_case, explicit column lists, no `SELECT *` in app code.

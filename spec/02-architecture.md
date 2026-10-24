@@ -92,6 +92,8 @@ crates/eq-billing/
     └── perms.rs        # permission constants
 ```
 
+Layer rules, module boundaries and table ownership for this layout are in `17-clean-architecture.md` (CA-\*).
+
 **ARC-03.** The `domain/` code is pure: no `sqlx`, no `axum`, no clock reads. Time comes in as a parameter (`now: Timestamp`), so the logic is deterministic and testable.
 
 ## 4. Request lifecycle

@@ -16,7 +16,7 @@ There's a way to help at every skill level. Pick the one that suits you:
 - Be kind. Read the [Code of Conduct](CODE_OF_CONDUCT.md).
 - **Security issues:** never open a public issue. See [SECURITY.md](SECURITY.md).
 - **Specs come first.** Behaviour is defined in `spec/`, and work is broken into `tasks/**/T-*.md`. If code and spec disagree, the spec wins. To change the spec, open a PR to `spec/` (and an RFC for big changes).
-- **Code quality:** follow [`spec/16-code-quality.md`](spec/16-code-quality.md): lints, layering, naming, tests, PR size (≤ ~400 lines) and the review checklist. CI enforces most of it.
+- **Code quality:** follow [`spec/16-code-quality.md`](spec/16-code-quality.md): lints, layering, naming, tests, PR size (≤ ~400 lines) and the review checklist. CI enforces most of it. Architecture rules (layers, module boundaries) are in [`spec/17-clean-architecture.md`](spec/17-clean-architecture.md).
 - **Never hard-code a business value** (a fee, a day of the month, opening hours, a radius, a timezone, a currency). Add a policy field instead (`spec/04-policy-engine.md`). CI checks this.
 
 ## Development setup

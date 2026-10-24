@@ -14,7 +14,7 @@ estimated_size: M
 Owners see the health of their school at a glance, computed from live data, showing only what their enabled modules can support.
 
 ## Context
-- `spec/modules/reports.md`: the widget catalog with `requires` modules, aggregates-only revenue (RPT-02), per-widget endpoint cached 60 s (RPT-03), access (RPT-06), `min_sessions_for_rate` marking (module AC2), utilisation formula (AC3).
+- `spec/modules/reports.md`: the widget catalog with `requires` modules, aggregates-only revenue (RPT-02), per-widget endpoint cached 60 s (RPT-03), access (RPT-06), `min_sessions_for_rate` marking (module AC2), utilisation formula (AC3). **Data access (spec 17 CA-30):** reports owns no tables and never queries other modules' tables. It reads only through ports or read views named `rv_<owner>_<name>`. Each view is created by a new migration tagged with the **owning** module, and listed in that module's spec as a public contract.
 - Policy `ReportsPolicy` `spec/04-policy-engine.md` §6.10.
 
 ## Scope
