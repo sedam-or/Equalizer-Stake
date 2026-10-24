@@ -51,6 +51,7 @@ Pages (routes per spec 08 §6, all inside the shell with `requirePerm`):
 | `web/src/modules/scheduling/**/states.test.tsx`, `web/src/modules/identity/**/states.test.tsx` | AC5 |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Web checks + E2E pass; `make api` regenerated
 - [ ] Commit `feat(web): admin schedule, catalog and people pages [T-313]`, signed off
 

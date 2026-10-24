@@ -51,6 +51,7 @@ The core tables exist exactly as specified, with RLS on every tenant table, and 
 | `crates/eq-core/tests/schema.rs` | `migrations_apply`, `rls_enabled_on_tenant_tables`, `one_primary_guardian`, `single_tenant_guard`, `policies_append_only_for_app_role` (connect as `eq_app` with a password set in the test, expect UPDATE to fail) |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; DDL matches spec §4.1/§4.11 (reviewer diff)
 - [ ] Commit `feat(core): tenancy and policy schema [T-101]`, signed off
 

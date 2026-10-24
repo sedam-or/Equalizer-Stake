@@ -61,6 +61,7 @@ Any module's rules render as a friendly form from the server's JSON Schema, with
 | `web/src/components/domain/ModuleCard/useModuleToggles.test.ts` | AC5 |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Web checks pass; bundle budget passes (Leaflet lazy)
 - [ ] Commit `feat(web): schema-driven policy forms [T-309]`, signed off
 

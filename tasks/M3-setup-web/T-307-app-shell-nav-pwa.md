@@ -55,6 +55,7 @@ After login, every role lands in a shell whose navigation is built from the serv
 | `web/e2e/pwa.spec.ts` | `installable` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Web checks pass; the bundle budget passes
 - [ ] Commit `feat(web): app shell, module-aware nav and PWA [T-307]`, signed off
 

@@ -47,6 +47,7 @@ An admin creates a weekly slot ("Voice group, Tue 15:00, Room 2, Ayu"). Its firs
 | `crates/eq-scheduling/tests/api_series.rs` | AC names above |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated
 - [ ] Commit `feat(scheduling): recurring series [T-209]`, signed off
 

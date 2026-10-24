@@ -70,6 +70,7 @@ Admins manage people, roles and guardian links. Every list or detail read is sco
 | `crates/eq-identity/tests/api_people.rs` | AC names above, plus the permission matrix test `people_endpoints_role_matrix` (every endpoint × allowed and forbidden role, per TST-04) |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated
 - [ ] Commit `feat(identity): people, roles and guardian links [T-112]`, signed off
 

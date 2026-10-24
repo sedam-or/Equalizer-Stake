@@ -74,6 +74,7 @@ Dependency table (MOD-03):
 | `crates/eq-api/tests/registry.rs` | `registry_graph_valid`, `registry_order_matches_enum` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `scripts/check-deps.sh` passes (stub crates must respect the layering)
 - [ ] Commit `feat(core): module system and runtime gating [T-105]`, signed off
 

@@ -1,3 +1,7 @@
 *              @sedam-or
 /spec/         @sedam-or
 /presets/      @sedam-or
+/crates/eq-core/   @sedam-or
+/migrations/       @sedam-or
+/spec/16-code-quality.md        @sedam-or
+/spec/17-clean-architecture.md  @sedam-or

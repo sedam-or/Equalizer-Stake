@@ -54,6 +54,7 @@ An admin books a session. Either it is stored with all holds in one transaction,
 | `crates/eq-scheduling/tests/api_sessions.rs` | AC names above |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated
 - [ ] Commit `feat(scheduling): create and check sessions [T-206]`, signed off
 

@@ -67,6 +67,7 @@ Sessions change safely after booking. Every change rewrites holds atomically, ev
 | `crates/eq-scheduling/tests/api_cancel.rs` | AC2–AC8 |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated
 - [ ] Commit `feat(scheduling): reschedule, cancel and revert [T-208]`, signed off
 

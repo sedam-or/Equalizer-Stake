@@ -78,6 +78,7 @@ pub fn policy_for(preset: &Preset, module: &dyn Module) -> serde_json::Value; //
 | `crates/eq-core/tests/presets.rs` | `all_presets_valid`, `bad_preset_rejected`, `music_school_scheduling_values`, `level_names_translated` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass
 - [ ] Commit `feat(core): school presets [T-301]`, signed off
 

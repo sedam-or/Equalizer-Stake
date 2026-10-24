@@ -51,6 +51,7 @@ Publicly provable: 50 simultaneous bookings of one slot produce exactly one book
 | `crates/eq-server/tests/m2_journey.rs` | `m2_journey` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All checks pass, three consecutive green CI runs
 - [ ] Commit `test(scheduling): concurrency proof and M2 journey [T-213]`, signed off
 

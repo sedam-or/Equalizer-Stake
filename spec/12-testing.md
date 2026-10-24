@@ -38,6 +38,9 @@
 2. `web`: `pnpm install --frozen-lockfile` → biome → typecheck → vitest → `i18n:check` → `size-limit` → build.
 3. `contract`: TST-10.
 4. `e2e`: build the binary with the embedded web → start Postgres service → Playwright (TST-07, 11, 12).
-5. `scripts`: `check-deps.sh` (ARC-02), `check-literals.sh` (TST-14).
+5. `scripts`: `check-deps.sh` (ARC-02), `check-literals.sh` (TST-14), `check-web-boundaries.sh` (CQ-64), `check-layers.sh` (CA-01).
+6. `pr-title`: Conventional Commits title check (CQ-100/101).
+
+The `rust` job also enforces the TST-01 coverage gate on `domain/` with `cargo llvm-cov`.
 
 PRs must pass all jobs. `main` is protected.

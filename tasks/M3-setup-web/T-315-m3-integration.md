@@ -52,6 +52,7 @@ Prove the core promise end to end on a fresh install: from the first page load t
 | `web/e2e/record-hero.spec.ts` | `record hero` (skipped by default) |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All CI jobs green
 - [ ] Commit `test(web): M3 end-to-end, accessibility and hero recording [T-315]`, signed off
 

@@ -60,6 +60,7 @@ The HTTP layer enforces the cross-cutting API rules once, so module handlers jus
 | `crates/eq-server/tests/http_hardening.rs` | AC names above |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated (headers documented)
 - [ ] Commit `feat(core): idempotency, concurrency, rate limits and headers [T-115]`, signed off
 

@@ -14,7 +14,7 @@ estimated_size: S
 Schools can print monthly reports and take any list into a spreadsheet.
 
 ## Context
-- RPT-04 printable HTML with a print stylesheet; RPT-05 CSV for students, sessions, invoices, payments, marks — the export is audited (AUD-01) and PII columns follow `read_pii` permission.
+- RPT-04 printable HTML with a print stylesheet; RPT-05 CSV for students, sessions, invoices, payments, marks — the export is audited (AUD-01) and PII columns follow `read_pii` permission. Data access per spec 17 CA-30: no SQL on other modules' tables; use ports or `rv_<owner>_<name>` read views created by the owning module.
 
 ## Scope
 ### In
@@ -33,6 +33,7 @@ Schools can print monthly reports and take any list into a spreadsheet.
 | `crates/eq-reports/tests/exports.rs` | AC names |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All checks for the touched stacks pass (Rust and/or web), guard scripts pass, `make api` regenerated if the API changed
 - [ ] `scripts/check-literals.sh` passes: every business value comes from the module policy
 - [ ] Commit `feat(reports): printables and CSV [T-607]`, signed off

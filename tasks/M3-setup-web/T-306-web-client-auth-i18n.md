@@ -60,6 +60,7 @@ Every screen talks to the server through one typed client, stays logged in safel
 | `web/src/lib/*.test.ts` | the AC names above |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Web checks pass; `make api` (generated types) up to date
 - [ ] Commit `feat(web): API client, auth, i18n and formatting [T-306]`, signed off
 

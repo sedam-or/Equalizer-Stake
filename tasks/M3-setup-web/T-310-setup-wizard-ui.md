@@ -63,6 +63,7 @@ A non-technical owner opens the app for the first time and has a working school 
 | `web/src/modules/setup/**/*.test.tsx` | unit tests for the step-1 derivations and button enablement |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Web checks + E2E pass; record the action counts per step in the Report
 - [ ] Commit `feat(web): 3-step setup wizard [T-310]`, signed off
 

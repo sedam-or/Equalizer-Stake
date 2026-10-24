@@ -61,6 +61,7 @@ Component specs (spec 09 §4). Implement exactly these variants and states:
 | `web/e2e/ds.spec.ts` | `design system snapshots` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Web checks pass; the size-limit budget (initial JS ≤ 200 KB gzip) still passes
 - [ ] Commit `feat(web): UI primitives and design-system page [T-305]`, signed off
 

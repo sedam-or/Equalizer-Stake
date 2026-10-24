@@ -43,6 +43,7 @@ Prove the stack end to end: the CI builds the web, embeds it into the release bi
 | `web/e2e/smoke.spec.ts` | `loads home`, `health ok`, `spa fallback` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] CI green including e2e
 - [ ] Commit `test(e2e): smoke test against release build [T-008]`, signed off
 

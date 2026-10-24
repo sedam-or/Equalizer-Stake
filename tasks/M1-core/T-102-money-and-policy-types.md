@@ -78,6 +78,7 @@ None (primitives).
 | `crates/eq-core/src/policy/types.rs` | `day_of_month_max_28`, `day_hours_rejects_overlap`, `local_time_format`, `interval_end_2400_ok`, `i18n_text_requires_entry`, `geo_bounds`, `weekly_hours_schema_snapshot` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `scripts/check-literals.sh` passes (the ISO exponent table needs `// technical:` consts)
 - [ ] Commit `feat(core): money and policy value types [T-102]`, signed off
 

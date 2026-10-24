@@ -60,6 +60,7 @@ pub fn to_local(ts: Timestamp, tz: Tz) -> NaiveDateTime; pub fn from_local(l: Na
 | `crates/eq-scheduling/src/domain/slot.rs` | AC names above |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `scripts/check-literals.sh` passes (no hours or minutes literals)
 - [ ] Commit `feat(scheduling): slot rules domain [T-205]`, signed off
 

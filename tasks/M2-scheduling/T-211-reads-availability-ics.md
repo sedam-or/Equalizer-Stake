@@ -56,6 +56,7 @@ Everyone sees the schedule that's theirs: admins the whole school, instructors t
 | `crates/eq-scheduling/src/domain/availability.rs` | `availability_bookable` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated
 - [ ] Commit `feat(scheduling): schedule views, availability and iCal [T-211]`, signed off
 

@@ -104,6 +104,7 @@ pub struct AlternativeSearch { pub count: u8 /*1..=10, 3*/, pub radius_minutes: 
 | `crates/eq-scheduling/tests/api_policy.rs` | `unknown_offering_key_rejected` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated
 - [ ] Commit `feat(scheduling): scheduling policy [T-202]`, signed off
 

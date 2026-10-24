@@ -128,6 +128,8 @@ Don't create `utils.rs`, `helpers.rs` or `common.rs`. A helper either belongs to
   2. a **port** (a synchronous query);
   3. a **read view** for reporting. That's a SQL view named `rv_<owner>_<name>`, created by the owner's migration and documented in the owner's module spec as a public contract. Only `eq-reports` reads `rv_*` views.
 - Foreign keys across modules are allowed, because the schema is always complete (MOD-02). Joining across modules in queries isn't.
+- This covers the always-on modules too. An optional module that needs session details, people's names or memberships calls the public API of `eq_scheduling`, `eq_identity` or `eq_core` (CA-21, CA-32). It never runs SQL on `sessions`, `persons` or `memberships`.
+- To avoid N+1 queries (CQ-42), those APIs offer **batch** reads that take a slice of ids and return a map, for example `display_names(tx, &[PersonId]) -> HashMap<PersonId, String>` or `sessions_by_ids(tx, &[SessionId])`. They run inside the caller's `Tx`.
 
 **CA-31. `eq-core` stays thin.**
 - It holds primitives (money, ids, time, policy value types), infrastructure (db, outbox, jobs, crypto, config, errors), the `Module` trait, and port traits.

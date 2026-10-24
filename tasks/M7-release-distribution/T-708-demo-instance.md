@@ -34,6 +34,7 @@ Anyone can try the product in 10 seconds from the README.
 | `crates/eq-server/tests/demo.rs` | AC names |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All checks for the touched stacks pass (Rust and/or web), guard scripts pass, `make api` regenerated if the API changed
 - [ ] `scripts/check-literals.sh` passes: every business value comes from the module policy
 - [ ] Commit `feat(ops): demo mode [T-708]`, signed off

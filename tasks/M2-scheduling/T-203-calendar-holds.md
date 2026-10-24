@@ -66,6 +66,7 @@ pub fn reservation_holds(resource: Uuid, booker: Uuid, start: Timestamp, end: Ti
 | `crates/eq-core/tests/calendar.rs` | AC names above |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass
 - [ ] Commit `feat(core): calendar holds API [T-203]`, signed off
 

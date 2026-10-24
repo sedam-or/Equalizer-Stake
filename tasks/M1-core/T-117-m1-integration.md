@@ -51,6 +51,7 @@ The `ritma serve` binary runs the full M1 stack: tenant resolution, auth, module
 | `crates/eq-server/tests/lifecycle.rs` | `serve_lifecycle` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All checks pass (`make check` if present, else the Rust checks + guard scripts)
 - [ ] Commit `feat(server): M1 integration and dev seed [T-117]`, signed off
 

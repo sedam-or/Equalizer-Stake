@@ -61,6 +61,7 @@ Recurring lessons appear on the calendar weeks ahead without anyone clicking. Sc
 | `crates/eq-scheduling/src/materialize.rs` | `cycle_cap_holds` (proptest on `plan_occurrences`) |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `scripts/check-literals.sh` passes
 - [ ] Commit `feat(scheduling): materialisation and auto-complete jobs [T-210]`, signed off
 

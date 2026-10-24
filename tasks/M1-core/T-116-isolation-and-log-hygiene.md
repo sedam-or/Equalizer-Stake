@@ -42,6 +42,7 @@ It is proven, and stays proven as tables are added, that one tenant can never re
 | `crates/eq-server/tests/log_hygiene.rs` | `no_pii_in_logs`, `pii_field_panics_in_debug` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass
 - [ ] Commit `test(core): tenant isolation and log hygiene [T-116]`, signed off
 

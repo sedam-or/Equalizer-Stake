@@ -42,6 +42,7 @@ One OpenAPI 3.1 document describes every compiled endpoint and DTO, including pr
 | `crates/eq-api/tests/openapi.rs` | `deterministic`, `routes_match_openapi`, `problem_schema_present` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; contract job green
 - [ ] Commit `build(api): OpenAPI contract and drift check [T-114]`, signed off
 

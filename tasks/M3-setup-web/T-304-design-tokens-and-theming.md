@@ -66,6 +66,7 @@ Every visual value comes from one token file. Tenants can safely change hue, cor
 | `web/scripts/check-raw-colors.test.ts` | `detects raw colors` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Web checks pass (`pnpm -C web lint && typecheck && test`)
 - [ ] Commit `feat(web): design tokens and tenant theming [T-304]`, signed off
 

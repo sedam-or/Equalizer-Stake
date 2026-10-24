@@ -90,6 +90,7 @@ pub struct PrivacyPolicy { pub deletion_sla_business_days: u16 /*1..=30, 14*/, p
 | `crates/eq-audit/tests/api_audit.rs` | `admin_category_scope`, `export_is_audited`, `verify_owner_only` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated; TST-09 i18n keys for core/identity/audit policy paths are listed in the Report (the SPA catalog is added in M3)
 - [ ] Commit `feat(core): settings, meta and audit read APIs [T-113]`, signed off
 

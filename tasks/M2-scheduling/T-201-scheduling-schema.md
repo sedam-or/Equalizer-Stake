@@ -43,6 +43,7 @@ CONSTRAINT calendar_holds_no_overlap
 | `crates/eq-scheduling/tests/schema.rs` | `exclusion_semantics`, `half_open_enforced`, `series_occurrence_unique` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; the isolation suite (T-116) still passes with the new tables
 - [ ] Commit `feat(scheduling): schema and conflict ledger [T-201]`, signed off
 

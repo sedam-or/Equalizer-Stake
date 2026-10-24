@@ -81,6 +81,7 @@ pub trait Auditable { fn audit_snapshot(&self) -> serde_json::Value; }
 | `crates/eq-audit-derive/tests/derive.rs` | `redact_attr`, `skip_attr` |
 
 ## Definition of done
+- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass
 - [ ] Commit `feat(audit): tamper-evident audit log [T-109]`, signed off
 
