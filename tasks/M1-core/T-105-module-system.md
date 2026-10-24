@@ -30,8 +30,9 @@ Dependency table (MOD-03):
 
 - MOD-05: `ModuleGate` reads the enabled set from a cache (`moka`, TTL 30 s), invalidated by `NOTIFY eq_modules_changed` with the tenant id as payload. No DB hit on the hot path once cached.
 - MOD-06 (service `ModuleService::set_enabled(tx, tenant, actor, requested: BTreeSet<ModuleId>)`):
-  1. Requirements are unmet → `AppError::Conflict{code:"module_dependency"}` (HTTP 422 per spec; map with `status_override`) listing missing modules per requested module.
-  2. Disabling X while an enabled Y requires X → 422 `module_required_by`.
+  1. Requirements are unmet → `AppError::Unprocessable { code: codes::MODULE_DEPENDENCY.code, extra: {"missing": {<module>: [<required>…]}} }` → 422 `module_dependency` (ERR-10).
+  2. Disabling X while an enabled Y requires X → `AppError::Unprocessable` → 422 `module_required_by` (+ `missing`).
+  - Register both codes in `eq_core::error::codes` (the module system lives in core; ERR-21).
   3. For each change: `on_enable`/`on_disable`, audit `core.module.enabled|disabled`, emit `core.module_toggled.v1 {module, enabled}`.
   4. On enable with no policy row: insert v1 = default ⊕ preset patch. **That insert is done by T-106's `PolicyStore::ensure_initial`.** In this task, call a `PolicyInit` trait object and stub it in tests.
   5. `NOTIFY eq_modules_changed`.

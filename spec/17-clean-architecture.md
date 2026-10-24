@@ -40,7 +40,7 @@ flowchart TB
 
 A service function reads like a short recipe, with **no `if` on business rules**. If you find yourself writing `if invoice.days_overdue > policy.grace_days` in `service.rs`, move it into `domain/`.
 
-**CA-03. Errors flow outward.**
+**CA-03. Errors flow outward** (full rules: `19-error-handling.md` §5).
 - ① returns `DomainError`-style enums: what rule was broken, plus the policy key.
 - ② adds context and maps them to `AppError`.
 - ③ (`http.rs`) renders problem+json.

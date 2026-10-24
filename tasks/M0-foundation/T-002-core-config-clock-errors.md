@@ -4,7 +4,7 @@ title: Add config loading, the Clock abstraction and AppError → problem+json i
 milestone: M0
 status: todo
 depends_on: [T-001]
-spec_refs: [CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04]
+spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04]
 estimated_size: M
 ---
 
@@ -31,7 +31,8 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
 ### In
 - `eq_core::config::{Config, Mode, FilesBackend, LogFormat}` with `Config::from_env() -> Result<Config, ConfigError>` and `Config::for_tests()`.
 - `eq_core::clock::{Clock (trait), SystemClock, Timestamp}` + `eq_core::clock::test::ManualClock` behind `#[cfg(any(test, feature = "testkit"))]`.
-- `eq_core::error::{AppError, FieldError, Problem}` + `impl IntoResponse for AppError` (axum) + `From<sqlx::Error>` mapping (RowNotFound → NotFound, others → Internal).
+- `eq_core::error::{AppError, FieldError, Problem}` + `impl IntoResponse for AppError` (axum) + `From<sqlx::Error>` mapping (RowNotFound → NotFound, pool timeout → Unavailable, others → Internal; the full SQLSTATE mapping in ERR-43 is added by the tasks that need it).
+- ERR-21 registry: `pub struct ErrorCodeDef { pub code: &'static str, pub status: u16, pub title: &'static str }` and `eq_core::error::codes` with the core codes (`bad_request`, `unauthenticated`, `forbidden`, `not_found`, `module_disabled`, `validation`, `policy_violation`, `precondition_required`, `payload_too_large`, `locked`, `rate_limited`, `unavailable`, `internal`) plus `pub const CODES: &[ErrorCodeDef]`. `Problem.title` comes from the matching `ErrorCodeDef`. A helper `pub fn validate_code(code: &str) -> bool` checks the ERR-20 format `^[a-z][a-z0-9_]{2,47}$`.
 - The problem `type` URI base is the constant `PROBLEM_BASE = "https://ritma.dev/problems/"` + code with `_` replaced by `-`.
 
 ### Out
@@ -80,6 +81,7 @@ pub enum AppError {
     #[error("forbidden: {code}")] ForbiddenRule { code: &'static str, detail: String },
     #[error("unauthenticated")] Unauthenticated { code: &'static str },
     #[error("module disabled")] ModuleDisabled { module: String },
+    #[error("unprocessable: {code}")] Unprocessable { code: &'static str, detail: String, extra: serde_json::Map<String, serde_json::Value> },
     #[error("policy violation: {rule}")] PolicyViolation { rule: String, detail: String, extra: serde_json::Map<String, serde_json::Value> },
     #[error("precondition required")] PreconditionRequired,
     #[error("gone: {code}")] Gone { code: &'static str },
@@ -87,6 +89,7 @@ pub enum AppError {
     #[error("rate limited")] RateLimited { retry_after_s: u64 },
     #[error("payload too large")] PayloadTooLarge,
     #[error("bad request: {code}")] BadRequest { code: &'static str, detail: String },
+    #[error("unavailable")] Unavailable { retry_after_s: u64 },
     #[error(transparent)] Internal(#[from] anyhow::Error),
 }
 ```
@@ -98,6 +101,7 @@ Status/code mapping:
 - ForbiddenRule → 403 `<code>`
 - Unauthenticated → 401 `<code>`
 - ModuleDisabled → 404 `module_disabled` (+`module`)
+- Unprocessable → 422 `<code>` (+extras)
 - PolicyViolation → 422 `policy_violation` (+`rule`, extras)
 - PreconditionRequired → 428 `precondition_required`
 - Gone → 410
@@ -105,6 +109,7 @@ Status/code mapping:
 - RateLimited → 429 `rate_limited` + `Retry-After` header
 - PayloadTooLarge → 413 `payload_too_large`
 - BadRequest → 400
+- Unavailable → 503 `unavailable` + `Retry-After` header
 - Internal → 500 `internal` (detail "Internal error"; log the error with `tracing::error!` including the chain)
 
 Body fields: `type`, `title` (human title per code, English), `status`, `code`, `detail`, `request_id` (from a task-local set by T-004; use `Option` and omit if absent), plus extension members flattened. Header `Content-Type: application/problem+json`.
@@ -131,7 +136,7 @@ None (technical only).
 | File | Test names |
 |---|---|
 | `crates/eq-core/src/config.rs` (mod tests) | `missing_database_url`, `short_secret_rejected`, `defaults`, `unknown_vars_reported` |
-| `crates/eq-core/src/error.rs` (mod tests) | `conflict_problem_json`, `internal_hides_detail`, `rate_limited_sets_retry_after`, `validation_lists_errors` |
+| `crates/eq-core/src/error.rs` (mod tests) | `conflict_problem_json`, `internal_hides_detail`, `rate_limited_sets_retry_after`, `validation_lists_errors`, `unavailable_sets_retry_after`, `core_codes_valid_and_unique` |
 | `crates/eq-core/src/clock.rs` (mod tests) | `manual_clock_advances` |
 
 ## Definition of done

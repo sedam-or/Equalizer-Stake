@@ -18,6 +18,7 @@ estimated_size: M
   2. compression
   3. security headers (stub now, implemented in T-115)
   4. body limit 1 MiB
+  5. `CatchPanicLayer` (tower-http): a panic becomes a 500 `internal` problem and is logged once at `error` with the request id (ERR-42)
 - The request id is put into `eq_core::error::REQUEST_ID` (task-local) for the duration of the request, and returned as the `X-Request-Id` header.
 - OPS-06: `/healthz` returns 200 `{"status":"ok"}` once the process is up. `/readyz` returns 200 when a DB ping (`SELECT 1`) completes in ≤ 500 ms **and** no migrations are pending; otherwise 503 with `{"status":"not_ready","reason":…}`. Neither is under `/api/v1`.
 - OPS-03: graceful shutdown on SIGTERM/SIGINT, waiting ≤ 25 s for in-flight requests.

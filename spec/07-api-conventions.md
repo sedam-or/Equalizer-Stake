@@ -6,7 +6,7 @@
 
 **API-03. Auth.** `Authorization: Bearer <access JWT>` (IDN-03). Cookie-based endpoints are listed in IDN-04/05. Unauthenticated → 401 problem.
 
-**API-04. Errors.** RFC 9457 `application/problem+json`:
+**API-04. Errors.** RFC 9457 `application/problem+json`. The complete standard (taxonomy, code registry, field errors, retries, UI handling) is `19-error-handling.md`. This section is the summary.
 
 ```json
 {
@@ -27,14 +27,15 @@
 | 401 | `unauthenticated`, `invalid_credentials`, `session_expired`, `totp_required` | |
 | 403 | `forbidden` (+ `perm`), `marks_locked`, `cancel_window_passed`, `not_eligible` | |
 | 404 | `not_found`, `module_disabled` (+ `module`) | |
-| 409 | `slot_taken`, `version_conflict`, `invalid_transition`, `already_checked_in`, `last_owner`, `unpaid_overdue`, `module_dependency` | |
+| 409 | `slot_taken`, `version_conflict`, `invalid_transition`, `already_checked_in`, `last_owner`, `unpaid_overdue`, `idempotency_mismatch` | |
 | 410 | `invite_expired` | |
 | 428 | `precondition_required` (missing If-Match) | |
 | 413 | `payload_too_large` | |
-| 422 | `validation` (+ `errors: [{pointer, code, params}]`), `policy_violation` (+ `rule`, the policy key path) | |
+| 422 | `validation` (+ `errors: [{pointer, code, params}]`), `policy_violation` (+ `rule`, the policy key path), `module_dependency` / `module_required_by` (+ `missing`) | |
 | 423 | `locked` (+ `until`) | |
 | 429 | `rate_limited` (+ `Retry-After`) | |
 | 500 | `internal` (detail hidden; `request_id` shown) | |
+| 503 | `unavailable` (+ `Retry-After`) | Database or required provider temporarily unavailable |
 
 `detail` is English for logs and developers. The SPA displays `t("errors.<code>", params)` and falls back to `detail`.
 

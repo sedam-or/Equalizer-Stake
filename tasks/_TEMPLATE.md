@@ -57,7 +57,7 @@ Ordered steps, pitfalls, crates and versions.
 - [ ] Commit `<type>(<scope>): <title> [T-000]`, signed off
 
 ## Report
-_Filled in by the implementer using the structure in `WORKFLOW.md` §3 Step 6: Plan, Summary, Files, AC → tests, Checks run, Spec read, Deviations, Security, Follow-ups._
+_Filled in by the implementer using the structure in `WORKFLOW.md` §3 Step 12: Plan, Test plan, Summary, Spec read, Files, AC → tests, Checks run, Manual checks, Debug log, Performance, Security, Deviations, Dependencies affected, Rollback plan, Follow-ups._
 
 ## Questions
 _Filled in by the implementer if blocked (`WORKFLOW.md` §4)._

@@ -130,8 +130,8 @@ pub trait Module: Send + Sync + 'static {
 **MOD-06.** Table `tenant_modules(tenant_id, module_id, enabled bool, changed_at, changed_by)`. Always-on modules have no row and are implicitly enabled.
 
 `PUT /api/v1/settings/modules` takes `{ "enabled": ["enrollment","billing",...] }` and does the following:
-1. Computes the closure: if a module is requested and its requirements aren't met, the request fails with 422 `module-dependency`. The error lists the missing requirements. The server does **not** auto-enable dependencies; the SPA does that interactively (MOD-07).
-2. Computes the reverse check: disabling X while an enabled Y requires X fails with 422 `module-required-by` and the list of Y.
+1. Computes the closure: if a module is requested and its requirements aren't met, the request fails with 422 `module_dependency` (ERR-10). The error lists the missing requirements in `missing`. The server does **not** auto-enable dependencies; the SPA does that interactively (MOD-07).
+2. Computes the reverse check: disabling X while an enabled Y requires X fails with 422 `module_required_by` and the list of Y.
 3. For each changed module, it calls `on_enable` / `on_disable` in one tx, writes audit `module.enabled` / `module.disabled`, and emits `core.module_toggled.v1`.
 4. On enable, if the tenant has **no** policy row for that module, it inserts version 1 from `default_policy()` merged with the tenant's preset overrides (`tenants.preset_id`).
 

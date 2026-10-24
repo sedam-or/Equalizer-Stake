@@ -180,7 +180,7 @@ disallowed-methods = [
 - If a derive or proc macro (e.g. `sqlx`, `utoipa`) trips `allow_attributes` in generated code, don't add an exception. Block the task and ask, because the fix belongs in the lint config.
 - `expect()` and `panic!` are allowed only during startup in `eq-server/src/main.rs`, and only with an `#[expect]` reason. Never in a request path.
 
-**CQ-22. Errors** [review]
+**CQ-22. Errors** [review]. The full standard is `19-error-handling.md`. These are the code-level essentials.
 - Each library crate has one `thiserror` error enum per module boundary, named `<Area>Error`. It converts into `eq_core::error::AppError` at the service/HTTP edge (ARC-12, API-04).
 - Use `anyhow` only in `eq-server` (main, CLI) and inside job runners.
 - Error messages are lowercase, with no trailing period, and **contain no PII**. Add context, not noise. Right: `"invoice {id} is already paid"`. Wrong: `"Error: Something went wrong!"`.
@@ -321,7 +321,7 @@ Path alias `@/` → `src/`. Use relative imports only within the same folder.
   - touch targets are at least 44×44 px on mobile.
 - Money and dates are formatted only through `lib/format.ts` (tenant locale and timezone). Never use `toLocaleString` ad hoc.
 
-**CQ-66. Errors** [review]
+**CQ-66. Errors** [review]. UI error handling is specified in `19-error-handling.md` §7 (ERR-60..62).
 - API errors arrive as typed problems (`lib/api.ts`). UI copy comes from `errors.<code>`.
 - No empty `catch {}`. A caught error is either shown, rethrown or reported. Swallowing one needs a comment that says why.
 
@@ -357,15 +357,16 @@ Path alias `@/` → `src/`. Use relative imports only within the same folder.
 ## 8. Git, PRs and review
 
 **CQ-100. Commits** [tool + review]
-- Commits follow Conventional Commits: `<type>(<scope>): <imperative summary> [T-xxx]`.
-  - Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `chore`.
-  - The scope is the crate or module id (`billing`, `web`, `workspace`).
+- Commits follow **`COMMIT_CONVENTION.md`** (the full standard): `<type>(<scope>)<!>: <imperative subject> [T-xxx]`.
+  - Types: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, `chore`, `revert`.
+  - The scope is one token from the convention's scope list (`billing`, `web`, `workspace`, …).
+  - Breaking changes use `!` and a `BREAKING CHANGE:` footer.
 - Every commit is signed off (DCO, `git commit -s`).
-- The summary line is at most 72 characters. The body explains why when that isn't obvious.
+- The header is at most 72 characters. The body explains why when that isn't obvious.
 
 **CQ-101. Pull requests** [tool + review]
 - One task or one concern per PR, with at most about **400 changed lines**, excluding generated files, lockfiles and snapshots. Bigger work gets split into tasks first.
-- The PR title uses the commit format, because we squash-merge. CI checks the title.
+- The PR title uses the commit format, because we squash-merge. CI checks the title against the regex in `COMMIT_CONVENTION.md` §9.
 - The PR template checklist is complete, and CI is green before review is requested.
 - No force-push after review starts. Add fixup commits; the squash cleans them up.
 
@@ -428,5 +429,6 @@ Path alias `@/` → `src/`. Use relative imports only within the same folder.
 - [ ] `scripts/check-deps.sh && scripts/check-literals.sh && scripts/check-web-boundaries.sh && scripts/check-layers.sh`
 - [ ] Generated files regenerated (`make api`, `cargo sqlx prepare --workspace`) if the API or queries changed
 - [ ] No new `#[expect]` / `biome-ignore` without a reason; no TODO without a task or issue id
+- [ ] Errors (`19-error-handling.md`): new failure cases follow the §10 checklist (code registered in `errors.rs`, `errors.<code>` in en + id, API test with a problem snapshot)
 - [ ] Security (`18-security-by-design.md`): new fields classified (SBD-10). If the task has triggers (SBD-30), its `## Security` controls and abuse-case tests are done, and the Report lists them
 - [ ] Commit message per CQ-100, signed off

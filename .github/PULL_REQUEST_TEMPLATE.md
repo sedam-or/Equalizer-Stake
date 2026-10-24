@@ -4,7 +4,7 @@
 Task / spec: <!-- e.g. T-212, SCH-03 -->
 
 ## Checklist
-- [ ] Task file updated per `WORKFLOW.md`: Report filled (AC → tests, checks run, deviations, security), `status: review`, `tasks/INDEX.md` regenerated
+- [ ] Task file updated per `WORKFLOW.md`: Report filled (AC → tests, checks run, manual checks, security, rollback plan, dependencies affected), `status: review`, `tasks/INDEX.md` regenerated
 - [ ] Tests added or updated (unit / integration / API / e2e as relevant)
 - [ ] No hard-coded business values (POL-02). New rules are policy fields with defaults and `en`/`id` labels
 - [ ] OpenAPI and TS client regenerated if the API changed (`make api`)

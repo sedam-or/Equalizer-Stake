@@ -12,17 +12,21 @@ The architecture is already decided. **Your job is to implement tasks exactly as
 
 ## 1. How to pick and run a task
 
-**Follow `WORKFLOW.md` exactly. It's the standard procedure for every task.** In short:
+**Follow `WORKFLOW.md` exactly: Step 0 plus 12 steps, none skipped (write "n/a" where a step doesn't apply).** In short:
 
-1. **Preflight:** clean tree, `scripts/tasks-index.sh --check`, and no other task `in_progress` (WIP = 1).
-2. **Pick:** a `changes_requested` task first, otherwise the lowest-ID `todo` whose `depends_on` are all `done`.
-3. **Claim:** branch `task/T-xxx-<slug>`, set `status: in_progress` in the frontmatter, run `scripts/tasks-index.sh`. Never hand-edit `INDEX.md`.
-4. **Understand:** read the whole task, write a short Plan in `## Report`, or block (§4 of WORKFLOW).
+0. **Start:** clean tree, `scripts/tasks-index.sh --check`, WIP = 1. Pick a `changes_requested` task first, otherwise the lowest-ID `todo` whose `depends_on` are all `done`. Branch `task/T-xxx-<slug>`, set `status: in_progress`, run `scripts/tasks-index.sh` (never hand-edit `INDEX.md`).
+1. **Read** the whole task and the spec IDs it cites. Note the business rules (policy keys) and NFR targets.
+2. **Read the dependencies'** Reports (Deviations, Follow-ups) and the code they shipped.
+3. **Read the design reference** for UI tasks (spec 09, states, i18n, WCAG 2.2 AA).
+4. **Plan and test plan** in `## Report` before coding (AC → tests, edge, error and abuse cases), or block (WORKFLOW §4).
 5. **Implement** only Scope → In, with every listed test under its exact name.
-6. **Verify:** every DoD check plus a self-review. Never tick a check you didn't run.
-7. **Report:** use the WORKFLOW §3 Step 6 structure, set `status: review`, regenerate the index.
-8. **Commit** once, signed off: `<type>(<scope>): <task title> [T-xxx]`.
-9. **Stop.** One task per session. A human reviews and sets `done`.
+6. **Run it locally** (`make dev`): happy and error paths.
+7. **Debug loop:** at most 3 attempts per failure, then block, with a Debug log.
+8. **Self code review** against spec 16 §9, 17 and 19.
+9. **Optimize** only what you measured.
+10. **Security audit:** SBD-81 if the task has triggers.
+11. **Revise and rerun every check.** Never tick a check you didn't run.
+12. **Report** (WORKFLOW §3 Step 12 structure), set `status: review`, regenerate the index, make **one** signed commit per `COMMIT_CONVENTION.md`, and **stop**. One task per session. A human reviews and sets `done`.
 
 ## 2. Repository map
 

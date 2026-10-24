@@ -8,7 +8,7 @@
 
 ## Process
 
-1. Merge to `main` with Conventional Commits. **release-please** keeps a release PR with the changelog.
+1. Merge to `main` with commits that follow `COMMIT_CONVENTION.md` (types map to SemVer bumps and changelog sections, §2). **release-please** keeps a release PR with the changelog.
 2. Merge the release PR, which creates tag `vX.Y.Z`.
 3. `release.yml` (DST-05) builds the binaries, the multi-arch image, the desktop installers, the SBOMs, the checksums and the cosign signatures, then publishes the GitHub Release and `latest.json`.
 4. A bot opens PRs bumping the image tag in `deploy/*` templates.

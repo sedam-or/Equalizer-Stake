@@ -159,23 +159,14 @@ Modules register implementations in a `PortRegistry` during startup. If the owni
 
 ## 10. Errors
 
-**ARC-12.** Each crate has `thiserror` errors that convert into `core::error::AppError`:
+**ARC-12.** Each crate has `thiserror` errors that convert into `core::error::AppError`, which renders as RFC 9457 `application/problem+json` (API-04). The full standard is `19-error-handling.md`:
+- the variant list and HTTP mapping (ERR-10);
+- the error code registry (ERR-21);
+- per-layer rules (ERR-40..43);
+- retries (ERR-50..53);
+- frontend handling (ERR-60..62).
 
-```rust
-pub enum AppError {
-    NotFound { entity: &'static str },
-    Conflict { code: &'static str, detail: String, alternatives: Option<serde_json::Value> },
-    Validation { errors: Vec<FieldError> },      // 422
-    Forbidden { perm: &'static str },            // 403
-    Unauthenticated,                             // 401
-    ModuleDisabled { module: ModuleId },         // 404
-    PolicyViolation { rule: &'static str, detail: String }, // 422, rule = policy key
-    RateLimited { retry_after_s: u64 },          // 429
-    Internal(anyhow::Error),                     // 500, detail hidden
-}
-```
-
-These map to RFC 9457 `application/problem+json` (API-04). The `code` and `rule` values are stable strings that the SPA translates.
+The variants are `NotFound`, `Conflict`, `Validation`, `Forbidden`, `ForbiddenRule`, `Unauthenticated`, `ModuleDisabled`, `Unprocessable`, `PolicyViolation`, `PreconditionRequired`, `Gone`, `Locked`, `RateLimited`, `PayloadTooLarge`, `BadRequest`, `Unavailable` and `Internal`. The `code` and `rule` values are stable strings that the SPA translates.
 
 ## 11. Technology pins (versions are minimums; use the latest compatible patch)
 

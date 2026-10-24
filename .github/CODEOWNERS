@@ -12,3 +12,6 @@
 /deploy/install.sh            @sedam-or
 /spec/10-security-privacy.md  @sedam-or
 /spec/18-security-by-design.md @sedam-or
+/spec/19-error-handling.md    @sedam-or
+/WORKFLOW.md                  @sedam-or
+/COMMIT_CONVENTION.md         @sedam-or

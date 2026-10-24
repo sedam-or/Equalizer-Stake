@@ -27,6 +27,7 @@ One OpenAPI 3.1 document describes every compiled endpoint and DTO, including pr
 ### In
 - `eq-api::openapi::build() -> utoipa::openapi::OpenApi`, the CLI command, the committed `web/openapi.json` and `web/src/api/schema.d.ts`, and the CI job.
 - A test that every route registered in the axum router has an OpenAPI operation (walk both lists).
+- ERR-21: merge every compiled crate's `errors::CODES` into the document as the top-level extension `x-error-codes: [{code, status, title}]`, sorted by code. Add a test `error_codes_unique_and_valid` that fails on a duplicate code or a code failing `validate_code`.
 
 ### Out
 - The SPA client wrapper (M3).

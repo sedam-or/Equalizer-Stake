@@ -145,7 +145,7 @@ web/src/
 - **FE-31. Conflict UX.** A 409 `slot_taken` opens a panel with the conflict explanation and alternatives as clickable chips. Clicking one fills in the form and resubmits.
 - **FE-32. Frozen UX.** Payer state from `/me` (`payer_state`) shows a persistent banner. Disabled actions explain why in a tooltip, with a link to the invoice.
 - **FE-33. Optimistic UI** only for marks and notification reads. Everything else waits for the server, because correctness comes before speed for scheduling and money.
-- **FE-34. Empty, loading and error states** are mandatory for every list and widget (`EmptyState` with a primary action, `Skeleton`, `ErrorState` with retry plus the request id).
+- **FE-34. Empty, loading and error states** are mandatory for every list and widget (`EmptyState` with a primary action, `Skeleton`, `ErrorState` with retry plus the request id). Which error shows where is ERR-61 (`19-error-handling.md`).
 - **FE-35. Offline.** The app shell and the last-fetched `/me/schedule` (14 days) are cached for read-only offline use. The check-in offline queue is ATT-07. Other mutations need connectivity, and the UI shows an offline toast with buttons disabled.
 - **FE-36. Accessibility.** Every interactive element is reachable by keyboard and has a visible focus ring. Dialogs trap focus. Forms link errors with `aria-describedby`. Colour is never the only signal (status badges include text and an icon). Target size is ≥ 44×44 px on touch. axe has zero serious or critical violations in the Playwright smoke run of every page.
 - **FE-37. Terminology.** UI copy never hard-codes "Teacher" or "Student". It uses `t('term.instructor')` and similar, resolved from `meta/app.tenant.terminology` with fallback to the locale catalog.

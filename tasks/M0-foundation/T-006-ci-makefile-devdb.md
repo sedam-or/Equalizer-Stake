@@ -18,7 +18,8 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
   3. `contract` (placeholder until T-114: `echo skip`)
   4. `e2e` (placeholder until T-008)
   5. `scripts`: `check-deps.sh`, `check-literals.sh`, `check-web-boundaries.sh`, `check-layers.sh`
-  6. `pr-title` (pull_request only): the title must match Conventional Commits `^(feat|fix|refactor|perf|test|docs|build|ci|chore)(\([a-z0-9-]+\))?: .+` (CQ-100/101). A small inline script is fine; no third-party action needed.
+  6. `pr-title` (pull_request only): the title must match `COMMIT_CONVENTION.md` §9: `^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: [A-Za-z0-9].{0,70}$`, and be at most 72 characters (CQ-100/101). A small inline script is fine; no third-party action needed.
+- Optional local hook `.githooks/commit-msg` that applies the same regex and length check to the commit header (skipping `fixup!`/`squash!` and merge commits). Document `git config core.hooksPath .githooks` in CONTRIBUTING.md.
 - CQ-64 `scripts/check-web-boundaries.sh`: for each `web/src/modules/<a>/`, fail if any file imports from `@/modules/<b>/` or `../<b>/` with `b ≠ a` (`registry.ts` at `web/src/modules/` is exempt). Print file:line.
   7. `security`: `gitleaks detect --redact` over the PR diff (SBD-51/74), with a `.gitleaks.toml` that allow-lists only `.env.example` placeholders and test fixtures named `test-secret-*`.
 - `.github/workflows/security.yml` (scheduled daily + manual): `cargo audit` and `pnpm -C web audit --prod` (SEC-22, SBD-75). Failures open or update an issue labelled `security`, or at minimum fail visibly.
@@ -48,7 +49,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
 ## Files
 | Path | Action |
 |---|---|
-| `.github/workflows/ci.yml`, `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `scripts/tests/*.sh`, `renovate.json`, `.github/workflows/security.yml`, `.gitleaks.toml` | create |
+| `.github/workflows/ci.yml`, `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `scripts/tests/*.sh`, `renovate.json`, `.github/workflows/security.yml`, `.gitleaks.toml`, `.githooks/commit-msg` | create |
 
 ## Business rules
 None.

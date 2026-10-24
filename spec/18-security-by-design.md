@@ -132,7 +132,7 @@ The layers in spec 17 line up with these boundaries:
 
 ### 5.4 Errors, logging, audit
 
-- **SBD-52.** Client-facing errors expose only the problem `code`, a safe detail and field errors. Internal errors return a generic 500 with the `request_id` (ARC-12). Stack traces, SQL and file paths never reach the client.
+- **SBD-52.** Client-facing errors expose only the problem `code`, a safe detail and field errors. Internal errors return a generic 500 with the `request_id` (ARC-12, ERR-05/30). Stack traces, SQL and file paths never reach the client.
 - **SBD-53.** Security-relevant events are **audited**, not just logged (AUD-01):
   - login success and failure;
   - lockout, password and TOTP changes, role switch, role grants;
