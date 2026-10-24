@@ -2,7 +2,7 @@
 id: T-002
 title: Add config loading, the Clock abstraction and AppError → problem+json in eq-core
 milestone: M0
-status: blocked
+status: todo
 depends_on: [T-001]
 spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04, VAL-03, CAN-24]
 estimated_size: M
@@ -24,6 +24,7 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
     - `RITMA_CAPTCHA_PROVIDER`/`_SITE_KEY`/`_SECRET`, `RITMA_TILE_URL`, `RITMA_TELEMETRY` (`off`|`on`), `RITMA_UPDATE_CHECK` (`on`|`off`)
     - `RITMA_METRICS_TOKEN`, `RITMA_DB_POOL` (default 10), `RITMA_DEMO` (bool)
   - Unknown `RITMA_*` variables produce a warning listing them.
+- Data classes (SBD-10, spec 18 §2): **S3** are `DATABASE_URL`, `RITMA_DATABASE_OWNER_URL`, `RITMA_SECRET_KEY`, `RITMA_SECRET_KEY_PREVIOUS`, `RITMA_SETUP_TOKEN`, `RITMA_SMTP_URL`, `RITMA_CAPTCHA_SECRET`, `RITMA_METRICS_TOKEN` (a URL counts because it can embed a password). Everything else in `Config` is S0/S1.
 - ARC-10: `domain/` code never reads the clock. Services use `Clock`.
 - ARC-12 `AppError` variants and API-04 mapping (HTTP status → `code`), shown in Interfaces.
 
@@ -49,7 +50,7 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
 | `crates/eq-core/src/clock.rs` | create | Clock |
 | `crates/eq-core/src/error.rs` | create | AppError/Problem |
 | `crates/eq-core/src/lib.rs` | edit | `pub mod config; pub mod clock; pub mod error;` |
-| `crates/eq-core/Cargo.toml` | edit | deps: axum, serde, serde_json, thiserror, anyhow, chrono, base64, sqlx, tracing, zeroize + add `url = "2"` and `ipnet = { version = "2", features = ["serde"] }` to `[workspace.dependencies]`; feature `testkit` |
+| `crates/eq-core/Cargo.toml` | edit | deps: axum, serde, serde_json, thiserror, anyhow, chrono, base64, sqlx, tracing, zeroize, secrecy + add `url = "2"` and `ipnet = { version = "2", features = ["serde"] }` to `[workspace.dependencies]`; feature `testkit` |
 
 ## Interfaces
 ```rust
@@ -60,16 +61,22 @@ pub trait Clock: Send + Sync + std::fmt::Debug + 'static { fn now(&self) -> Time
 #[derive(Debug, Clone)] pub struct ManualClock(std::sync::Arc<std::sync::Mutex<Timestamp>>);
 impl ManualClock { pub fn new(t: Timestamp) -> Self; pub fn set(&self, t: Timestamp); pub fn advance(&self, d: chrono::Duration); }
 
-#[derive(Debug, Clone)]
+// SBD-50: every S3 value is a `secrecy` type (redacting Debug, zeroized on drop). `Config` holds secrets, so it has a
+// hand-written `Debug` (below) and no `Clone`, `Serialize` or `Deserialize`. It is shared as `Arc<Config>` (T-004).
 pub struct Config {
-    pub database_url: String, pub database_owner_url: String,
-    pub secret_key: zeroize::Zeroizing<Vec<u8>>, pub secret_key_previous: Option<zeroize::Zeroizing<Vec<u8>>>,
+    pub database_url: SecretString, pub database_owner_url: SecretString,          // may embed a password
+    pub secret_key: SecretSlice<u8>, pub secret_key_previous: Option<SecretSlice<u8>>,
     pub public_url: url::Url, pub mode: Mode, pub listen: std::net::SocketAddr, pub data_dir: std::path::PathBuf,
-    pub files_backend: FilesBackend, pub setup_token: Option<String>, pub trusted_proxies: Vec<ipnet::IpNet>,
+    pub files_backend: FilesBackend, pub setup_token: Option<SecretString>, pub trusted_proxies: Vec<ipnet::IpNet>,
     pub log: String, pub log_format: LogFormat, pub backup_schedule: BackupSchedule, pub backup_keep: u16,
-    pub smtp_url: Option<String>, pub captcha: Option<CaptchaConfig>, pub tile_url: String,
-    pub telemetry: bool, pub update_check: bool, pub metrics_token: Option<String>, pub db_pool: u32, pub demo: bool,
+    pub smtp_url: Option<SecretString>,                                           // may embed a password
+    pub captcha: Option<CaptchaConfig>, pub tile_url: String,
+    pub telemetry: bool, pub update_check: bool, pub metrics_token: Option<SecretString>, pub db_pool: u32, pub demo: bool,
 }
+pub enum CaptchaProvider { Turnstile, Hcaptcha }              // RITMA_CAPTCHA_PROVIDER = turnstile | hcaptcha (OPS-01)
+pub struct CaptchaConfig { pub provider: CaptchaProvider, pub site_key: String, pub secret: SecretString }
+// `impl Debug for Config` and `for CaptchaConfig`: print every non-secret field normally, and each secret field as
+// `[REDACTED]` when set or `None` when unset. Callers read a secret with `.expose_secret()` at the one place that needs it.
 #[derive(Debug, thiserror::Error)]
 pub enum ConfigError { #[error("missing required env var {0}")] Missing(&'static str), #[error("invalid {var}: {reason}")] Invalid { var: &'static str, reason: String } }
 
@@ -121,11 +128,21 @@ Body fields: `type`, `title` (human title per code, English), `status`, `code`, 
 ## Business rules
 None (technical only).
 
+## Security
+- Triggers: T3 (reads S3 values), T4 (keys).
+- Data classes touched: S3 (the list in Context).
+- Threats → control:
+  - **I**nformation disclosure: a startup log, a panic message or an `{:?}` of `Config` leaks a key, token or URL password → SBD-50 `secrecy` types with redacting `Debug`, a hand-written `Debug` on `Config` and `CaptchaConfig`, no `Clone`/`Serialize`/`Deserialize` on them, `Config` shared as `Arc<Config>`.
+  - **I**: a `ConfigError` echoing the offending value → `Invalid { reason }` never contains the value of an S3 variable, only what is wrong with it ("must decode to at least 32 bytes").
+  - **T**/**E**: a short or non-base64 `RITMA_SECRET_KEY` is accepted → rejected at startup (AC2).
+- Abuse-case acceptance criteria: AC7 (`debug_redacts_secrets`), AC8 (`error_does_not_echo_secret`).
+
 ## Implementation notes
 - CQ-21 forbids `chrono::Utc::now` and `std::env::var` workspace-wide. `SystemClock::now` is the one allowed caller of `Utc::now`: annotate it with `#[expect(clippy::disallowed_methods, reason = "ARC-10: SystemClock is the only wall-clock reader")]`. Config loading uses figment/envy; if you call `std::env::var` directly, do it only inside `eq_core::config` with the same kind of `#[expect]`.
 - Decode `RITMA_SECRET_KEY` as standard or URL-safe base64. If it decodes to < 32 bytes → `Invalid`.
 - `RITMA_PUBLIC_URL` must parse as http(s). A trailing slash is normalised away.
 - Wrap `Config::from_env` around a `fn from_map(HashMap<String,String>)` so tests don't touch the process env.
+- Build `Config` by hand from the map (or from Figment values into a private raw type with no `Debug` derive), moving each S3 value straight into its `secrecy` type and dropping the raw copy. Enable the `secrecy` `serde` feature only if the extraction needs it, and never on `Config` itself.
 - The request-id task-local: `tokio::task_local! { pub static REQUEST_ID: uuid::Uuid; }` in `error.rs`, read with `REQUEST_ID.try_with(|id| *id).ok()`.
 
 ## Acceptance criteria
@@ -135,11 +152,13 @@ None (technical only).
 - AC4. `AppError::Conflict{code:"slot_taken",…}` renders 409 with JSON `code=="slot_taken"` and `type` ending in `/slot-taken`, and the extension members appear at top level. → `error::tests::conflict_problem_json`
 - AC5. `AppError::Internal` renders 500 and its detail doesn't contain the inner error message. → `error::tests::internal_hides_detail`
 - AC6. `ManualClock::advance` changes `now()`. → `clock::tests::manual_clock_advances`
+- AC7. Given a config built with fake secrets (`test-secret-…`, a URL `postgres://u:test-secret-pw@h/db`, a captcha secret and tokens), When formatted with `{:?}` and `{:#?}`, Then none of the fake values appear and `[REDACTED]` does. → `config::tests::debug_redacts_secrets`
+- AC8. Given an invalid `RITMA_SECRET_KEY`, Then the `ConfigError` text contains no part of the supplied value. → `config::tests::error_does_not_echo_secret`
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-core/src/config.rs` (mod tests) | `missing_database_url`, `short_secret_rejected`, `defaults`, `unknown_vars_reported` |
+| `crates/eq-core/src/config.rs` (mod tests) | `missing_database_url`, `short_secret_rejected`, `defaults`, `unknown_vars_reported`, `debug_redacts_secrets`, `error_does_not_echo_secret` |
 | `crates/eq-core/src/error.rs` (mod tests) | `conflict_problem_json`, `internal_hides_detail`, `rate_limited_sets_retry_after`, `validation_lists_errors`, `unavailable_sets_retry_after`, `core_codes_valid_and_unique` |
 | `crates/eq-core/src/clock.rs` (mod tests) | `manual_clock_advances` |
 
@@ -207,6 +226,7 @@ None (technical only).
 **Follow-ups** — Resolve Q1, update the task interface and security acceptance criteria, then restart T-002 from its task branch procedure.
 
 ## Questions
+- **Resolved (architect, 2026-10-25):** Q1 — option (a), as recommended. The Interfaces section now uses `secrecy` types for every S3 field, a hand-written redacting `Debug`, no `Clone`, a defined `CaptchaConfig`, and a `## Security` section with AC7 and AC8. Nothing else in M0–M3 reads the secret fields directly (T-003 `connect` takes `&Config`, T-004 holds `Arc<Config>`), so no other task changes.
 - **Q1 (blocking):** May T-002 amend the `Config` interface so every S3 value (including keys, setup/metrics tokens, captcha secrets, and any credential-bearing database/SMTP URLs) uses `secrecy::SecretString`/`SecretBox`, with a custom redacted `Debug` implementation and an abuse-case test proving the formatted output omits fake secret values?
   - Context: T-002 lines 63–71 require `#[derive(Debug, Clone)]` and plain `String` fields for values that can hold credentials or tokens. `spec/18-security-by-design.md` SBD-10 requires S3 field classification/protection, and SBD-50 requires redacting, zeroizing wrappers and prohibits plain `Debug` on a struct holding secrets.
   - Options: (a) amend the interface as stated above and classify each S3 field; (b) define a different explicit secret-bearing `Config` shape that meets SBD-10/SBD-50 and update the task tests/interfaces to match.

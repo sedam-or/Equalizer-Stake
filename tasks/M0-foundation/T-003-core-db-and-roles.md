@@ -19,6 +19,8 @@ Services can open a transaction that has `app.tenant_id` and `app.actor_id` set 
 - ARC-04 step 8: `core::db::begin(&pool, &tenant, &actor)` runs `SET LOCAL app.tenant_id = …, app.actor_id = …`.
 - ADR-0012: one migration set in `/migrations`, files `NNNN_<module>_<desc>.sql`, forward-only.
 
+- `Config` URLs are `SecretString` (T-002, SBD-50): `connect` and `run_migrations` callers read them with `.expose_secret()` at the single call into sqlx, and never log or format the URL. `run_migrations` keeps taking `&str`.
+
 ## Scope
 ### In
 - `migrations/0001_core_bootstrap.sql`:

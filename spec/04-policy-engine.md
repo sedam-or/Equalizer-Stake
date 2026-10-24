@@ -100,16 +100,18 @@ Errors are returned as `FieldError { pointer: "/cycle/due_day", code: "must_be_g
 ## 5. Common value types (in `eq-core::policy::types`)
 
 ```rust
-pub struct LocalTime(chrono::NaiveTime);            // serde "HH:MM", minute precision
-pub struct TimeInterval { pub start: LocalTime, pub end: LocalTime }   // start < end, same day
+// Fields are private (CQ-23): construct with `new(..) -> Result` / `TryFrom`, or by deserialising, which uses the same checks (CAN-10).
+// The numeric newtypes and `LocalTime` also have `const fn from_const(..)` for `const` items and `Default` literals; `Bps::ZERO` and `Bps::FULL` are consts.
+pub struct LocalTime(/* minutes of day, 0..=1440; "24:00" only as an interval end */); // serde "HH:MM", minute precision
+pub struct TimeInterval { /* start, end */ }          // start < end, same day
 pub enum Weekday { Mon, Tue, Wed, Thu, Fri, Sat, Sun }
-pub struct DayHours { pub weekday: Weekday, pub open: bool, pub intervals: Vec<TimeInterval> } // non-overlapping, sorted
-pub struct WeeklyHours(pub [DayHours; 7]);           // validate: weekday order Mon..Sun
-pub struct Bps(pub u32);                             // 0..=10000 unless documented otherwise
-pub struct MinorAmount(pub i64);                     // >= 0; currency = tenant currency
-pub struct DayOfMonth(pub u8);                       // 1..=28 (no 29–31: every month has it)
-pub struct I18nText(pub BTreeMap<Locale, String>);   // at least the tenant default locale
-pub struct GeoPoint { pub lat: f64, pub lng: f64 }   // only non-money floats allowed
+pub struct DayHours { /* weekday, open, intervals */ } // non-overlapping, sorted
+pub struct WeeklyHours(/* [DayHours; 7] */);          // validate: weekday order Mon..Sun
+pub struct Bps(/* u32 */);                            // 0..=10000
+pub struct MinorAmount(/* i64 */);                    // >= 0 and <= MONEY_MAX_ABS_MINOR; currency = tenant currency
+pub struct DayOfMonth(/* u8 */);                      // 1..=28 (no 29–31: every month has it)
+pub struct I18nText(/* BTreeMap<Locale, String> */);  // at least the tenant default locale
+pub struct GeoPoint { /* lat, lng */ }                // lat in [-90, 90], lng in [-180, 180], never NaN; the only non-money floats allowed
 ```
 
 **POL-11.** `DayOfMonth` is capped at 28 so that "every month" is always defined. That covers v0's 5/10/11 values.

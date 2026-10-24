@@ -2,7 +2,7 @@
 id: T-102
 title: Add Money, Bps and the policy value types (LocalTime, WeeklyHours, DayOfMonth, I18nText, GeoPoint, Locale, Currency)
 milestone: M1
-status: blocked
+status: todo
 depends_on: [T-001]
 spec_refs: [ARC-11, POL-11, POL-12, ADR-0007, CAN-10, CAN-12, OSS-02]
 estimated_size: M
@@ -37,8 +37,9 @@ Correct, property-tested primitives for money and for every common policy field 
 
 ## Scope
 ### In
-- `eq_core::money::{Money, Currency, MoneyError, apply_bps(amount: i64, bps: Bps) -> i64}`, plus `Currency::exponent()`, `Currency::from_code`, and `format_minor` (debug/tests only).
-- `eq_core::policy::types::*` as above. Each has `Serialize`/`Deserialize` with validation in `TryFrom` (serde `try_from = "…"`), and a `JsonSchema` impl with constraints.
+- `eq_core::money::{Money, Currency, MoneyError, MONEY_MAX_ABS_MINOR, apply_bps(amount: i64, bps: Bps) -> Result<i64, MoneyError>}`, plus `Currency::exponent()`, `Currency::from_code`, and `format_minor` (debug/tests only).
+- `eq_core::policy::types::*` as above, plus the consts `Bps::ZERO` and `Bps::FULL` (10000), which later tasks use instead of literals. Each has `Serialize`/`Deserialize` with validation in `TryFrom` (serde `try_from = "…"`), and a `JsonSchema` impl with constraints.
+- **Private fields, validating constructors (CQ-23, CAN-10; architect decision, spec 04 §5).** No type below exposes a field that could hold an invalid value. Each has `new(..) -> Result<Self, _>` (or `TryFrom`), read accessors, and deserialises only through its validating `TryFrom`. The numeric newtypes (`Bps`, `MinorAmount`, `DayOfMonth`) and `LocalTime` also have a `pub const fn from_const(..)` that `assert!`s the bound: it is for `const` items and `Default` literals, where a bad literal fails the build, and it is not for runtime input.
 
 ### Out
 - PolicyStore (T-106).
@@ -47,39 +48,47 @@ Correct, property-tested primitives for money and for every common policy field 
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema, utoipa::ToSchema, sqlx::Type)]
 #[sqlx(type_name = "bpchar")] pub enum Currency { IDR, USD, SGD, MYR, PHP, THB, VND, EUR, GBP, AUD, JPY }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema, utoipa::ToSchema)]
-pub struct Money { pub amount_minor: i64, pub currency: Currency }
+pub const MONEY_MAX_ABS_MINOR: i64 = 1_000_000_000_000_000; // technical: CAN-10, D-04 (below JS MAX_SAFE_INTEGER)
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema, utoipa::ToSchema)]
+pub struct Money { amount_minor: i64, currency: Currency }   // private fields; Deserialize through `try_from = "MoneyRepr"` (a private repr struct); the schema keeps |amount_minor| <= 10^15
 impl Money {
+  pub fn new(amount_minor: i64, currency: Currency) -> Result<Money, MoneyError>; // OutOfRange if |amount_minor| > MONEY_MAX_ABS_MINOR
+  pub fn amount_minor(&self) -> i64;
+  pub fn currency(&self) -> Currency;
   pub fn zero(c: Currency) -> Self;
   pub fn checked_add(self, o: Money) -> Result<Money, MoneyError>;
   pub fn checked_sub(self, o: Money) -> Result<Money, MoneyError>;
   pub fn checked_mul(self, qty: i64) -> Result<Money, MoneyError>;
   pub fn apply_bps(self, bps: Bps) -> Result<Money, MoneyError>; // half-up
 }
-#[derive(Debug, thiserror::Error, PartialEq)] pub enum MoneyError { #[error("currency mismatch")] CurrencyMismatch, #[error("overflow")] Overflow }
-pub fn apply_bps(amount_minor: i64, bps: Bps) -> Result<i64, MoneyError>; // (amount*bps + 5000) / 10000 for amount>=0; symmetric for negative
+#[derive(Debug, thiserror::Error, PartialEq)] pub enum MoneyError { #[error("currency mismatch")] CurrencyMismatch, #[error("overflow")] Overflow, #[error("amount out of range")] OutOfRange }
+pub fn apply_bps(amount_minor: i64, bps: Bps) -> Result<i64, MoneyError>; // (amount*bps + 5000) / 10000 for amount>=0; symmetric for negative; Overflow only if the result doesn't fit i64
 ```
 
 ## Business rules
 None (primitives).
 
 ## Implementation notes
-- Use `i128` intermediates in `apply_bps` to avoid overflow, and return `Overflow` if the result doesn't fit in i64.
+- Use `i128` intermediates in `apply_bps` to avoid overflow, and return `Overflow` if the result doesn't fit in i64. `Money::checked_add`, `checked_sub`, `checked_mul` and `Money::apply_bps` return `Overflow` when the result's magnitude exceeds `MONEY_MAX_ABS_MINOR` (which also covers i64 overflow), so a `Money` value is always in range. `Money::new` and deserialisation return `OutOfRange` for input beyond the cap.
+- `Bps` is 0..=10000 and `Bps::new` rejects more. A value that must exceed 100% would be a different field type, not a widened `Bps`; v1 has no such case.
+- `GeoPoint::new` rejects NaN and out-of-range values; `I18nText::new` rejects an empty map; `TimeInterval::new`, `DayHours::new` and `WeeklyHours::new` run the same checks as their deserialisation.
 - `LocalTime` "24:00" is allowed only as `TimeInterval.end`. Represent it internally as minutes-of-day (0..=1440) rather than `NaiveTime`.
 
 ## Acceptance criteria
-- AC1. `apply_bps(10_000_000, Bps(7000)) == 7_000_000`; `apply_bps(15, Bps(5000)) == 8` (half-up). → `money::tests::bps_half_up`
-- AC2. Property: for random a, b in ±10^15 of the same currency, `(a+b)-b == a`. → `money::proptests::add_sub_roundtrip`
-- AC3. Property: `apply_bps(x, 10000) == x` and `apply_bps(x, 0) == 0`. → `bps_identity`
+- AC1. `apply_bps(10_000_000, Bps::from_const(7000)) == Ok(7_000_000)`; `apply_bps(15, Bps::from_const(5000)) == Ok(8)` (half-up); `apply_bps(i64::MAX, Bps::FULL) == Ok(i64::MAX)`; a case whose result exceeds i64 returns `Err(Overflow)`. → `money::tests::bps_half_up`
+- AC2. Property: for random a, b in ±(`MONEY_MAX_ABS_MINOR` / 2) of the same currency (so the sum stays within the cap), `(a+b)-b == a`. → `money::proptests::add_sub_roundtrip`
+- AC3. Property: `apply_bps(x, Bps::FULL) == Ok(x)` and `apply_bps(x, Bps::ZERO) == Ok(0)`. → `bps_identity`
 - AC4. `DayOfMonth` 29 fails to deserialize. → `types::tests::day_of_month_max_28`
 - AC5. Overlapping intervals in a `DayHours` fail. → `day_hours_rejects_overlap`
 - AC6. `WeeklyHours` schema JSON contains `minItems: 7, maxItems: 7` (insta snapshot). → `weekly_hours_schema_snapshot`
+- AC7. `Money::new(MONEY_MAX_ABS_MINOR + 1, Currency::IDR)` is `Err(OutOfRange)`, and deserialising `{"amount_minor": 1000000000000001, "currency": "IDR"}` fails. → `money::tests::money_rejects_out_of_range`
+- AC8. Every constrained type rejects invalid input through `new`/`TryFrom` as well as through serde: `Bps::new(10_001)`, `MinorAmount::new(-1)`, `DayOfMonth::new(29)`, `GeoPoint::new(f64::NAN, 0.0)`, `I18nText::new(empty)`, an overlapping `DayHours`, a `WeeklyHours` out of Mon..Sun order. → `types::tests::constrained_types_reject_invalid`
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-core/src/money.rs` | `bps_half_up`, `currency_mismatch`, `overflow_detected`, proptests `add_sub_roundtrip`, `bps_identity`, `bps_monotonic` |
-| `crates/eq-core/src/policy/types.rs` | `day_of_month_max_28`, `day_hours_rejects_overlap`, `local_time_format`, `interval_end_2400_ok`, `i18n_text_requires_entry`, `geo_bounds`, `weekly_hours_schema_snapshot` |
+| `crates/eq-core/src/money.rs` | `bps_half_up`, `currency_mismatch`, `overflow_detected`, `money_rejects_out_of_range`, proptests `add_sub_roundtrip`, `bps_identity`, `bps_monotonic` |
+| `crates/eq-core/src/policy/types.rs` | `day_of_month_max_28`, `day_hours_rejects_overlap`, `local_time_format`, `interval_end_2400_ok`, `i18n_text_requires_entry`, `geo_bounds`, `constrained_types_reject_invalid`, `weekly_hours_schema_snapshot` |
 
 ## Definition of done
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
@@ -146,10 +155,12 @@ None (primitives).
 **Follow-ups** — Resolve Q1 and Q2, update the task interfaces/acceptance criteria, then restart T-102 from its task branch procedure.
 
 ## Questions
+- **Resolved (architect, 2026-10-25):** Q1 — option (a). `apply_bps` returns `Result<i64, MoneyError>`; Scope, Interfaces, AC1 and AC3 now say so. `Bps::ZERO` and `Bps::FULL` were added because T-208 and T-210 use `Bps::FULL`.
 - **Q1 (blocking):** Which free-function signature and acceptance-test contract should be authoritative for `apply_bps`?
   - Context: Scope line 40 and AC1/AC3 at lines 71/73 use a plain `i64` result, but the interface at line 60 returns `Result<i64, MoneyError>` and the implementation note at line 67 requires returning `Overflow` when the result does not fit.
   - Options: (a) make the fallible `Result<i64, MoneyError>` signature authoritative and update Scope/AC assertions to compare with `Ok(...)`; (b) retain `i64` and revise the overflow requirement to specify a non-error result for out-of-range values.
   - Recommendation: (a), because `MoneyError::Overflow` is explicitly part of the task and needs a fallible return path.
+- **Resolved (architect, 2026-10-25):** Q2 — option (a). Private fields with validating constructors, a `const fn from_const` for literals, and `MONEY_MAX_ABS_MINOR` enforced by `Money::new` and deserialisation (new `MoneyError::OutOfRange`, AC7, AC8). `spec/04-policy-engine.md` §5 was updated to match, and AC2 now uses ±(cap/2) operands so sums stay in range.
 - **Q2 (blocking):** May T-102 revise the Money and constrained policy-type interfaces to use private fields with validated constructors/`TryFrom` and serde/schema implementations that enforce the canonical bounds?
   - Context: T-102 and `spec/04-policy-engine.md` §5 show public fields/tuple constructors, including constructible invalid values. `spec/23-contracts-and-canonical-forms.md` CAN-10 caps the Money wire amount at 10^15, while `spec/16-code-quality.md` CQ-23 requires private fields and validating constructors when a value can be invalid. The task does not specify how these requirements fit together.
   - Options: (a) amend the task interface and tests for private validated types, with the Money canonical bound enforced; (b) retain the public shapes and have the maintainer explicitly resolve the conflicting invariant/validation contract in the task/spec before implementation.
