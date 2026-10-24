@@ -4,7 +4,7 @@ title: Add the role dashboards (owner/admin today + attention + setup checklist,
 milestone: M3
 status: todo
 depends_on: [T-313]
-spec_refs: [FE-16, SET-13, PRD-04]
+spec_refs: [FE-16, SET-13, PRD-04, UX-01, UX-07]
 estimated_size: S
 ---
 
@@ -27,6 +27,7 @@ Right after setup, the owner sees exactly what to do next. Every role's home scr
 - **Instructor:** "Today" (their sessions in order, the next one highlighted), and a check-in shortcut placeholder (M5).
 - **Guardian/student:** next 7 days of their sessions (`/me/schedule`), grouped by day, with participant names for guardians.
 - Empty, loading and error states for every widget.
+- Feedback (spec 27, UX-01..07): use only these catalogue entries, through `useToast(id)`, `Dialog` and `Banner` (T-305). Screen states: the spec 27 §8 row for `/dashboard` (per-widget empty and error states). Toasts: `toast.core.attention_resolved`. Dialogs: none. Banners: `banner.setup_checklist`, `banner.notify_in_app_only`.
 
 ## Scope
 ### In

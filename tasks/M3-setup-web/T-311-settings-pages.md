@@ -4,7 +4,7 @@ title: Add the settings pages (school, features, rules list and per-module edito
 milestone: M3
 status: todo
 depends_on: [T-310, T-306a]
-spec_refs: [PRD-05, PRD-06, POL-05, MOD-07, DS-10, IDN-11, VAL-33, VAL-34]
+spec_refs: [PRD-05, PRD-06, POL-05, MOD-07, DS-10, IDN-11, VAL-33, VAL-34, UX-03, UX-06, UX-07]
 estimated_size: M
 ---
 
@@ -27,6 +27,7 @@ After setup, owners change features and rules with the same components as the wi
   - `/settings/channels`: placeholder page "Coming with notifications" (M5).
 - Nav: settings items come from core's nav declarations. **Add them to `CoreModule::nav()`** in the backend: `settings.school`, `settings.features`, `settings.rules`, `settings.admins`, `settings.branding` (section settings, perms `core.policy.write` / `core.modules.write` / `identity.admins.manage`).
 - Admins (`core.policy.read`) can view rules read-only (form disabled, no footer).
+- Feedback (spec 27, UX-01..07): use only these catalogue entries, through `useToast(id)`, `Dialog` and `Banner` (T-305). Screen states: the spec 27 §8 row for `/settings/*`. Toasts: `toast.core.rules_saved`, `rules_scheduled`, `module_on`/`_off`, `branding_saved`, `branding_adjusted`, `toast.identity.invite_sent`, `invite_link_copied`. Dialogs: `dialog.core.rules_effective_date`, `module_enable_deps`, `module_disable_dependents`, `module_disable_with_data`, `currency_locked`, `dialog.generic.version_conflict`, `discard_changes`. Banners: `banner.rules_read_only`, `banner.rules_scheduled`, `banner.notify_in_app_only`.
 
 ## Scope
 ### In

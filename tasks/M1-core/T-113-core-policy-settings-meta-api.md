@@ -4,7 +4,7 @@ title: Add CorePolicy, the settings API (policies and modules), meta endpoints a
 milestone: M1
 status: todo
 depends_on: [T-112]
-spec_refs: [POL-06, POL-07, POL-10, POL-12, MOD-06, MOD-09, API-14, AUD-07, PRD-06, STM-12, STM-13, VAL-23]
+spec_refs: [POL-06, POL-07, POL-10, POL-12, MOD-06, MOD-09, API-14, AUD-07, PRD-06, STM-12, STM-13, VAL-23, AUTH-01, AUTH-04]
 estimated_size: M
 ---
 
@@ -67,6 +67,7 @@ pub struct PrivacyPolicy { pub deletion_sla_business_days: u16 /*1..=30, 14*/, p
 - **Alignment with spec 20–24** (added with the canonical-behaviour specs):
   - `GET /meta/app` adds `rules: { password_min_length }` (public, S0) for client-side hints (VAL-23, D-21).
   - Module and policy transitions follow STM-12/13: scheduled policy versions are not editable (D-34); `effective_from` may be at most 5 minutes in the past (D-24).
+- RBAC matrix test (spec 25 §6): `crates/eq-api/tests/fixtures/rbac_matrix.csv` is a transcription of the spec 25 §6 table, one row per permission: `key,owner,admin,instructor,guardian,student`, each cell `y` when the matrix shows ✅, `own`, `linked`, `self` or `read`, else `n`. The test builds the registry with every compiled module and asserts that, for each module present, the set of `(key, roles)` from its `PermissionDef`s equals the fixture rows whose key starts with `<module>.`. Rows of modules that aren't compiled in are skipped, so later module tasks only need the fixture to stay true.
 
 ## Scope
 ### In
@@ -86,11 +87,13 @@ pub struct PrivacyPolicy { pub deletion_sla_business_days: u16 /*1..=30, 14*/, p
 - AC7. `/meta/app` with no tenant → `setup_required: true` and no `tenant`. → `meta_app_unprovisioned`
 - AC8. An admin can't see `security` entries with the default AuditPolicy, and the owner can. → `api_audit::admin_category_scope`
 - AC9. Changing currency when the `CurrencyLockCheck` test double says locked → 422 `policy_violation` rule `core.currency.locked`. → `currency_lock`
+- AC10. The `PermissionDef`s registered by every compiled module equal the spec 25 §6 matrix fixture. → `rbac_matrix_matches_spec`
 
 ## Tests to write
 | File | Test names |
 |---|---|
 | `crates/eq-api/tests/api_settings.rs` | AC1–AC7, AC9 |
+| `crates/eq-api/tests/rbac_matrix.rs` | `rbac_matrix_matches_spec` (AC10, fixture `tests/fixtures/rbac_matrix.csv`) |
 | `crates/eq-audit/tests/api_audit.rs` | `admin_category_scope`, `export_is_audited`, `verify_owner_only` |
 
 ## Definition of done

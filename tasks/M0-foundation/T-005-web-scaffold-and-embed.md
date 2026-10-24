@@ -4,7 +4,7 @@ title: Scaffold the web app (Vite/React/TS/Tailwind 4/Router) and embed it in th
 milestone: M0
 status: todo
 depends_on: [T-004]
-spec_refs: [FE-01, FE-02, ADR-0003, DS-02, CQ-60, CQ-61, CQ-62]
+spec_refs: [FE-01, FE-02, ADR-0003, DS-02, CQ-60, CQ-61, CQ-62, CACHE-20, CACHE-21]
 estimated_size: M
 ---
 
@@ -17,6 +17,7 @@ estimated_size: M
   - `index.html`, `sw.js`, `manifest.webmanifest`: `no-cache`.
   - Any non-`/api`, non-asset GET that doesn't match a file falls back to `index.html` (200).
   - `/api/*` that doesn't match a route → 404 problem+json, never index.html.
+  - These headers are CACHE-20/21 in spec 26; the full cache inventory (HTTP, browser, server, CI) is spec 26 Part B.
 - FE-02: initial JS ≤ 200 KB gzip, checked with `size-limit`.
 - Stack: React 19, Vite 6, TypeScript 5 strict (`noUncheckedIndexedAccess`), Tailwind 4 (`@tailwindcss/vite`), TanStack Router (file-based, `@tanstack/router-plugin`), TanStack Query 5, Biome, Vitest.
 - DS-02: tokens live in `web/src/styles/tokens.css`. This task creates a **minimal** token file (colour bg/surface/text/primary only). The full system comes in T-304.

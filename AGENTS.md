@@ -88,4 +88,7 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 - Commits: `COMMIT_CONVENTION.md` (Conventional Commits, scopes, `[T-xxx]` refs, sign-off).
 - States, flows, validation, contracts: transitions follow `spec/20-state-machines.md` (STM-\*), multi-step behaviour follows `spec/21-data-flows.md` (FLW-\*), every input goes through a field kind and the pipeline in `spec/22-validation-and-sanitization.md` (VAL-\*), and every wire value uses its canonical form from `spec/23-contracts-and-canonical-forms.md` (CAN-\*).
 - Dependencies: adopt the open-source project listed in `spec/24-open-source-stack.md` (OSS-\*) instead of writing your own. A dependency that isn't on that map needs a task that says so; otherwise block and ask.
+- Auth, roles and caches: tokens, cookies and the RBAC matrix follow `spec/25-auth-and-access-control.md` (AUTH-\*); the container image and every cache follow `spec/26-containers-and-caching.md` (CTR-\*, CACHE-\*).
+- UI feedback: only toasts, dialogs and banners listed in `spec/27-ux-states-and-feedback.md` (UX-\*) exist; a new one is added to that catalogue in the same PR. Journeys (`spec/28-user-journeys.md`, JRN-\*) are the scripts for the e2e tests.
+- Branches and PRs: `BRANCHING.md` (trunk-based, `task/T-xxx-<slug>`, squash merge, `ci-ok`).
 - Errors: `spec/19-error-handling.md` (codes registered in `errors.rs`, translated en+id, one log at the edge).

@@ -4,7 +4,7 @@ title: Add the typed API client, problem mapping, in-memory auth with single-fli
 milestone: M3
 status: todo
 depends_on: [T-305]
-spec_refs: [FE-10, FE-11, FE-12, FE-37, API-04, API-09, API-10, POL-07, PRD-15, VAL-30]
+spec_refs: [FE-10, FE-11, FE-12, FE-37, API-04, API-09, API-10, POL-07, PRD-15, VAL-30, AUTH-03, CACHE-30]
 estimated_size: M
 ---
 
@@ -41,6 +41,7 @@ Every screen talks to the server through one typed client, stays logged in safel
 
 - **Alignment with spec 20–24** (added with the canonical-behaviour specs):
   - `gen:api` is extended by T-306a with generated zod schemas (`@hey-api/openapi-ts`, zod plugin only) and field metadata; keep `openapi-fetch` as the client (D-57).
+- The access token lives in memory only, never in storage (AUTH-03, spec 25 §2). Query cache rules (staleTime 30 s, cleared on logout, role switch and tenant change) are CACHE-30 (spec 26).
 
 ## Scope
 ### In

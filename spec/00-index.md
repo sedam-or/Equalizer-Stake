@@ -34,12 +34,16 @@ This folder is the **single source of truth** for v2. It defines *what* and *why
 | 22 | `22-validation-and-sanitization.md` | Validation pipeline, sanitising profiles, field kinds, per-request validation matrix, client-side generation and parity |
 | 23 | `23-contracts-and-canonical-forms.md` | Canonical wire forms of every value, DTO and header rules, events, jobs, hashes, files, versioning, contract tests |
 | 24 | `24-open-source-stack.md` | Open-source building blocks per concern (adopt, don't build), licenses, and the GitHub CI/CD pipeline |
+| 25 | `25-auth-and-access-control.md` | The auth mechanism end to end (keys, tokens, refresh, CSRF, flows), roles and the complete RBAC permission matrix |
+| 26 | `26-containers-and-caching.md` | The container image, hardening, compose stacks, supply chain, and every cache (server, HTTP, browser, CI) |
+| 27 | `27-ux-states-and-feedback.md` | What the person sees: feedback patterns, the toast, dialog and banner catalogues, the screen state matrix, accessibility of feedback |
+| 28 | `28-user-journeys.md` | End-to-end journeys per persona, tied to screens, flows, states and success metrics |
 | — | `modules/*.md` | One spec per module (identity, scheduling, enrollment, rental, billing, attendance, notify, audit, reports, feedback) |
 | — | `adr/*.md` | Architecture Decision Records |
 
-Commit messages follow [`/COMMIT_CONVENTION.md`](../COMMIT_CONVENTION.md). The execution procedure for tasks (Step 0 + 12 steps: read, plan, implement, run, debug, review, optimize, audit, verify, report; plus block and review) is [`/WORKFLOW.md`](../WORKFLOW.md).
+Behaviour guidelines for every change (think before coding, simplicity, surgical diffs, verifiable goals) are in [`/CLAUDE.md`](../CLAUDE.md), bound by [`/AGENTS.md`](../AGENTS.md) §0. Branches, protection and releases: [`/BRANCHING.md`](../BRANCHING.md). Commit messages follow [`/COMMIT_CONVENTION.md`](../COMMIT_CONVENTION.md). The execution procedure for tasks (Step 0 + 12 steps: read, plan, implement, run, debug, review, optimize, audit, verify, report; plus block and review) is [`/WORKFLOW.md`](../WORKFLOW.md).
 
-Business and OSS docs live outside `spec/`: `brand/BRAND.md`, `brand/GTM.md`, `brand/GITHUB.md`, and the governance files at the repo root.
+Business and OSS docs live outside `spec/`: `brand/BRAND.md`, `brand/GUIDELINES.md` (logo, colour and copy rules), `brand/GTM.md`, `brand/GITHUB.md`, and the governance files at the repo root.
 
 ## 2. Requirement ID scheme
 
@@ -70,6 +74,10 @@ Each requirement has a stable ID: `<AREA>-<NN>`. Tasks reference them in their `
 | VAL | Validation and sanitisation | 22 |
 | CAN | Contracts and canonical forms | 23 |
 | OSS | Open-source stack and CI/CD | 24 |
+| AUTH | Auth and access control | 25 |
+| CTR, CACHE | Containers, caches | 26 |
+| UX | UX states and feedback | 27 |
+| JRN | User journeys | 28 |
 | IDN, SCH, ENR, RNT, BIL, ATT, NTF, AUD, RPT, FBK | Module specs | `modules/*.md` |
 
 Normative keywords follow RFC 2119: **MUST**, **MUST NOT**, **SHOULD**, **MAY**.

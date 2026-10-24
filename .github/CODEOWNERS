@@ -15,3 +15,12 @@
 /spec/19-error-handling.md    @sedam-or
 /WORKFLOW.md                  @sedam-or
 /COMMIT_CONVENTION.md         @sedam-or
+# Process, security-adjacent and brand files (added with specs 25-28)
+/CLAUDE.md                    @sedam-or
+/AGENTS.md                    @sedam-or
+/BRANCHING.md                 @sedam-or
+/spec/25-auth-and-access-control.md @sedam-or
+/spec/26-containers-and-caching.md  @sedam-or
+/scripts/palette.py           @sedam-or
+/brand/logo/                  @sedam-or
+/brand/GUIDELINES.md          @sedam-or

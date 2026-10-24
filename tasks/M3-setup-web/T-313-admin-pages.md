@@ -4,7 +4,7 @@ title: Add the admin pages — schedule (create/reschedule/cancel), series, cata
 milestone: M3
 status: todo
 depends_on: [T-312, T-311, T-306a]
-spec_refs: [FE-30, FE-31, FE-34, SCH-07, SCH-10, SCH-12, IDN-10, VAL-33, VAL-34]
+spec_refs: [FE-30, FE-31, FE-34, SCH-07, SCH-10, SCH-12, IDN-10, VAL-33, VAL-34, UX-03, UX-05, UX-06]
 estimated_size: M
 ---
 
@@ -28,6 +28,7 @@ Pages (routes per spec 08 §6, all inside the shell with `requirePerm`):
 - Terminology everywhere (`useTerm`): "Add {term.instructor}".
 - `PersonPicker` (domain component): a Combobox over `GET /people?role=&q=` with avatar initials, async search, multi mode.
 - The Cancel dialog credit preview: **don't compute credits client-side** (business rule). After submit, the toast reads "Cancelled. Make-up credit: {percent}" from the response participants' `credit_bps`. **Backend addition:** make `POST /sessions/{id}/cancel` return the updated Session DTO including `participants[].credit_bps`.
+- Feedback (spec 27, UX-01..07): use only these catalogue entries, through `useToast(id)`, `Dialog` and `Banner` (T-305). Screen states: the spec 27 §8 row for `/schedule`, `/schedule/series`, `/catalog`, `/resources`, `/closures`, `/people`, `/sessions/:id`. Toasts: `toast.scheduling.session_created`, `session_created_below_min`, `session_rescheduled`, `session_cancelled`, `series_created`, `series_ended`, `closure_added`, `closures_imported`, `session_reverted`, `toast.identity.person_created`, `invite_sent`. Dialogs: `dialog.scheduling.cancel_session`, `override_hours`, `end_series`, `revert_session`, `dialog.identity.deactivate_person`, `remove_role`, `dialog.generic.version_conflict`, `discard_changes`. Banners: `banner.enrollment_disabled_sessions`.
 
 ## Scope
 ### In

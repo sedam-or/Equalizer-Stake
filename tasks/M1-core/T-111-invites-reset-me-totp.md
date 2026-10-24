@@ -4,7 +4,7 @@ title: Add invites, password reset, /me endpoints, TOTP enrolment and device ses
 milestone: M1
 status: todo
 depends_on: [T-110]
-spec_refs: [IDN-07, IDN-08, IDN-12, IDN-13, SEC-12, STM-21, STM-24, STM-25]
+spec_refs: [IDN-07, IDN-08, IDN-12, IDN-13, SEC-12, STM-21, STM-24, STM-25, AUTH-06]
 estimated_size: M
 ---
 
@@ -32,6 +32,7 @@ No password is ever sent. People join by invite link and recover by single-use r
   - Login accepts a recovery code in place of `totp` (single use).
 - Sessions: `GET /me/sessions` → `[{id, created_at, last_used_at, user_agent, ip, current: bool}]` (only non-revoked, non-expired). `DELETE /me/sessions/{id}` revokes it (its family).
 - IDN-13: deactivating a membership revokes all refresh sessions for that person in the tenant (T-112 calls `AuthService::revoke_all(person)`, implemented here).
+- Invite, reset and TOTP flows reveal nothing about whether an account exists (AUTH-06); the full flow table is spec 25 §4.
 
 ## Scope
 ### In

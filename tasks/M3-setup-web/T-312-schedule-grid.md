@@ -4,7 +4,7 @@ title: Add the ScheduleGrid (day by resource, week by day), SlotPicker and the c
 milestone: M3
 status: todo
 depends_on: [T-307]
-spec_refs: [DS-01, FE-31, FE-33, FE-36, SCH-05, SCH-14, STM-31, STM-91]
+spec_refs: [DS-01, FE-31, FE-33, FE-36, SCH-05, SCH-14, STM-31, STM-91, UX-05, UX-06]
 estimated_size: M
 ---
 
@@ -34,6 +34,7 @@ Staff see the school's week at a glance, see **why** a slot isn't free (the buff
 - **SlotPicker:** a mobile-first list of free starts grouped Morning (< 12:00), Afternoon (12–17), Evening (≥ 17) from `GET /availability`, with chips as buttons.
 - **ConflictPanel** (FE-31): for an `ApiProblem` with `code === 'slot_taken'`, it shows each conflict as a sentence ("Room 2 is booked 15:00–15:45", "Ayu is teaching 15:00–15:45") and the alternatives as clickable chips ("Room 3 · 15:00", "Room 2 · 15:55"). Clicking calls `onPick(alt)`.
 - Data: `GET /sessions?view=calendar&from&to&resource_id|instructor_id` via TanStack Query (key includes the range and filter). Closures from `GET /closures?from&to`.
+- Feedback (spec 27, UX-01..07): use only these catalogue entries, through `useToast(id)`, `Dialog` and `Banner` (T-305). Screen states: the spec 27 §8 row for `/schedule` (special states: conflict panel, closure shading, now line). Toasts: none of its own (the pages in T-313 own the toasts). Dialogs: `dialog.scheduling.reschedule_confirm` on drop.
 
 ## Scope
 ### In

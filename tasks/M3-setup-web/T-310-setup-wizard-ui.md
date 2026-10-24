@@ -4,7 +4,7 @@ title: Add the 3-step setup wizard UI (school + template, features, rules with l
 milestone: M3
 status: todo
 depends_on: [T-309, T-308, T-306a]
-spec_refs: [PRD-04, PRD-07, SET-10, SET-11, SET-12, SET-13, MOD-07, FE-21, FE-30, VAL-33, VAL-34]
+spec_refs: [PRD-04, PRD-07, SET-10, SET-11, SET-12, SET-13, MOD-07, FE-21, FE-30, VAL-33, VAL-34, UX-01, UX-03, UX-06]
 estimated_size: M
 ---
 
@@ -40,6 +40,7 @@ A non-technical owner opens the app for the first time and has a working school 
 - **Welcome:** the dashboard shows a one-time welcome banner when `?welcome=1` (T-314 renders it; this task adds the query handling contract).
 - Copy (en + id) in `modules.setup`, in the voice of spec 09 §6. Example step-1 title: "Tell us about your school" / "Ceritakan tentang sekolah Anda".
 - Measured target (PRD-07 / TST-07): ≤ 10 user actions per step on the default path.
+- Feedback (spec 27, UX-01..07): use only these catalogue entries, through `useToast(id)`, `Dialog` and `Banner` (T-305). Screen states: the spec 27 §8 row for `/setup`. Toasts: `toast.generic.network`, `toast.core.draft_restored`. Dialogs: `dialog.core.module_enable_deps`, `module_disable_dependents`, `module_disable_with_data`, `reset_setup`, `dialog.generic.draft_restore`.
 
 ## Scope
 ### In

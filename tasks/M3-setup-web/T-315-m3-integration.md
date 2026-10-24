@@ -4,7 +4,7 @@ title: M3 integration — the time-to-first-session E2E, the accessibility sweep
 milestone: M3
 status: todo
 depends_on: [T-314]
-spec_refs: [TST-07, TST-11, TST-12, FE-02, PRD-07, PRD-14]
+spec_refs: [TST-07, TST-11, TST-12, FE-02, PRD-07, PRD-14, JRN-01]
 estimated_size: S
 ---
 
@@ -30,6 +30,7 @@ Prove the core promise end to end on a fresh install: from the first page load t
   - It runs the 3-step setup with human-like pacing (`slowMo` 250 ms, deliberate typing) at 1280×720, with `video: 'on'`.
   - Then `scripts/make-hero-gif.sh` converts the webm to a ≤ 8 MB GIF and MP4/WebM with ffmpeg (palettegen/paletteuse, 12 fps, 45–60 s).
   - The output goes to `brand/assets/hero-setup.{gif,mp4,webm}`. **Do not commit the outputs in this task**; document the command in the Report.
+- The scenario follows the owner journey JRN-01 (spec 28): install → setup in 3 steps → first lesson booked; its metric is PRD-07 (< 10 min to the first session).
 
 ## Scope
 ### In

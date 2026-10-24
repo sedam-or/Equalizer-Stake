@@ -4,7 +4,7 @@ title: Add the auth pages (login, TOTP step, forgot, reset, invite accept) and t
 milestone: M3
 status: todo
 depends_on: [T-307, T-303, T-306a]
-spec_refs: [IDN-02, IDN-06, IDN-07, IDN-08, IDN-12, SCH-16, FE-36, VAL-33, VAL-34]
+spec_refs: [IDN-02, IDN-06, IDN-07, IDN-08, IDN-12, SCH-16, FE-36, VAL-33, VAL-34, AUTH-06, UX-02, UX-03, UX-06]
 estimated_size: M
 ---
 
@@ -32,6 +32,7 @@ People get in, recover and manage their account without help. The pages are frie
   - **Calendar feed:** create link, copy, revoke (SCH-16 endpoints from T-211).
 - Copy is in `modules.identity` (en, id). Use the voice from spec 09 §6: plain, no blame.
 - Forms: react-hook-form + zod. Errors are linked with `aria-describedby`. Submit buttons show a loading state. On mobile, the primary button is in a sticky bottom bar.
+- Feedback (spec 27, UX-01..07): use only these catalogue entries, through `useToast(id)`, `Dialog` and `Banner` (T-305). Screen states: the spec 27 §8 row for `/login` etc.. Toasts: `toast.identity.signed_out`, `session_expired`, `reset_sent`, `password_changed`, `totp_enabled`/`_disabled`, `device_revoked`, generic network/rate-limit toasts. Dialogs: `dialog.identity.logout_all`, `disable_totp`, `recovery_codes`, `dialog.generic.discard_changes`.
 
 ## Scope
 ### In
