@@ -2,7 +2,7 @@
 
 ## 1. Shape: a modular monolith in one binary
 
-**ARC-01.** The backend is **one Rust binary** (`equalizer`) that serves:
+**ARC-01.** The backend is **one Rust binary** (`ritma`) that serves:
 - the JSON API under `/api/v1`,
 - the embedded SPA (static files) under `/`,
 - background jobs and the event dispatcher, running in-process on tokio tasks.
@@ -15,7 +15,7 @@ flowchart LR
     B[Browser / PWA]
     T[Tauri desktop shell]
   end
-  subgraph Binary["equalizer (single process)"]
+  subgraph Binary["ritma (single process)"]
     H[axum HTTP + tower layers]
     SPA[rust-embed static SPA]
     M[Module routers]
@@ -56,7 +56,7 @@ flowchart LR
 │   ├── eq-reports/            # feature "reports"
 │   ├── eq-feedback/           # feature "feedback"
 │   ├── eq-api/                # router assembly, middleware, OpenAPI, SPA serving
-│   └── eq-server/             # bin "equalizer": config, migrate, serve, jobs, CLI
+│   └── eq-server/             # bin "ritma": config, migrate, serve, jobs, CLI
 ├── migrations/                # ONE ordered sqlx migration set for all modules (ADR-0012)
 ├── presets/                   # *.yaml presets, embedded at compile time
 ├── web/                       # React + Vite SPA (pnpm)
@@ -100,7 +100,7 @@ crates/eq-billing/
 
 1. `tower_http::request_id` (UUIDv7) → `TraceLayer` (span carries `request_id`, `tenant_id`, `actor_id`).
 2. `CompressionLayer`, a security-headers layer (SEC-20), a body limit (default 1 MiB; uploads 10 MiB on file routes).
-3. **Tenant resolution** (`TenantCtx` extractor): in `EQ_MODE=single`, the only tenant; in `EQ_MODE=multi`, the subdomain of `Host`. An unknown tenant returns 404.
+3. **Tenant resolution** (`TenantCtx` extractor): in `RITMA_MODE=single`, the only tenant; in `RITMA_MODE=multi`, the subdomain of `Host`. An unknown tenant returns 404.
 4. **Rate limit** (`tower_governor`, per IP plus per user, SEC-11).
 5. **Auth** (`Actor` extractor): verify the access JWT (IDN-03), load the membership roles, and reject frozen or deactivated actors where the route requires it.
 6. **Module gate**: a router built by a module is wrapped in `ModuleGate(module_id)`. If the module is disabled for the tenant, the response is `404 problem+json type=module-disabled`.

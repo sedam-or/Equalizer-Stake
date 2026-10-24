@@ -14,7 +14,7 @@ estimated_size: S
 Anyone can try the product in 10 seconds from the README.
 
 ## Context
-- DST-44: `EQ_DEMO=1`, `seed-demo` (music preset, 3 instructors, 40 students, 2 months of history), 'Try as owner/admin/teacher/parent' buttons (demo only, no passwords), nightly reset job; outbound messages always suppressed in demo.
+- DST-44: `RITMA_DEMO=1`, `seed-demo` (music preset, 3 instructors, 40 students, 2 months of history), 'Try as owner/admin/teacher/parent' buttons (demo only, no passwords), nightly reset job; outbound messages always suppressed in demo.
 
 ## Scope
 ### In
@@ -25,7 +25,7 @@ Anyone can try the product in 10 seconds from the README.
 
 ## Acceptance criteria
 - AC1. seed-demo is deterministic (same counts and ids with the same seed) → `demo::deterministic`
-- AC2. Demo mode refuses outside `EQ_DEMO=1` → `guarded`
+- AC2. Demo mode refuses outside `RITMA_DEMO=1` → `guarded`
 - AC3. No notifications leave in demo → `suppressed`
 
 ## Tests to write

@@ -1,5 +1,7 @@
 # GTM — launch, growth, community, sustainability
 
+> GitHub discoverability, repo setup and the launch-day runbook: [`GITHUB.md`](GITHUB.md).
+
 ## 1. North-star and metrics
 
 - **North-star:** **weekly active schools**, meaning schools with ≥ 1 session scheduled and ≥ 1 non-owner login in the week, counted across cloud plus opt-in telemetry.
@@ -43,7 +45,7 @@ A Bahasa Indonesia README (`README.id.md`) is linked at the top.
 
 - **Channels:** GitHub Discussions (Q&A, Ideas, Show and tell), Discord (EN), Telegram group (ID), and monthly community calls.
 - **Contribution ladders** (easiest first):
-  1. Translate (Weblate, project `<brand>/app`).
+  1. Translate (Weblate, project `ritma/app`).
   2. Add or improve a **preset** (YAML).
   3. Docs and screenshots.
   4. `good first issue` (labelled; each one has a task file).
@@ -76,8 +78,8 @@ Cloud plans are in `spec/15-cloud.md` §3. Guidance:
 5. Designing for parents on phones: lessons from v0.
 6. Late fees without drama: snapshots and effective-dated rules.
 7. Running your school on a $5 server (tutorial, ID + EN).
-8. From Excel to [Brand] in 15 minutes (import tutorial).
-9. Gamelan and scheduling: the story behind the name (if Kenong).
+8. From Excel to Ritma in 15 minutes (import tutorial).
+9. "The rhythm of your school": why we named it Ritma (from *ritme*, rhythm).
 10. Privacy for children's data under UU PDP (practical guide).
 11. Case study: beta school #1.
 12. How to write a preset for your kind of school.

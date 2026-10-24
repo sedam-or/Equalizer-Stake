@@ -1,6 +1,6 @@
 # AGENTS.md — rules for coding agents (Codex & co.)
 
-You are implementing **Equalizer v2**, an open-source scheduling, billing and attendance engine for course schools.
+You are implementing **Ritma**, an open-source scheduling, billing and attendance engine for course schools.
 The architecture is already decided. **Your job is to implement tasks exactly as written, not to design.**
 
 ## 0. The one rule

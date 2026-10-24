@@ -4,7 +4,7 @@ The detailed, task-level plan lives in [`tasks/INDEX.md`](tasks/INDEX.md). The m
 
 | Milestone | Theme | User-visible result |
 |---|---|---|
-| **M0** Foundation | Workspace, CI, core plumbing | `equalizer serve` boots, `/healthz` works |
+| **M0** Foundation | Workspace, CI, core plumbing | `ritma serve` boots, `/healthz` works |
 | **M1** Core | Tenants, identity, policies, modules, audit | Log in; policies and modules exist via the API |
 | **M2** Scheduling | Catalog, sessions, series, zero double-booking | The 50→1 concurrency badge goes green |
 | **M3** Setup & web app | SPA shell, design system, 3-step wizard, schedule UI | **A school is set up in 3 steps** and can schedule lessons |

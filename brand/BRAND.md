@@ -1,6 +1,6 @@
 # BRAND — strategy, positioning, naming, identity
 
-> Status: **draft for the maintainer's decision**. Codename until rename: *Equalizer*.
+> Status: **name decided: Ritma** (2026-10-25). Formerly the *Equalizer-Stake* capstone. Trademark and domain checks are still open (§5.5).
 
 ## 1. The problem (in the customer's words)
 
@@ -24,7 +24,7 @@ Secondary ICP: **developers and local IT partners** who set up systems for schoo
 
 ## 3. Positioning
 
-**For** independent course schools and studios **who** juggle schedules, fees and attendance across WhatsApp and spreadsheets, **[Brand] is** an open-source school operating system **that** sets up in three steps and makes double bookings impossible. **Unlike** global SaaS tools priced in dollars and built for someone else's market, or booking tools that stop at appointments, **[Brand]** handles the whole student lifecycle (enrollment, recurring lessons, monthly fees, attendance and parent communication), runs on your own PC, server or our cloud, and your data is always yours.
+**For** independent course schools and studios **who** juggle schedules, fees and attendance across WhatsApp and spreadsheets, **Ritma is** an open-source school operating system **that** sets up in three steps and makes double bookings impossible. **Unlike** global SaaS tools priced in dollars and built for someone else's market, or booking tools that stop at appointments, **Ritma** handles the whole student lifecycle (enrollment, recurring lessons, monthly fees, attendance and parent communication), runs on your own PC, server or our cloud, and your data is always yours.
 
 - **Category:** open-source school management for course businesses ("school OS").
 - **Developer one-liner:** *"Cal.com for course schools."*
@@ -74,16 +74,39 @@ Messaging rules: lead with **outcomes** (time saved, money collected, no clashes
 | **Slotwise** | Smart slots | Very clear in English | Generic-sounding, English-only |
 | **Classly** | Class + -ly | Clear | Very likely taken; a common pattern |
 
-**Recommendation: Kenong.** Tagline: *"Keeps your school in time."* / *"Menjaga sekolah Anda tetap seirama."*
+My original recommendation was Kenong, with Ritma as the fallback.
 
-If trademark or domain checks fail: Ritma, then Openbell.
+**Decision (2026-10-25): Ritma.** The maintainer chose it for being short, bilingual and easy to say.
+- **Tagline:** *"The rhythm of your school."* / *"Irama sekolah Anda."*
+- **Story line:** "Every school has a rhythm: lessons, fees, attendance. Ritma keeps it steady."
+- **Logo:** the logo brief in §7 still works. The circle with one highlighted segment reads as a beat in a bar.
+- **Searchability:** "ritma" is a common word in Indonesian, so always pair it with a category word in copy and SEO ("Ritma school software", "Ritma aplikasi kursus").
 
-### 5.4 Rename procedure (once chosen)
+### 5.4 Rename procedure (applied 2026-10-25 in the docs; code follows via the tasks)
 
-1. Change `crates/eq-core/src/brand.rs` and `web/src/brand.ts`: `NAME`, `DOMAIN`, `TAGLINE`.
-2. Rename the binary `equalizer` → `<name>` (the `[[bin]]` name in eq-server, the Dockerfile, deploy templates, install script).
-3. Search and replace the docs. Crate prefixes `eq-` **stay** (internal, stable).
-4. Register the GitHub org, domains and social handles. Add `TRADEMARK.md` with the mark.
+1. `crates/eq-core/src/brand.rs` and `web/src/brand.ts` hold `NAME = "Ritma"` and the tagline (T-005).
+2. The binary is `ritma`. That covers the `[[bin]]` name in eq-server, the Dockerfile, deploy templates and the install script.
+3. User-facing env vars use `RITMA_*`. Paths are `/var/lib/ritma` and `/opt/ritma`. The mDNS name is `ritma.local`.
+4. Internal identifiers **stay** because they're stable and invisible to users:
+   - crate prefix `eq-`, Rust paths `eq_*`;
+   - the cookie `eq_rt` and the header `X-EQ-CSRF`;
+   - DB roles `eq_app` / `eq_platform`;
+   - key-derivation labels `eq/…/v1`. Changing these would break encryption.
+5. Register the GitHub org, domains and social handles (§5.5).
+
+### 5.5 Handles, domains, trademark (maintainer to-do)
+
+| Asset | Plan | Status (2026-10-25) |
+|---|---|---|
+| GitHub org | `ritmahq`, repo `ritmahq/ritma` (see `brand/GITHUB.md`) | `ritmahq` appeared free. `ritma` is taken by a user account |
+| Spare orgs to squat | `ritma-app`, `getritma` (redirect to `ritmahq`) | Appeared free |
+| Developer domain | `ritma.dev` (docs and problem-type URIs `https://ritma.dev/problems/<code>`, in `PROBLEM_BASE`) | **Unchecked.** If it's unavailable, change `PROBLEM_BASE` in T-002 before M1 ships, because problem URIs are stable identifiers |
+| Product domain `<domain>` | Candidates: `ritma.app`, `ritma.id`, `getritma.com`. It's used for `app.`, `get.`, `demo.`, `releases.` and `status.` (spec 11/14/15) | **Unchecked** |
+| Tunnel domain `<tunnel-domain>` | A separate domain for `<slug>.<tunnel-domain>` (DST-22), so that abuse on tunnels can't hurt the main domain's reputation | **Unchecked** |
+| Trademark | Search WIPO Global Brand DB, PDKI (Indonesia) and USPTO in classes 9/41/42 for "RITMA". Then file in Indonesia (DJKI) first | **Unchecked.** "Ritma" is likely already used by small businesses, so check for software and education uses specifically |
+| Social | `@ritmahq` on X, Instagram, YouTube, Threads and LinkedIn | Unchecked |
+
+Once a domain is chosen, replace `<domain>` / `<tunnel-domain>` in `spec/` and `tasks/` in one commit.
 
 ## 6. Voice & tone
 
@@ -99,7 +122,7 @@ Rules: second person, active voice, no blame, no exclamation marks in errors. In
 ## 7. Visual identity brief
 
 - **Logo concept (for a designer):**
-  - The mark is a circle (the kenong's boss/knob seen from above) with **one segment highlighted**: one time slot taken, the others free. It reads as a clock, a gong and a calendar slot at the same time.
+  - The mark is a circle divided like a bar of music with **one segment highlighted**: one beat, one time slot taken, the others free. It reads as a clock, a rhythm and a calendar slot at the same time.
   - The wordmark is set in Plus Jakarta Sans 700, lowercase, tight tracking (−1%).
   - The mark must work at 16 px (favicon) and in one colour.
 - **Colour:** brand blue (OKLCH 0.49 0.20 255 ≈ #2456E0) as primary, with warm amber accent (0.75 0.16 70) used sparingly for "moments" (success confetti, highlights). Neutrals are cool grey. The source of truth is `spec/09-design-system.md` §2.

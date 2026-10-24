@@ -1,6 +1,6 @@
 <p align="center">
   <!-- banner: brand/assets/banner-{light,dark}.png (see brand/BRAND.md §8) -->
-  <b>Equalizer</b> <i>(working name, a rename is in progress)</i><br/>
+  <b>Ritma</b> · <i>the rhythm of your school</i><br/>
   <b>The open-source operating system for course schools & studios.</b><br/>
   Scheduling · enrollment · monthly fees · attendance · parent messages. Set up in 3 steps.
 </p>

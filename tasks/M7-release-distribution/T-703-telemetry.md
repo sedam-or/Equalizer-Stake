@@ -14,7 +14,7 @@ estimated_size: S
 Measure adoption honestly: off by default, anonymous, and fully documented.
 
 ## Context
-- DST-40 payload and rules in `spec/14-distribution.md` §7; `EQ_TELEMETRY` env plus owner toggle; weekly job; `docs/telemetry.md`.
+- DST-40 payload and rules in `spec/14-distribution.md` §7; `RITMA_TELEMETRY` env plus owner toggle; weekly job; `docs/telemetry.md`.
 
 ## Scope
 ### In

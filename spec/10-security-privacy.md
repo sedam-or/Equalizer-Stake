@@ -15,7 +15,7 @@
 
 ## 2. Cryptography
 
-**SEC-01. Master secret.** `EQ_SECRET_KEY` is 32 random bytes, base64. It is required, and startup fails if it is missing or shorter than 32 bytes. The installer generates it (DST). Sub-keys are derived with HKDF-SHA256 (`info` labels):
+**SEC-01. Master secret.** `RITMA_SECRET_KEY` is 32 random bytes, base64. It is required, and startup fails if it is missing or shorter than 32 bytes. The installer generates it (DST). Sub-keys are derived with HKDF-SHA256 (`info` labels):
 - `"eq/jwt/v1"` (JWT HMAC key)
 - `"eq/kek/v1"` (key-encryption key)
 - `"eq/bidx/v1"` (blind-index key base)
@@ -24,7 +24,7 @@
 - `"eq/csrf/v1"`
 - `"eq/ics/v1"` (calendar feed token key, SCH-16)
 
-`EQ_SECRET_KEY_PREVIOUS` (optional) is tried for unwrapping and verifying during master-key rotation (`equalizer rotate-keys`).
+`RITMA_SECRET_KEY_PREVIOUS` (optional) is tried for unwrapping and verifying during master-key rotation (`ritma rotate-keys`).
 
 **SEC-02. Envelope encryption.**
 - Each tenant has data-encryption keys (DEKs) in `tenant_keys(tenant_id, key_version int, dek_enc bytea, created_at, retired_at, PRIMARY KEY(tenant_id, key_version))`. A DEK is 32 random bytes wrapped with AES-256-GCM under the KEK.
@@ -52,9 +52,9 @@
 - The test TST-06 proves that an unset `app.tenant_id` yields 0 rows and that a cross-tenant id yields 0 rows.
 
 **SEC-06. Transport.**
-- The binary speaks plain HTTP on `EQ_LISTEN`. TLS is terminated by Caddy (docker), the platform (1-click), or the tunnel (desktop).
-- When `EQ_PUBLIC_URL` is https, the server sets HSTS (`max-age=31536000; includeSubDomains`), marks cookies `Secure`, and honours `X-Forwarded-Proto` only from `EQ_TRUSTED_PROXIES`.
-- When `EQ_PUBLIC_URL` is http and not localhost or a private IP, startup logs a loud warning and the setup wizard shows a red banner.
+- The binary speaks plain HTTP on `RITMA_LISTEN`. TLS is terminated by Caddy (docker), the platform (1-click), or the tunnel (desktop).
+- When `RITMA_PUBLIC_URL` is https, the server sets HSTS (`max-age=31536000; includeSubDomains`), marks cookies `Secure`, and honours `X-Forwarded-Proto` only from `RITMA_TRUSTED_PROXIES`.
+- When `RITMA_PUBLIC_URL` is http and not localhost or a private IP, startup logs a loud warning and the setup wizard shows a red banner.
 
 **SEC-07. Append-only tables.** `policies`, `audit.entries`, `payments` (no UPDATE except the status/verify columns through a function), `checkins` (review columns only through a function) and `consents`. Enforcement is by column-level GRANTs and/or `BEFORE UPDATE` triggers that raise on forbidden column changes.
 
@@ -67,7 +67,7 @@
   - Each purpose has an allow-list of MIME types confirmed by magic bytes (`infer` crate) and a size limit: avatar 2 MB, photo per policy, payment proof 5 MB, logo 512 KB, import 10 MB.
   - Images are decoded and **re-encoded** (EXIF stripped).
   - PDFs (payment proof) are stored as-is but always served with `Content-Disposition: attachment` and `Content-Type: application/pdf`.
-  - Files are stored under `EQ_DATA_DIR/files/{tenant}/{yyyy}/{mm}/{file_id}` (local) or S3 with the same key. They are never served from a static directory.
+  - Files are stored under `RITMA_DATA_DIR/files/{tenant}/{yyyy}/{mm}/{file_id}` (local) or S3 with the same key. They are never served from a static directory.
 - **SEC-14. SVG logos** are sanitised with an allow-list (no script, foreignObject, event attributes or external refs) using `usvg` parsing and re-serialisation, or rasterised to PNG if sanitising fails.
 - **SEC-15. Signed file URLs.** `/api/v1/files/{id}?exp=<unix>&sig=<base64url(HMAC(filesig, tenant|id|exp|actor))>`, valid for 5 min, bound to the actor. Avatars and the logo are exempt (public within the tenant, cache 1 h).
 - **SEC-20. HTTP security headers** (all responses):
@@ -100,4 +100,4 @@
 | Data residency | Cloud region selectable at signup: `ap-southeast-3` (Jakarta) default for ID, Singapore otherwise (CLD-05) |
 | Processor agreements | Cloud: a DPA template in `docs/legal/` |
 
-**SEC-31. Backups** made by `equalizer backup` are encrypted with the backup key (XChaCha20-Poly1305, streaming). The UI warns: "Keep your secret key safe. Backups cannot be restored without it." The desktop app stores the key in the OS keychain and offers "Export recovery kit" (a PDF/QR with the secret key).
+**SEC-31. Backups** made by `ritma backup` are encrypted with the backup key (XChaCha20-Poly1305, streaming). The UI warns: "Keep your secret key safe. Backups cannot be restored without it." The desktop app stores the key in the OS keychain and offers "Export recovery kit" (a PDF/QR with the secret key).

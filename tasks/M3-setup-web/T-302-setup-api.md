@@ -13,8 +13,8 @@ The server side of "set up your school in 3 steps". One transaction per step, re
 
 ## Context
 - SET-11 first-run token:
-  - On `serve` start in single mode with an **empty** `tenants` table: use `EQ_SETUP_TOKEN` if set, else generate 24 random bytes (base64url).
-  - Write it to `EQ_DATA_DIR/setup-token.txt` (mode 0600) and log `info!("Open {EQ_PUBLIC_URL}/setup?token={token}")`. **This is the one place a secret may be logged**, because the operator needs it. Allow-list it in `PiiGuardLayer` by using the field name `setup_url`.
+  - On `serve` start in single mode with an **empty** `tenants` table: use `RITMA_SETUP_TOKEN` if set, else generate 24 random bytes (base64url).
+  - Write it to `RITMA_DATA_DIR/setup-token.txt` (mode 0600) and log `info!("Open {RITMA_PUBLIC_URL}/setup?token={token}")`. **This is the one place a secret may be logged**, because the operator needs it. Allow-list it in `PiiGuardLayer` by using the field name `setup_url`.
   - Store only `sha256(token)` in memory (`SetupGuard`). Compare in constant time.
   - After step 1 succeeds, delete the file and forget the token.
 - API (spec 05 §3), all under `/api/v1/setup`:

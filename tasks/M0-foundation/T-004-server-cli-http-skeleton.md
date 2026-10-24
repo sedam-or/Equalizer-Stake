@@ -1,6 +1,6 @@
 ---
 id: T-004
-title: Build the equalizer CLI and HTTP skeleton (serve, migrate, version, healthz/readyz, tracing, graceful shutdown)
+title: Build the ritma CLI and HTTP skeleton (serve, migrate, version, healthz/readyz, tracing, graceful shutdown)
 milestone: M0
 status: todo
 depends_on: [T-003]
@@ -9,7 +9,7 @@ estimated_size: M
 ---
 
 ## Goal
-`equalizer serve` loads the config, runs migrations, and serves `/healthz` and `/readyz` through the standard tower layer stack, with request ids and structured logs. SIGTERM shuts it down gracefully.
+`ritma serve` loads the config, runs migrations, and serves `/healthz` and `/readyz` through the standard tower layer stack, with request ids and structured logs. SIGTERM shuts it down gracefully.
 
 ## Context
 - OPS-02 CLI: `serve` (default), `migrate`, `openapi`, `backup`, `restore`, `doctor`, `create-owner`, `rotate-keys`, `seed-demo`, `version`. This task implements `serve`, `migrate` and `version`. The others print "not implemented yet" and exit with code 2.
@@ -24,7 +24,7 @@ estimated_size: M
 
 ## Scope
 ### In
-- `eq-server/src/main.rs`: clap CLI with subcommands. `serve` does: tracing init (EQ_LOG filter, json or pretty) → config → `run_migrations` → pool → `eq_api::router(state)` → `axum::serve` with graceful shutdown.
+- `eq-server/src/main.rs`: clap CLI with subcommands. `serve` does: tracing init (RITMA_LOG filter, json or pretty) → config → `run_migrations` → pool → `eq_api::router(state)` → `axum::serve` with graceful shutdown.
 - `eq-api/src/lib.rs`: `pub struct AppState { pub pool: PgPool, pub config: Arc<Config>, pub clock: Arc<dyn Clock> }` (Clone) and `pub fn router(state: AppState) -> axum::Router` with health routes and the layer stack.
 - A request-id middleware that sets the task-local and the response header.
 
@@ -55,7 +55,7 @@ None.
 ## Acceptance criteria
 - AC1. With a DB available, `GET /healthz` → 200 and the `X-Request-Id` header is present (UUID). → `eq-api/tests/health.rs::healthz_ok`
 - AC2. With the DB stopped, `GET /readyz` → 503 `db_unreachable` within 1 s. → `readyz_db_down`
-- AC3. `equalizer migrate` against an empty DB applies 0001 and exits 0. → `eq-server/tests/cli.rs::migrate_applies`
+- AC3. `ritma migrate` against an empty DB applies 0001 and exits 0. → `eq-server/tests/cli.rs::migrate_applies`
 - AC4. A Problem body produced inside a request contains the same `request_id` as the header. → `problem_has_request_id` (add a test-only route)
 
 ## Tests to write
@@ -66,7 +66,7 @@ None.
 
 ## Definition of done
 - [ ] Rust checks pass
-- [ ] Manual: `DATABASE_URL=… EQ_SECRET_KEY=… EQ_PUBLIC_URL=http://localhost:8080 cargo run -p eq-server -- serve`, then `curl localhost:8080/healthz` (paste the output in the Report)
+- [ ] Manual: `DATABASE_URL=… RITMA_SECRET_KEY=… RITMA_PUBLIC_URL=http://localhost:8080 cargo run -p eq-server -- serve`, then `curl localhost:8080/healthz` (paste the output in the Report)
 - [ ] Commit `feat(server): cli and http skeleton [T-004]`, signed off
 
 ## Report

@@ -225,7 +225,7 @@ CREATE TABLE files (
   content_type  text NOT NULL,
   size_bytes    bigint NOT NULL,
   sha256        bytea NOT NULL,
-  storage_key   text NOT NULL,                      -- path under EQ_DATA_DIR/files or S3 key
+  storage_key   text NOT NULL,                      -- path under RITMA_DATA_DIR/files or S3 key
   encrypted     boolean NOT NULL,
   created_by    uuid REFERENCES persons(id),
   created_at    timestamptz NOT NULL DEFAULT now(),

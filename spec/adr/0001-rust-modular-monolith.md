@@ -7,7 +7,7 @@
 v0 claimed three stacks: FastAPI (working), Go (empty skeleton) and Next.js. The product must be self-hostable by non-technical schools on a $5 VPS or on a school PC (14-distribution), must guarantee zero double bookings and must handle money exactly.
 
 ## Decision
-Build the backend as a **modular monolith in Rust**: a Cargo workspace with one crate per module, compiled into one `equalizer` binary that also serves the embedded SPA and runs jobs in-process.
+Build the backend as a **modular monolith in Rust**: a Cargo workspace with one crate per module, compiled into one `ritma` binary that also serves the embedded SPA and runs jobs in-process.
 
 ## Consequences
 - ✅ Single static binary (about 20–40 MB RAM idle) that the desktop app (Tauri, Rust) can embed as a library. Strong typing for state machines, money and policies. Compile-time module features.

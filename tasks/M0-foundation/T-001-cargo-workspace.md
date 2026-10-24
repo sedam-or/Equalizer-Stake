@@ -12,7 +12,7 @@ estimated_size: S
 `cargo build --workspace` succeeds on a fresh clone. The workspace has every crate from the architecture with the correct dependency edges, shared lints and pinned dependency versions, so later tasks only add code.
 
 ## Context
-- ARC-01: one binary `equalizer` (crate `eq-server`) that serves the API and the embedded SPA and runs jobs.
+- ARC-01: one binary `ritma` (crate `eq-server`) that serves the API and the embedded SPA and runs jobs.
 - ARC-02 dependency rules:
   - `eq-core` depends on no `eq-*` crate.
   - Always-on crates are layered core → audit → identity → scheduling.
@@ -27,7 +27,7 @@ estimated_size: S
 - `rust-toolchain.toml`: `channel = "stable"` pinned to a concrete version ≥ 1.85, components rustfmt and clippy.
 - `rustfmt.toml` (`max_width = 110`, `imports_granularity = "Crate"`, `group_imports = "StdExternalCrate"`; use only stable options).
 - 14 crates, each with `Cargo.toml` (inheriting workspace package and lints) and `src/lib.rs` (or `src/main.rs` for eq-server), containing a crate doc comment with its purpose and a `pub fn crate_name() -> &'static str` placeholder **only if needed for compilation**. Prefer empty libs.
-- `eq-server` produces `[[bin]] name = "equalizer"` with a `main` that prints the version.
+- `eq-server` produces `[[bin]] name = "ritma"` with a `main` that prints the version.
 - `scripts/check-deps.sh`: parses `cargo metadata --format-version 1 --no-deps` with `jq` and fails if any optional crate depends on another optional crate, or if `eq-core` depends on any `eq-*`.
 
 ### Out
@@ -133,7 +133,7 @@ None.
 3. `check-deps.sh` must be POSIX sh plus `jq`, with exit code 1 and a readable message on violation.
 
 ## Acceptance criteria
-- AC1. Given a fresh clone, When `cargo build --workspace`, Then success and `target/debug/equalizer --version` prints `equalizer 0.1.0`.
+- AC1. Given a fresh clone, When `cargo build --workspace`, Then success and `target/debug/ritma --version` prints `ritma 0.1.0`.
 - AC2. When `cargo build -p eq-server --no-default-features`, Then success (no optional crates compiled).
 - AC3. When `scripts/check-deps.sh` runs, Then exit 0. If you temporarily add `eq-billing` as a dependency of `eq-rental`, Then exit 1 with a message naming both crates (verify manually and describe in the Report).
 

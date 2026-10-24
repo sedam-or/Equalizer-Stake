@@ -1,16 +1,16 @@
 # 15 — Managed Cloud
 
-The cloud is **the same AGPL code** running with `EQ_MODE=multi`, plus a small **platform** layer (signup, plans, metering, subscription billing) that lives in this repo under `crates/eq-platform` (feature `platform`, off by default). The source stays open (AGPL §13 compliance), and the moat is operations, not code.
+The cloud is **the same AGPL code** running with `RITMA_MODE=multi`, plus a small **platform** layer (signup, plans, metering, subscription billing) that lives in this repo under `crates/eq-platform` (feature `platform`, off by default). The source stays open (AGPL §13 compliance), and the moat is operations, not code.
 
 ## 1. Tenancy and routing
 
-- **CLD-01.** Each school is one tenant reached at `https://<slug>.app.<brand>.com`. Custom domains are a paid plan: CNAME to `edge.<brand>.com`, with on-demand TLS through Caddy's `on_demand_tls` and an `ask` endpoint `GET /platform/domain-check?domain=`.
+- **CLD-01.** Each school is one tenant reached at `https://<slug>.app.<domain>`. Custom domains are a paid plan: CNAME to `edge.<domain>`, with on-demand TLS through Caddy's `on_demand_tls` and an `ask` endpoint `GET /platform/domain-check?domain=`.
 - **CLD-02.** Tenant resolution comes from `Host` (ARC-04 step 3). Unknown hosts get the platform 404 page.
-- **CLD-03.** Isolation is Postgres RLS (SEC-05) in a shared database for the free and standard plans. **Dedicated DB** is an enterprise option: a separate PG database and the same image with `EQ_MODE=single`.
+- **CLD-03.** Isolation is Postgres RLS (SEC-05) in a shared database for the free and standard plans. **Dedicated DB** is an enterprise option: a separate PG database and the same image with `RITMA_MODE=single`.
 
 ## 2. Signup and onboarding
 
-- **CLD-10.** Flow: `app.<brand>.com/signup` → email (magic link) or Google OIDC → **school slug and region** → the 3-step setup wizard (05), unchanged → dashboard.
+- **CLD-10.** Flow: `app.<domain>/signup` → email (magic link) or Google OIDC → **school slug and region** → the 3-step setup wizard (05), unchanged → dashboard.
   - "Import from file" in step 1 accepts a desktop or self-host `.eqbak` plus its key, or the spreadsheet import (DST-41).
 - **CLD-11.** The platform tables (`platform` schema, no RLS, role `eq_platform`):
   - `accounts(id, email, created_at)` (the signup identity)
@@ -43,9 +43,9 @@ The cloud is **the same AGPL code** running with `EQ_MODE=multi`, plus a small *
   - 2 app instances behind a load balancer (stateless; files in S3-compatible storage; one cron planner per instance is safe through dedupe keys).
   - Managed Postgres 16 with PITR (RPO ≤ 5 min).
   - Nightly logical backups per tenant (CLD-33) for tenant-level restores.
-- **CLD-32.** Platform email via a transactional provider (SES/Postmark) through `EQ_SMTP_URL`, with per-tenant rate limits.
-- **CLD-33.** Per-tenant export and restore for support: `equalizer backup --tenant <id>` produces a tenant-scoped dump (COPY of tenant rows by table order plus files). Restoring into a new tenant id remaps ids.
-- **CLD-34. SLA targets:** 99.5% (Standard), 99.9% (Enterprise). Status page at `status.<brand>.com`.
+- **CLD-32.** Platform email via a transactional provider (SES/Postmark) through `RITMA_SMTP_URL`, with per-tenant rate limits.
+- **CLD-33.** Per-tenant export and restore for support: `ritma backup --tenant <id>` produces a tenant-scoped dump (COPY of tenant rows by table order plus files). Restoring into a new tenant id remaps ids.
+- **CLD-34. SLA targets:** 99.5% (Standard), 99.9% (Enterprise). Status page at `status.<domain>`.
 - **CLD-35. Abuse and safety.** Signup rate limits, disposable-email blocking, suspend switch (`tenants.status = suspended` → read-only plus a banner), and a takedown process in `docs/legal/`.
 
 ## 6. AGPL compliance in hosted mode

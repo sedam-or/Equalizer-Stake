@@ -1,5 +1,5 @@
 <p align="center">
-  <b>Equalizer</b> <i>(nama sementara, sedang proses ganti nama)</i><br/>
+  <b>Ritma</b> · <i>irama sekolah Anda</i><br/>
   <b>Sistem operasi open-source untuk lembaga kursus & studio.</b><br/>
   Jadwal · pendaftaran · SPP bulanan · absensi · pesan ke wali murid. Siap dalam 3 langkah.
 </p>

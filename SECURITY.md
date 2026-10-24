@@ -22,7 +22,7 @@ What to expect:
 
 ## Scope
 
-In scope: the `equalizer` server, the web app, the desktop app, the official deploy templates and install script, and the managed cloud.
+In scope: the `ritma` server, the web app, the desktop app, the official deploy templates and install script, and the managed cloud.
 
 Out of scope: denial of service by volume, social engineering, issues in third-party providers (SMTP or WhatsApp vendors), and self-hosted instances misconfigured against the docs.
 

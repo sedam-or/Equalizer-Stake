@@ -14,7 +14,7 @@ No password is ever sent. People join by invite link and recover by single-use r
 ## Context
 - IDN-07 invites:
   - `create_invite(tx, actor, person_id, role, channel)`: revokes earlier unaccepted invites for (person, role) by setting `expires_at = now`. It creates a 32-byte random token (sha256 stored) with `expires_at = now + invite_expires_days`, sets the membership `status='invited'` (insert if missing), emits `identity.user_invited.v1 {person_id, role, invite_id}`, and audits `identity.invite.created`.
-  - The URL is `{EQ_PUBLIC_URL}/{lang}/invite/{token}`, where `lang` is the person's locale, then the tenant locale.
+  - The URL is `{RITMA_PUBLIC_URL}/{lang}/invite/{token}`, where `lang` is the person's locale, then the tenant locale.
   - Channel `link` returns `invite_url` in the response (admin copies it). `email`/`whatsapp` don't return it; notify sends it (M5). Until notify exists, the event sits in the outbox.
   - `GET /auth/invites/{token}` → `{tenant_name, display_name, role, expires_at}`. Unknown → 404. Expired → 410 `invite_expired`. Accepted → 410.
   - `POST /auth/invites/{token}/accept {password}`: validates the password per policy, sets `password_hash` and `password_changed_at`, sets membership `active` and `accepted_at`, and returns the login response plus the cookie. Audit `identity.invite.accepted`.

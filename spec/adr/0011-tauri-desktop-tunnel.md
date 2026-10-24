@@ -7,7 +7,7 @@ Many small schools have one front-desk PC and poor IT. Phones need HTTPS for cam
 
 ## Decision
 - A Tauri 2 app runs `eq_server` in-process plus `postgresql_embedded`.
-- The default phone access mode is a **secure tunnel** with an issued `<slug>.<brand>.app` hostname.
+- The default phone access mode is a **secure tunnel** with an issued `<slug>.<tunnel-domain>` hostname.
 - An advanced local-CA mode is available for offline use.
 
 ## Consequences

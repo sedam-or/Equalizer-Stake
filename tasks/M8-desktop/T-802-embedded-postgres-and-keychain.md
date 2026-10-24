@@ -14,7 +14,7 @@ estimated_size: M
 No database to install: the app brings its own Postgres and keeps its secrets in the OS keychain.
 
 ## Context
-- DST-20: PG 16 bundled (offline install default), random port, generated password in keychain (`keyring`), `EQ_SECRET_KEY` generated on first run, 'Export recovery kit' PDF/QR (SEC-31).
+- DST-20: PG 16 bundled (offline install default), random port, generated password in keychain (`keyring`), `RITMA_SECRET_KEY` generated on first run, 'Export recovery kit' PDF/QR (SEC-31).
 
 ## Scope
 ### In

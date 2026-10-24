@@ -30,7 +30,7 @@ One safe path for every uploaded file (logos and avatars now; photos, payment pr
   - PDFs are stored as-is and always served as `attachment`.
 - SEC-14: SVG logos are parsed with `usvg` and re-serialised (removes scripts, foreignObject, event attributes and external refs). If that fails, rasterise to PNG with `resvg` at 512 px.
 - Encryption: avatar and logo are **not** encrypted (public within the tenant). All other purposes are encrypted with the T-103 stream cipher (`encrypted = true`).
-- Storage: `FileStore` trait with `LocalFileStore` (`EQ_DATA_DIR/files/{tenant}/{yyyy}/{mm}/{file_id}`) and `S3FileStore` (`EQ_FILES_BACKEND=s3`, `EQ_S3_*` env vars; crate `object_store` with the aws feature). Add the config fields to T-002's config if missing: `EQ_FILES_BACKEND=local|s3`, `EQ_S3_BUCKET`, `EQ_S3_REGION`, `EQ_S3_ENDPOINT?`, `EQ_S3_ACCESS_KEY_ID`, `EQ_S3_SECRET_ACCESS_KEY`.
+- Storage: `FileStore` trait with `LocalFileStore` (`RITMA_DATA_DIR/files/{tenant}/{yyyy}/{mm}/{file_id}`) and `S3FileStore` (`RITMA_FILES_BACKEND=s3`, `RITMA_S3_*` env vars; crate `object_store` with the aws feature). Add the config fields to T-002's config if missing: `RITMA_FILES_BACKEND=local|s3`, `RITMA_S3_BUCKET`, `RITMA_S3_REGION`, `RITMA_S3_ENDPOINT?`, `RITMA_S3_ACCESS_KEY_ID`, `RITMA_S3_SECRET_ACCESS_KEY`.
 - SEC-15 signed URLs:
   - `GET /api/v1/files/{id}?exp=<unix>&sig=<base64url(HMAC-SHA256(Keys.filesig, tenant|id|exp|actor))>`, valid ≤ 5 min (technical const), bound to the actor (the actor's person id or `anon`).
   - Avatars and logos skip the signature: `GET /api/v1/files/{id}` is enough when purpose is avatar|logo, with `Cache-Control: public, max-age=3600`.

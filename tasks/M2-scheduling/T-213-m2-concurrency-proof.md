@@ -12,7 +12,7 @@ estimated_size: S
 Publicly provable: 50 simultaneous bookings of one slot produce exactly one booking. This test is the README badge and USP #2.
 
 ## Context
-- TST-05: a tokio `JoinSet` of 50 tasks through the **HTTP layer** (axum-test or a real `reqwest` against `equalizer serve` on a random port, against a real DB), each `POST /sessions` for the same resource and time with **different** Idempotency-Keys and different participants (so only the resource collides).
+- TST-05: a tokio `JoinSet` of 50 tasks through the **HTTP layer** (axum-test or a real `reqwest` against `ritma serve` on a random port, against a real DB), each `POST /sessions` for the same resource and time with **different** Idempotency-Keys and different participants (so only the resource collides).
   - Expect exactly 1 × 201 and 49 × 409 `slot_taken`, and exactly 1 resource hold in `calendar_holds` for that range.
   - Run it 5 times in a loop in the same test (fresh slot each time) to catch flakiness.
 - Variant B: 20 concurrent `POST /series/{id}/members` for a capacity-1 series. Exactly 1 succeeds; the rest get 422 `policy_violation` rule `scheduling.capacity` or 409. This relies on the `FOR UPDATE` lock on the series row in add_member (T-209).

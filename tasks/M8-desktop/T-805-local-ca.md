@@ -14,7 +14,7 @@ estimated_size: S
 Schools without reliable internet still get HTTPS on the LAN.
 
 ## Context
-- DST-22 local mode: `rcgen` CA, cert for LAN IP + `equalizer.local` (`mdns-sd`), HTTPS on 8443, QR to download the CA with per-OS instructions.
+- DST-22 local mode: `rcgen` CA, cert for LAN IP + `ritma.local` (`mdns-sd`), HTTPS on 8443, QR to download the CA with per-OS instructions.
 
 ## Scope
 ### In

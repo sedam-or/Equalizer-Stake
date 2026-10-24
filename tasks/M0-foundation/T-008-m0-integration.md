@@ -26,7 +26,7 @@ Prove the stack end to end: the CI builds the web, embeds it into the release bi
 - CI `e2e` job:
   - Postgres service container.
   - Build web, then `cargo build --release -p eq-server`.
-  - Start `equalizer serve` in the background with test env.
+  - Start `ritma serve` in the background with test env.
   - Wait for `/readyz` (60 s timeout), then `pnpm -C web exec playwright test`.
   - Upload the report as an artifact on failure.
 - `make e2e` does the same locally.

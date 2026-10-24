@@ -13,7 +13,7 @@
 | TST-07 | E2E | Playwright (Chromium + WebKit mobile viewport 390×844) | Fresh install → setup (3 steps, music preset) → add instructor → approve registration → series → invoice cycle (time travel) → guardian pays → admin verifies. Separate specs per module | The setup flow takes ≤ 10 user actions per step and completes in < 60 s in CI |
 | TST-08 | Preset validation | `cargo test -p eq-core presets` | Every preset parses against `preset.schema.json`; every module patch merges and passes `validate()`; offering keys referenced by policy exist in the catalog | Required |
 | TST-09 | I18n completeness | Rust test + `pnpm i18n:check` | Every policy schema path has `en`/`id` label keys; every error `code` has `errors.<code>`; every notify template exists for `en`/`id` × routed channels; no unused keys | Required |
-| TST-10 | Contract drift | CI step | `equalizer openapi` equals the committed `web/openapi.json`; `pnpm gen:api` produces no diff; `pnpm typecheck` passes | Required |
+| TST-10 | Contract drift | CI step | `ritma openapi` equals the committed `web/openapi.json`; `pnpm gen:api` produces no diff; `pnpm typecheck` passes | Required |
 | TST-11 | Accessibility | Playwright + `@axe-core/playwright` | Every route in the route map | 0 serious or critical |
 | TST-12 | Visual | Playwright screenshots of `/__ds` (light/dark, compact/comfortable) | Design-system regressions | Reviewed diff |
 | TST-13 | Backup round trip | Integration (docker) | seed → backup → wipe → restore → row counts and file hashes equal | Required on release branches |

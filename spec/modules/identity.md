@@ -12,7 +12,7 @@ Legacy reference: `v0-capstone:srs/01-authentication.md`, `backend/app/services/
   - Passwords are checked against a bundled top-10k common-password list.
   - There are no composition rules (NIST 800-63B).
 - **IDN-03. Access token.**
-  - Format: JWT, HS256, signed with a key derived as `HKDF(EQ_SECRET_KEY, "jwt")`. TTL is **10 minutes** (technical constant).
+  - Format: JWT, HS256, signed with a key derived as `HKDF(RITMA_SECRET_KEY, "jwt")`. TTL is **10 minutes** (technical constant).
   - Claims: `sub` (person_id), `tid` (tenant_id), `role` (active role), `sid` (refresh session id), `iat`, `exp`, `ver` (`credentials.password_changed_at` epoch, so a password change invalidates tokens).
   - The token travels in the response body only. The SPA keeps it **in memory** only, never in localStorage.
 - **IDN-04. Refresh token.**

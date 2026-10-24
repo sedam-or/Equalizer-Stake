@@ -14,7 +14,7 @@ estimated_size: M
 A school's IT friend runs one command on a $5 server and gets HTTPS and a setup link.
 
 ## Context
-- DST-30 behaviour 1–5 (detect, ask domain + email, write `/opt/<brand>/` with compose, `.env` 600, Caddyfile, wait for `/readyz`, print the setup URL, idempotent re-run) and DST-31 in `spec/14-distribution.md` §6.
+- DST-30 behaviour 1–5 (detect, ask domain + email, write `/opt/ritma/` with compose, `.env` 600, Caddyfile, wait for `/readyz`, print the setup URL, idempotent re-run) and DST-31 in `spec/14-distribution.md` §6.
 - POSIX `sh`, shellcheck clean; non-interactive flags for automation.
 
 ## Scope

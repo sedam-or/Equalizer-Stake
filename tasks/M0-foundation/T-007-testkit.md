@@ -20,7 +20,7 @@ TST-20: `TestDb::new()` creates a fresh DB from a **template** that already has 
   - A global `tokio::sync::OnceCell` that starts `testcontainers_modules::postgres::Postgres` (image `postgres:16-alpine`) once per process, runs migrations into the DB `eq_template`, then marks it `IS_TEMPLATE true`.
   - `new()` creates a random DB name with `CREATE DATABASE … TEMPLATE eq_template` and returns a pool plus the URL.
   - `Drop` doesn't need to drop the DB (the container dies at process end).
-- If the env var `EQ_TEST_DATABASE_URL` is set, use that server instead of a container (faster local loops).
+- If the env var `RITMA_TEST_DATABASE_URL` is set, use that server instead of a container (faster local loops).
 - `eq_testkit::clock::test_clock() -> ManualClock` at the canonical start instant.
 - `eq_testkit::rng::seeded(u64)` for deterministic `StdRng`.
 - `eq_testkit::api::TestApp` scaffold: builds `eq_api::router` with a `TestDb` and a `ManualClock`, wrapped in `axum_test::TestServer`. Auth helpers come later (T-117).
@@ -51,7 +51,7 @@ None.
 
 ## Acceptance criteria
 - AC1. Two tests using `TestDb::new()` concurrently see independent data. → `eq-testkit/tests/isolation.rs::independent_dbs`
-- AC2. With `EQ_TEST_DATABASE_URL` set, no container is started (manual check, note it in the Report).
+- AC2. With `RITMA_TEST_DATABASE_URL` set, no container is started (manual check, note it in the Report).
 
 ## Tests to write
 | File | Test names |

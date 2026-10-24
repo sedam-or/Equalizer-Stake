@@ -1,6 +1,6 @@
-# Spec Index — Equalizer v2
+# Spec Index — Ritma
 
-> Codename: **Equalizer** (product display name TBD, see `brand/BRAND.md` §4).
+> Product: **Ritma** (formerly the *Equalizer-Stake* capstone). Naming and domains: `brand/BRAND.md` §5.
 > Everything brand-visible reads from one place (`crates/eq-core/src/brand.rs` and `web/src/brand.ts`). A rename touches only those files plus docs.
 
 This folder is the **single source of truth** for v2. It defines *what* and *why*.
@@ -28,7 +28,7 @@ This folder is the **single source of truth** for v2. It defines *what* and *why
 | — | `modules/*.md` | One spec per module (identity, scheduling, enrollment, rental, billing, attendance, notify, audit, reports, feedback) |
 | — | `adr/*.md` | Architecture Decision Records |
 
-Business and OSS docs live outside `spec/`: `brand/BRAND.md`, `brand/GTM.md`, and the governance files at the repo root.
+Business and OSS docs live outside `spec/`: `brand/BRAND.md`, `brand/GTM.md`, `brand/GITHUB.md`, and the governance files at the repo root.
 
 ## 2. Requirement ID scheme
 

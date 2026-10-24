@@ -14,7 +14,7 @@ estimated_size: S
 Keys can be rotated without downtime if a secret leaks.
 
 ## Context
-- SEC-01 `EQ_SECRET_KEY_PREVIOUS`; SEC-02 new DEK version, re-encrypt job per table/column in batches, retire old version when done (T-103 key versioning).
+- SEC-01 `RITMA_SECRET_KEY_PREVIOUS`; SEC-02 new DEK version, re-encrypt job per table/column in batches, retire old version when done (T-103 key versioning).
 
 ## Scope
 ### In

@@ -13,12 +13,12 @@ Every request resolves exactly one tenant, or returns 404. Handlers get a `Tenan
 
 ## Context
 - ARC-04 step 3:
-  - In `EQ_MODE=single`, the tenant is the single row (`resolve_single_tenant()`).
-  - In `EQ_MODE=multi`, it is the left-most label of the `Host` header under `EQ_BASE_DOMAIN` (e.g. `ayu.app.example.com` → `ayu`), looked up by `resolve_tenant_by_slug`.
+  - In `RITMA_MODE=single`, the tenant is the single row (`resolve_single_tenant()`).
+  - In `RITMA_MODE=multi`, it is the left-most label of the `Host` header under `RITMA_BASE_DOMAIN` (e.g. `ayu.app.example.com` → `ayu`), looked up by `resolve_tenant_by_slug`.
   - Unknown tenant → 404 `not_found` problem. A `suspended` tenant → read-only: methods other than GET/HEAD return 423 `locked` (CLD-35).
   - In single mode with **no** tenant row yet, `TenantCtx` resolves to `TenantCtx::Unprovisioned`. Only `/healthz`, `/readyz`, `/api/v1/meta/app` and `/api/v1/setup/*` accept it; everything else returns 503 `setup_required`.
 - **Already done in T-003 (reuse, do not redefine):** `core::db::{Tx, begin(pool, TenantId, &ActorCtx), begin_system}`, the pool `after_release` `RESET ALL` hook, and `eq_core::actor::{ActorCtx, ActorRole}`. This task adds the HTTP-side pieces that produce those inputs.
-- `X-Forwarded-*` is honoured only from `EQ_TRUSTED_PROXIES` (from T-002 config).
+- `X-Forwarded-*` is honoured only from `RITMA_TRUSTED_PROXIES` (from T-002 config).
 - Tenant lookups are cached in `moka` (TTL 60 s), keyed by slug.
 
 ## Scope

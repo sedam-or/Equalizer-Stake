@@ -14,7 +14,7 @@ estimated_size: M
 Check-in with camera and GPS works on phones even though the server is a PC in the office.
 
 ## Context
-- DST-22 secure link mode: `cloudflared` sidecar, hostname from the tunnel broker API (M9 T-908), fallback user token; `EQ_PUBLIC_URL` set to the tunnel URL.
+- DST-22 secure link mode: `cloudflared` sidecar, hostname from the tunnel broker API (M9 T-908), fallback user token; `RITMA_PUBLIC_URL` set to the tunnel URL.
 
 ## Scope
 ### In

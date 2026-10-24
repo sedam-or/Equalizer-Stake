@@ -36,7 +36,7 @@ Any module's rules render as a friendly form from the server's JSON Schema, with
     - Turning off X needed by Y… → "Turning off X also turns off Y and Z." [Turn off all] [Cancel].
     - Has data → an extra line: "Your data is kept. Turn it back on any time."
   - It returns the next enabled set. The caller persists it.
-- i18n keys for scheduling, identity, audit and core policy paths in `src/locales/{en,id}/policy.json` (TST-09 requires every schema path). **Backend addition in this task:** a CLI subcommand `equalizer policy-schemas --out <dir>` writes `<module>.schema.json` and `<module>.default.json` for every compiled module. `make api` also runs it into `web/src/policy-schemas/`, and CI's contract job checks it for drift. The script `pnpm i18n:policy-keys` reads those files and lists the required keys. **Write real human copy for both languages** (no placeholders).
+- i18n keys for scheduling, identity, audit and core policy paths in `src/locales/{en,id}/policy.json` (TST-09 requires every schema path). **Backend addition in this task:** a CLI subcommand `ritma policy-schemas --out <dir>` writes `<module>.schema.json` and `<module>.default.json` for every compiled module. `make api` also runs it into `web/src/policy-schemas/`, and CI's contract job checks it for drift. The script `pnpm i18n:policy-keys` reads those files and lists the required keys. **Write real human copy for both languages** (no placeholders).
 
 ## Scope
 ### In

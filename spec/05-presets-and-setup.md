@@ -200,9 +200,9 @@ catalog:
 **SET-10.** Route `/setup`. The SPA redirects there whenever `GET /api/v1/setup/status` returns `{ completed: false }`. On a self-hosted fresh install, `/setup` is reachable **without login** until step 1 creates the owner. After that, the setup token or the owner session is required.
 
 **SET-11. First-run security (self-host).** On first boot with an empty `tenants` table:
-- The server generates a one-time **setup token** and prints it to the log and to `EQ_DATA_DIR/setup-token.txt`, e.g. `Open https://your-host/setup?token=XXXX`. The desktop app passes it automatically.
+- The server generates a one-time **setup token** and prints it to the log and to `RITMA_DATA_DIR/setup-token.txt`, e.g. `Open https://your-host/setup?token=XXXX`. The desktop app passes it automatically.
 - Step 1 requires this token, which prevents a stranger from claiming a freshly deployed instance.
-- 1-click templates can pre-seed the token through `EQ_SETUP_TOKEN`.
+- 1-click templates can pre-seed the token through `RITMA_SETUP_TOKEN`.
 - In cloud mode, setup is reached after signup, authenticated, so no token is needed.
 
 ### 2.1 State machine

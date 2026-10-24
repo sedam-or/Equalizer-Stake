@@ -13,17 +13,17 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
 
 ## Context
 - OPS-01 env vars:
-  - Required: `DATABASE_URL`, `EQ_SECRET_KEY` (base64, ≥ 32 bytes decoded), `EQ_PUBLIC_URL`.
+  - Required: `DATABASE_URL`, `RITMA_SECRET_KEY` (base64, ≥ 32 bytes decoded), `RITMA_PUBLIC_URL`.
   - Optional:
-    - `EQ_DATABASE_OWNER_URL` (default = DATABASE_URL), `EQ_SECRET_KEY_PREVIOUS`
-    - `EQ_MODE` (`single`|`multi`, default single), `EQ_LISTEN` (default `0.0.0.0:8080`)
-    - `EQ_DATA_DIR` (default `./data` in debug builds, `/var/lib/equalizer` in release builds)
-    - `EQ_FILES_BACKEND` (`local`|`s3`), `EQ_SETUP_TOKEN`, `EQ_TRUSTED_PROXIES` (CSV of CIDRs)
-    - `EQ_LOG` (default `info`), `EQ_LOG_FORMAT` (`json`|`pretty`)
-    - `EQ_BACKUP_SCHEDULE` (`off`|`daily`), `EQ_BACKUP_KEEP` (default 14), `EQ_SMTP_URL`
-    - `EQ_CAPTCHA_PROVIDER`/`_SITE_KEY`/`_SECRET`, `EQ_TILE_URL`, `EQ_TELEMETRY` (`off`|`on`), `EQ_UPDATE_CHECK` (`on`|`off`)
-    - `EQ_METRICS_TOKEN`, `EQ_DB_POOL` (default 10), `EQ_DEMO` (bool)
-  - Unknown `EQ_*` variables produce a warning listing them.
+    - `RITMA_DATABASE_OWNER_URL` (default = DATABASE_URL), `RITMA_SECRET_KEY_PREVIOUS`
+    - `RITMA_MODE` (`single`|`multi`, default single), `RITMA_LISTEN` (default `0.0.0.0:8080`)
+    - `RITMA_DATA_DIR` (default `./data` in debug builds, `/var/lib/ritma` in release builds)
+    - `RITMA_FILES_BACKEND` (`local`|`s3`), `RITMA_SETUP_TOKEN`, `RITMA_TRUSTED_PROXIES` (CSV of CIDRs)
+    - `RITMA_LOG` (default `info`), `RITMA_LOG_FORMAT` (`json`|`pretty`)
+    - `RITMA_BACKUP_SCHEDULE` (`off`|`daily`), `RITMA_BACKUP_KEEP` (default 14), `RITMA_SMTP_URL`
+    - `RITMA_CAPTCHA_PROVIDER`/`_SITE_KEY`/`_SECRET`, `RITMA_TILE_URL`, `RITMA_TELEMETRY` (`off`|`on`), `RITMA_UPDATE_CHECK` (`on`|`off`)
+    - `RITMA_METRICS_TOKEN`, `RITMA_DB_POOL` (default 10), `RITMA_DEMO` (bool)
+  - Unknown `RITMA_*` variables produce a warning listing them.
 - ARC-10: `domain/` code never reads the clock. Services use `Clock`.
 - ARC-12 `AppError` variants and API-04 mapping (HTTP status → `code`), shown in Interfaces.
 
@@ -32,7 +32,7 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
 - `eq_core::config::{Config, Mode, FilesBackend, LogFormat}` with `Config::from_env() -> Result<Config, ConfigError>` and `Config::for_tests()`.
 - `eq_core::clock::{Clock (trait), SystemClock, Timestamp}` + `eq_core::clock::test::ManualClock` behind `#[cfg(any(test, feature = "testkit"))]`.
 - `eq_core::error::{AppError, FieldError, Problem}` + `impl IntoResponse for AppError` (axum) + `From<sqlx::Error>` mapping (RowNotFound → NotFound, others → Internal).
-- The problem `type` URI base is the constant `PROBLEM_BASE = "https://equalizer.dev/problems/"` + code with `_` replaced by `-`.
+- The problem `type` URI base is the constant `PROBLEM_BASE = "https://ritma.dev/problems/"` + code with `_` replaced by `-`.
 
 ### Out
 - Exclusion-violation mapping (T-203), and the tracing setup (T-004).
@@ -113,14 +113,14 @@ Body fields: `type`, `title` (human title per code, English), `status`, `code`, 
 None (technical only).
 
 ## Implementation notes
-- Decode `EQ_SECRET_KEY` as standard or URL-safe base64. If it decodes to < 32 bytes → `Invalid`.
-- `EQ_PUBLIC_URL` must parse as http(s). A trailing slash is normalised away.
+- Decode `RITMA_SECRET_KEY` as standard or URL-safe base64. If it decodes to < 32 bytes → `Invalid`.
+- `RITMA_PUBLIC_URL` must parse as http(s). A trailing slash is normalised away.
 - Wrap `Config::from_env` around a `fn from_map(HashMap<String,String>)` so tests don't touch the process env.
 - The request-id task-local: `tokio::task_local! { pub static REQUEST_ID: uuid::Uuid; }` in `error.rs`, read with `REQUEST_ID.try_with(|id| *id).ok()`.
 
 ## Acceptance criteria
 - AC1. Given a map without `DATABASE_URL`, When `from_map`, Then `Missing("DATABASE_URL")`. → `config::tests::missing_database_url`
-- AC2. Given a 16-byte key, Then `Invalid{var:"EQ_SECRET_KEY"}`. → `config::tests::short_secret_rejected`
+- AC2. Given a 16-byte key, Then `Invalid{var:"RITMA_SECRET_KEY"}`. → `config::tests::short_secret_rejected`
 - AC3. Given defaults, Then `listen=0.0.0.0:8080`, `mode=Single`, `backup_keep=14`. → `config::tests::defaults`
 - AC4. `AppError::Conflict{code:"slot_taken",…}` renders 409 with JSON `code=="slot_taken"` and `type` ending in `/slot-taken`, and the extension members appear at top level. → `error::tests::conflict_problem_json`
 - AC5. `AppError::Internal` renders 500 and its detail doesn't contain the inner error message. → `error::tests::internal_hides_detail`

@@ -1,6 +1,6 @@
 ---
 id: T-114
-title: Merge per-module OpenAPI, add `equalizer openapi` output, the committed web/openapi.json and the contract-drift CI job
+title: Merge per-module OpenAPI, add `ritma openapi` output, the committed web/openapi.json and the contract-drift CI job
 milestone: M1
 status: todo
 depends_on: [T-113]
@@ -19,7 +19,7 @@ One OpenAPI 3.1 document describes every compiled endpoint and DTO, including pr
   - Security scheme `bearer` (JWT) and `refreshCookie` (apiKey in cookie `eq_rt`).
 - `components.schemas.Problem` = RFC 9457 + `code`, `request_id`, and optional `errors`, `conflicts`, `alternatives`, `perm`, `module`, `rule`, `until`. Each handler declares its problem responses (`(status = 409, body = Problem, description = "slot_taken")`).
 - Output must be deterministic (sorted keys) for a stable diff. Serialize with `serde_json::to_string_pretty` on a `BTreeMap`-backed value.
-- `equalizer openapi` CLI subcommand (the CLI skeleton exists from T-004) prints to stdout.
+- `ritma openapi` CLI subcommand (the CLI skeleton exists from T-004) prints to stdout.
 - CI job `contract` (in `.github/workflows/ci.yml`, created in T-006): `cargo run -p eq-server -- openapi > /tmp/openapi.json && diff -u web/openapi.json /tmp/openapi.json`, then `pnpm -C web gen:api && git diff --exit-code web/src/api/schema.d.ts && pnpm -C web typecheck`.
 - `web` script `gen:api` = `openapi-typescript openapi.json -o src/api/schema.d.ts` (the web scaffold from T-005 already has the dependency; add it if missing).
 

@@ -32,10 +32,10 @@ The HTTP layer enforces the cross-cutting API rules once, so module handlers jus
   - 429 `rate_limited` with `Retry-After`. All responses carry `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`.
   - The IP comes from `client_ip` (T-104), which honours trusted proxies only.
 - SEC-20 headers on **every** response (API and SPA):
-  - `Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: <tile-host>; connect-src 'self'; font-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`. `<tile-host>` comes from config `EQ_MAP_TILE_HOST` (default `tile.openstreetmap.org`); add it to config if missing.
+  - `Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: <tile-host>; connect-src 'self'; font-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`. `<tile-host>` comes from config `RITMA_MAP_TILE_HOST` (default `tile.openstreetmap.org`); add it to config if missing.
   - `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(self), geolocation=(self), microphone=()`, `Cross-Origin-Opener-Policy: same-origin`.
-  - HSTS `max-age=31536000; includeSubDomains`, only when `EQ_PUBLIC_URL` is https (SEC-06).
-- SEC-06: at startup, if `EQ_PUBLIC_URL` is http and the host is not localhost or a private/link-local IP, log `warn!` with "Insecure public URL…" and set `meta/app.insecure_public_url = true` (add the field).
+  - HSTS `max-age=31536000; includeSubDomains`, only when `RITMA_PUBLIC_URL` is https (SEC-06).
+- SEC-06: at startup, if `RITMA_PUBLIC_URL` is http and the host is not localhost or a private/link-local IP, log `warn!` with "Insecure public URL…" and set `meta/app.insecure_public_url = true` (add the field).
 
 ## Scope
 ### In

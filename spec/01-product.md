@@ -2,7 +2,7 @@
 
 ## 1. Vision
 
-**PRD-01.** Equalizer is an open-source operating system for independent course schools and studios: music, dance, martial arts, tutoring, art, swimming, and rehearsal or recording studios. It replaces the usual mix of WhatsApp, spreadsheets and paper with one system that is:
+**PRD-01.** Ritma is an open-source operating system for independent course schools and studios: music, dance, martial arts, tutoring, art, swimming, and rehearsal or recording studios. It replaces the usual mix of WhatsApp, spreadsheets and paper with one system that is:
 - **correct by construction**: double booking is impossible, and money is exact;
 - **configured, not customised**: every business rule is data, set in a 3-step wizard;
 - **modular**: a school turns on only what it uses;

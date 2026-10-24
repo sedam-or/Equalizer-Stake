@@ -10,7 +10,7 @@
 
 ```json
 {
-  "type": "https://equalizer.dev/problems/slot-taken",
+  "type": "https://ritma.dev/problems/slot-taken",
   "title": "Slot already taken",
   "status": 409,
   "code": "slot_taken",

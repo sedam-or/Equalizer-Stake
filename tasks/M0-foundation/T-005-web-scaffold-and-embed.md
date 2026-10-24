@@ -34,9 +34,9 @@ estimated_size: M
 | Path | Action | Purpose |
 |---|---|---|
 | `web/**` | create | scaffold |
-| `web/src/brand.ts` | create | `export const BRAND = { name: "Equalizer", tagline: "…" } as const;` (rename point) |
+| `web/src/brand.ts` | create | `export const BRAND = { name: "Ritma", tagline: "The rhythm of your school" } as const;` (rename point) |
 | `crates/eq-api/src/spa.rs`, `crates/eq-api/build.rs` | create | embed |
-| `crates/eq-core/src/brand.rs` | create | `pub const NAME: &str = "Equalizer";` (rename point; used by later tasks) |
+| `crates/eq-core/src/brand.rs` | create | `pub const NAME: &str = "Ritma";` (rename point; used by later tasks) |
 
 ## Interfaces
 `GET /` → 200 text/html (`no-cache`)

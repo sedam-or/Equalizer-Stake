@@ -9,7 +9,7 @@ estimated_size: S
 ---
 
 ## Goal
-The `equalizer serve` binary runs the full M1 stack: tenant resolution, auth, module gating, policies, audit sealing, outbox dispatch and the job runner. One integration test drives a realistic owner and admin journey through the HTTP API.
+The `ritma serve` binary runs the full M1 stack: tenant resolution, auth, module gating, policies, audit sealing, outbox dispatch and the job runner. One integration test drives a realistic owner and admin journey through the HTTP API.
 
 ## Context
 - Replace the test doubles from T-105/T-106 with the real `AuditSink` (eq-audit) and `EventSink` (core outbox) in `eq-server` wiring.
@@ -18,7 +18,7 @@ The `equalizer serve` binary runs the full M1 stack: tenant resolution, auth, mo
   2. Job runner + cron planner (T-108)
   3. Audit sealer, a 10 s interval (T-109)
   4. Cache invalidation listeners for `eq_modules_changed` and `eq_policy_changed`
-- `equalizer seed-dev`, **dev only** (refuses unless `EQ_ENV=dev`): creates tenant `dev` (slug `dev`, timezone `Asia/Jakarta`, currency IDR, locale id), an owner `owner@dev.test` and an admin `admin@dev.test` with password `devpassword123`, all optional modules enabled, and policies at their defaults. **It must call the same services the API uses** (no raw inserts except the tenant row, because setup comes in M3). Document the dev credentials in `CONTRIBUTING.md` under "Dev login" (one line).
+- `ritma seed-dev`, **dev only** (refuses unless `RITMA_ENV=dev`): creates tenant `dev` (slug `dev`, timezone `Asia/Jakarta`, currency IDR, locale id), an owner `owner@dev.test` and an admin `admin@dev.test` with password `devpassword123`, all optional modules enabled, and policies at their defaults. **It must call the same services the API uses** (no raw inserts except the tenant row, because setup comes in M3). Document the dev credentials in `CONTRIBUTING.md` under "Dev login" (one line).
 - `/readyz` checks DB connectivity, that migrations are applied (`_sqlx_migrations` count equals embedded), and that the dispatcher and runner tasks are alive.
 
 ## Scope
@@ -42,7 +42,7 @@ The `equalizer serve` binary runs the full M1 stack: tenant resolution, auth, mo
   10. The owner reads `/audit/entries` and sees `core.policy.changed`, `identity.person.created`, `identity.invite.accepted` and `core.module.disabled`.
   11. After `Sealer::run_once`, `/audit/verify` is OK.
   12. The outbox has `identity.user_invited.v1` dispatched (`dispatched_at` set). → `crates/eq-server/tests/m1_journey.rs::m1_journey`
-- AC2. `equalizer serve` starts against a fresh DB and `/readyz` is 200 within 5 s. SIGTERM exits 0 within 10 s. → `serve_lifecycle` (spawns the binary)
+- AC2. `ritma serve` starts against a fresh DB and `/readyz` is 200 within 5 s. SIGTERM exits 0 within 10 s. → `serve_lifecycle` (spawns the binary)
 
 ## Tests to write
 | File | Test names |

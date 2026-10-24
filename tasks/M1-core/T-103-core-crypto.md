@@ -12,7 +12,7 @@ estimated_size: M
 Any module can encrypt and decrypt PII fields and files for a tenant, and compute blind indexes, with key versioning in place for rotation.
 
 ## Context
-- SEC-01: sub-keys via HKDF-SHA256 from `EQ_SECRET_KEY` with `info` labels `"eq/jwt/v1"`, `"eq/kek/v1"`, `"eq/bidx/v1"`, `"eq/filesig/v1"`, `"eq/backup/v1"`, `"eq/csrf/v1"`, `"eq/ics/v1"`. `EQ_SECRET_KEY_PREVIOUS` is tried when unwrapping fails.
+- SEC-01: sub-keys via HKDF-SHA256 from `RITMA_SECRET_KEY` with `info` labels `"eq/jwt/v1"`, `"eq/kek/v1"`, `"eq/bidx/v1"`, `"eq/filesig/v1"`, `"eq/backup/v1"`, `"eq/csrf/v1"`, `"eq/ics/v1"`. `RITMA_SECRET_KEY_PREVIOUS` is tried when unwrapping fails.
 - SEC-02: one row per tenant per DEK version in `tenant_keys(tenant_id, key_version, dek_enc, created_at, retired_at)`.
   - The DEK is 32 random bytes, wrapped with AES-256-GCM under the KEK (nonce || ct).
   - Field ciphertext = `0x01 || key_version u32 BE || nonce(12) || ct+tag`.

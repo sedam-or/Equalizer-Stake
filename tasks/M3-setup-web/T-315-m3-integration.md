@@ -12,8 +12,8 @@ estimated_size: S
 Prove the core promise end to end on a fresh install: from the first page load to the first scheduled lesson in under 10 minutes of human time, accessibly, on desktop and phone. Produce the asset the launch depends on.
 
 ## Context
-- TST-07 scenario `first-session.spec.ts`, against `equalizer serve` built with the embedded web, Postgres service, fresh DB, Chromium desktop 1280×800 **and** WebKit mobile 390×844:
-  1. Open `/setup?token=` (the token is read from `EQ_DATA_DIR/setup-token.txt` by the test).
+- TST-07 scenario `first-session.spec.ts`, against `ritma serve` built with the embedded web, Postgres service, fresh DB, Chromium desktop 1280×800 **and** WebKit mobile 390×844:
+  1. Open `/setup?token=` (the token is read from `RITMA_DATA_DIR/setup-token.txt` by the test).
   2. Step 1: music school, Indonesia, 3 rooms, owner.
   3. Step 2: unchanged.
   4. Step 3: unchanged → Finish.

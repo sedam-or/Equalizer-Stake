@@ -15,7 +15,7 @@ Legacy reference: `v0-capstone:srs/09-multi-student.md`, the addendum §3, §6, 
   - The public form is available when `registration.public_form` is on.
   - The applicant gives contact details (name, email/phone; address per policy) and 1..10 students, each with name, birth date (per policy), offering, level (optional), preferred slots, and an optional note. They then accept the consent text.
   - Optional upload: a payment proof (`payment_proof` policy; image/pdf ≤ 5 MB).
-  - Anti-abuse: a honeypot field, rate limits of 5/hour per IP and 3/day per email, and an optional Turnstile/hCaptcha if `EQ_CAPTCHA_*` is configured.
+  - Anti-abuse: a honeypot field, rate limits of 5/hour per IP and 3/day per email, and an optional Turnstile/hCaptcha if `RITMA_CAPTCHA_*` is configured.
   - The data is stored **encrypted** in `registrations.applicant_enc`. No person is created until approval.
   - Emits `registration_submitted`, and sends the applicant a confirmation message through notify, using the email/phone from the form.
 - **ENR-04. Approval.**

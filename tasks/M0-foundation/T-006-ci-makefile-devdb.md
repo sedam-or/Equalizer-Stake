@@ -29,7 +29,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
 ### In
 - `.github/workflows/ci.yml` with the jobs above, caching (`Swatinem/rust-cache`, pnpm store cache) and `concurrency` cancel-in-progress per ref.
 - `Makefile` targets:
-  - `dev-db` (`docker compose -f deploy/dev/compose.yaml up -d`, Postgres 16 on 5433, user/pass `eq`/`eq`, db `equalizer`)
+  - `dev-db` (`docker compose -f deploy/dev/compose.yaml up -d`, Postgres 16 on 5433, user/pass `eq`/`eq`, db `ritma`)
   - `dev` (runs `cargo watch -x 'run -p eq-server'` and `pnpm -C web dev` concurrently; fall back to instructions if cargo-watch is missing)
   - `test`, `lint`, `api` (placeholder until T-114), `e2e` (placeholder)
   - `build` (web then release binary), `clean`

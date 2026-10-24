@@ -14,7 +14,7 @@ estimated_size: M
 Desktop schools get free, rate-limited HTTPS hostnames, and the cloud is documented well enough for someone else to run it.
 
 ## Context
-- DST-22 broker contract (issue `<slug>.<brand>.app` per install, rate limits, abuse policy); CLD-30..34 regions, infra, email, SLA in `docs/cloud/`.
+- DST-22 broker contract (issue `<slug>.<tunnel-domain>` per install, rate limits, abuse policy); CLD-30..34 regions, infra, email, SLA in `docs/cloud/`.
 
 ## Scope
 ### In
