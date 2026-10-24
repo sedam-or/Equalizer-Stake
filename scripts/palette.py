@@ -8,7 +8,7 @@ def oklch_to_lin(L,C,H):
     l,m,s=l_**3,m_**3,s_**3
     return (4.0767416621*l-3.3077115913*m+0.2309699292*s, -1.2684380046*l+2.6097574011*m-0.3413193965*s, -0.0041960863*l-0.7034186147*m+1.7076147010*s)
 def ingamut(rgb): return all(-1e-6<=c<=1+1e-6 for c in rgb)
-def gam(c):
+def gamma_encode(c):
     c=min(max(c,0),1); return 12.92*c if c<=0.0031308 else 1.055*c**(1/2.4)-0.055
 def to_hex(L,C,H):
     lo,hi=0,C
@@ -18,7 +18,7 @@ def to_hex(L,C,H):
             if ingamut(oklch_to_lin(L,mid,H)): lo=mid
             else: hi=mid
         C=lo
-    r,g,b=[gam(c) for c in oklch_to_lin(L,C,H)]
+    r,g,b=[gamma_encode(c) for c in oklch_to_lin(L,C,H)]
     return "#%02X%02X%02X"%tuple(round(x*255) for x in (r,g,b)), C
 def lum(hexs):
     v=[int(hexs[i:i+2],16)/255 for i in (1,3,5)]
