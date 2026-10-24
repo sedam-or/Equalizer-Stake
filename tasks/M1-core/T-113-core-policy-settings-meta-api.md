@@ -4,7 +4,7 @@ title: Add CorePolicy, the settings API (policies and modules), meta endpoints a
 milestone: M1
 status: todo
 depends_on: [T-112]
-spec_refs: [POL-06, POL-07, POL-10, POL-12, MOD-06, MOD-09, API-14, AUD-07, PRD-06]
+spec_refs: [POL-06, POL-07, POL-10, POL-12, MOD-06, MOD-09, API-14, AUD-07, PRD-06, STM-12, STM-13, VAL-23]
 estimated_size: M
 ---
 
@@ -63,6 +63,10 @@ pub struct PrivacyPolicy { pub deletion_sla_business_days: u16 /*1..=30, 14*/, p
   - **Admins are filtered to `AuditPolicy.admin_categories` in the query layer.** The owner sees all.
   - `GET /audit/entries/{id}`. `GET /audit/export?...` → `text/csv` streamed; the export itself is audited (`audit.export`, compliance). `GET /audit/verify?from_seq&to_seq` (owner only, via perm `audit.verify`: owner).
   - Entry DTO: `{id, seq, at, actor: {id?, display_name?, role}, action, entity_type, entity_id, category, before, after, request_id, sealed: bool}`. `ip` is shown to owners only.
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - `GET /meta/app` adds `rules: { password_min_length }` (public, S0) for client-side hints (VAL-23, D-21).
+  - Module and policy transitions follow STM-12/13: scheduled policy versions are not editable (D-34); `effective_from` may be at most 5 minutes in the past (D-24).
 
 ## Scope
 ### In

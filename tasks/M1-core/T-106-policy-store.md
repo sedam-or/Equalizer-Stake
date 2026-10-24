@@ -4,7 +4,7 @@ title: Add PolicyDoc, PolicyStore (versioned, effective-dated, cached), validati
 milestone: M1
 status: todo
 depends_on: [T-102, T-105]
-spec_refs: [POL-01, POL-03, POL-04, POL-05, POL-06, POL-07, POL-08, POL-09, POL-10]
+spec_refs: [POL-01, POL-03, POL-04, POL-05, POL-06, POL-07, POL-08, POL-09, POL-10, VAL-22]
 estimated_size: M
 ---
 
@@ -32,7 +32,7 @@ pub struct Versioned<P> { pub version: i32, pub effective_from: Timestamp, pub d
 - POL-05: `get(at)` = the highest version with `effective_from <= at`. If several versions share the same `effective_from`, the highest version wins. A future-dated version doesn't affect `current`.
 - POL-08: if the stored `schema_version < P::SCHEMA_VERSION`, call `Module::migrate_policy` in memory on read.
 - POL-09: `merge_patch(base: Value, patch: &Value) -> Value` per RFC 7386 (null deletes, objects merge recursively, arrays replace).
-- POL-10, in order: (1) JSON Schema validation with `jsonschema` (draft 2020-12, compiled schema cached per module); (2) serde into `P`; (3) `P::validate()`. Errors are `FieldError { pointer, code, params }`. Schema errors map to codes `type`, `minimum`, `maximum`, `enum`, `required`, `pattern`, `min_items`, `max_items`.
+- POL-10, in order: (1) JSON Schema validation with `jsonschema` (draft 2020-12, compiled schema cached per module); (2) serde into `P`; (3) `P::validate()`. Errors are `FieldError { pointer, code, params }`. Schema errors map to the VAL-03 field codes per VAL-22: `required`→`required`, `type`→`invalid_type`, `minLength`/`maxLength`→`too_short`/`too_long`, `minItems`/`maxItems`→`too_few_items`/`too_many_items`, `minimum`/`exclusiveMinimum`→`must_be_gte`, `maximum`/`exclusiveMaximum`→`must_be_lte`, `pattern`/`format`→`invalid_format`, `enum`/`const`/unmatched tagged `oneOf`→`not_allowed`, `uniqueItems`→`not_unique`, `additionalProperties`→`not_allowed`.
 - `put` steps: validate; `version = max+1` under `SELECT … FOR UPDATE` of the tenant's `tenant_modules` row (or `pg_advisory_xact_lock(hashtext(tenant||module))`); insert; audit `core.policy.changed` (before = previous doc, after = new doc); emit `core.policy_changed.v1 {module, version, effective_from}`; `NOTIFY eq_policy_changed`.
 - `ensure_initial(tx, tenant, module, preset_patch: Option<&Value>)` inserts v1 if absent. It implements the `PolicyInit` port from T-105.
 - The x-ui helper: `eq_core::policy::ui::{XUi, Group, Widget, Unit}` plus a `ui!(group = Essentials, order = 1, widget = Money)` macro, or a builder producing the `serde_json::Value` used in `#[schemars(extend("x-ui" = …))]`. Key names exactly as in 04 §4: `group, order, widget, unit, visible_if, requires_module`.

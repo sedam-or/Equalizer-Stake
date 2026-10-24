@@ -4,7 +4,7 @@ title: Add the typed API client, problem mapping, in-memory auth with single-fli
 milestone: M3
 status: todo
 depends_on: [T-305]
-spec_refs: [FE-10, FE-11, FE-12, FE-37, API-04, API-09, API-10, POL-07, PRD-15]
+spec_refs: [FE-10, FE-11, FE-12, FE-37, API-04, API-09, API-10, POL-07, PRD-15, VAL-30]
 estimated_size: M
 ---
 
@@ -38,6 +38,9 @@ Every screen talks to the server through one typed client, stays logged in safel
   - `money({amount_minor, currency})` (exponent from `Intl.NumberFormat().resolvedOptions().maximumFractionDigits`).
   - `date(d, 'short'|'long')`, `time(d)`, `dateTime`, `duration(minutes)` (e.g. "45 min", "1 h 30 min"), `ordinal(n)` (ICU selectordinal), `relative(d)`.
   - **SummaryLine rendering** (POL-07): `renderSummary(line)` resolves `$money` and `$minutes` args, then `t(line.key, args)`.
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - `gen:api` is extended by T-306a with generated zod schemas (`@hey-api/openapi-ts`, zod plugin only) and field metadata; keep `openapi-fetch` as the client (D-57).
 
 ## Scope
 ### In

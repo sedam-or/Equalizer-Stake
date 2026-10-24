@@ -4,7 +4,7 @@ title: Add the Postgres job queue, job runner, and cron planner evaluated in ten
 milestone: M1
 status: todo
 depends_on: [T-107]
-spec_refs: [ARC-09, ARC-10, TST-15]
+spec_refs: [ARC-09, ARC-10, TST-15, STM-81, CAN-62]
 estimated_size: M
 ---
 
@@ -38,6 +38,9 @@ pub struct JobCtx { pub tenant: Option<Arc<TenantInfo>>, pub pool: PgPool, pub c
 - DST handling: `croner` evaluated on `DateTime<Tz>`. Nonexistent local times (spring-forward) fire at the next valid instant. Ambiguous times (fall-back) fire once (the first occurrence).
 - The planner's `last_tick` is stored in a `cron_state(tenant_id, kind, last_fire_at)` table (add it in `migrations/0005_core_cron_state.sql`). On first run, use `now - 1 minute`, so there's no backfill storm. **Catch-up:** if the server was down, fire at most **one** missed occurrence per spec (the latest).
 - `JobRunner::run_due(now)` processes every due job synchronously. It is used by TST-15 time-travel tests.
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - Job payloads carry a `v` integer and ids only (CAN-62). A `running` job whose `locked_until` passed is reclaimable (STM-81, D-52).
 
 ## Scope
 ### In

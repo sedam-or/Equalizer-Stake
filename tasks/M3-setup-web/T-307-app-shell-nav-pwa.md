@@ -4,7 +4,7 @@ title: Add the app shell (sidebar, top bar, bottom nav), module registry, route 
 milestone: M3
 status: todo
 depends_on: [T-306]
-spec_refs: [FE-15, FE-16, FE-35, MOD-09, PRD-03]
+spec_refs: [FE-15, FE-16, FE-35, MOD-09, PRD-03, STM-90, STM-91]
 estimated_size: M
 ---
 

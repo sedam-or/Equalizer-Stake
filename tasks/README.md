@@ -6,6 +6,7 @@
 - **Statuses:** `draft` → `todo` → `in_progress` → `review` → `done`, plus `blocked` (see the task's Questions) and `changes_requested` (see the task's `## Review`). `draft` = written, but may be revised after earlier milestones; don't start it until it is promoted to `todo`. At most **one** task is `in_progress` (WIP = 1, checked by `scripts/tasks-index.sh --check`).
 - **Size:** S < 150 LOC, M < 400 LOC (excluding generated code and tests). L tasks are split before starting.
 - **Security sections:** a task that hits a security trigger (spec/18 SBD-30) has a `## Security` section (threats, controls, abuse-case tests). A `draft` task with triggers is promoted to `todo` only once that section is written.
+- **Inserting a task later:** a task added between existing ones gets the lower neighbour's ID plus a letter (`T-102a`, `T-102b`), so it still sorts after its dependencies and before the tasks that depend on it (the DAG check compares IDs as strings). Add the new ID to the `depends_on` of the tasks that need it in the same change.
 - **Each milestone ends with an integration task** (the last ID in the milestone, titled "Mx integration") that proves the milestone end to end.
 
 | Milestone | Folder | Status of task files |

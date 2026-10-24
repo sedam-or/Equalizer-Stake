@@ -4,7 +4,7 @@ title: Add PolicyForm (schema-driven renderer with every widget), PolicySummary 
 milestone: M3
 status: todo
 depends_on: [T-306]
-spec_refs: [FE-20, FE-21, FE-22, POL-06, POL-07, POL-10, POL-13, MOD-07, PRD-06]
+spec_refs: [FE-20, FE-21, FE-22, POL-06, POL-07, POL-10, POL-13, MOD-07, PRD-06, VAL-22]
 estimated_size: M
 ---
 
@@ -37,6 +37,9 @@ Any module's rules render as a friendly form from the server's JSON Schema, with
     - Has data → an extra line: "Your data is kept. Turn it back on any time."
   - It returns the next enabled set. The caller persists it.
 - i18n keys for scheduling, identity, audit and core policy paths in `src/locales/{en,id}/policy.json` (TST-09 requires every schema path). **Backend addition in this task:** a CLI subcommand `ritma policy-schemas --out <dir>` writes `<module>.schema.json` and `<module>.default.json` for every compiled module. `make api` also runs it into `web/src/policy-schemas/`, and CI's contract job checks it for drift. The script `pnpm i18n:policy-keys` reads those files and lists the required keys. **Write real human copy for both languages** (no placeholders).
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - ajv keyword errors map to VAL-03 codes exactly as VAL-22 (same table as the server, T-106).
 
 ## Scope
 ### In

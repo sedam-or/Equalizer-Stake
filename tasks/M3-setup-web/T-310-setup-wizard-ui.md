@@ -3,8 +3,8 @@ id: T-310
 title: Add the 3-step setup wizard UI (school + template, features, rules with live summary) with resume and back navigation
 milestone: M3
 status: todo
-depends_on: [T-309, T-308]
-spec_refs: [PRD-04, PRD-07, SET-10, SET-11, SET-12, SET-13, MOD-07, FE-21, FE-30]
+depends_on: [T-309, T-308, T-306a]
+spec_refs: [PRD-04, PRD-07, SET-10, SET-11, SET-12, SET-13, MOD-07, FE-21, FE-30, VAL-33, VAL-34]
 estimated_size: M
 ---
 

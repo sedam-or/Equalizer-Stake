@@ -3,8 +3,8 @@ id: T-311
 title: Add the settings pages (school, features, rules list and per-module editor with effective date and history, admins, branding)
 milestone: M3
 status: todo
-depends_on: [T-310]
-spec_refs: [PRD-05, PRD-06, POL-05, MOD-07, DS-10, IDN-11]
+depends_on: [T-310, T-306a]
+spec_refs: [PRD-05, PRD-06, POL-05, MOD-07, DS-10, IDN-11, VAL-33, VAL-34]
 estimated_size: M
 ---
 

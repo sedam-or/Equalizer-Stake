@@ -3,8 +3,8 @@ id: T-313
 title: Add the admin pages — schedule (create/reschedule/cancel), series, catalog, rooms and closures, people and person detail
 milestone: M3
 status: todo
-depends_on: [T-312, T-311]
-spec_refs: [FE-30, FE-31, FE-34, SCH-07, SCH-10, SCH-12, IDN-10]
+depends_on: [T-312, T-311, T-306a]
+spec_refs: [FE-30, FE-31, FE-34, SCH-07, SCH-10, SCH-12, IDN-10, VAL-33, VAL-34]
 estimated_size: M
 ---
 

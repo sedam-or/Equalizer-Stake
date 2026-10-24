@@ -4,7 +4,7 @@ title: Build the ritma CLI and HTTP skeleton (serve, migrate, version, healthz/r
 milestone: M0
 status: todo
 depends_on: [T-003]
-spec_refs: [ARC-04, OPS-02, OPS-03, OPS-06, API-14]
+spec_refs: [ARC-04, OPS-02, OPS-03, OPS-06, API-14, CAN-30]
 estimated_size: M
 ---
 
@@ -22,6 +22,9 @@ estimated_size: M
 - The request id is put into `eq_core::error::REQUEST_ID` (task-local) for the duration of the request, and returned as the `X-Request-Id` header.
 - OPS-06: `/healthz` returns 200 `{"status":"ok"}` once the process is up. `/readyz` returns 200 when a DB ping (`SELECT 1`) completes in ≤ 500 ms **and** no migrations are pending; otherwise 503 with `{"status":"not_ready","reason":…}`. Neither is under `/api/v1`.
 - OPS-03: graceful shutdown on SIGTERM/SIGINT, waiting ≤ 25 s for in-flight requests.
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - The request-id layer **ignores** any client `X-Request-Id` and always generates its own UUIDv7 (CAN-30, D-09); the response still returns `X-Request-Id`.
 
 ## Scope
 ### In

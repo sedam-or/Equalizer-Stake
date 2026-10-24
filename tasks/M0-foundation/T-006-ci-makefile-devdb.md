@@ -4,7 +4,7 @@ title: Add the CI workflow, Makefile, dev database compose and guard scripts
 milestone: M0
 status: todo
 depends_on: [T-005]
-spec_refs: [TST-14, ARC-02, SEC-22, TST-01, CQ-64, CQ-80, CQ-100, CQ-101, CA-01, SBD-51, SBD-74, SBD-75]
+spec_refs: [TST-14, ARC-02, SEC-22, TST-01, CQ-64, CQ-80, CQ-100, CQ-101, CA-01, SBD-51, SBD-74, SBD-75, OSS-20, OSS-21, OSS-22]
 estimated_size: M
 ---
 
@@ -32,6 +32,12 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
   - Allow-list file: `scripts/check-literals.allow`, one `path:line` or `path:*` per line, each with a justification comment.
 - SEC-22: `deny.toml` license allow-list MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Zlib, MPL-2.0, Unicode-3.0, CC0-1.0, and AGPL-3.0-only for workspace crates. Advisories deny, unmaintained warn, yanked deny.
 
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - The GitHub workflows already exist (`ci.yml`, `codeql.yml`, `security.yml`, `scorecard.yml`, `release-please.yml`, `release.yml`, `.github/dependabot.yml`), with every action pinned by SHA and jobs that activate when their inputs exist (OSS-20/21). This task **modifies** them instead of creating them: keep the job names, keep `ci-ok` as the single required check, and keep actions SHA-pinned.
+  - Add `scripts/check-coverage.sh <lcov>` (the `rust` job calls it) implementing the TST-01 90% gate for `crates/*/src/domain/**`.
+  - Add the `cargo` (`/`) and `npm` (`/web`) ecosystems to `.github/dependabot.yml` (weekly, grouped, prefix `build`, scope `deps`). Use Dependabot rather than Renovate (OSS-04).
+  - The `docs` job already runs `scripts/tasks-index.sh --check`, `typos` (`_typos.toml`) and `lychee`; the `secrets` job runs gitleaks and will pick up `.gitleaks.toml` when this task adds it.
+
 ## Scope
 ### In
 - `.github/workflows/ci.yml` with the jobs above, caching (`Swatinem/rust-cache`, pnpm store cache) and `concurrency` cancel-in-progress per ref.
@@ -41,7 +47,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
   - `test`, `lint`, `api` (placeholder until T-114), `e2e` (placeholder)
   - `build` (web then release binary), `clean`
 - `deploy/dev/compose.yaml`, `.env.example` (all OPS-01 vars with comments, dev values).
-- `deny.toml`, `scripts/check-literals.sh` (+ `.allow`), `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `.github/dependabot.yml` or `renovate.json` (weekly, grouped).
+- `deny.toml`, `scripts/check-literals.sh` (+ `.allow`), `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `.github/dependabot.yml` cargo + npm ecosystems (weekly, grouped), `scripts/check-coverage.sh`.
 
 ### Out
 - Release workflow (T-706). E2E content (T-008).
@@ -49,7 +55,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
 ## Files
 | Path | Action |
 |---|---|
-| `.github/workflows/ci.yml`, `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `scripts/tests/*.sh`, `renovate.json`, `.github/workflows/security.yml`, `.gitleaks.toml`, `.githooks/commit-msg` | create |
+| `.github/workflows/ci.yml` (modify), `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `scripts/tests/*.sh`, `.github/dependabot.yml` (modify), `.github/workflows/security.yml` (modify), `.gitleaks.toml`, `scripts/check-coverage.sh`, `.githooks/commit-msg` | create |
 
 ## Business rules
 None.

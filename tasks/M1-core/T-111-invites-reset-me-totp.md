@@ -4,7 +4,7 @@ title: Add invites, password reset, /me endpoints, TOTP enrolment and device ses
 milestone: M1
 status: todo
 depends_on: [T-110]
-spec_refs: [IDN-07, IDN-08, IDN-12, IDN-13, SEC-12]
+spec_refs: [IDN-07, IDN-08, IDN-12, IDN-13, SEC-12, STM-21, STM-24, STM-25]
 estimated_size: M
 ---
 
@@ -28,7 +28,7 @@ No password is ever sent. People join by invite link and recover by single-use r
 - IDN-12 TOTP:
   - `POST /me/totp/setup` → `{otpauth_url, qr_svg, secret_base32}`. Stores `totp_secret_enc` (pending; `totp_enabled` stays false).
   - `POST /me/totp/confirm {code}` → `{recovery_codes: [10 × 10 chars]}`. Sets `totp_enabled=true` and stores argon2 hashes of the recovery codes in a new table `totp_recovery_codes(person_id, tenant_id, code_hash, used_at)`, added in `migrations/0008_identity_totp_recovery.sql` with RLS.
-  - `DELETE /me/totp {password}` disables it, unless the policy is `RequiredForOwnerAdmin` and the person holds owner/admin → 403 `policy_violation` rule `identity.totp`.
+  - `DELETE /me/totp {password}` disables it, unless the policy is `RequiredForOwnerAdmin` and the person holds owner/admin → 422 `policy_violation` rule `identity.totp` (ERR-10; STM-25 t4).
   - Login accepts a recovery code in place of `totp` (single use).
 - Sessions: `GET /me/sessions` → `[{id, created_at, last_used_at, user_agent, ip, current: bool}]` (only non-revoked, non-expired). `DELETE /me/sessions/{id}` revokes it (its family).
 - IDN-13: deactivating a membership revokes all refresh sessions for that person in the tenant (T-112 calls `AuthService::revoke_all(person)`, implemented here).

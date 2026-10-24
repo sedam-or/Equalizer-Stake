@@ -4,7 +4,7 @@ title: Add config loading, the Clock abstraction and AppError → problem+json i
 milestone: M0
 status: todo
 depends_on: [T-001]
-spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04]
+spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04, VAL-03, CAN-24]
 estimated_size: M
 ---
 
@@ -26,6 +26,10 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
   - Unknown `RITMA_*` variables produce a warning listing them.
 - ARC-10: `domain/` code never reads the clock. Services use `Clock`.
 - ARC-12 `AppError` variants and API-04 mapping (HTTP status → `code`), shown in Interfaces.
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - `FieldError.code` uses only the closed VAL-03 set (`required`, `invalid_type`, `too_short`, `too_long`, `too_few_items`, `too_many_items`, `must_be_gte`, `must_be_lte`, `invalid_format`, `invalid_characters`, `not_allowed`, `not_unique`, `unknown_reference`). Declare them as constants in `eq_core::errors` (T-102a adds the parsers that emit them).
+  - Multipart field errors point at `/$files/<part>` for file parts (CAN-24, D-08).
 
 ## Scope
 ### In

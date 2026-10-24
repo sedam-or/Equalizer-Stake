@@ -4,7 +4,7 @@ title: Merge per-module OpenAPI, add `ritma openapi` output, the committed web/o
 milestone: M1
 status: todo
 depends_on: [T-113]
-spec_refs: [API-02, MOD-04, TST-10, API-01, API-03, API-13]
+spec_refs: [API-02, MOD-04, TST-10, API-01, API-03, API-13, CAN-03, CAN-20, VAL-20]
 estimated_size: S
 ---
 
@@ -22,6 +22,10 @@ One OpenAPI 3.1 document describes every compiled endpoint and DTO, including pr
 - `ritma openapi` CLI subcommand (the CLI skeleton exists from T-004) prints to stdout.
 - CI job `contract` (in `.github/workflows/ci.yml`, created in T-006): `cargo run -p eq-server -- openapi > /tmp/openapi.json && diff -u web/openapi.json /tmp/openapi.json`, then `pnpm -C web gen:api && git diff --exit-code web/src/api/schema.d.ts && pnpm -C web typecheck`.
 - `web` script `gen:api` = `openapi-typescript openapi.json -o src/api/schema.d.ts` (the web scaffold from T-005 already has the dependency; add it if missing).
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - Field-kind components (`DisplayName`, `Email`, …) from T-102a are registered in the merged document with their `x-sanitize` and `x-field-kind` extensions; DTO names follow CAN-20 (`Xxx`, `XxxSummary`, `XxxCreate`, `XxxPatch`, action bodies, `Page_Xxx`).
+  - The drift check also covers the generated client files of T-306a once they exist (`web/src/api/*.gen.ts`).
 
 ## Scope
 ### In

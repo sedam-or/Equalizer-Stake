@@ -3,8 +3,8 @@ id: T-303
 title: Add the core files service (upload, sniff, re-encode, sanitize SVG, encrypt, local/S3 storage, signed URLs) and the drafts API
 milestone: M3
 status: todo
-depends_on: [T-302]
-spec_refs: [SEC-13, SEC-14, SEC-15, API-12, FE-30]
+depends_on: [T-302, T-102a]
+spec_refs: [SEC-13, SEC-14, SEC-15, API-12, FE-30, VAL-15, VAL-16, CAN-81, FLW-54, STM-15, OSS-02]
 estimated_size: M
 ---
 
@@ -41,6 +41,11 @@ One safe path for every uploaded file (logos and avatars now; photos, payment pr
 - Drafts (FE-30): `GET/PUT/DELETE /api/v1/me/drafts/{form_key}`. Body `{payload: object}` ≤ 256 KB. Table `drafts(tenant_id, person_id, form_key, payload, updated_at)` (T-101). `form_key` pattern `^[a-z0-9_.:-]{3,80}$`. A daily job `core.drafts_cleanup` (cron `45 3 * * *`) deletes drafts older than 7 days (technical const).
 - `PATCH /me` gains `avatar_file_id`. `CorePolicy.branding.logo_file_id` is set via the normal policy PUT; `validate_policy_in_context` for core checks that the file exists with purpose `logo`.
 - Update `meta/app.brand.logo_url` to `/api/v1/files/{id}` when set.
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - Add `eq_core::http::ValidatedMultipart` (the multipart counterpart of T-102a's `ValidatedJson`; file-part errors point at `/$files/<part>`).
+  - Upload rules per purpose are the VAL-15 table (sniffed type only, `image` decode limits ≤ 4096×4096 px and ≤ 64 MiB, re-encode, EXIF strip, `spawn_blocking` with a 5 s timeout). Display filenames per VAL-16 (`sanitize-filename`). Downloads set `Content-Disposition` per CAN-81.
+  - Storage goes through `object_store` (local FS and S3 behind one API, OSS §2). Physical deletes run after commit as job `core.files.delete` (STM-15, D-35).
 
 ## Scope
 ### In

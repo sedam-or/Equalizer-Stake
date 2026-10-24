@@ -4,7 +4,7 @@ title: Add identity schema, IdentityPolicy, password hashing, login, JWT access 
 milestone: M1
 status: todo
 depends_on: [T-103, T-106, T-109]
-spec_refs: [IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-09, SEC-10, SEC-12]
+spec_refs: [IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-09, SEC-10, SEC-12, STM-22, STM-23, CAN-34, D-37]
 estimated_size: M
 ---
 
@@ -71,6 +71,11 @@ impl Actor { pub fn require(&self, perm: &'static str) -> Result<(), AppError>; 
 pub struct MaybeActor(pub Option<Actor>);
 ```
   `PermSet` is computed from the registry: the union of `PermissionDef.roles` containing the active role, across **enabled** modules. Owner without any active admin in the tenant → add the admin set (IDN-11, computed, cached 30 s). Deactivated membership → 401.
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - Add `revoked_reason text CHECK (revoked_reason IN ('rotated','logout','reuse','password','deactivated','admin'))` to `refresh_sessions` (STM-22, D-37), so rotation can be told apart from logout when detecting reuse.
+  - Lock counters follow STM-23 (`FOR UPDATE` on the credentials row). Login parses `email` with the T-102a `Email` kind but maps **every** failure, including a malformed email, to 401 `invalid_credentials` (VAL-25 §5.1).
+  - Cookie attributes exactly as CAN-34.
 
 ## Scope
 ### In

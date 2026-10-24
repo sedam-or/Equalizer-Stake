@@ -4,7 +4,7 @@ title: Add Money, Bps and the policy value types (LocalTime, WeeklyHours, DayOfM
 milestone: M1
 status: todo
 depends_on: [T-001]
-spec_refs: [ARC-11, POL-11, POL-12, ADR-0007]
+spec_refs: [ARC-11, POL-11, POL-12, ADR-0007, CAN-10, CAN-12, OSS-02]
 estimated_size: M
 ---
 
@@ -30,6 +30,10 @@ Correct, property-tested primitives for money and for every common policy field 
   - `GeoPoint {lat ∈ [-90,90], lng ∈ [-180,180]}`.
   - `Locale` enum `en | id`.
 - JSON Schema: constraints (min/max, pattern) must appear in the schemars output, because the SPA validates with ajv.
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - Canonical wire forms are CAN-10 (e.g. `Money` `|amount_minor| ≤ 10^15` = `MONEY_MAX_ABS_MINOR`, `Instant` output in tenant TZ with `SecondsFormat::AutoSi`). Use `iso_currency` for exponents instead of a hand-written table (OSS §2); keep the v1 supported-currency list as the allow-list.
+  - Field kinds that wrap these types (`MoneyAmount`, `BpsField`, …) are added by T-102a, not here.
 
 ## Scope
 ### In

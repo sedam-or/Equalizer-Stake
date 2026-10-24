@@ -4,7 +4,7 @@ title: Add Idempotency-Key replay, ETag/If-Match helpers, rate limits and securi
 milestone: M1
 status: todo
 depends_on: [T-113]
-spec_refs: [API-07, API-08, API-15, SEC-06, SEC-11, SEC-20]
+spec_refs: [API-07, API-08, API-15, SEC-06, SEC-11, SEC-20, CAN-31, CAN-70, STM-16]
 estimated_size: M
 ---
 
@@ -36,6 +36,10 @@ The HTTP layer enforces the cross-cutting API rules once, so module handlers jus
   - `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(self), geolocation=(self), microphone=()`, `Cross-Origin-Opener-Policy: same-origin`.
   - HSTS `max-age=31536000; includeSubDomains`, only when `RITMA_PUBLIC_URL` is https (SEC-06).
 - SEC-06: at startup, if `RITMA_PUBLIC_URL` is http and the host is not localhost or a private/link-local IP, log `warn!` with "Insecure public URL…" and set `meta/app.insecure_public_url = true` (add the field).
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - `request_hash` = SHA-256 of `method \n route_template \n JCS(canonical body)` (`serde_jcs`, CAN-70), so harmless differences (whitespace, key order, `"Ayu "` vs `"Ayu"`) replay instead of returning `idempotency_mismatch` (D-14).
+  - Every `/api` response gets `Cache-Control: no-store`, except signed file downloads and `/meta/app` (`max-age=60`) (CAN-31, D-10).
 
 ## Scope
 ### In

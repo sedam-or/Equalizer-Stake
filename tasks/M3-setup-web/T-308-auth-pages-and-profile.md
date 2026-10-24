@@ -3,8 +3,8 @@ id: T-308
 title: Add the auth pages (login, TOTP step, forgot, reset, invite accept) and the /me profile page
 milestone: M3
 status: todo
-depends_on: [T-307, T-303]
-spec_refs: [IDN-02, IDN-06, IDN-07, IDN-08, IDN-12, SCH-16, FE-36]
+depends_on: [T-307, T-303, T-306a]
+spec_refs: [IDN-02, IDN-06, IDN-07, IDN-08, IDN-12, SCH-16, FE-36, VAL-33, VAL-34]
 estimated_size: M
 ---
 

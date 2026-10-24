@@ -4,7 +4,7 @@ title: Add the transactional outbox, event envelope, and dispatcher with idempot
 milestone: M1
 status: todo
 depends_on: [T-105]
-spec_refs: [ARC-07, MOD-04]
+spec_refs: [ARC-07, MOD-04, CAN-60, CAN-61, STM-80]
 estimated_size: M
 ---
 
@@ -43,6 +43,10 @@ pub trait EventHandler: Send + Sync {
 }
 ```
 - Runtime gating: if the handler's module is disabled for the event's tenant, the receipt is written and the handler is **skipped** (MOD-01: "jobs and event handlers skip the tenant").
+
+- **Alignment with spec 20–24** (added with the canonical-behaviour specs):
+  - Envelope delivered to handlers is CAN-60 (`id, type, tenant_id, aggregate_id, occurred_at, actor {id, role}, request_id, payload`). Payload structs derive `JsonSchema` and do **not** use `deny_unknown_fields` (tolerant reader, CAN-61); T-116a snapshots them.
+  - Outbox row states and the owner Retry/Discard actions follow STM-80.
 
 ## Scope
 ### In

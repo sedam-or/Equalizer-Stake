@@ -4,7 +4,7 @@ title: Add the ScheduleGrid (day by resource, week by day), SlotPicker and the c
 milestone: M3
 status: todo
 depends_on: [T-307]
-spec_refs: [DS-01, FE-31, FE-33, FE-36, SCH-05, SCH-14]
+spec_refs: [DS-01, FE-31, FE-33, FE-36, SCH-05, SCH-14, STM-31, STM-91]
 estimated_size: M
 ---
 
