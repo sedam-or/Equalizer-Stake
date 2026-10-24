@@ -2,7 +2,7 @@
 id: T-102
 title: Add Money, Bps and the policy value types (LocalTime, WeeklyHours, DayOfMonth, I18nText, GeoPoint, Locale, Currency)
 milestone: M1
-status: todo
+status: blocked
 depends_on: [T-001]
 spec_refs: [ARC-11, POL-11, POL-12, ADR-0007, CAN-10, CAN-12, OSS-02]
 estimated_size: M
@@ -88,4 +88,69 @@ None (primitives).
 
 ## Report
 
+**Plan** — Pending Q1 and Q2:
+1. Add `money.rs` with `Currency`, `Money`, `MoneyError`, ISO exponent lookup, checked arithmetic, and basis-point rounding → verify the exact money unit/property tests.
+2. Add `policy/types.rs` with the common value types and validated serde forms → verify the exact boundary and validation tests.
+3. Add JSON Schema constraints and the weekly-hours snapshot → verify `weekly_hours_schema_snapshot`.
+4. Wire the required workspace dependencies and public `eq-core` modules → verify Cargo metadata and dependency guards.
+5. Run the Rust and repository checks required by the task, recording any unavailable checks without marking them green.
+
+**Assumptions** — Use `iso_currency` for exponents and the task's supported-currency allow-list, as required by OSS-02/CAN-10. Use the stated canonical Money bound of `10^15`. No assumption is made about the contradictory `apply_bps` return type or how private-field validation is to coexist with the declared public fields; Q1 and Q2 block implementation.
+
+**Test plan** —
+- AC1: Given the specified positive amount and basis points, when `apply_bps` runs, then 70% of 10,000,000 is 7,000,000 and 50% of 15 rounds half-up to 8 → `money::tests::bps_half_up`.
+- AC2: Given random `a` and `b` within ±10^15 in one currency, when adding then subtracting `b`, then the original amount is recovered → `money::proptests::add_sub_roundtrip`.
+- AC3: Given a valid amount and Bps at 10000 or 0, when applied, then the result is respectively the input or zero → `bps_identity`.
+- AC4: Given serialized `DayOfMonth(29)`, when deserialized, then validation fails → `types::tests::day_of_month_max_28`.
+- AC5: Given overlapping intervals in one `DayHours`, when deserialized, then validation fails → `day_hours_rejects_overlap`.
+- AC6: Given the `WeeklyHours` schema, when serialized to JSON, then the array has exactly seven items → `weekly_hours_schema_snapshot`.
+- Additional exact tests: `money::tests::currency_mismatch`, `money::tests::overflow_detected`, `money::proptests::bps_identity`, `money::proptests::bps_monotonic`, `types::tests::local_time_format`, `types::tests::interval_end_2400_ok`, `types::tests::i18n_text_requires_entry`, and `types::tests::geo_bounds`.
+- Edge cases: ±10^15 amount bounds and one beyond each bound; zero and maximum Bps; half-up ties for positive and negative values; checked arithmetic at i64 limits; unsupported/lowercase currency codes; all locale values; time minute boundaries and `24:00` only as interval end; interval overlap/touching; empty/open hours; weekly weekday order; day 28/29; empty and one-entry i18n maps; geographic coordinate endpoints and just-outside values.
+- Error cases: currency mismatch, arithmetic overflow, invalid currency, invalid serde type/range/format, invalid time interval, invalid day schedule, empty i18n text, and out-of-bounds coordinates.
+- Abuse cases: n/a; these value primitives do not trigger SBD-30.
+
+**Step 0 — Start** — Clean tracked tree on `run/codex-m0-m3`; `scripts/tasks-index.sh --check` passed, no `changes_requested` task or other in-progress task was present, and T-102 was the lowest eligible todo under the run instruction that treats T-001 `review` as satisfied. Claimed on `task/T-102-money-and-policy-types`.
+**Step 1 — Task/spec** — Read the full task. It has conflicting free-function signatures/expectations for `apply_bps` and a public-field/derived-serde contract that does not say how the CAN-10 Money bound and CQ-23 invalid-value rule are enforced.
+**Step 2 — Dependencies** — Read T-001's Report and inspected its shipped workspace and `eq-core` scaffold. No dependency deviation blocks the work; T-001 is `review`, accepted for ordering under the run instruction.
+**Step 3 — Design reference** — n/a; no UI work.
+**Step 4 — Plan and test plan** — Recorded above. Blocked before implementation under `WORKFLOW.md` §4 because the money API/value invariants conflict and any implementation would have to choose a contract.
+**Steps 5–11** — Not run because Step 4 requires blocking before implementation. No code, runtime, debug loop, self-review, optimization, or implementation security audit was performed. Step 11 verification is limited to the task index and diff hygiene checks recorded below.
+
+**Summary** — No implementation or tests were added. Scope and the acceptance criteria treat the free `apply_bps` function as returning an `i64`, while the interface and implementation note require `Result<i64, MoneyError>` so overflow can be reported. The task also declares public fields/derived serde while CAN-10 requires a Money wire bound and CQ-23 requires invalid values to have private fields and validating constructors. These contracts need an explicit resolution before the primitives can be implemented.
+
+**Spec read** — `spec/02-architecture.md` §9 (ARC-11); `spec/04-policy-engine.md` §5 (POL-11/12); `spec/16-code-quality.md` CQ-23 and §12; `spec/17-clean-architecture.md` §1 and §4; `spec/18-security-by-design.md` §4 and §5 (no SBD-30 trigger); `spec/19-error-handling.md` §10; `spec/22-validation-and-sanitization.md` Money/Bps/Locale rows; `spec/23-contracts-and-canonical-forms.md` §2 (CAN-10/12); `spec/24-open-source-stack.md` OSS-02 and the Money/`iso_currency` entry.
+
+**Files** —
+- Modified `tasks/M1-core/T-102-money-and-policy-types.md` with this report, Q1/Q2, and `status: blocked`.
+- Regenerated `tasks/INDEX.md` with `scripts/tasks-index.sh`.
+
+**Acceptance criteria → tests** —
+| AC | Test | Result |
+|---|---|---|
+| AC1 | `money::tests::bps_half_up` | Not run: blocked before implementation. |
+| AC2 | `money::proptests::add_sub_roundtrip` | Not run: blocked before implementation. |
+| AC3 | `bps_identity` | Not run: blocked before implementation. |
+| AC4 | `types::tests::day_of_month_max_28` | Not run: blocked before implementation. |
+| AC5 | `day_hours_rejects_overlap` | Not run: blocked before implementation. |
+| AC6 | `weekly_hours_schema_snapshot` | Not run: blocked before implementation. |
+
+**Checks run** — `scripts/tasks-index.sh --check` passed before claiming and after the blocked status was generated. `git diff --check` passed. Rust tests, format, clippy, build, `make dev`, API generation, and SQLx preparation were not run because the type/API contract is unresolved. Web checks are n/a; no web files are in scope.
+
+**Manual checks** — Not run; implementation is blocked.
+**Debug log** — None; no implementation failure occurred.
+**Performance** — n/a; no runtime path was added.
+**Security** — No SBD-30 triggers; no S2/S3 data or endpoint is introduced.
+**Deviations** — None; implementation has not started.
+**Dependencies affected** — T-102a and later tasks depending on T-102 cannot start until the task is resolved and completed.
+**Rollback plan** — Revert the task-block commit; it changes only the task report/status and generated index.
+**Follow-ups** — Resolve Q1 and Q2, update the task interfaces/acceptance criteria, then restart T-102 from its task branch procedure.
+
 ## Questions
+- **Q1 (blocking):** Which free-function signature and acceptance-test contract should be authoritative for `apply_bps`?
+  - Context: Scope line 40 and AC1/AC3 at lines 71/73 use a plain `i64` result, but the interface at line 60 returns `Result<i64, MoneyError>` and the implementation note at line 67 requires returning `Overflow` when the result does not fit.
+  - Options: (a) make the fallible `Result<i64, MoneyError>` signature authoritative and update Scope/AC assertions to compare with `Ok(...)`; (b) retain `i64` and revise the overflow requirement to specify a non-error result for out-of-range values.
+  - Recommendation: (a), because `MoneyError::Overflow` is explicitly part of the task and needs a fallible return path.
+- **Q2 (blocking):** May T-102 revise the Money and constrained policy-type interfaces to use private fields with validated constructors/`TryFrom` and serde/schema implementations that enforce the canonical bounds?
+  - Context: T-102 and `spec/04-policy-engine.md` §5 show public fields/tuple constructors, including constructible invalid values. `spec/23-contracts-and-canonical-forms.md` CAN-10 caps the Money wire amount at 10^15, while `spec/16-code-quality.md` CQ-23 requires private fields and validating constructors when a value can be invalid. The task does not specify how these requirements fit together.
+  - Options: (a) amend the task interface and tests for private validated types, with the Money canonical bound enforced; (b) retain the public shapes and have the maintainer explicitly resolve the conflicting invariant/validation contract in the task/spec before implementation.
+  - Recommendation: (a), because it enforces CAN-10 and CQ-23 at the type boundary.
