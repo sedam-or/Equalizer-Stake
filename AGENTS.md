@@ -10,6 +10,14 @@ The architecture is already decided. **Your job is to implement tasks exactly as
 - Don't implement beyond the task's **Scope → In**. Its **Scope → Out** is a hard boundary.
 - If a task is ambiguous, contradicts the code or the spec, or needs a decision: **stop and block** following `WORKFLOW.md` §4. Never guess on business rules, money, security or schema.
 
+**Behaviour guidelines are mandatory: [`CLAUDE.md`](CLAUDE.md)** (the Karpathy guidelines, kept verbatim from upstream). They apply to every change in this repository, by any agent or human: code, docs, tasks, CI and brand files.
+1. **Think before coding.** State assumptions in the task Report (Step 4). If two readings exist, block instead of picking one.
+2. **Simplicity first.** The minimum that satisfies Scope → In and the tests. No speculative options, abstractions or error handling for impossible cases.
+3. **Surgical changes.** Every changed line traces to the task or issue. Don't reformat, rename or "improve" neighbouring code; list it under Follow-ups.
+4. **Goal-driven execution.** Turn each AC into a failing test first, then make it pass; loop on the Definition of done until it is green.
+
+Precedence: the task file decides *what* to build, this file and `spec/` decide the *rules*, and `CLAUDE.md` decides *how you work*. Where they seem to conflict, the stricter reading wins, and you note it in the Report.
+
 ## 1. How to pick and run a task
 
 **Follow `WORKFLOW.md` exactly: Step 0 plus 12 steps, none skipped (write "n/a" where a step doesn't apply).** In short:

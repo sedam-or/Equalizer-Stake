@@ -124,8 +124,9 @@ scripts/tasks-index.sh
 
 #### Step 4 — Plan and test plan
 
-Write these at the top of `## Report` **before coding**:
-- **Plan** (5–10 lines): the files to touch and the order of work.
+Write these at the top of `## Report` **before coding** (`CLAUDE.md` §1 and §4: assumptions out loud, goals as checks):
+- **Plan** (5–10 lines): the files to touch and the order of work, each step with its `→ verify:` check.
+- **Assumptions:** anything the task doesn't say explicitly that you rely on. An assumption about business rules, money, security or schema is a block, not an assumption.
 - **Test plan:**
   - every AC in Given/When/Then form, mapped to its exact test name;
   - **edge cases** (boundaries such as `max` and `max + 1`, empty, timezone and month-end, concurrency);
@@ -143,7 +144,7 @@ Write these at the top of `## Report` **before coding**:
 
 #### Step 5 — Implement
 
-- Work inside Scope → In. Anything else you notice goes to **Follow-ups**, not into the code.
+- Work inside Scope → In. Anything else you notice goes to **Follow-ups**, not into the code (`CLAUDE.md` §2 simplicity, §3 surgical changes).
 - Follow this order, so each step compiles and is tested before the next:
   1. migration;
   2. `domain/` with its unit and property tests (tests first is recommended);
@@ -194,6 +195,7 @@ Review your own diff (`git diff main...HEAD`) as a strict reviewer would:
 - **Privacy (UU PDP):** collect only what the policy needs, classify every new field (SBD-10), protect children's data, respect retention.
 - **Hygiene:** grep for `dbg!`, `todo!`, `unwrap()` outside tests, `#[allow`, `console.log`, a bare `TODO`, commented-out code, and hard-coded secrets.
 - **Size:** `git diff main...HEAD --stat` ≤ about 400 changed lines, excluding generated files (CQ-101).
+- **Surgical diff (`CLAUDE.md` §3):** every changed line traces to an AC or a listed file. Revert drive-by formatting, renames and refactors. Remove only the orphans your change created.
 
 #### Step 9 — Optimize (only what you measured)
 
@@ -236,6 +238,7 @@ scripts/tasks-index.sh --check
 ```markdown
 ## Report
 **Plan** — (Step 4)
+**Assumptions** — (Step 4; "none" is a valid answer)
 **Test plan** — AC (Given/When/Then) → test names; edge, error and abuse cases (Step 4)
 **Summary** — 2–4 sentences on what now works.
 **Spec read** — sections consulted beyond the task file.

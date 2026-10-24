@@ -37,7 +37,7 @@ make e2e           # Playwright against a release build
 
 ## Workflow
 
-1. Find or open an issue. For anything non-trivial, comment first so we can agree on the approach.
+1. Find or open an issue. For anything non-trivial, comment first so we can agree on the approach. Read [`CLAUDE.md`](CLAUDE.md): the four working rules (think first, keep it simple, change only what you must, prove it with a check) apply to humans and agents alike.
 2. Branch from `main`: `feat/<short-name>`, `fix/<short-name>`, `docs/<short-name>`.
 3. Make your change with tests. If you're working from a task file, follow [`WORKFLOW.md`](WORKFLOW.md) (the 12-step flow: read, plan, implement, run, review, verify, report) and the task's Definition of Done.
 4. Commit following [`COMMIT_CONVENTION.md`](COMMIT_CONVENTION.md) (Conventional Commits with our types, scopes and refs), e.g.
