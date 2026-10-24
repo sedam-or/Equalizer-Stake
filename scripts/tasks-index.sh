@@ -2,6 +2,7 @@
 # Regenerates tasks/INDEX.md from task frontmatter and checks that depends_on forms a DAG.
 # Usage: scripts/tasks-index.sh [--check]   (--check fails if INDEX.md is stale)
 set -euo pipefail
+export LC_ALL=C # technical: byte-order sort and compare, so T-102 < T-102a < T-103 on every machine
 cd "$(dirname "$0")/.."
 
 tmp="$(mktemp)"

@@ -7,6 +7,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7 # supply-chain: let new releases age a week before proposing them
     groups:
       actions:
         patterns: ["*"]

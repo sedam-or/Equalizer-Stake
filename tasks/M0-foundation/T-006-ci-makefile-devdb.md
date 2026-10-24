@@ -35,7 +35,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
 - **Alignment with spec 20–24** (added with the canonical-behaviour specs):
   - The GitHub workflows already exist (`ci.yml`, `codeql.yml`, `security.yml`, `scorecard.yml`, `release-please.yml`, `release.yml`, `.github/dependabot.yml`), with every action pinned by SHA and jobs that activate when their inputs exist (OSS-20/21). This task **modifies** them instead of creating them: keep the job names, keep `ci-ok` as the single required check, and keep actions SHA-pinned.
   - Add `scripts/check-coverage.sh <lcov>` (the `rust` job calls it) implementing the TST-01 90% gate for `crates/*/src/domain/**`.
-  - Add the `cargo` (`/`) and `npm` (`/web`) ecosystems to `.github/dependabot.yml` (weekly, grouped, prefix `build`, scope `deps`). Use Dependabot rather than Renovate (OSS-04).
+  - Add the `cargo` (`/`) and `npm` (`/web`) ecosystems to `.github/dependabot.yml` (weekly, grouped, `cooldown.default-days: 7`, prefix `build`, scope `deps`). Use Dependabot rather than Renovate (OSS-04).
   - The `docs` job already runs `scripts/tasks-index.sh --check`, `typos` (`_typos.toml`) and `lychee`; the `secrets` job runs gitleaks and will pick up `.gitleaks.toml` when this task adds it.
 
 ## Scope
