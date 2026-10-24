@@ -121,7 +121,7 @@ Rules: second person, active voice, no blame, no exclamation marks in errors. In
 
 ## 7. Visual identity brief
 
-- **Logo concept (for a designer):**
+- **Logo concept** (built: files and usage rules in [GUIDELINES.md](GUIDELINES.md) §2):
   - The mark is a circle divided like a bar of music with **one segment highlighted**: one beat, one time slot taken, the others free. It reads as a clock, a rhythm and a calendar slot at the same time.
   - The wordmark is set in Plus Jakarta Sans 700, lowercase, tight tracking (−1%).
   - The mark must work at 16 px (favicon) and in one colour.
@@ -135,11 +135,11 @@ Rules: second person, active voice, no blame, no exclamation marks in errors. In
 | Asset | Spec | Notes |
 |---|---|---|
 | **Hero GIF/video: "3-step setup"** | 1280×720, ≤ 8 MB GIF + MP4/WebM, 45–60 s | Template → features → rules with the live summary → dashboard. The single most important asset |
-| README banner | 1280×320, light + dark (`<picture>`) | Logo, tagline, 3 screenshots fanned |
-| GitHub social preview | 1280×640 | Logo + tagline + "Open source · Self-host or Cloud" |
+| README banner | 1280×320, light + dark (`<picture>`) | **Done:** `assets/banner-{light,dark}.svg` (logo, tagline, slot motif). Add 3 fanned screenshots once the UI exists |
+| GitHub social preview | 1280×640 | **Done:** `assets/social-preview.{svg,png}`. Upload the PNG in repo Settings → Social preview |
 | Screenshots (8) | 2880×1800 desktop, 1290×2796 phone | Schedule grid, rules + summary, invoice, parent portal (phone), check-in (phone), dashboard, features toggle, conflict + alternatives |
 | Concurrency demo clip | 20 s terminal recording | "50 requests, 1 booking" with `oha` + psql, for HN and dev audiences |
-| App icons | 1024 master → PWA 192/512 maskable, favicon.svg, tray icons | |
+| App icons | 1024 master → PWA 192/512 maskable, favicon.svg, tray icons | `logo/favicon.svg` and `logo/ritma-mark.svg` are the masters (GUIDELINES.md §2.4) |
 | WhatsApp message samples | Images of real message templates | For the landing page "what parents see" |
 
 ## 9. Do & Don't
