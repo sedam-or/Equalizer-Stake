@@ -131,7 +131,7 @@ web/src/
 | `/audit` | audit | owner/admin | Audit log + verify |
 | `/privacy` | audit | all | My data: export, deletion request |
 | `/notifications` | notify | all | Inbox |
-| `/settings/school`, `/settings/features`, `/settings/rules`, `/settings/rules/:module`, `/settings/channels`, `/settings/admins`, `/settings/branding` | core | owner (channels: admin too) | Settings (reusing setup components) |
+| `/settings/school`, `/settings/features`, `/settings/rules`, `/settings/rules/:module`, `/settings/channels`, `/settings/admins`, `/settings/branding` | core | owner (rules: admin read-only, spec 25; channels: admin too) | Settings (reusing setup components) |
 | `/me` | identity | all | Profile, password, TOTP, sessions, notification prefs, calendar feed link |
 
 **Guardian mobile navigation (bottom bar, max 5):** Home · Schedule · Invoices · Messages · Me.
