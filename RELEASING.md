@@ -14,6 +14,11 @@
 4. A bot opens PRs bumping the image tag in `deploy/*` templates.
 5. Announce: GitHub Discussions (Announcements), Discord/Telegram, and the update notice in the app.
 
+## Maintenance and hotfix releases
+
+- **Hotfix** (can't wait for the next release): `hotfix/v<X.Y.Z>-<slug>` PR to `main`, then merge the release-please PR immediately (`BRANCHING.md` §6). Security fixes are prepared privately through a GitHub Security Advisory first (SECURITY.md).
+- **Patch for the previous minor** (from v1.0, 90 days, SECURITY.md): the fix lands on `main`, is cherry-picked to `release/vX.Y` through a `backport/…` PR, then a maintainer runs the `release-please` workflow manually with `target-branch: release/vX.Y`. The release must not move "latest" (GitHub release flag, image tag, `latest.json`); T-704 implements that guard (`BRANCHING.md` §5).
+
 ## Checklist (release PR)
 
 - [ ] CI green, including e2e and the backup round-trip (TST-13)

@@ -182,7 +182,7 @@ done
 **Step 6: web-only settings.**
 - Social preview image (Settings → General).
 - Discussions categories (§3.5).
-- Branch ruleset on `main`: require PR, CI and DCO; block force pushes.
+- Branch ruleset on `main` and `release/**`: apply the settings and the `gh api` call in `BRANCHING.md` §7.
 - Private vulnerability reporting: on.
 - Org profile README (`ritmahq/.github`).
 

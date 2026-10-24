@@ -1,4 +1,4 @@
-<!-- Source: https://github.com/forrestchang/andrej-karpathy-skills/blob/main/CLAUDE.md (MIT), fetched 2026-10-25, unmodified below.
+<!-- Source: https://github.com/forrestchang/andrej-karpathy-skills/blob/main/CLAUDE.md (MIT), fetched 2026-10-25, unmodified down to the "Ritma project rules" section.
      Ritma binds every change in this repository to these guidelines: see AGENTS.md §0. -->
 # CLAUDE.md
 
@@ -65,3 +65,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+---
+
+## Ritma project rules
+
+The guidelines above govern *how* you work. *What* to build and the project rules come from [`AGENTS.md`](AGENTS.md), loaded here for every agent:
+
+@AGENTS.md

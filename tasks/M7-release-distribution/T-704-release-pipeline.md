@@ -20,6 +20,8 @@ One tag produces every artifact every channel needs, signed and reproducible.
 - **Alignment with spec 20–24** (added with the canonical-behaviour specs):
   - `.github/workflows/release-please.yml`, `.github/workflows/release.yml`, `release-please-config.json` and `.release-please-manifest.json` already exist (OSS-20). This task completes them: write `deploy/docker/Dockerfile` (distroless, non-root uid 10001, copies the prebuilt `ritma` musl binary for `TARGETARCH` from `dist/`), verify the release-please `rust` + `cargo-workspace` config against the real workspace, add `latest.json` publishing, and do a dry run with `workflow_dispatch`.
 
+- **Maintenance releases (BRANCHING.md §5, RELEASING.md):** `release-please.yml` already accepts `target-branch`. When the released tag is not the highest semver tag (a patch from `release/vX.Y`), `release.yml` must not mark the GitHub release as latest, must not push the image `latest` tag (`docker/metadata-action` `flavor: latest=false`) and must not update `latest.json`.
+
 ## Scope
 ### In
 - `deploy/docker/Dockerfile`; complete `.github/workflows/release.yml` and the release-please config (they exist)

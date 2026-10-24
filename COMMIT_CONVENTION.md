@@ -130,7 +130,7 @@ ci: add gitleaks secret scan [T-006]
 
 ## 9. Merge strategy and enforcement
 
-- PRs are **squash-merged**. The **PR title becomes the commit header**, so it must follow this convention. The PR description's "What & why" becomes the body.
+- PRs are **squash-merged** (branch names, rebasing, stacking and protection: [`BRANCHING.md`](BRANCHING.md)). The **PR title becomes the commit header**, so it must follow this convention. The PR description's "What & why" becomes the body.
 - `main` has one commit per task, linear history, and no merge commits.
 - **[tool]** The CI `pr-title` job checks the PR title against:
   `^(feat|fix|perf|refactor|test|docs|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: [A-Za-z0-9].{0,70}$` (the 72-character header limit is checked separately) (T-006). The DCO app checks the sign-off.

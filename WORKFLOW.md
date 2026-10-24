@@ -90,7 +90,7 @@ If nothing matches, stop and report "no ready task" with the list of blockers (`
 **Claim:**
 
 ```bash
-git switch -c task/T-xxx-<short-slug>     # for rework, switch to the existing branch instead
+git switch -c task/T-xxx-<short-slug>     # names: BRANCHING.md §2; for rework, switch to the existing branch instead
 # set `status: in_progress` in the task frontmatter
 scripts/tasks-index.sh
 ```

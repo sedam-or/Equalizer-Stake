@@ -7,6 +7,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      target-branch:
+        description: Branch to release from (main, or release/vX.Y for a maintenance patch; BRANCHING.md §5)
+        required: false
+        default: main
+        type: string
 
 permissions:
   contents: read
@@ -38,6 +44,7 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          target-branch: ${{ inputs.target-branch || 'main' }}
 
   release:
     needs: release-please
