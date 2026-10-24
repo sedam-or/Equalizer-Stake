@@ -1,0 +1,53 @@
+# CD step 1: release-please keeps a release PR from Conventional Commits (RELEASING.md).
+# When that PR is merged it tags the release and this workflow calls release.yml directly
+# (tags created with GITHUB_TOKEN don't trigger other workflows).
+name: release-please
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: ready
+        name: Releases start once the Cargo workspace exists (T-001)
+        run: |
+          if [ -f Cargo.toml ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+      - id: rp
+        if: steps.ready.outputs.ok == 'true'
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  release:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/release.yml # zizmor: ignore[self-repository]
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}
+      dry_run: false

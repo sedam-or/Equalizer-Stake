@@ -1,0 +1,25 @@
+# Spell checking for code and docs (spec/24 OSS §4). Keep entries justified.
+[files]
+extend-exclude = [
+  "legacy/",
+  "*.id.md",              # Indonesian translations
+  "web/src/locales/id/",  # Indonesian UI catalog
+  "presets/*.yaml",       # contain Indonesian catalog names
+]
+
+[default]
+extend-ignore-re = [
+  "\\*\\*[A-Z]\\*\\*[a-z]+",   # STRIDE-style bold initials: **I**nformation
+  "[A-Z]{3,}s\\b",             # plural acronyms such as CHECKs
+]
+
+[default.extend-words]
+# Indonesian domain words used in English docs
+grup = "grup"
+gitar = "gitar"
+cuti = "cuti"
+bea = "bea"
+# Acronyms
+sme = "sme"
+# Deliberate misspelling in an example (spec/23 CAN-32)
+stauts = "stauts"
