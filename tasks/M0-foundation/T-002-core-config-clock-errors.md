@@ -37,7 +37,7 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
 - `eq_core::config::{Config, Mode, FilesBackend, LogFormat}` with `Config::from_env() -> Result<Config, ConfigError>` and `Config::for_tests()`.
 - `eq_core::clock::{Clock (trait), SystemClock, Timestamp}` + `eq_core::clock::test::ManualClock` behind `#[cfg(any(test, feature = "testkit"))]`.
 - `eq_core::error::{AppError, FieldError, Problem}` + `impl IntoResponse for AppError` (axum) + `From<sqlx::Error>` mapping (RowNotFound → NotFound, pool timeout → Unavailable, others → Internal; the full SQLSTATE mapping in ERR-43 is added by the tasks that need it).
-- ERR-21 registry: `pub struct ErrorCodeDef { pub code: &'static str, pub status: u16, pub title: &'static str }` and `eq_core::error::codes` with the core codes (`bad_request`, `unauthenticated`, `forbidden`, `not_found`, `module_disabled`, `validation`, `policy_violation`, `precondition_required`, `payload_too_large`, `locked`, `rate_limited`, `unavailable`, `internal`) plus `pub const CODES: &[&ErrorCodeDef]`. `Problem.title` comes from the `ErrorCodeDef` that the `AppError` variant carries (`code: &'static ErrorCodeDef`), so a module crate passes its own registered definition and `eq-core` needs no registry injection or global state. Core codes are `pub static` items in `eq_core::error::codes` (use `&codes::NOT_FOUND`); module crates declare theirs as `pub static` in their `errors.rs` (ERR-21) and pass `&codes::SLOT_TAKEN`. A helper `pub fn validate_code(code: &str) -> bool` checks the ERR-20 format `^[a-z][a-z0-9_]{2,47}$`.
+- ERR-21 registry: `pub struct ErrorCodeDef { pub code: &'static str, pub status: u16, pub title: &'static str }` and `eq_core::error::codes` with the core codes (`bad_request`, `unauthenticated`, `forbidden`, `not_found`, `module_disabled`, `validation`, `policy_violation`, `precondition_required`, `payload_too_large`, `locked`, `rate_limited`, `unavailable`, `setup_required`, `internal`) plus `pub const CODES: &[&ErrorCodeDef]`. `Problem.title` comes from the `ErrorCodeDef` that the `AppError` variant carries (`code: &'static ErrorCodeDef`), so a module crate passes its own registered definition and `eq-core` needs no registry injection or global state. Core codes are `pub static` items in `eq_core::error::codes` (use `&codes::NOT_FOUND`); module crates declare theirs as `pub static` in their `errors.rs` (ERR-21) and pass `&codes::SLOT_TAKEN`. A helper `pub fn validate_code(code: &str) -> bool` checks the ERR-20 format `^[a-z][a-z0-9_]{2,47}$`.
 - The problem `type` URI base is the constant `PROBLEM_BASE = "https://ritma.dev/problems/"` + code with `_` replaced by `-`.
 
 ### Out
@@ -96,7 +96,8 @@ pub enum AppError {
     #[error("policy violation: {rule}")] PolicyViolation { rule: String, detail: String, extra: serde_json::Map<String, serde_json::Value> },
     #[error("precondition required")] PreconditionRequired,
     #[error("gone: {code}")] Gone { code: &'static ErrorCodeDef },
-    #[error("locked")] Locked { until: Timestamp },
+    #[error("locked")] Locked { until: Option<Timestamp> },
+    #[error("setup required")] SetupRequired,
     #[error("rate limited")] RateLimited { retry_after_s: u64 },
     #[error("payload too large")] PayloadTooLarge,
     #[error("bad request: {code}")] BadRequest { code: &'static ErrorCodeDef, detail: String },
@@ -116,7 +117,8 @@ Status/code mapping:
 - PolicyViolation → 422 `policy_violation` (+`rule`, extras)
 - PreconditionRequired → 428 `precondition_required`
 - Gone → 410
-- Locked → 423 `locked` (+`until`)
+- Locked → 423 `locked` (+`until` when `Some`)
+- SetupRequired → 503 `setup_required` (no tenant exists yet; T-104 raises it, T-302 clears it)
 - RateLimited → 429 `rate_limited` + `Retry-After` header
 - PayloadTooLarge → 413 `payload_too_large`
 - BadRequest → 400

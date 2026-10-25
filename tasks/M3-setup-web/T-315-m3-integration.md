@@ -30,6 +30,7 @@ Prove the core promise end to end on a fresh install: from the first page load t
   - It runs the 3-step setup with human-like pacing (`slowMo` 250 ms, deliberate typing) at 1280×720, with `video: 'on'`.
   - Then `scripts/make-hero-gif.sh` converts the webm to a ≤ 8 MB GIF and MP4/WebM with ffmpeg (palettegen/paletteuse, 12 fps, 45–60 s).
   - The output goes to `brand/assets/hero-setup.{gif,mp4,webm}`. **Do not commit the outputs in this task**; document the command in the Report.
+  - **Environment-limited:** if `ffmpeg` or the Playwright browsers cannot be installed, ship the spec and the script, run the three E2E specs, and list the recording under "Not run: <reason>"; this does not block the task.
 - The scenario follows the owner journey JRN-01 (spec 28): install → setup in 3 steps → first lesson booked; its metric is PRD-07 (< 10 min to the first session).
 
 ## Scope

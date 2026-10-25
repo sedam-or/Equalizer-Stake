@@ -43,7 +43,7 @@ pub struct RequestActor(pub ActorCtx);         // extractor; anonymous actor wit
 ## Implementation notes
 - `TenantInfo.timezone/locale/currency` come from the denormalised `tenants` columns added in T-101. T-113 keeps them in sync with `CorePolicy`. Location-level timezone overrides are handled by callers (`locations.timezone`).
 - In multi mode, a host without the base domain → 404. Ports are stripped. Host matching is case-insensitive.
-- Add `AppError::SetupRequired` → 503, problem code `setup_required`, and `AppError::Locked { until: Option<Timestamp> }` → 423.
+- Use `AppError::SetupRequired` (503 `setup_required`) and `AppError::Locked { until: None }` (423 `locked`); both variants and the `setup_required` code are defined in T-002 (do not redefine them).
 
 ## Acceptance criteria
 - AC1. Single mode with one tenant → `TenantCtx::Resolved`. → `tenant::tests::single_mode_resolves`
