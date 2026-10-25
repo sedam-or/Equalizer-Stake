@@ -32,7 +32,7 @@ Services can open a transaction that has `app.tenant_id` and `app.actor_id` set 
   - `connect(config) -> PgPool`: uses `PgPoolOptions` with `max_connections = config.db_pool` and an `after_release` hook running `RESET ALL`.
   - `run_migrations(owner_url)`: uses `sqlx::migrate!("../../migrations")` with a Postgres advisory lock (7_000_001) around it.
   - `begin(pool, TenantId, &ActorCtx) -> Tx` and `begin_system(pool, TenantId) -> Tx` (actor = system).
-  - `Tx` newtype over `sqlx::Transaction<'static, Postgres>` with `Deref`/`DerefMut`, and a `commit()` method.
+  - `Tx` newtype over `sqlx::Transaction<'static, Postgres>` exposing `conn()` and `commit()` (see Interfaces; no `Deref`).
 - `eq_core::ids::{TenantId, PersonId}` newtypes (uuid, serde transparent, sqlx transparent).
 - `eq_core::actor::{ActorCtx, ActorRole}`: a minimal struct `{ person_id: Option<PersonId>, role: ActorRole, ip: Option<IpAddr>, request_id: Option<Uuid> }`, with `ActorRole::{Owner, Admin, Instructor, Guardian, Student, System, Platform}` and `ActorCtx::system(kind: &'static str)`.
 
@@ -81,13 +81,14 @@ None.
 
 ## Implementation notes
 - FORCE RLS applies to the table owner too. Migrations run as the owner and don't touch tenant rows, so this is fine.
-- In dev and docker the app and owner may be the same DB user. RLS is still enforced because it's forced. Document this in the Report.
+- **`FORCE ROW LEVEL SECURITY` binds the table owner but never a superuser or a `BYPASSRLS` role.** A connection made as the container's default user (`postgres`, or the dev compose user `eq`) sees every tenant's rows. Isolation therefore only holds when the server connects as `eq_app` (`NOSUPERUSER NOBYPASSRLS`); the owner URL is used for migrations only. T-006 makes the dev database do this. Say so in the Report.
+- **Tests must exercise RLS as `eq_app`, never as the superuser** (a test on the superuser pool passes or fails vacuously). In the test: migrate with the superuser pool, run `ALTER ROLE eq_app LOGIN PASSWORD 'test-secret-app'` (a fake value), build a second `PgPool` that logs in as `eq_app`, and call `begin`/`connect` on that pool. Create the temp table with the superuser pool and `GRANT SELECT, INSERT ON <tbl> TO eq_app`. T-007 later moves this into `TestDb::app_pool`.
 - `after_release`: `Box::pin(async move { sqlx::query("RESET ALL").execute(&mut *conn).await.map(|_| true).or(Ok(false)) })`. Returning `false` discards the connection.
 - Integration tests need Postgres. Use `testcontainers` directly here (eq-testkit arrives in T-007).
 
 ## Acceptance criteria
 - AC1. Migrations apply twice without error (idempotent bootstrap). → `db::tests::bootstrap_idempotent`
-- AC2. Given a temp table with RLS enabled through `eq_enable_rls` and rows for tenants A and B, When `begin(A)` selects, Then only A's rows are visible. When it selects without `begin` (plain pool connection), Then 0 rows. → `db::tests::rls_scopes_rows`
+- AC2. (on the `eq_app` pool, see Notes) Given a temp table with RLS enabled through `eq_enable_rls` and rows for tenants A and B, When `begin(A)` selects, Then only A's rows are visible. When it selects without `begin` (plain pool connection), Then 0 rows. → `db::tests::rls_scopes_rows`
 - AC3. After a transaction is committed and the connection reused from the pool, `current_setting('app.tenant_id', true)` is empty. → `db::tests::settings_do_not_leak`
 
 ## Tests to write
