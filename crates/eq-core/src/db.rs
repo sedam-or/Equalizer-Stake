@@ -11,6 +11,7 @@ use sqlx::postgres::{PgAdvisoryLock, PgAdvisoryLockKey, PgConnection, PgPoolOpti
 use sqlx::{PgPool, Postgres, Transaction};
 
 const MIGRATION_LOCK_KEY: i64 = 7_000_001;
+const GRANT_MIGRATION_STATUS: &str = "DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'eq_app') THEN EXECUTE 'GRANT SELECT ON TABLE _sqlx_migrations TO eq_app'; END IF; END $$";
 static MIGRATOR: Migrator = sqlx::migrate!("../../migrations");
 
 /// ARC-06: creates the application pool using the least-privileged configured role.
@@ -48,9 +49,18 @@ pub async fn run_migrations(owner_url: &str) -> anyhow::Result<()> {
         .await
         .context("release the migration advisory lock")?;
     drop(connection);
-    pool.close().await;
+    if let Err(error) = migration_result {
+        pool.close().await;
+        return Err(error).context("apply PostgreSQL migrations");
+    }
 
-    migration_result.context("apply PostgreSQL migrations")
+    let grant_result = sqlx::query(GRANT_MIGRATION_STATUS)
+        .execute(&pool)
+        .await
+        .context("grant the application role read-only migration status");
+    pool.close().await;
+    grant_result?;
+    Ok(())
 }
 
 /// ARC-04: a transaction scoped to one tenant and actor.

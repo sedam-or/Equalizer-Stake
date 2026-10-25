@@ -16,10 +16,21 @@ reports = ["dep:eq-reports"]
 feedback = ["dep:eq-feedback"]
 
 [dependencies]
+anyhow.workspace = true
+axum.workspace = true
 eq-audit.workspace = true
 eq-core.workspace = true
 eq-identity.workspace = true
 eq-scheduling.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
 eq-enrollment = { workspace = true, optional = true }
 eq-billing = { workspace = true, optional = true }
 eq-attendance = { workspace = true, optional = true }
@@ -27,6 +38,11 @@ eq-rental = { workspace = true, optional = true }
 eq-notify = { workspace = true, optional = true }
 eq-reports = { workspace = true, optional = true }
 eq-feedback = { workspace = true, optional = true }
+
+[dev-dependencies]
+secrecy.workspace = true
+testcontainers.workspace = true
+url.workspace = true
 
 [lints]
 workspace = true
