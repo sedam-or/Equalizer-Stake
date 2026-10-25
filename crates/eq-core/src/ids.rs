@@ -15,3 +15,21 @@ pub struct TenantId(pub Uuid);
 #[serde(transparent)]
 #[sqlx(transparent)]
 pub struct PersonId(pub Uuid);
+
+/// DOM-01: identifier for a location aggregate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct LocationId(pub Uuid);
+
+/// DOM-01: identifier for a resource aggregate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct ResourceId(pub Uuid);
+
+/// DOM-01: identifier for a file aggregate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct FileId(pub Uuid);
