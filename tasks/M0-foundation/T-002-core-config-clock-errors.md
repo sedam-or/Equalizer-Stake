@@ -2,7 +2,7 @@
 id: T-002
 title: Add config loading, the Clock abstraction and AppError → problem+json in eq-core
 milestone: M0
-status: blocked
+status: todo
 depends_on: [T-001]
 spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04, VAL-03, CAN-24]
 estimated_size: M
@@ -37,7 +37,7 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
 - `eq_core::config::{Config, Mode, FilesBackend, LogFormat}` with `Config::from_env() -> Result<Config, ConfigError>` and `Config::for_tests()`.
 - `eq_core::clock::{Clock (trait), SystemClock, Timestamp}` + `eq_core::clock::test::ManualClock` behind `#[cfg(any(test, feature = "testkit"))]`.
 - `eq_core::error::{AppError, FieldError, Problem}` + `impl IntoResponse for AppError` (axum) + `From<sqlx::Error>` mapping (RowNotFound → NotFound, pool timeout → Unavailable, others → Internal; the full SQLSTATE mapping in ERR-43 is added by the tasks that need it).
-- ERR-21 registry: `pub struct ErrorCodeDef { pub code: &'static str, pub status: u16, pub title: &'static str }` and `eq_core::error::codes` with the core codes (`bad_request`, `unauthenticated`, `forbidden`, `not_found`, `module_disabled`, `validation`, `policy_violation`, `precondition_required`, `payload_too_large`, `locked`, `rate_limited`, `unavailable`, `internal`) plus `pub const CODES: &[ErrorCodeDef]`. `Problem.title` comes from the matching `ErrorCodeDef`. A helper `pub fn validate_code(code: &str) -> bool` checks the ERR-20 format `^[a-z][a-z0-9_]{2,47}$`.
+- ERR-21 registry: `pub struct ErrorCodeDef { pub code: &'static str, pub status: u16, pub title: &'static str }` and `eq_core::error::codes` with the core codes (`bad_request`, `unauthenticated`, `forbidden`, `not_found`, `module_disabled`, `validation`, `policy_violation`, `precondition_required`, `payload_too_large`, `locked`, `rate_limited`, `unavailable`, `internal`) plus `pub const CODES: &[&ErrorCodeDef]`. `Problem.title` comes from the `ErrorCodeDef` that the `AppError` variant carries (`code: &'static ErrorCodeDef`), so a module crate passes its own registered definition and `eq-core` needs no registry injection or global state. Core codes are `pub static` items in `eq_core::error::codes` (use `&codes::NOT_FOUND`); module crates declare theirs as `pub static` in their `errors.rs` (ERR-21) and pass `&codes::SLOT_TAKEN`. A helper `pub fn validate_code(code: &str) -> bool` checks the ERR-20 format `^[a-z][a-z0-9_]{2,47}$`.
 - The problem `type` URI base is the constant `PROBLEM_BASE = "https://ritma.dev/problems/"` + code with `_` replaced by `-`.
 
 ### Out
@@ -86,27 +86,27 @@ pub struct FieldError { pub pointer: String, pub code: String, #[serde(skip_seri
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
     #[error("not found")] NotFound { entity: &'static str },
-    #[error("conflict: {code}")] Conflict { code: &'static str, detail: String, extra: serde_json::Map<String, serde_json::Value> },
+    #[error("conflict: {code}")] Conflict { code: &'static ErrorCodeDef, detail: String, extra: serde_json::Map<String, serde_json::Value> },
     #[error("validation failed")] Validation { errors: Vec<FieldError> },
     #[error("forbidden")] Forbidden { perm: &'static str },
-    #[error("forbidden: {code}")] ForbiddenRule { code: &'static str, detail: String },
-    #[error("unauthenticated")] Unauthenticated { code: &'static str },
+    #[error("forbidden: {code}")] ForbiddenRule { code: &'static ErrorCodeDef, detail: String },
+    #[error("unauthenticated")] Unauthenticated { code: &'static ErrorCodeDef },
     #[error("module disabled")] ModuleDisabled { module: String },
-    #[error("unprocessable: {code}")] Unprocessable { code: &'static str, detail: String, extra: serde_json::Map<String, serde_json::Value> },
+    #[error("unprocessable: {code}")] Unprocessable { code: &'static ErrorCodeDef, detail: String, extra: serde_json::Map<String, serde_json::Value> },
     #[error("policy violation: {rule}")] PolicyViolation { rule: String, detail: String, extra: serde_json::Map<String, serde_json::Value> },
     #[error("precondition required")] PreconditionRequired,
-    #[error("gone: {code}")] Gone { code: &'static str },
+    #[error("gone: {code}")] Gone { code: &'static ErrorCodeDef },
     #[error("locked")] Locked { until: Timestamp },
     #[error("rate limited")] RateLimited { retry_after_s: u64 },
     #[error("payload too large")] PayloadTooLarge,
-    #[error("bad request: {code}")] BadRequest { code: &'static str, detail: String },
+    #[error("bad request: {code}")] BadRequest { code: &'static ErrorCodeDef, detail: String },
     #[error("unavailable")] Unavailable { retry_after_s: u64 },
     #[error(transparent)] Internal(#[from] anyhow::Error),
 }
 ```
 Status/code mapping:
 - NotFound → 404 `not_found`
-- Conflict → 409 `<code>`
+- Conflict → 409 `<code.code>` (status is fixed by the variant; title from the carried `ErrorCodeDef`)
 - Validation → 422 `validation` (+`errors`)
 - Forbidden → 403 `forbidden` (+`perm`)
 - ForbiddenRule → 403 `<code>`
@@ -149,7 +149,7 @@ None (technical only).
 - AC1. Given a map without `DATABASE_URL`, When `from_map`, Then `Missing("DATABASE_URL")`. → `config::tests::missing_database_url`
 - AC2. Given a 16-byte key, Then `Invalid{var:"RITMA_SECRET_KEY"}`. → `config::tests::short_secret_rejected`
 - AC3. Given defaults, Then `listen=0.0.0.0:8080`, `mode=Single`, `backup_keep=14`. → `config::tests::defaults`
-- AC4. `AppError::Conflict{code:"slot_taken",…}` renders 409 with JSON `code=="slot_taken"` and `type` ending in `/slot-taken`, and the extension members appear at top level. → `error::tests::conflict_problem_json`
+- AC4. `AppError::Conflict{code:&SLOT_TAKEN,…}` (the test declares `static SLOT_TAKEN: ErrorCodeDef = ErrorCodeDef{code:"slot_taken",status:409,title:"Slot already taken"}`, as eq-scheduling will) renders 409 with JSON `code=="slot_taken"`, `title=="Slot already taken"` and `type` ending in `/slot-taken`, and the extension members appear at top level. → `error::tests::conflict_problem_json`
 - AC5. `AppError::Internal` renders 500 and its detail doesn't contain the inner error message. → `error::tests::internal_hides_detail`
 - AC6. `ManualClock::advance` changes `now()`. → `clock::tests::manual_clock_advances`
 - AC7. Given a config built with fake secrets (`test-secret-…`, a URL `postgres://u:test-secret-pw@h/db`, a captcha secret and tokens), When formatted with `{:?}` and `{:#?}`, Then none of the fake values appear and `[REDACTED]` does. → `config::tests::debug_redacts_secrets`
@@ -239,7 +239,8 @@ None (technical only).
   - Context: T-002 lines 63–71 require `#[derive(Debug, Clone)]` and plain `String` fields for values that can hold credentials or tokens. `spec/18-security-by-design.md` SBD-10 requires S3 field classification/protection, and SBD-50 requires redacting, zeroizing wrappers and prohibits plain `Debug` on a struct holding secrets.
   - Options: (a) amend the interface as stated above and classify each S3 field; (b) define a different explicit secret-bearing `Config` shape that meets SBD-10/SBD-50 and update the task tests/interfaces to match.
   - Recommendation: (a), because it keeps the current `Config` layout while changing only the sensitive field types and debug behavior needed to meet the security spec.
-- **Q2 (blocking):** How must `AppError` expose an error-code title to the `eq-core` response renderer when the code is defined by another crate?
+- **Resolved (architect, 2026-10-25):** Q2 — option (a). `AppError` variants that take a code now carry `&'static ErrorCodeDef` (Interfaces, status mapping and AC4 updated). `Problem.title` is read from that definition; no registry injection. `slot_taken` is owned by `eq-scheduling` (T-203), so T-002 only uses a test-local copy in AC4. Callers elsewhere pass `&codes::X` (T-105 and spec 19 ERR-21 updated).
+- **Q2 (historical; resolved):** How must `AppError` expose an error-code title to the `eq-core` response renderer when the code is defined by another crate?
   - Context: T-002 defines `AppError` code fields as `&'static str` and requires `Problem.title` to come from the matching `ErrorCodeDef`. ERR-21 says each crate owns its `CODES`, while `IntoResponse` is implemented in `eq-core`; the task defines no registry injection or title-bearing code reference. AC4 requires `slot_taken`, but the listed core `CODES` omit it (ERR-30 gives its title).
   - Options: (a) change code fields in `AppError` to carry `&'static ErrorCodeDef` and update the task interface/tests; (b) specify a registry-injection API that makes module registries available to the core renderer.
   - Recommendation: (a), because it keeps code/status/title together without global mutable registry state and lets each crate pass its own registered definition.

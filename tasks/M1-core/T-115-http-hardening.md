@@ -23,7 +23,7 @@ The HTTP layer enforces the cross-cutting API rules once, so module handlers jus
 - API-07 ETag:
   - `IfMatch` extractor: missing → 428 `precondition_required`. Malformed → 400. Parse `"v<int>"` → `expected_version: i32`.
   - The helper `etag(version) -> HeaderValue`.
-  - Repos use `UPDATE … WHERE id=$1 AND version=$2 RETURNING version` and map 0 rows to `AppError::Conflict{code:"version_conflict"}`, with `current` attached by the handler (helper `version_conflict_with(current_dto)`).
+  - Repos use `UPDATE … WHERE id=$1 AND version=$2 RETURNING version` and map 0 rows to `AppError::Conflict{code:&codes::VERSION_CONFLICT}`, with `current` attached by the handler (helper `version_conflict_with(current_dto)`).
 - API-15 / SEC-11 rate limits (technical consts), via `tower_governor` keyed as follows:
   - General: 100/min per user (JWT `sub`), 300/min per IP.
   - `POST /auth/login`: 10/min per IP.

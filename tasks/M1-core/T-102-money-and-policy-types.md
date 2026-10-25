@@ -2,7 +2,7 @@
 id: T-102
 title: Add Money, Bps and the policy value types (LocalTime, WeeklyHours, DayOfMonth, I18nText, GeoPoint, Locale, Currency)
 milestone: M1
-status: blocked
+status: todo
 depends_on: [T-001]
 spec_refs: [ARC-11, POL-11, POL-12, ADR-0007, CAN-10, CAN-12, OSS-02]
 estimated_size: M
@@ -62,20 +62,20 @@ impl Money {
   pub fn apply_bps(self, bps: Bps) -> Result<Money, MoneyError>; // half-up
 }
 #[derive(Debug, thiserror::Error, PartialEq)] pub enum MoneyError { #[error("currency mismatch")] CurrencyMismatch, #[error("overflow")] Overflow, #[error("amount out of range")] OutOfRange }
-pub fn apply_bps(amount_minor: i64, bps: Bps) -> Result<i64, MoneyError>; // (amount*bps + 5000) / 10000 for amount>=0; symmetric for negative; Overflow only if the result doesn't fit i64
+pub fn apply_bps(amount_minor: i64, bps: Bps) -> Result<i64, MoneyError>; // (amount*bps + 5000) / 10000 for amount>=0; symmetric for negative; the `Err(Overflow)` arm is unreachable for a valid `Bps` and is not tested
 ```
 
 ## Business rules
 None (primitives).
 
 ## Implementation notes
-- Use `i128` intermediates in `apply_bps` to avoid overflow, and return `Overflow` if the result doesn't fit in i64. `Money::checked_add`, `checked_sub`, `checked_mul` and `Money::apply_bps` return `Overflow` when the result's magnitude exceeds `MONEY_MAX_ABS_MINOR` (which also covers i64 overflow), so a `Money` value is always in range. `Money::new` and deserialisation return `OutOfRange` for input beyond the cap.
+- Use `i128` intermediates in `apply_bps` to avoid overflow, and convert back with `i64::try_from(..).map_err(|_| MoneyError::Overflow)` (unreachable for a valid `Bps`, so no `unwrap`/`expect`). `Money::checked_add`, `checked_sub`, `checked_mul` and `Money::apply_bps` return `Overflow` when the result's magnitude exceeds `MONEY_MAX_ABS_MINOR` (which also covers i64 overflow), so a `Money` value is always in range. `Money::new` and deserialisation return `OutOfRange` for input beyond the cap.
 - `Bps` is 0..=10000 and `Bps::new` rejects more. A value that must exceed 100% would be a different field type, not a widened `Bps`; v1 has no such case.
 - `GeoPoint::new` rejects NaN and out-of-range values; `I18nText::new` rejects an empty map; `TimeInterval::new`, `DayHours::new` and `WeeklyHours::new` run the same checks as their deserialisation.
 - `LocalTime` "24:00" is allowed only as `TimeInterval.end`. Represent it internally as minutes-of-day (0..=1440) rather than `NaiveTime`.
 
 ## Acceptance criteria
-- AC1. `apply_bps(10_000_000, Bps::from_const(7000)) == Ok(7_000_000)`; `apply_bps(15, Bps::from_const(5000)) == Ok(8)` (half-up); `apply_bps(i64::MAX, Bps::FULL) == Ok(i64::MAX)`; a case whose result exceeds i64 returns `Err(Overflow)`. → `money::tests::bps_half_up`
+- AC1. `apply_bps(10_000_000, Bps::from_const(7000)) == Ok(7_000_000)`; `apply_bps(15, Bps::from_const(5000)) == Ok(8)` (half-up); `apply_bps(i64::MAX, Bps::FULL) == Ok(i64::MAX)`; `apply_bps(i64::MIN, Bps::FULL) == Ok(i64::MIN)`. A valid `Bps` (0..=10000) never scales a magnitude up, so `apply_bps` cannot overflow for a valid input: it keeps the `Result` for the `i64::try_from` of its `i128` intermediate and has no overflow test of its own. → `money::tests::bps_half_up`
 - AC2. Property: for random a, b in ±(`MONEY_MAX_ABS_MINOR` / 2) of the same currency (so the sum stays within the cap), `(a+b)-b == a`. → `money::proptests::add_sub_roundtrip`
 - AC3. Property: `apply_bps(x, Bps::FULL) == Ok(x)` and `apply_bps(x, Bps::ZERO) == Ok(0)`. → `bps_identity`
 - AC4. `DayOfMonth` 29 fails to deserialize. → `types::tests::day_of_month_max_28`
@@ -176,7 +176,8 @@ None (primitives).
   - Context: T-102 and `spec/04-policy-engine.md` §5 show public fields/tuple constructors, including constructible invalid values. `spec/23-contracts-and-canonical-forms.md` CAN-10 caps the Money wire amount at 10^15, while `spec/16-code-quality.md` CQ-23 requires private fields and validating constructors when a value can be invalid. The task does not specify how these requirements fit together.
   - Options: (a) amend the task interface and tests for private validated types, with the Money canonical bound enforced; (b) retain the public shapes and have the maintainer explicitly resolve the conflicting invariant/validation contract in the task/spec before implementation.
   - Recommendation: (a), because it enforces CAN-10 and CQ-23 at the type boundary.
-- **Q3 (blocking):** How should T-102 resolve AC1's demand for an `apply_bps` result outside i64 when the task restricts `Bps` to 0..=10000 and the amount to i64?
+- **Resolved (architect, 2026-10-25):** Q3 — option (a). The impossible `apply_bps` overflow clause is removed from AC1. `MoneyError::Overflow` is covered by `Money::checked_add`/`checked_sub`/`checked_mul` beyond `MONEY_MAX_ABS_MINOR`, in the existing test `money::tests::overflow_detected` (`Money::new(MONEY_MAX_ABS_MINOR, IDR)` plus one minor unit, and `checked_mul`).
+- **Q3 (historical; resolved):** How should T-102 resolve AC1's demand for an `apply_bps` result outside i64 when the task restricts `Bps` to 0..=10000 and the amount to i64?
   - Context: The resolved interface returns `Result<i64, MoneyError>`, but `Bps` is valid only from 0 through 10000 (spec/04 §5; T-102 Scope and implementation notes). For any i64 amount, applying at most 100% and rounding half-up cannot produce a result whose magnitude exceeds the input, so the AC1 overflow example has no valid input. `MoneyError::Overflow` can still be exercised by checked Money arithmetic that exceeds `MONEY_MAX_ABS_MINOR` (CAN-10).
   - Options: (a) remove the impossible `apply_bps` overflow clause and cover `MoneyError::Overflow` through checked Money arithmetic; (b) define a different rate/input type and update the API and canonical contract to specify a valid overflow case.
   - Recommendation: (a), because it keeps `Bps` within the explicit 0..=10000 contract and tests overflow where it is reachable.
