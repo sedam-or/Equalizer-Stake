@@ -6,5 +6,19 @@ license.workspace = true
 repository.workspace = true
 publish = false
 
+[dependencies]
+anyhow.workspace = true
+axum-test.workspace = true
+chrono.workspace = true
+eq-api.workspace = true
+eq-core = { workspace = true, features = ["testkit"] }
+rand.workspace = true
+secrecy.workspace = true
+sqlx.workspace = true
+testcontainers.workspace = true
+tokio.workspace = true
+url.workspace = true
+uuid.workspace = true
+
 [lints]
 workspace = true

@@ -45,6 +45,8 @@ make e2e           # Playwright against a release build
 5. Sign off every commit (DCO): `git commit -s`. Sign the CLA once when the bot asks (see "License" below).
 6. Open a PR using the template. CI must be green. A maintainer reviews within 5 days.
 
+Enable the local commit-message hook with `git config core.hooksPath .githooks`.
+
 ## Add a preset
 
 A preset is a YAML file in `presets/` that sets up a type of school: which features are on, default rules, terminology and a sample catalog.

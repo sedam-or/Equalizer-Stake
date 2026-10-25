@@ -1,0 +1,22 @@
+name: ritma
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: eq
+      POSTGRES_PASSWORD: eq
+      POSTGRES_DB: ritma
+    ports:
+      - "5433:5432"
+    volumes:
+      - ritma-dev-db:/var/lib/postgresql/data
+      - ./initdb.sql:/docker-entrypoint-initdb.d/001-ritma-app-role.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eq -d ritma"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  ritma-dev-db:

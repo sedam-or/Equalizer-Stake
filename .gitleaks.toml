@@ -1,0 +1,33 @@
+title = "Ritma secret scan"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Exact local placeholders in the example environment file"
+matchCondition = "AND"
+paths = ['''^\.env\.example$''']
+regexTarget = "line"
+regexes = [
+  '''^DATABASE_URL=postgres://eq_app:eq_app@localhost:5433/ritma$''',
+  '''^RITMA_DATABASE_OWNER_URL=postgres://eq:eq@localhost:5433/ritma$''',
+  '''^RITMA_SECRET_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=$''',
+  '''^# RITMA_SECRET_KEY_PREVIOUS=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=$''',
+  '''^# RITMA_SETUP_TOKEN=test-secret-local-setup-token$''',
+  '''^# RITMA_SMTP_URL=smtp://test:test-secret-local-smtp@localhost:1025$''',
+  '''^# RITMA_CAPTCHA_SECRET=test-secret-local-captcha$''',
+  '''^# RITMA_METRICS_TOKEN=test-secret-local-metrics$''',
+]
+
+[[allowlists]]
+description = "Obvious fake test-secret values in test and fixture files only"
+matchCondition = "AND"
+paths = [
+  '''^crates/[^/]+/(?:.*/)?(?:tests?|fixtures?)/[^/]+$''',
+  '''^crates/[^/]+/.*/tests?\.rs$''',
+  '''^crates/[^/]+/.*\.test\.[^/]+$''',
+  '''^scripts/tests/[^/]+$''',
+  '''^web/.+\.test\.[^/]+$''',
+]
+regexTarget = "line"
+regexes = ['''test-secret-[A-Za-z0-9_-]+''']
