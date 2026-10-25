@@ -1,0 +1,6 @@
+/dist/
+/node_modules/
+/.vite/
+/coverage/
+/src/routeTree.gen.ts
+*.tsbuildinfo

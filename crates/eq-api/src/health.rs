@@ -61,6 +61,7 @@ pub(super) fn router(state: AppState) -> Router {
     let router = Router::new()
         .route("/healthz", get(healthz))
         .route("/readyz", get(readyz))
+        .fallback(crate::spa::fallback)
         .with_state(health_state)
         .layer(CatchPanicLayer::custom(handle_panic))
         .layer(RequestBodyLimitLayer::new(BODY_LIMIT_BYTES))

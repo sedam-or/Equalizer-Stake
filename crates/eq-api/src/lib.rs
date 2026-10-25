@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 mod health;
 pub mod middleware;
+mod spa;
 
 /// ARC-01, ARC-04: shared infrastructure passed to API handlers.
 #[derive(Clone)]
