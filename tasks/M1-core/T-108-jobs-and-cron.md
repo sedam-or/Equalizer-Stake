@@ -36,7 +36,7 @@ pub struct JobCtx { pub tenant: Option<Arc<TenantInfo>>, pub pool: PgPool, pub c
 ```
 - `enqueue(tx, tenant, kind, payload, run_at, dedupe_key: Option<String>)` for ad-hoc jobs.
 - DST handling: `croner` evaluated on `DateTime<Tz>`. Nonexistent local times (spring-forward) fire at the next valid instant. Ambiguous times (fall-back) fire once (the first occurrence).
-- The planner's `last_tick` is stored in a `cron_state(tenant_id, kind, last_fire_at)` table (add it in `migrations/0005_core_cron_state.sql`). On first run, use `now - 1 minute`, so there's no backfill storm. **Catch-up:** if the server was down, fire at most **one** missed occurrence per spec (the latest).
+- The planner's `last_tick` is stored in a `cron_state(tenant_id, kind, last_fire_at)` table (add it in `migrations/0005_core_cron_state.sql`, DDL verbatim from `spec/06-domain-model.md` §4.12: PK `(tenant_id, kind)`, a system table **without RLS** like `jobs`, used only by the planner). On first run, use `now - 1 minute`, so there's no backfill storm. **Catch-up:** if the server was down, fire at most **one** missed occurrence per spec (the latest).
 - `JobRunner::run_due(now)` processes every due job synchronously. It is used by TST-15 time-travel tests.
 
 - **Alignment with spec 20–24** (added with the canonical-behaviour specs):
@@ -64,6 +64,7 @@ pub struct JobCtx { pub tenant: Option<Arc<TenantInfo>>, pub pool: PgPool, pub c
 | `crates/eq-core/tests/jobs.rs` | the AC names above |
 
 ## Definition of done
+- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; no `Utc::now()` in `jobs/` except the `SystemClock` impl
 - [ ] Commit `feat(core): job queue and tenant-timezone cron [T-108]`, signed off

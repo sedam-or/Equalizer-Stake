@@ -30,7 +30,7 @@ Everyone sees the schedule that's theirs: admins the whole school, instructors t
 - SCH-15: `GET/PUT /instructors/{id}/availability` (staff, or the instructor themselves) → `[{weekday, intervals: [{start, end}]}]`. PUT replaces all rows for that person.
 - SCH-16 iCal:
   - `GET /calendar.ics?token=` (no auth header). `token = base64url(person_id (16 bytes) || HMAC-SHA256(Keys.ics, tenant_id || person_id || ics_secret_version_be32)[0..16])`. A bad or old token → 404.
-  - Add the column `persons.ics_secret_version int NOT NULL DEFAULT 1` in `migrations/0012_ics.sql`. `POST /me/calendar-token` returns the URL. `DELETE /me/calendar-token` increments the version, which revokes the old URL.
+  - Add the column `persons.ics_secret_version int NOT NULL DEFAULT 1` in `migrations/0012_ics.sql` (`spec/06-domain-model.md` §4.12). `POST /me/calendar-token` returns the URL. `DELETE /me/calendar-token` increments the version, which revokes the old URL.
   - The feed covers sessions from −30 to +90 days in the person's scope (instructor/guardian/student), with RFC 5545 VEVENTs: UID `session-{id}@{host}`, DTSTART/DTEND in UTC, SUMMARY = offering name (tenant locale) + resource, STATUS CANCELLED for cancelled sessions. Use the `icalendar` crate.
   - Response `text/calendar; charset=utf-8`. Rate limit as public.
 
@@ -56,6 +56,7 @@ Everyone sees the schedule that's theirs: admins the whole school, instructors t
 | `crates/eq-scheduling/src/domain/availability.rs` | `availability_bookable` |
 
 ## Definition of done
+- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated
 - [ ] Commit `feat(scheduling): schedule views, availability and iCal [T-211]`, signed off

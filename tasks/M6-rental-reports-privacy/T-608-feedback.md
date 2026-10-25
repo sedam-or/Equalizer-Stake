@@ -14,7 +14,7 @@ estimated_size: M
 Teachers share progress with families, and families rate lessons fairly, under the school's chosen rules.
 
 ## Context
-- `spec/modules/feedback.md` FBK-01..04 and module ACs 1–4; DDL §4.10 + rating hidden columns (§4.11); `FeedbackPolicy` §6.11.
+- `spec/modules/feedback.md` FBK-01..04 and module ACs 1–4; DDL §4.10 + rating hidden columns (§4.11) verbatim into `migrations/0062_feedback.sql`; `FeedbackPolicy` §6.11.
 - Permissions (D-63, `feedback.md` §2, spec 25 §6): `feedback.read`, `feedback.notes.write`, `feedback.notes.publish`, `feedback.ratings.write`, `feedback.ratings.moderate`, declared through `PermissionDef` with the role grants in that table. The module's `PermissionDef`s must match the spec 25 matrix test (`rbac_matrix_matches_spec`, T-113).
 
 ## Scope
@@ -36,6 +36,7 @@ Teachers share progress with families, and families rate lessons fairly, under t
 | `crates/eq-feedback/tests/api_feedback.rs` | AC names |
 
 ## Definition of done
+- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All checks for the touched stacks pass (Rust and/or web), guard scripts pass, `make api` regenerated if the API changed
 - [ ] `scripts/check-literals.sh` passes: every business value comes from the module policy

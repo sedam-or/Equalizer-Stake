@@ -14,7 +14,7 @@ estimated_size: M
 Owners see the health of their school at a glance, computed from live data, showing only what their enabled modules can support.
 
 ## Context
-- `spec/modules/reports.md`: the widget catalog with `requires` modules, aggregates-only revenue (RPT-02), per-widget endpoint cached 60 s (RPT-03), access (RPT-06), `min_sessions_for_rate` marking (module AC2), utilisation formula (AC3). **Data access (spec 17 CA-30):** reports owns no tables and never queries other modules' tables. It reads only through ports or read views named `rv_<owner>_<name>`. Each view is created by a new migration tagged with the **owning** module, and listed in that module's spec as a public contract.
+- `spec/modules/reports.md`: the widget catalog with `requires` modules, aggregates-only revenue (RPT-02), per-widget endpoint cached 60 s (RPT-03), access (RPT-06), `min_sessions_for_rate` marking (module AC2), utilisation formula (AC3). **Data access (spec 17 CA-30):** reports owns no tables and never queries other modules' tables. It reads only through ports or read views named `rv_<owner>_<name>`. Each view is created by a new migration tagged with the **owning** module (`migrations/0066_<owner>_report_views.sql` onward, `spec/29-erd.md` §7), and listed in that module's spec as a public contract.
 - Policy `ReportsPolicy` `spec/04-policy-engine.md` §6.10.
 
 ## Scope
@@ -35,6 +35,7 @@ Owners see the health of their school at a glance, computed from live data, show
 | `crates/eq-reports/tests/api_reports.rs` | AC names |
 
 ## Definition of done
+- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All checks for the touched stacks pass (Rust and/or web), guard scripts pass, `make api` regenerated if the API changed
 - [ ] `scripts/check-literals.sh` passes: every business value comes from the module policy

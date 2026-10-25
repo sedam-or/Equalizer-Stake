@@ -15,6 +15,8 @@
 
 ## 2. Entity map
 
+This is the conceptual map. The complete diagrams with every column, the data dictionary and the table → task map are in `29-erd.md`.
+
 ```mermaid
 erDiagram
   TENANT ||--o{ LOCATION : has
@@ -877,6 +879,90 @@ ALTER TABLE instructor_ratings ADD COLUMN hidden_at timestamptz, ADD COLUMN hidd
 ```
 
 RLS applies to every table above except `audit.checkpoints`. `audit.entries` **does** get RLS for SELECT, plus a second policy restricting admins by category. That second policy is implemented in the query layer, because RLS can't see the role cheaply.
+
+### 4.12 Tables named by tasks and other specs
+
+**DOM-02.** Every table and column a task or spec names lives in this DDL. A task never invents schema (AGENTS §0); `scripts/erd.py --migrations` fails when a migration creates a table or column that is not here (ERD-03). The rows below were named in T-108, T-111, T-211, T-405 and CLD-11 before they had DDL.
+
+```sql
+-- core: cron planner state (T-108, migration 0005). System table like `jobs`: NO RLS, planner only.
+CREATE TABLE cron_state (
+  tenant_id     uuid NOT NULL REFERENCES tenants(id),
+  kind          text NOT NULL,                    -- CronSpec.kind
+  last_fire_at  timestamptz NOT NULL,
+  PRIMARY KEY (tenant_id, kind)
+);
+
+-- identity: TOTP recovery codes (IDN-12, T-111, migration 0008). RLS.
+CREATE TABLE totp_recovery_codes (
+  tenant_id  uuid NOT NULL REFERENCES tenants(id),
+  person_id  uuid NOT NULL REFERENCES persons(id),
+  code_hash  text NOT NULL,                       -- argon2id PHC string of one recovery code
+  used_at    timestamptz,
+  PRIMARY KEY (person_id, code_hash)
+);
+
+-- scheduling: calendar feed revocation (SCH-16, spec 25 §4, T-211, migration 0012)
+ALTER TABLE persons ADD COLUMN ics_secret_version int NOT NULL DEFAULT 1;
+
+-- enrollment: dated changes of level / series / price plan (ENR-06, T-405; created in migration 0020 by T-401). RLS.
+CREATE TABLE enrollment_changes (
+  id             uuid PRIMARY KEY,
+  tenant_id      uuid NOT NULL REFERENCES tenants(id),
+  enrollment_id  uuid NOT NULL REFERENCES enrollments(id),
+  effective_on   date NOT NULL,
+  level_id       uuid REFERENCES levels(id),          -- NULL = unchanged
+  series_id      uuid REFERENCES series(id),          -- NULL = unchanged
+  price_plan_id  uuid REFERENCES price_plans(id),     -- NULL = unchanged
+  previous       jsonb NOT NULL,                      -- {level_id, series_id, price_plan_id} before the change
+  reason         text,
+  created_by     uuid NOT NULL REFERENCES persons(id),
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  CHECK (level_id IS NOT NULL OR series_id IS NOT NULL OR price_plan_id IS NOT NULL)
+);
+CREATE INDEX enrollment_changes_by_enrollment ON enrollment_changes (enrollment_id, effective_on);
+
+-- platform: cloud-only tables (CLD-11, T-901, migration 0090). Schema `platform`, NO RLS, role eq_platform only (SEC-05).
+CREATE SCHEMA platform;
+CREATE TABLE platform.accounts (
+  id          uuid PRIMARY KEY,
+  email_enc   bytea NOT NULL,                       -- S2, encrypted with the platform key (SEC-03)
+  email_bidx  bytea NOT NULL UNIQUE,                -- blind index for login lookup (SEC-04)
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE platform.account_tenants (
+  account_id  uuid NOT NULL REFERENCES platform.accounts(id),
+  tenant_id   uuid NOT NULL REFERENCES tenants(id),
+  role        text NOT NULL CHECK (role IN ('owner','admin')),
+  PRIMARY KEY (account_id, tenant_id)
+);
+CREATE TABLE platform.plans (
+  id      text PRIMARY KEY,                         -- 'free' | 'standard' | 'pro' | 'enterprise'
+  name    jsonb NOT NULL,                           -- I18nText
+  limits  jsonb NOT NULL,                           -- {active_students, locations, storage_bytes, notifications_per_month}
+  price   jsonb NOT NULL                            -- {"IDR": minor, "USD": minor} per month
+);
+CREATE TABLE platform.subscriptions (
+  tenant_id           uuid PRIMARY KEY REFERENCES tenants(id),
+  plan_id             text NOT NULL REFERENCES platform.plans(id),
+  status              text NOT NULL CHECK (status IN ('trialing','active','past_due','cancelled')),
+  provider            text CHECK (provider IN ('stripe','xendit','midtrans')),
+  provider_ref        text,
+  current_period_end  timestamptz,
+  trial_ends_at       timestamptz
+);
+CREATE TABLE platform.usage_snapshots (
+  tenant_id           uuid NOT NULL REFERENCES tenants(id),
+  day                 date NOT NULL,
+  active_students     int NOT NULL,
+  sessions            int NOT NULL,
+  notifications_sent  int NOT NULL,
+  storage_bytes       bigint NOT NULL,
+  PRIMARY KEY (tenant_id, day)
+);
+```
+
+The diagrams, data dictionary, data classes and table → task mapping for all of §3–§4 are in `29-erd.md` (generated from this DDL by `scripts/erd.py`).
 
 ## 5. State machines (normative)
 

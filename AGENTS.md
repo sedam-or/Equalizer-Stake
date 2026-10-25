@@ -64,6 +64,7 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 | Web checks | `pnpm -C web lint && pnpm -C web typecheck && pnpm -C web test && pnpm -C web i18n:check` |
 | E2E | `make e2e` |
 | Guard scripts | `scripts/check-deps.sh && scripts/check-literals.sh && scripts/check-web-boundaries.sh && scripts/check-layers.sh` |
+| Schema drift (ERD) | `scripts/erd.py --migrations` (after adding or changing a migration) and `scripts/erd.py --check` |
 
 ## 4. Non-negotiable engineering rules
 
@@ -92,3 +93,4 @@ legacy/            v0 archive as a ZIP. DO NOT open, unzip or read it.
 - UI feedback: only toasts, dialogs and banners listed in `spec/27-ux-states-and-feedback.md` (UX-\*) exist; a new one is added to that catalogue in the same PR. Journeys (`spec/28-user-journeys.md`, JRN-\*) are the scripts for the e2e tests.
 - Branches and PRs: `BRANCHING.md` (trunk-based, `task/T-xxx-<slug>`, squash merge, `ci-ok`).
 - Errors: `spec/19-error-handling.md` (codes registered in `errors.rs`, translated en+id, one log at the edge).
+- Schema: `spec/29-erd.md` (ERD-\*) has the diagram, columns, data class and owner of every table, and which migration and task create it. A migration matches the `spec/06` DDL exactly; `scripts/erd.py --migrations` must pass. A table, column or type that is not in the DDL is a schema change: block, never add it.

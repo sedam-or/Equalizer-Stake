@@ -57,6 +57,8 @@ jobs:
           persist-credentials: false
       - name: Task index is current and depends_on is a DAG (WORKFLOW.md)
         run: scripts/tasks-index.sh --check
+      - name: ERD is current and migrations match the spec 06 DDL (ERD-03)
+        run: scripts/erd.py --check && scripts/erd.py --migrations
       - name: Spelling
         uses: crate-ci/typos@7f9d0819ca1c008ade73f4b41fa9d258d48f605b # v1.51.1
       - name: Local Markdown links
