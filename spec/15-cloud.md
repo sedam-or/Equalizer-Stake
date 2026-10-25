@@ -12,7 +12,7 @@ The cloud is **the same AGPL code** running with `RITMA_MODE=multi`, plus a smal
 
 - **CLD-10.** Flow: `app.<domain>/signup` → email (magic link) or Google OIDC → **school slug and region** → the 3-step setup wizard (05), unchanged → dashboard.
   - "Import from file" in step 1 accepts a desktop or self-host `.eqbak` plus its key, or the spreadsheet import (DST-41).
-- **CLD-11.** The platform tables (`platform` schema, no RLS, role `eq_platform`):
+- **CLD-11.** The platform tables (`platform` schema, no RLS, role `eq_platform`). The normative DDL is `06-domain-model.md` §4.12; the account email is stored as `email_enc` + `email_bidx` (S2, SEC-03/04):
   - `accounts(id, email, created_at)` (the signup identity)
   - `account_tenants(account_id, tenant_id, role)`
   - `plans(id, name, limits jsonb, price jsonb)`

@@ -14,7 +14,7 @@ estimated_size: S
 Cloud-only concerns live in an open, separate crate with its own database role, so tenant code never bypasses RLS.
 
 ## Context
-- CLD-11 tables in `spec/15-cloud.md` §2 under schema `platform`, role `eq_platform` with BYPASSRLS used only by platform jobs (SEC-05).
+- CLD-11 tables, DDL verbatim from `spec/06-domain-model.md` §4.12 into `migrations/0090_platform.sql`, under schema `platform`, role `eq_platform` with BYPASSRLS used only by platform jobs (SEC-05).
 
 ## Scope
 ### In
@@ -32,6 +32,7 @@ Cloud-only concerns live in an open, separate crate with its own database role, 
 | `crates/eq-platform/tests` | AC names |
 
 ## Definition of done
+- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All checks for the touched stacks pass (Rust and/or web), guard scripts pass, `make api` regenerated if the API changed
 - [ ] `scripts/check-literals.sh` passes: every business value comes from the module policy

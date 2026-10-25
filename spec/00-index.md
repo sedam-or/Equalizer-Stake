@@ -38,6 +38,7 @@ This folder is the **single source of truth** for v2. It defines *what* and *why
 | 26 | `26-containers-and-caching.md` | The container image, hardening, compose stacks, supply chain, and every cache (server, HTTP, browser, CI) |
 | 27 | `27-ux-states-and-feedback.md` | What the person sees: feedback patterns, the toast, dialog and banner catalogues, the screen state matrix, accessibility of feedback |
 | 28 | `28-user-journeys.md` | End-to-end journeys per persona, tied to screens, flows, states and success metrics |
+| 29 | `29-erd.md` | ER diagrams per module, the data dictionary (type, key, data class, RLS, owner) and the table → migration → task map, generated from the spec 06 DDL by `scripts/erd.py` |
 | — | `modules/*.md` | One spec per module (identity, scheduling, enrollment, rental, billing, attendance, notify, audit, reports, feedback) |
 | — | `adr/*.md` | Architecture Decision Records |
 
@@ -78,6 +79,7 @@ Each requirement has a stable ID: `<AREA>-<NN>`. Tasks reference them in their `
 | CTR, CACHE | Containers, caches | 26 |
 | UX | UX states and feedback | 27 |
 | JRN | User journeys | 28 |
+| ERD | ER diagrams and data dictionary | 29 |
 | IDN, SCH, ENR, RNT, BIL, ATT, NTF, AUD, RPT, FBK | Module specs | `modules/*.md` |
 
 Normative keywords follow RFC 2119: **MUST**, **MUST NOT**, **SHOULD**, **MAY**.

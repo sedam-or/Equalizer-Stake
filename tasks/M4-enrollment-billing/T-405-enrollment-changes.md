@@ -16,7 +16,7 @@ Moving a student to a new level, time slot or price plan is one dated action tha
 ## Context
 - ENR-06 `POST /enrollments/{id}/change {effective_on, level_id?, series_id?, price_plan_id?, reason}` in `spec/modules/enrollment.md`.
 - Series switch = end membership on effective_on − 1 and add the new one from effective_on, through the `SeriesMembership` port, atomically.
-- `enrollment_changes` rows keep history; billing reads the plan in force per period through `BillableSource` (T-412).
+- `enrollment_changes` rows (DDL `spec/06-domain-model.md` §4.12, created by T-401) keep history; billing reads the plan in force per period through `BillableSource` (T-412).
 
 ## Scope
 ### In

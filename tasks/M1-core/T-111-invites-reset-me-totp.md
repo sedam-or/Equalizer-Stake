@@ -27,7 +27,7 @@ No password is ever sent. People join by invite link and recover by single-use r
   - `POST /me/password {current_password, new_password}` → 204. Revokes all **other** refresh sessions. Audit `security.password.changed`.
 - IDN-12 TOTP:
   - `POST /me/totp/setup` → `{otpauth_url, qr_svg, secret_base32}`. Stores `totp_secret_enc` (pending; `totp_enabled` stays false).
-  - `POST /me/totp/confirm {code}` → `{recovery_codes: [10 × 10 chars]}`. Sets `totp_enabled=true` and stores argon2 hashes of the recovery codes in a new table `totp_recovery_codes(person_id, tenant_id, code_hash, used_at)`, added in `migrations/0008_identity_totp_recovery.sql` with RLS.
+  - `POST /me/totp/confirm {code}` → `{recovery_codes: [10 × 10 chars]}`. Sets `totp_enabled=true` and stores argon2 hashes of the recovery codes in a new table `totp_recovery_codes(person_id, tenant_id, code_hash, used_at)`, added in `migrations/0008_identity_totp_recovery.sql` with RLS (DDL verbatim from `spec/06-domain-model.md` §4.12; PK `(person_id, code_hash)`; `code_hash` is S3).
   - `DELETE /me/totp {password}` disables it, unless the policy is `RequiredForOwnerAdmin` and the person holds owner/admin → 422 `policy_violation` rule `identity.totp` (ERR-10; STM-25 t4).
   - Login accepts a recovery code in place of `totp` (single use).
 - Sessions: `GET /me/sessions` → `[{id, created_at, last_used_at, user_agent, ip, current: bool}]` (only non-revoked, non-expired). `DELETE /me/sessions/{id}` revokes it (its family).
@@ -58,6 +58,7 @@ No password is ever sent. People join by invite link and recover by single-use r
 | `crates/eq-identity/tests/api_invites.rs`, `api_reset.rs`, `api_me.rs` | AC names above |
 
 ## Definition of done
+- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] Rust checks pass; `make api` regenerated
 - [ ] Commit `feat(identity): invites, reset, profile and TOTP [T-111]`, signed off

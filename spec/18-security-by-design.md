@@ -25,7 +25,7 @@ Why this matters more than usual: Ritma stores **children's data**, **money reco
 
 ## 2. Data classification
 
-**SBD-10.** Every stored field, file purpose, log field and API field has a class. A task that adds one **states its class**. If the class is S2 or S3 and the task doesn't say how it's protected, the task is blocked (AGENTS.md §0).
+**SBD-10.** Every stored field, file purpose, log field and API field has a class. A task that adds one **states its class**. If the class is S2 or S3 and the task doesn't say how it's protected, the task is blocked (AGENTS.md §0). The class of every stored column is listed in `29-erd.md` §5 (ERD-04).
 
 | Class | Examples | Storage | API and UI | Logs |
 |---|---|---|---|---|

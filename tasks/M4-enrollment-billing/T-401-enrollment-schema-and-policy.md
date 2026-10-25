@@ -14,7 +14,7 @@ estimated_size: S
 Enrollment exists as a real module: its tables, its typed, validated rules with summaries, its permissions and its navigation.
 
 ## Context
-- DDL: `spec/06-domain-model.md` §4.4 (registrations, enrollments, enrollment_changes, leaves, makeup_credits, eligibility snapshots), copied verbatim into `migrations/0020_enrollment.sql`, with RLS on every table.
+- DDL: `spec/06-domain-model.md` §4.4 (registrations, enrollments, leaves, makeup_credits) plus `enrollment_changes` from §4.12, copied verbatim. Eligibility (ENR-09) is computed on read and has no table. All of it goes into `migrations/0020_enrollment.sql`, with RLS on every table.
 - Policy: `EnrollmentPolicy` exactly as `spec/04-policy-engine.md` §6.4 (registration, guardians, age, leave, makeup_credits, eligibility), with the bounds, defaults and x-ui groups listed there, externally tagged enums (POL-13).
 - Permissions and nav from `spec/modules/enrollment.md` §3. Dependency: requires_all scheduling (MOD-03).
 - Summary lines `policy.enrollment.summary.*` for registration mode, guardian age, leave limit and eligibility; i18n labels for every schema path (TST-09).
@@ -39,6 +39,7 @@ Enrollment exists as a real module: its tables, its typed, validated rules with 
 | `crates/eq-enrollment/src/policy.rs` | `leave_bounds`, `summary_snapshot`, `schema_snapshot` |
 
 ## Definition of done
+- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
 - [ ] All checks for the touched stacks pass (Rust and/or web), guard scripts pass, `make api` regenerated if the API changed
 - [ ] `scripts/check-literals.sh` passes: every business value comes from the module policy
