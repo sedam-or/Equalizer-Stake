@@ -14,7 +14,7 @@ axum = { version = "0.8", features = ["macros", "multipart"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["trace", "request-id", "compression-full", "limit", "cors", "set-header", "util", "catch-panic"] }
 tower_governor = "0.7"
-sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json", "migrate", "macros"] }
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "tls-rustls-ring-native-roots", "postgres", "uuid", "chrono", "json", "migrate", "macros"] }
 ipnet = { version = "2", features = ["serde"] }
 figment = { version = "0.10", features = ["env"] }
 url = "2"
@@ -50,7 +50,7 @@ base64 = "0.22"
 rust-embed = { version = "8", features = ["mime-guess", "interpolate-folder-path"] }
 mime_guess = "2"
 async-trait = "0.1"
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-native-roots", "json"] }
 lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "tokio1-rustls-tls", "hostname"] }
 minijinja = "2"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }

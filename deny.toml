@@ -1,0 +1,80 @@
+[advisories]
+version = 2
+unmaintained = "all"
+yanked = "deny"
+ignore = []
+
+[licenses]
+version = 2
+confidence-threshold = 0.8
+allow = [
+  "MIT",
+  "Apache-2.0",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "MPL-2.0",
+  "Unicode-3.0",
+  "CC0-1.0",
+]
+
+[[licenses.exceptions]]
+crate = "eq-api"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-attendance"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-audit"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-billing"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-core"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-enrollment"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-feedback"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-identity"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-notify"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-rental"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-reports"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-scheduling"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-server"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
+crate = "eq-testkit"
+allow = ["AGPL-3.0-only"]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

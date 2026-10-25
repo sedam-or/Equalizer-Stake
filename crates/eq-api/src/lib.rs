@@ -6,6 +6,24 @@ use sqlx::PgPool;
 use std::fmt;
 use std::sync::Arc;
 
+#[cfg(feature = "attendance")]
+use eq_attendance as _;
+use eq_audit as _;
+#[cfg(feature = "billing")]
+use eq_billing as _;
+#[cfg(feature = "enrollment")]
+use eq_enrollment as _;
+#[cfg(feature = "feedback")]
+use eq_feedback as _;
+use eq_identity as _;
+#[cfg(feature = "notify")]
+use eq_notify as _;
+#[cfg(feature = "rental")]
+use eq_rental as _;
+#[cfg(feature = "reports")]
+use eq_reports as _;
+use eq_scheduling as _;
+
 mod health;
 pub mod middleware;
 mod spa;
