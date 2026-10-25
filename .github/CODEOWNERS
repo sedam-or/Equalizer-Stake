@@ -1,0 +1,17 @@
+*              @sedam-or
+/spec/         @sedam-or
+/presets/      @sedam-or
+/crates/eq-core/   @sedam-or
+/migrations/       @sedam-or
+/spec/16-code-quality.md        @sedam-or
+/spec/17-clean-architecture.md  @sedam-or
+# Security-sensitive paths (spec/18 SBD-48, SBD-80)
+/crates/eq-core/src/crypto*   @sedam-or
+/crates/eq-core/src/db*       @sedam-or
+/crates/eq-identity/          @sedam-or
+/deploy/install.sh            @sedam-or
+/spec/10-security-privacy.md  @sedam-or
+/spec/18-security-by-design.md @sedam-or
+/spec/19-error-handling.md    @sedam-or
+/WORKFLOW.md                  @sedam-or
+/COMMIT_CONVENTION.md         @sedam-or

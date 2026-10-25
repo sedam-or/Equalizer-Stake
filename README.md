@@ -1,116 +1,63 @@
-# Equalizer-Stake
+<p align="center">
+  <!-- banner: brand/assets/banner-{light,dark}.png (see brand/BRAND.md §8) -->
+  <b>Ritma</b> · <i>the rhythm of your school</i><br/>
+  <b>The open-source operating system for course schools & studios.</b><br/>
+  Scheduling · enrollment · monthly fees · attendance · parent messages. Set up in 3 steps.
+</p>
 
-[![CI](https://github.com/sedam-or/Equalizer-Stake/actions/workflows/ci.yml/badge.svg)](https://github.com/sedam-or/Equalizer-Stake/actions)
-[![Go Report](https://goreportcard.com/badge/github.com/sedam-or/Equalizer-Stake)](https://goreportcard.com/report/github.com/sedam-or/Equalizer-Stake)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<p align="center"><a href="README.id.md">🇮🇩 Baca dalam Bahasa Indonesia</a></p>
 
-An open-source, deterministic course reservation and studio allocation engine built for zero double-bookings and absolute concurrency control.
+> **🚧 Status: v2 is being rebuilt from the spec.** The original capstone (v0) is archived in `legacy/`.
+> Follow progress in [ROADMAP.md](ROADMAP.md) and [tasks/INDEX.md](tasks/INDEX.md).
 
----
+<!-- HERO GIF: 3-step setup (brand/BRAND.md §8) -->
 
-## Why Equalizer-Stake
+**Try the demo** · **Start free in the cloud** · **[Self-host](#self-host)** · Download for Windows / macOS / Linux
+*(links go live at v1.0)*
 
-Most booking tools break under pressure. Equalizer-Stake locks tight.
+## Why
 
-- **Deterministic Core** — Time slots computed using exact spatial-temporal interval logic. Same inputs produce the same schedule, every time.
-- **Atomic Race Safety** — PostgreSQL exclusion constraints + Redis distributed locks prevent race conditions. 50 concurrent requests to the same slot? Exactly 1 succeeds, 49 fail gracefully with 409 Conflict.
-- **Contract-First Design** — Strict OpenAPI definitions ensure seamless integrations across web, mobile, or headless kiosk interfaces.
+- **Set up your school in 3 steps.** Pick a template, switch on features, review the rules. Done in under 10 minutes.
+- **Zero double bookings, guaranteed by the database.** Not by a hopeful check in code: a PostgreSQL exclusion constraint, proven by a 50-requests → 1-booking test on every commit.
+- **Your rules, not ours.** Fees, due dates, late fees, opening hours, cancellation credits and check-in radius are all settings, with a plain-language summary of what each one does.
+- **Built for how small schools really work.** WhatsApp-first reminders, one invoice per parent for all their children, bank-transfer reference codes, and Bahasa Indonesia and English.
+- **Your data, your choice of home.** The same software on your front-desk PC, your own server, or our cloud. Export everything anytime.
 
----
+## Features (modules, switch on what you need)
 
-## Tech Stack
+| Module | What it does |
+|---|---|
+| Scheduling *(always on)* | Rooms, courses, recurring weekly slots, conflict-free booking with smart alternatives, holidays |
+| Enrollment | Online registration, parents with many children, levels, leave, make-up credits |
+| Billing | Monthly invoices, payment codes, proof upload and verification, late fees, freeze/unfreeze |
+| Attendance | Teacher check-in (GPS / time / photo / face), student attendance |
+| Studio rental | Hourly bookings with approval, deposits and expiring holds |
+| Notifications | Email + WhatsApp + in-app, with retries and fallback |
+| Reports | Owner dashboard, utilisation, receivables, printable reports |
+| Feedback | Progress notes to parents, teacher ratings |
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | Go 1.23 / Chi router / Clean Architecture |
-| Database | PostgreSQL 16 with btree_gist + GIST exclusion constraints |
-| Cache & Locks | Redis 7 (distributed locks, rate limiting) |
-| Auth | JWT HS256, RBAC (Super Admin, Resource Manager, Instructor, Member) |
-| Container | Docker Compose (App + PostgreSQL + Redis + Worker) |
-| Frontend | Minimalist dashboard (TailwindCSS) |
+## Self-host
 
----
+One binary plus PostgreSQL. Choose what suits you (available from v1.0):
 
-## Core Modules
+- **Docker one-liner** (any Linux server): `curl -fsSL https://get.<domain>/ | sh`
+- **1-click**: Railway · Render · DigitalOcean · Coolify · CasaOS · YunoHost
+- **Desktop app** for the school's PC (Windows / macOS / Linux), with secure access from phones
 
-1. **Resource Management** — Studio rooms, equipment, dynamic operating hours, buffer time enforcement
-2. **Course & Instructor Scheduling** — Multi-week modules, availability grid, anti-overlap logic
-3. **Reservation Engine** — DRAFT → PENDING_PAYMENT → CONFIRMED → COMPLETED → CANCELLED → EXPIRED
-4. **Identity & Access Control** — Stateless JWT with fine-grained RBAC policies
-5. **Analytics & Reconciliation** — Utilization rates, peak hours heatmaps, booking pressure indicators
+## Built with
 
----
+Rust (axum, sqlx) · PostgreSQL · React + Vite + Tailwind · Tauri (desktop).
+Architecture and decisions: [`spec/`](spec/00-index.md) · [ADRs](spec/adr/).
 
-## Quick Start
+## Contributing
 
-```bash
-# Clone
-git clone https://github.com/sedam-or/Equalizer-Stake.git
-cd Equalizer-Stake
+Add a template for your kind of school **in YAML, no Rust needed**, translate, or pick a `good first issue`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [GOVERNANCE.md](GOVERNANCE.md). Work is split into small task files executed one at a time ([WORKFLOW.md](WORKFLOW.md)).
 
-# Setup
-make setup
-make up
+## Story
 
-# Migrate
-make migrate
-
-# Test
-make test
-
-# Open
-open http://localhost:8080
-```
-
-Requires Docker and Make.
-
----
-
-## Project Structure
-
-```
-Equalizer-Stake/
-├── cmd/
-│   ├── server/main.go          # HTTP server entry
-│   └── worker/main.go          # Background worker entry
-├── internal/
-│   ├── config/                  # App configuration
-│   ├── domain/                  # Business logic (resource, reservation, identity, analytics)
-│   ├── infrastructure/          # PostgreSQL, Redis, JWT implementations
-│   └── api/                     # HTTP handlers, middleware, router, DTOs
-├── migrations/                  # SQL schema with GIST exclusion constraints
-├── tests/                       # Unit, integration, and concurrency tests
-├── Dockerfile                   # Multi-stage Go build
-├── docker-compose.yml           # App + PostgreSQL + Redis + Worker
-├── Makefile                     # setup, up, migrate, test, build
-└── LICENSE                      # MIT
-```
-
----
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/availability` | Get open/booked/buffered slots for a resource |
-| POST | `/api/v1/reservations` | Atomic slot reservation with distributed lock |
-| POST | `/api/v1/reservations/{id}/confirm` | Transition to CONFIRMED |
-| POST | `/api/v1/reservations/{id}/cancel` | Release slot, compute refund |
-| GET | `/api/v1/analytics/utilization` | Usage density metrics |
-
----
-
-## Testing
-
-```bash
-make test              # All tests (unit + integration + concurrency)
-make test-unit         # Slot math, state machine, buffer time
-make test-integration  # Full reservation lifecycle via HTTP
-make test-concurrency  # 50 concurrent requests → exactly 1 succeeds
-```
-
----
+Born as a university capstone for a real Indonesian music school, and now rebuilt as open source so that any course school can use it.
 
 ## License
 
-[MIT](LICENSE) — © 2026 Equalizer-Stake Contributors
+[AGPL-3.0](LICENSE) for v2. The archived v0 in `legacy/` is MIT. The name and logo are covered by [TRADEMARK.md](TRADEMARK.md).

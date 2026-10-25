@@ -1,0 +1,23 @@
+name: Bug report
+description: Something doesn't work as documented
+labels: [bug, needs-triage]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened?, description: Include what you expected instead. }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Steps to reproduce }
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes: { label: Version, description: "Settings → System, or `ritma version`" }
+    validations: { required: true }
+  - type: dropdown
+    id: channel
+    attributes: { label: How do you run it?, options: [Cloud, Docker one-liner, 1-click template, Desktop app, From source] }
+    validations: { required: true }
+  - type: textarea
+    id: logs
+    attributes: { label: Logs / request id, render: shell }

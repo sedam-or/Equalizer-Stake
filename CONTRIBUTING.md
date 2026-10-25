@@ -1,41 +1,68 @@
-# Contributing — Equalizer-Stake
+# Contributing
+
+Thank you for helping small schools run better. 💙
+There's a way to help at every skill level. Pick the one that suits you:
+
+| You can… | Start here | Rust needed? |
+|---|---|---|
+| Translate the app | Weblate project (link in README) | No |
+| Add a template for your kind of school | [Add a preset](#add-a-preset) | No (YAML) |
+| Improve docs or screenshots | `docs/` | No |
+| Fix a bug or build a small feature | Issues labelled `good first issue` (each links a task file in `tasks/`) | Yes |
+| Build a new module | Write an RFC first ([GOVERNANCE.md](GOVERNANCE.md)) | Yes |
+
+## Ground rules
+
+- Be kind. Read the [Code of Conduct](CODE_OF_CONDUCT.md).
+- **Security issues:** never open a public issue. See [SECURITY.md](SECURITY.md).
+- **Specs come first.** Behaviour is defined in `spec/`, and work is broken into `tasks/**/T-*.md`. If code and spec disagree, the spec wins. To change the spec, open a PR to `spec/` (and an RFC for big changes).
+- **Code quality:** follow [`spec/16-code-quality.md`](spec/16-code-quality.md): lints, layering, naming, tests, PR size (≤ ~400 lines) and the review checklist. CI enforces most of it. Architecture rules (layers, module boundaries) are in [`spec/17-clean-architecture.md`](spec/17-clean-architecture.md).
+- **Security by design:** read [`spec/18-security-by-design.md`](spec/18-security-by-design.md) before touching auth, tenancy, PII, files, exports, money or external integrations. Such PRs get a `security-review`.
+- **States, flows, validation and contracts:** [`spec/20-state-machines.md`](spec/20-state-machines.md), [`spec/21-data-flows.md`](spec/21-data-flows.md), [`spec/22-validation-and-sanitization.md`](spec/22-validation-and-sanitization.md) and [`spec/23-contracts-and-canonical-forms.md`](spec/23-contracts-and-canonical-forms.md) define every transition, flow, input rule and wire format. Client-side validation is generated from the OpenAPI document; don't hand-write bounds.
+- **Adopt, don't build:** use the open-source tool or library listed in [`spec/24-open-source-stack.md`](spec/24-open-source-stack.md) for each concern. Propose additions there (with the license) in the same PR.
+- **CI:** the single required check is `ci-ok`. Locally you can run the same doc checks with `scripts/tasks-index.sh --check`, `typos` and `lychee --offline './**/*.md'`; workflow changes are checked with `actionlint` and `zizmor`.
+- **Never hard-code a business value** (a fee, a day of the month, opening hours, a radius, a timezone, a currency). Add a policy field instead (`spec/04-policy-engine.md`). CI checks this.
+
+## Development setup
+
+Requirements: Rust stable (see `rust-toolchain.toml`), Node 22 + pnpm 9, Docker (for Postgres and tests).
+
+```bash
+git clone https://github.com/ritmahq/ritma.git && cd ritma
+make dev-db        # starts postgres:16 in docker on :5433
+make dev           # runs the server (:8080) and the Vite dev server (:5173) with hot reload
+make test          # cargo test + pnpm test (uses testcontainers)
+make e2e           # Playwright against a release build
+```
 
 ## Workflow
 
-1. Baca `TASK_WORKFLOW.md` sebelum mulai task apapun
-2. Baca `PROJECT_RULES.md` untuk constraint teknis
-3. Baca SRS yang relevan di `docs/`
-4. Ikuti 12-step workflow dari TASK_WORKFLOW.md
-5. Tulis report di `tasks/report_tasks.md` setelah selesai
+1. Find or open an issue. For anything non-trivial, comment first so we can agree on the approach.
+2. Branch from `main`: `feat/<short-name>`, `fix/<short-name>`, `docs/<short-name>`.
+3. Make your change with tests. If you're working from a task file, follow [`WORKFLOW.md`](WORKFLOW.md) (the 12-step flow: read, plan, implement, run, review, verify, report) and the task's Definition of Done.
+4. Commit following [`COMMIT_CONVENTION.md`](COMMIT_CONVENTION.md) (Conventional Commits with our types, scopes and refs), e.g.
+   `feat(billing): apply late fee from snapshotted terms [T-412, BIL-06]`
+5. Sign off every commit (DCO): `git commit -s`. Sign the CLA once when the bot asks (see "License" below).
+6. Open a PR using the template. CI must be green. A maintainer reviews within 5 days.
 
-## Branch Strategy
+## Add a preset
 
-- `main` — stable, production-ready
-- `develop` — integration branch
-- `feature/T-XXX-nama` — per task branch
-- `hotfix/nama` — urgent fixes
+A preset is a YAML file in `presets/` that sets up a type of school: which features are on, default rules, terminology and a sample catalog.
 
-## Commit Convention
+1. Copy `presets/blank.yaml` to `presets/<your_id>.yaml`.
+2. Fill in `name`, `description`, `modules`, `terminology`, and the `policies` you want to change (only list what differs from the defaults; see `spec/04-policy-engine.md` §6 for every field).
+3. Add catalog entries (levels, offerings, sample prices per currency).
+4. Run `cargo test -p eq-core presets`. It validates your file.
+5. Open a PR with a short description of the kind of school it is for.
 
-```
-[T-XXX] type: description
+## Add a module
 
-Types: feat, fix, refactor, test, docs, chore, security
-Example: [T-003] feat: implement JWT authentication with RBAC
-```
+Follow the checklist in `spec/03-module-system.md` §7. An RFC is required first.
 
-## Code Standards
+## Add a translation
 
-- **Backend**: PEP 8, type hints, docstrings
-- **Frontend**: ESLint, Prettier, TypeScript
-- **Security**: No hardcoded secrets, PII encrypted, audit log immutable
-- **Language**: Code in English, UI in Indonesian
+UI strings live in `web/src/locales/<lang>/*.json`, and notification templates live in `crates/eq-notify/templates/<lang>/`. Translations are managed in Weblate, so please don't edit non-English JSON directly in PRs unless you're adding a new language.
 
-## Pull Request
+## License
 
-1. Branch dari `develop`
-2. Pastikan semua test pass
-3. Self-review dari sisi security (OWASP Top 10)
-4. Self-review dari sisi performance (NFR targets)
-5. Submit PR dengan description yang jelas
-6. Reference FR/UC terkait dari SRS
+By contributing you agree that your contributions are licensed under **AGPL-3.0-only**, and you sign our **Contributor License Agreement** (CLA Assistant bot on your first PR). The CLA lets the project offer a commercial license to organisations that can't use AGPL, which funds development. You keep your copyright. See `spec/adr/0009-license-agpl-cla.md` for the reasoning.

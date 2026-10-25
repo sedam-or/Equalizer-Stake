@@ -1,0 +1,17 @@
+# Weekly grouped updates (spec/24 OSS-04, SBD-59). T-006 adds the cargo and npm
+# ecosystems once Cargo.toml and web/package.json exist.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7 # supply-chain: let new releases age a week before proposing them
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
+      include: scope

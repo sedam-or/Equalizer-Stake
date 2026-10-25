@@ -1,0 +1,14 @@
+name: Preset request
+description: Ask for (or offer) a template for a kind of school
+labels: [preset]
+body:
+  - type: input
+    id: kind
+    attributes: { label: Kind of school }
+    validations: { required: true }
+  - type: textarea
+    id: rules
+    attributes: { label: How do schools like this usually work?, description: Opening hours, lesson lengths, group sizes, how fees work, late fees, attendance… }
+  - type: checkboxes
+    id: help
+    attributes: { label: Can you help?, options: [{ label: I can write or test the YAML preset }] }
