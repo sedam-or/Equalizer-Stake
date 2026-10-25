@@ -84,7 +84,7 @@ Hold rules (normative, implemented in `eq-core::calendar`):
 - Cancelling, expiring or rejecting deletes the owner's holds in the same tx. Completed sessions keep their holds (history).
 - Rescheduling deletes and rewrites the holds in one tx.
 - A participant marked `blocked` (freeze) keeps the hold, so the slot is retained.
-- The insert error SQLSTATE `23P01` (exclusion_violation) maps to `AppError::Conflict { code: "slot_taken", ... }`. The conflicting subject is identified by re-querying overlaps, so the message can say "Room 2 is taken" or "Teacher Ayu is busy".
+- The insert error SQLSTATE `23P01` (exclusion_violation) maps to `AppError::Conflict { code: &codes::SLOT_TAKEN, ... }`. The conflicting subject is identified by re-querying overlaps, so the message can say "Room 2 is taken" or "Teacher Ayu is busy".
 
 **DOM-11.** Pre-checks such as alternative suggestions and the live "is this free?" UI are **advisory** and read the same table. The exclusion constraint is the authority (PRD-12).
 

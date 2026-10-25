@@ -48,8 +48,8 @@ Every task follows it. Tags: **[tool]** = CI enforces it, **[review]** = the rev
 **ERR-20. Code format.** Codes are `snake_case` ASCII, `^[a-z][a-z0-9_]{2,47}$`, and describe the *situation*, not the HTTP status: `slot_taken`, not `conflict_1`. The problem `type` URI is `PROBLEM_BASE` + the code with `_` → `-` (T-002).
 
 **ERR-21. One registry, declared in code.**
-- Each crate declares its codes in `src/errors.rs` as `pub const` items of type `ErrorCodeDef { code, status, title }`, plus `pub const CODES: &[ErrorCodeDef]` listing them. `eq-core` holds the shared ones (`not_found`, `validation`, `internal`, …).
-- Handlers and services refer to the constant, never to a string literal: `AppError::Conflict { code: codes::SLOT_TAKEN.code, … }`. [review]
+- Each crate declares its codes in `src/errors.rs` as `pub static` items of type `ErrorCodeDef { code, status, title }`, plus `pub const CODES: &[&ErrorCodeDef]` listing them. `eq-core` holds the shared ones (`not_found`, `validation`, `internal`, …).
+- Handlers and services refer to the constant, never to a string literal: `AppError::Conflict { code: &codes::SLOT_TAKEN, … }` (the variant carries the `&'static ErrorCodeDef`, so `eq-core` reads the title from it). [review]
 - `eq-api` merges every compiled crate's `CODES` into the OpenAPI document as the extension `x-error-codes: [{code, status, title}]` (T-114). That makes `web/openapi.json` the published registry, covered by the contract-drift check (TST-10).
 - A code is defined **once**. Two crates needing the same situation reuse the owner's code or a core code. [tool: a test in `eq-api` fails on duplicates or invalid formats]
 
