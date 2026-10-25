@@ -2,7 +2,7 @@
 id: T-002
 title: Add config loading, the Clock abstraction and AppError → problem+json in eq-core
 milestone: M0
-status: todo
+status: blocked
 depends_on: [T-001]
 spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04, VAL-03, CAN-24]
 estimated_size: M
@@ -159,11 +159,13 @@ None (technical only).
 - AC6. `ManualClock::advance` changes `now()`. → `clock::tests::manual_clock_advances`
 - AC7. Given a config built with fake secrets (`test-secret-…`, a URL `postgres://u:test-secret-pw@h/db`, a captcha secret and tokens), When formatted with `{:?}` and `{:#?}`, Then none of the fake values appear and `[REDACTED]` does. → `config::tests::debug_redacts_secrets`
 - AC8. Given an invalid `RITMA_SECRET_KEY`, Then the `ConfigError` text contains no part of the supplied value. → `config::tests::error_does_not_echo_secret`
+- AC9. Given an `RITMA_PUBLIC_URL` with userinfo, When configuration is parsed, Then it is rejected because this URL is a non-secret Config field and SBD-50 requires credential-bearing URLs to be treated as secrets. → `config::tests::public_url_rejects_credentials`
+- AC10. Given only some of the CAPTCHA provider, site key and secret, When configuration is parsed, Then it is rejected rather than silently disabling or constructing an incomplete CAPTCHA config. → `config::tests::captcha_configuration_requires_all_fields`
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-core/src/config.rs` (mod tests) | `missing_database_url`, `short_secret_rejected`, `defaults`, `unknown_vars_reported`, `debug_redacts_secrets`, `error_does_not_echo_secret` |
+| `crates/eq-core/src/config.rs` (mod tests) | `missing_database_url`, `short_secret_rejected`, `defaults`, `unknown_vars_reported`, `debug_redacts_secrets`, `error_does_not_echo_secret`, `public_url_rejects_credentials`, `captcha_configuration_requires_all_fields` |
 | `crates/eq-core/src/error.rs` (mod tests) | `conflict_problem_json`, `internal_hides_detail`, `rate_limited_sets_retry_after`, `validation_lists_errors`, `unavailable_sets_retry_after`, `core_codes_valid_and_unique` |
 | `crates/eq-core/src/clock.rs` (mod tests) | `manual_clock_advances` |
 
@@ -178,10 +180,10 @@ None (technical only).
 2. Implement Config with the OPS-01 Figment configuration source and a testable map parser; convert S3 fields directly into secrecy wrappers, redact Debug manually, and validate required values without echoing inputs.
 3. Implement the Clock abstraction and test-only ManualClock, keeping the only wall-clock read in SystemClock with the CQ-21-scoped lint expectation.
 4. Implement ErrorCodeDef and the core registry, carrying `&'static ErrorCodeDef` through code-bearing AppError variants so response titles come from the definition; use AC4's local SLOT_TAKEN definition and do not register it in core.
-5. Implement Problem serialization, extension flattening, request-id task-local lookup, Retry-After headers, and the specified SQL error mappings; run the exact response tests.
+5. Implement Problem serialization, extension flattening, request-id task-local lookup, Retry-After headers, and the specified SQL error mappings, using `DB_UNAVAILABLE_RETRY_AFTER_S = 5` for pool timeout and connection loss; run the exact response tests.
 6. Wire the modules and permitted dependencies, then run every applicable Rust, guard, security, and runtime check; record unavailable checks as Not run with their reason.
 
-**Assumptions** — Use the resolved ErrorCodeDef-carrying AppError interface and Config/CaptchaConfig security contract as written. Figment is the configuration source named by OSS-04/OPS-01; only defaults explicitly specified by OPS-01/07/10 or this task are applied. T-002 uses a local `SLOT_TAKEN` definition for AC4; T-203 owns its shared registration.
+**Assumptions** — Use the resolved ErrorCodeDef-carrying AppError interface and Config/CaptchaConfig security contract as written. Use the architect-resolved `DB_UNAVAILABLE_RETRY_AFTER_S = 5` technical hint. Figment is the configuration source named by OSS-04/OPS-01; only defaults explicitly specified by OPS-01/07/10 or this task are applied. T-002 uses a local `SLOT_TAKEN` definition for AC4; T-203 owns its shared registration.
 
 **Test plan** —
 - Given a map without `DATABASE_URL`, when parsed, then `Missing("DATABASE_URL")` → `config::tests::missing_database_url`.
@@ -196,52 +198,57 @@ None (technical only).
 - Given field validation errors, when rendered, then the field error list is present → `validation_lists_errors`.
 - Given the core code registry, when validated, then every code matches ERR-20 and codes are unique → `core_codes_valid_and_unique`.
 - Given a manual clock, when advanced, then `now()` reflects the duration → `clock::tests::manual_clock_advances`.
-- Edge cases: missing/empty config entries; 31-byte versus 32-byte keys; standard and URL-safe base64; invalid URL scheme/trailing slash; unknown prefixed variables; absent request ID; empty/populated field error lists; retry values; SQL row-not-found, pool timeout, and other SQL errors.
-- Error cases: ConfigError missing/invalid, all AppError mappings, internal detail hiding, invalid code syntax, retry headers, and SQL error mapping.
+- Given a credential-bearing public URL, when parsed, then it is rejected → `config::tests::public_url_rejects_credentials`.
+- Given partial CAPTCHA configuration, when parsed, then it is rejected → `config::tests::captcha_configuration_requires_all_fields`.
+- Edge cases: missing/empty config entries; 16/31-byte rejected versus 32-byte accepted keys; standard and padded/unpadded URL-safe base64; invalid URL scheme and trailing path slash; explicit trusted proxies extend loopback defaults; unknown prefixed variables with secret-like values; absent/present request ID; empty/populated field error lists; caller and database retry values; SQL row-not-found, pool timeout, connection loss, and other SQL errors.
+- Error cases: ConfigError missing/invalid, every AppError mapping, internal detail hiding, invalid code syntax, retry headers, and SQL error mapping → `error::tests::core_app_errors_render_expected_status_and_code`, `remaining_app_errors_render_expected_status_and_code`, `invalid_code_syntax_is_rejected`, and `sqlx_errors_map_to_core_errors`.
+- Field-code cases: the full VAL-03 set is exported from `eq_core::error` and its compatibility re-export `eq_core::errors` → `error::tests::field_error_codes_match_val_03`.
 - Abuse cases: fake database URL password, key, CAPTCHA secret, setup token, SMTP URL, and metrics token never appear in compact/alternate Debug; invalid key input is not echoed.
 
-**Step 0 — Start** — Run 3 started at `f15dc08fc1880ab82af623238f32d90427f2a5e6` on `milestone/m0-foundation`; the preflight tree was clean, the ancestry check and index check passed, and T-001 is `review`. T-002 is the lowest eligible task because its sole dependency is T-001. It was claimed as `in_progress` and the index regenerated before Step 1.
-**Step 1 — Task/spec** — Read the full T-002 task including the architect's Q1 and Q2 resolutions. The current interface uses secrecy-backed S3 fields, redacted Debug, and `&'static ErrorCodeDef` for code-bearing AppError variants; AC4 uses a local `SLOT_TAKEN`, and T-203 owns its shared registration. Read OPS-01/07/10, OSS-04, ERR-10/20/21/30/31/43, CQ-21/22/23/27/28, CA-01/31, and SBD-10/20/30/50/52. The missing SQL pool retry duration is not specified in those contracts.
-**Step 2 — Dependencies** — Read T-001's Report, Deviations and Follow-ups, plus its shipped workspace and `eq-core` scaffold. T-001 is `review` under Run 3 ordering. Its `Cargo.lock` deviation follows OSS-04, and its PostgreSQL follow-up is satisfied by the Run 3 preflight image check and running PostgreSQL 16 container; neither changes T-002's contract.
+**Step 0 — Start** — Run 4 resumed from `f7e110195396d02a1d1d73addfadf72a80a44835` on `milestone/m0-foundation`; the tree was clean, `scripts/tasks-index.sh --check` and the `f7e1101` ancestry check passed, and the current index had no in-progress task. T-001 is `review`, so T-002 is the lowest eligible task. Set T-002 to `in_progress` and regenerated the index before implementation.
+**Step 1 — Task/spec** — Read the full T-002 task, including the architect's Q1–Q3 resolutions and historical Questions. The resolved interface uses secrecy-backed S3 fields, redacted Debug, `&'static ErrorCodeDef`, and `DB_UNAVAILABLE_RETRY_AFTER_S = 5`; AC4 uses a local `SLOT_TAKEN`, and T-203 owns its shared registration. Read OPS-01/07/10, OSS-04, ERR-10/20/21/30/31/43, CQ-21/22/23/27/28 and §9/§12, CA-01/31 and §4, SBD-10/20/30/50/52 and §8, and `spec/29-erd.md` §§1/4/5/7. Also read T-102's resolved lines and Report as instructed for this run.
+**Step 2 — Dependencies** — Read T-001's Report, Deviations and Follow-ups, plus its shipped workspace and `eq-core` scaffold. T-001 is `review` under this run's ordering. Its `Cargo.lock` deviation follows OSS-04; its PostgreSQL follow-up is satisfied by the verified PostgreSQL 16.15 image and running container. Neither changes T-002's contract.
 **Step 3 — Design reference** — n/a; no UI work.
-**Step 4 — Plan and test plan** — Recorded above. The resolved Q1/Q2 interfaces remove the prior blockers. Before implementation, the required `From<sqlx::Error>` mapping is still underspecified: `PoolTimedOut`/connection-loss errors must become `Unavailable { retry_after_s }` and the response must set `Retry-After`, but no duration or policy source is defined. The Run 3 hard limit forbids inventing a duration. The task is blocked with options and a recommendation in Q3 below.
-**Step 5 — Implement** — n/a; Step 4 is blocked on a missing retry policy value. No production code or tests were added.
-**Step 6 — Run locally** — n/a; this task has no executable server yet, and `make dev` is introduced by T-006. No application runtime path was changed.
-**Step 7 — Debug loop** — n/a; implementation did not start and no implementation failure occurred.
-**Step 8 — Self-review** — n/a; no implementation diff.
-**Step 9 — Optimize** — n/a; no runtime path was added.
-**Step 10 — Security audit** — The task triggers T3 and T4. The resolved task contract requires secrecy wrappers, redacted Debug, no serialization/Clone for secret-bearing Config types, safe config errors, and abuse tests. These controls were not implemented or audited because the task is blocked before implementation.
-**Step 11 — Revise and full verification** — The required format, clippy, and workspace test commands ran against the existing scaffold and passed; they contain no T-002 implementation or named T-002 tests. The task-index check, dependency guard, diff check, and secret scans also passed. Web, SQLx, API-generation, and runtime checks do not apply before implementation; the later T-006 scripts and Makefile are not present yet.
+**Step 4 — Plan and test plan** — Recorded above before implementation. The accepted interfaces and named retry hint are resolved by the architect. In addition to the listed ACs, two mechanical security details are resolved below: reject credential-bearing public URLs and reject partial CAPTCHA credentials. No business value, schema or permission is inferred.
+**Step 5 — Implement** — A candidate implementation was built and tested locally: Config, Clock, ManualClock, core error/field-code registries, and Problem rendering. It was removed after the required dependency audit reported an unresolved advisory; no implementation code or dependency changes remain in this blocked commit.
+**Step 6 — Run locally** — Attempted `make dev` and `make e2e`; both returned `No rule to make target` because the Makefile/server runtime is introduced by later tasks (T-004/T-006). There is no endpoint yet. The candidate's async tests exercised Axum `IntoResponse` rendering and decoded response bodies; no live server request was possible.
+**Step 7 — Debug loop** — The CAPTCHA partial-config assertion initially expected an unrequired variable name; changed it to assert the specified Invalid outcome. A first `Zeroizing<HashMap<…>>` attempt did not compile because HashMap does not implement Zeroize; a SensitiveMap guard passed targeted tests. Clippy findings were fixed and reruns passed. The eventual blocker is a dependency advisory without a fix, not an implementation failure.
+**Step 8 — Self-review** — Reviewed the candidate against spec 16 §9/§12, spec 17 §7, spec 19 ERR-10/20/21/30/31/42/43, and CLAUDE's surgical-change rule. No SQL, cross-module import, HTTP handler, or unrelated crate was added. The candidate had no `dbg!`, `todo!`, production `unwrap()`, `#[allow]`, console logging, or real credentials. Its three Rust files totalled 1,693 lines including tests, above CQ-101's approximate 400-line review guide; because the security gate then failed, the candidate was reverted rather than committed.
+**Step 9 — Optimize** — n/a; no runtime endpoint or query was shipped and no performance measurement applies.
+**Step 10 — Security audit** — T3 and T4 triggers apply. The candidate used secrecy wrappers, manual redacted Debug, zeroization, non-echoing errors, and fake-secret abuse tests. SBD-81: auth chain, tenant/RLS, external calls, integrity and audit events were n/a because no endpoint or table was added; config input validation, data-class handling, output serialization, key handling and abuse tests were reviewed. `cargo deny check advisories` passed, but `cargo audit` found RUSTSEC-2023-0071 in locked `rsa 0.9.10`, introduced transitively through SQLx's optional MySQL driver; no fixed upgrade is available. `cargo tree` showed no active workspace path to RSA, but the lockfile audit still fails. I cannot waive this security finding or substitute an unlisted dependency, so implementation was reverted and Q4 added.
+**Step 11 — Revise and full verification** — The candidate passed the full Rust format, clippy and workspace test commands plus the testkit feature tests; dependency guard, ERD docs check, task-index check and diff check passed. The audit failure remains unresolved and is the blocker. Web and runtime checks were unavailable before T-006; exact results are below.
+**Step 12 — Report and commit** — This Report records the candidate and blocker. T-002 is set to `blocked`, the index is regenerated, and the required signed commit will contain only this task file and `tasks/INDEX.md`. Run 4 mechanics continue with the next eligible task after that commit.
 
-**Summary** — No production implementation was added. Q1 and Q2 are resolved and the plan now follows those interfaces, but SQL pool errors cannot be mapped to the required `Unavailable { retry_after_s }` without an approved retry duration. The task is `blocked` pending the Q3 contract answer.
+**Summary** — The architect-resolved interfaces and tests were implemented and passed the Rust checks locally, but `cargo audit` found a locked RUSTSEC advisory with no fixed release. The SQLx MySQL driver is optional and not in the active feature graph, yet the dependency audit still flags it. Because accepting or waiving that result is a security decision, the implementation was reverted and T-002 is blocked for an architect decision.
 
-**Spec read** — `spec/02-architecture.md` §§2–3; `spec/11-ops.md` OPS-01/07/10; `spec/16-code-quality.md` CQ-21/22/23/27/28, §§9/12; `spec/17-clean-architecture.md` CA-01/31 and §4; `spec/18-security-by-design.md` SBD-10/20/30/50/52 and §8; `spec/19-error-handling.md` ERR-10/20/21/30/31/43 and §10; `spec/20-state-machines.md`; `spec/21-data-flows.md`; `spec/22-validation-and-sanitization.md` VAL-03; `spec/23-contracts-and-canonical-forms.md` CAN-24; `spec/24-open-source-stack.md` OSS-04.
+**Spec read** — `spec/02-architecture.md` §§2–3; `spec/06-domain-model.md` §§3–4; `spec/11-ops.md` OPS-01/07/10; `spec/16-code-quality.md` CQ-21/22/23/27/28, §§9/12; `spec/17-clean-architecture.md` CA-01/31 and §4; `spec/18-security-by-design.md` SBD-10/20/30/50/52, §§7–8; `spec/19-error-handling.md` ERR-10/20/21/30/31/42/43 and §10; `spec/20-state-machines.md`; `spec/21-data-flows.md`; `spec/22-validation-and-sanitization.md` VAL-03; `spec/23-contracts-and-canonical-forms.md` CAN-24; `spec/24-open-source-stack.md` OSS-04; `spec/29-erd.md` §§1/4/5/7.
 
-**Files** — Modified only `tasks/M0-foundation/T-002-core-config-clock-errors.md` (Run 3 plan, report and blocking question) and regenerated `tasks/INDEX.md` through `scripts/tasks-index.sh`.
+**Files** — Modified only `tasks/M0-foundation/T-002-core-config-clock-errors.md` and regenerated `tasks/INDEX.md` via `scripts/tasks-index.sh`. Candidate code and dependency changes were reverted under WORKFLOW §4.
 
 **Acceptance criteria → tests** —
 | AC | Test | Result |
 |---|---|---|
-| AC1 | `config::tests::missing_database_url` | Not run: blocked before implementation. |
-| AC2 | `config::tests::short_secret_rejected` | Not run: blocked before implementation. |
-| AC3 | `config::tests::defaults` | Not run: blocked before implementation. |
-| AC4 | `error::tests::conflict_problem_json` | Not run: blocked before implementation. |
-| AC5 | `error::tests::internal_hides_detail` | Not run: blocked before implementation. |
-| AC6 | `clock::tests::manual_clock_advances` | Not run: blocked before implementation. |
-| AC7 | `config::tests::debug_redacts_secrets` | Not run: blocked before implementation. |
-| AC8 | `config::tests::error_does_not_echo_secret` | Not run: blocked before implementation. |
-| Additional listed tests | `unknown_vars_reported`, `rate_limited_sets_retry_after`, `validation_lists_errors`, `unavailable_sets_retry_after`, `core_codes_valid_and_unique` | Not run: blocked before implementation. |
+| AC1 | `config::tests::missing_database_url` | Passed on candidate; candidate reverted after audit failure. |
+| AC2 | `config::tests::short_secret_rejected` | Passed on candidate; candidate reverted after audit failure. |
+| AC3 | `config::tests::defaults` | Passed on candidate; candidate reverted after audit failure. |
+| AC4 | `error::tests::conflict_problem_json` | Passed on candidate; candidate reverted after audit failure. |
+| AC5 | `error::tests::internal_hides_detail` | Passed on candidate; candidate reverted after audit failure. |
+| AC6 | `clock::tests::manual_clock_advances` | Passed on candidate; candidate reverted after audit failure. |
+| AC7 | `config::tests::debug_redacts_secrets` | Passed on candidate for both Debug modes using fake values. |
+| AC8 | `config::tests::error_does_not_echo_secret` | Passed on candidate; candidate reverted after audit failure. |
+| AC9 | `config::tests::public_url_rejects_credentials` | Passed on candidate; candidate reverted after audit failure. |
+| AC10 | `config::tests::captcha_configuration_requires_all_fields` | Passed on candidate; candidate reverted after audit failure. |
+| Additional tests | Config unknown/empty values, secret boundaries, URL handling, proxy extension, full AppError mappings, request IDs, VAL-03 constants, SQLx mappings | Passed on candidate; candidate reverted after audit failure. |
 
-**Checks run** — ✅ `cargo fmt --all --check`; ✅ `cargo clippy --workspace --all-targets -- -D warnings`; ✅ `cargo test --workspace` (scaffold only: `eq-core` contains 0 tests; the existing `prints_version` test passed); ✅ `scripts/check-deps.sh`; ✅ `scripts/tasks-index.sh --check`; ✅ `git diff --check`; ✅ `gitleaks dir --redact --no-banner tasks/M0-foundation/T-002-core-config-clock-errors.md`; ✅ `gitleaks dir --redact --no-banner tasks/INDEX.md`. Not run: the named T-002 tests do not exist because implementation is blocked; web checks (`web/` is absent); API generation/SQLx prepare (no API or query change); `make dev`/`make e2e` (no Makefile until T-006); `scripts/check-literals.sh`, `scripts/check-web-boundaries.sh`, and `scripts/check-layers.sh` (introduced by T-006).
-**Manual checks** — n/a; there is no task runtime to exercise.
-**Debug log** — None; the block is due to a missing interface value, not an implementation failure.
-**Performance** — n/a; no runtime path was added.
-**Security** — Triggers T3 and T4 apply. No secret-bearing code or fixtures were added. On resumption, verify SBD-81, redacted Debug and non-echoing config errors, including the listed abuse tests.
-**Deviations** — **RATIFY:** OPS-01 names loopback trusted proxies plus unspecified private ranges in Docker. If the task resumes without enumerated Docker CIDRs, default only to the exact loopback CIDRs given by OPS-01; require explicit `RITMA_TRUSTED_PROXIES` configuration for additional proxies, preserving the stricter deny-by-default behavior in SBD-20. The task interface comment now records this choice; no runtime code was changed.
-**Dependencies affected** — T-003 depends directly on T-002; dependent tasks remain ineligible until T-002 returns to `todo` and reaches `review`/`done`.
-**Rollback plan** — Revert this signed task-block commit; it changes only the task's status/report/questions and the generated index.
-**Follow-ups** — Architect must specify the retry duration/policy source for SQL pool timeout and connection-loss mappings before T-002 can be resumed. T-203 remains responsible for the shared `slot_taken` registration after T-002 is completed.
-
+**Checks run** — ✅ `PATH="$HOME/.cargo/bin:$PATH" cargo fmt --all --check`; ✅ `PATH="$HOME/.cargo/bin:$PATH" cargo clippy --workspace --all-targets -- -D warnings`; ✅ `PATH="$HOME/.cargo/bin:$PATH" cargo test --workspace` (26 eq-core tests, CLI test and workspace/doc tests passed); ✅ `PATH="$HOME/.cargo/bin:$PATH" cargo test -p eq-core --features testkit` (26 tests passed); ✅ `PATH="$HOME/.cargo/bin:$PATH" cargo deny check advisories` (default config used because `deny.toml` is absent); ❌ `PATH="$HOME/.cargo/bin:$PATH" cargo audit` — reports RUSTSEC-2023-0071 on `rsa 0.9.10` with no fixed upgrade; ✅ `scripts/check-deps.sh`; ✅ `scripts/tasks-index.sh --check`; ✅ `git diff --check`; ✅ `python3 scripts/erd.py --check`. The candidate's scoped secret scan passed before its final added tests; the final blocked commit will be scanned after report edits. Not run: web checks because `web/` is absent (`pnpm -C web lint` returned ENOENT); `make dev` and `make e2e` because their targets are absent before T-006; `scripts/check-literals.sh`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh` because they are introduced by T-006; API generation/SQLx prepare/ERD migration validation because no API query or migration remains in the blocked change; hosted CI was not run.
+**Manual checks** — Candidate response rendering and JSON decoding were exercised in async unit tests. No live request could be sent without the later HTTP skeleton.
+**Debug log** — The candidate fixed one assertion mismatch, a map zeroization implementation that did not compile, and clippy findings. Rust checks passed after those corrections. The audit advisory is not an implementation failure and has no available dependency fix.
+**Performance** — n/a; no implementation remains.
+**Security** — T3/T4 were reviewed against SBD-81. The candidate's fake-secret redaction/error tests and scoped secret scan passed before final test additions. The unresolved lockfile advisory is not waived; no candidate source/dependency changes are included in the blocked commit.
+**Deviations** — **RATIFY:** (1) OPS-01 names loopback plus unspecified private proxy ranges but gives neither CIDRs nor detection behavior → use only loopback by default and require explicit entries, following SBD-20; the architect ratified this in the resolved note. (2) reject credential-bearing `RITMA_PUBLIC_URL` values to prevent SBD-50 Debug exposure. (3) reject incomplete CAPTCHA config tuples rather than silently disabling them. Items (2) and (3) are Run 4 self-resolutions recorded under Questions. The retry constant and ErrorCodeDef interface were architect-resolved. Blocking security question Q4 concerns cargo-audit's unresolved RSA advisory.
+**Dependencies affected** — T-003 consumes Config; T-004 uses `Arc<Config>` and request IDs; T-102a consumes VAL-03 constants; T-203 owns shared `slot_taken`. These implementations remain blocked behind T-002.
+**Rollback plan** — The candidate code and dependency changes have already been reverted. Reverting the block commit restores the prior T-002 status/report only; no migration or persistent data change exists.
+**Follow-ups** — Architect must decide how to handle the locked optional RSA advisory without weakening security checks or violating the SQLx dependency contract. T-203 retains `slot_taken` registration ownership.
 ## Questions
 - **Resolved (architect, 2026-10-25):** Q1 — option (a), as recommended. The Interfaces section now uses `secrecy` types for every S3 field, a hand-written redacting `Debug`, no `Clone`, a defined `CaptchaConfig`, and a `## Security` section with AC7 and AC8. Nothing else in M0–M3 reads the secret fields directly (T-003 `connect` takes `&Config`, T-004 holds `Arc<Config>`), so no other task changes.
 - **Q1 (blocking):** May T-002 amend the `Config` interface so every S3 value (including keys, setup/metrics tokens, captcha secrets, and any credential-bearing database/SMTP URLs) uses `secrecy::SecretString`/`SecretBox`, with a custom redacted `Debug` implementation and an abuse-case test proving the formatted output omits fake secret values?
@@ -260,3 +267,10 @@ None (technical only).
   - Context: T-002 requires both this SQL mapping and a `Retry-After` response header for `Unavailable`, but specifies no retry duration or policy field. The Run 3 hard limit forbids inventing a duration.
   - Options: (a) amend the task/spec with an approved retry policy field or named technical value and use it in the SQL mapping; (b) change the SQL conversion contract so it can return `Unavailable` without an invented delay, then amend the required header behavior consistently in the task/spec.
   - Recommendation: (a), if the `Retry-After` requirement is retained, because it provides a traceable duration while preserving ERR-10 and the task's current response contract.
+- **Self-resolved (implementer, run 4, needs architect ratification):** `RITMA_PUBLIC_URL` must parse as HTTP(S), while Config classifies its non-S3 fields as S0/S1 and SBD-50 treats credential-bearing URLs as secrets → reject a public URL containing username or password because a public origin is not specified as an S3 secret and must not leak credentials through Config Debug.
+- **Self-resolved (implementer, run 4, needs architect ratification):** the three optional CAPTCHA environment values map to `Option<CaptchaConfig>`, but no partial-configuration behavior is given → reject a partial provider/site-key/secret tuple because the option represents the complete configuration and silent disabling would hide invalid operator input.
+
+- **Q4 (blocking):** May T-002 ship with SQLx 0.8.6 while `cargo audit` reports RUSTSEC-2023-0071 for locked `rsa 0.9.10`, even though the MySQL driver is optional and absent from the active workspace feature graph?
+  - Context: T-002 requires `From<sqlx::Error>`; SQLx 0.8.6's lock graph includes `rsa 0.9.10` through the optional MySQL driver. `cargo tree --workspace -i rsa` reports no active path, but `cargo audit` scans Cargo.lock and fails with “No fixed upgrade is available.” `cargo deny check advisories` passed using its default config; there is no `deny.toml`. SBD-75 lists both audit tools, and SBD-64 prohibits waiving a security rule without an approved spec change.
+  - Options: (a) approve an explicit policy for this inactive optional dependency and its audit handling; (b) change the dependency/task contract to a dependency graph that passes the audit without an exception; (c) keep T-002 blocked until SQLx/RustSec publishes a fixed dependency path.
+  - Recommendation: (c), because I cannot waive or alter the security gate, and the task does not authorize replacing SQLx with an unlisted dependency.
