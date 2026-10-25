@@ -52,7 +52,7 @@ Publicly provable: 50 simultaneous bookings of one slot produce exactly one book
 
 ## Definition of done
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
-- [ ] All checks pass, three consecutive green CI runs
+- [ ] All checks pass, and the three concurrency tests pass in ten consecutive local runs (`for i in $(seq 10)`). Three consecutive green hosted CI runs are **environment-limited**: record them if you can observe them, otherwise list them under "Not run: <reason>"; this does not block the task
 - [ ] Commit `test(scheduling): concurrency proof and M2 journey [T-213]`, signed off
 
 ## Report

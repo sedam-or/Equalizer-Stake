@@ -47,6 +47,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
   - `test`, `lint`, `api` (placeholder until T-114), `e2e` (placeholder)
   - `build` (web then release binary), `clean`
 - `deploy/dev/compose.yaml`, `.env.example` (all OPS-01 vars with comments, dev values).
+  - **Dev database roles (isolation must hold in dev):** the compose user `eq` is a superuser and ignores RLS, so the server must not run as `eq`. Mount `deploy/dev/initdb.sql` into `/docker-entrypoint-initdb.d/` containing `CREATE ROLE eq_app LOGIN PASSWORD 'eq_app' NOSUPERUSER NOBYPASSRLS;` (migration 0001 skips creating a role that exists). `.env.example` sets `DATABASE_URL=postgres://eq_app:eq_app@localhost:5433/ritma` and `RITMA_DATABASE_OWNER_URL=postgres://eq:eq@localhost:5433/ritma`, with a comment that the owner URL is only for migrations. `make dev` loads `.env`.
 - `deny.toml`, `scripts/check-literals.sh` (+ `.allow`), `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `.github/dependabot.yml` cargo + npm ecosystems (weekly, grouped), `scripts/check-coverage.sh`.
 
 ### Out
@@ -55,7 +56,7 @@ Every PR runs the full check suite on GitHub Actions, and contributors get `make
 ## Files
 | Path | Action |
 |---|---|
-| `.github/workflows/ci.yml` (modify), `Makefile`, `deploy/dev/compose.yaml`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `scripts/tests/*.sh`, `.github/dependabot.yml` (modify), `.github/workflows/security.yml` (modify), `.gitleaks.toml`, `scripts/check-coverage.sh`, `.githooks/commit-msg` | create |
+| `.github/workflows/ci.yml` (modify), `Makefile`, `deploy/dev/compose.yaml`, `deploy/dev/initdb.sql`, `.env.example`, `deny.toml`, `scripts/check-literals.sh`, `scripts/check-literals.allow`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`, `scripts/tests/*.sh`, `.github/dependabot.yml` (modify), `.github/workflows/security.yml` (modify), `.gitleaks.toml`, `scripts/check-coverage.sh`, `.githooks/commit-msg` | create |
 
 ## Business rules
 None.
@@ -65,7 +66,7 @@ None.
 - Make the scripts executable (`chmod +x`), with a shebang `#!/usr/bin/env bash` and `set -euo pipefail`.
 
 ## Acceptance criteria
-- AC1. Pushing the branch runs all CI jobs green (link the run in the Report).
+- AC1. Pushing the branch runs all CI jobs green (link the run in the Report). **Environment-limited:** a hosted run exists only for a pull request, and you may not be able to watch it. Run each job's commands locally instead, list in the Report what only hosted CI can prove under "Not run: <reason>", and continue; this does not block the task.
 - AC2. Adding `let due = 10_000_000;` in a file `crates/eq-billing/src/domain/x.rs` makes `check-literals.sh` fail with path:line. Removing it passes. (Describe in the Report; add a shell test `scripts/tests/check_literals_test.sh` that creates a temp file in a temp crate copy and asserts the exit code.)
 - AC3. `make dev-db` then `make test` works locally.
 

@@ -18,12 +18,13 @@ TST-20: `TestDb::new()` creates a fresh DB from a **template** that already has 
 ### In
 - `eq_testkit::TestDb`:
   - A global `tokio::sync::OnceCell` that starts `testcontainers_modules::postgres::Postgres` (image `postgres:16-alpine`) once per process, runs migrations into the DB `eq_template`, then marks it `IS_TEMPLATE true`.
-  - `new()` creates a random DB name with `CREATE DATABASE … TEMPLATE eq_template` and returns a pool plus the URL.
+  - After migrating the template, run `ALTER ROLE eq_app LOGIN PASSWORD 'test-secret-app'` (fake value; roles are cluster-wide, so once is enough).
+  - `new()` creates a random DB name with `CREATE DATABASE … TEMPLATE eq_template` and returns **two pools**: `pool` (the container superuser, for seeding and DDL) and `app_pool` (logged in as `eq_app`, `NOSUPERUSER NOBYPASSRLS`). **Code under test, the router and every RLS or privilege assertion must use `app_pool`**; a test that checks isolation on the superuser pool is invalid because superusers ignore RLS.
   - `Drop` doesn't need to drop the DB (the container dies at process end).
-- If the env var `RITMA_TEST_DATABASE_URL` is set, use that server instead of a container (faster local loops).
+- If the env var `RITMA_TEST_DATABASE_URL` is set (a superuser URL), use that server instead of a container (faster local loops); the `eq_app` login is derived from its host and port.
 - `eq_testkit::clock::test_clock() -> ManualClock` at the canonical start instant.
 - `eq_testkit::rng::seeded(u64)` for deterministic `StdRng`.
-- `eq_testkit::api::TestApp` scaffold: builds `eq_api::router` with a `TestDb` and a `ManualClock`, wrapped in `axum_test::TestServer`. Auth helpers come later (T-117).
+- `eq_testkit::api::TestApp` scaffold: builds `eq_api::router` with a `TestDb` (using its `app_pool`) and a `ManualClock`, wrapped in `axum_test::TestServer`. Auth helpers come later (T-117).
 
 ### Out
 - Seed builders for domain entities (added by later tasks next to their modules).
@@ -36,10 +37,10 @@ TST-20: `TestDb::new()` creates a fresh DB from a **template** that already has 
 
 ## Interfaces
 ```rust
-pub struct TestDb { pub pool: sqlx::PgPool, pub url: String }
+pub struct TestDb { pub pool: sqlx::PgPool /* superuser: seed + DDL only */, pub url: String, pub app_pool: sqlx::PgPool /* eq_app: use for everything under test */, pub app_url: String }
 impl TestDb { pub async fn new() -> TestDb; }
 pub fn test_clock() -> eq_core::clock::test::ManualClock;
-pub struct TestApp { pub server: axum_test::TestServer, pub db: TestDb, pub clock: ManualClock }
+pub struct TestApp { pub server: axum_test::TestServer, pub db: TestDb, pub clock: ManualClock } // the router is built on db.app_pool
 impl TestApp { pub async fn new() -> TestApp; }
 ```
 
@@ -51,12 +52,13 @@ None.
 
 ## Acceptance criteria
 - AC1. Two tests using `TestDb::new()` concurrently see independent data. → `eq-testkit/tests/isolation.rs::independent_dbs`
+- AC2b. `app_pool` runs as a role with `rolsuper = false` and `rolbypassrls = false`, and with `app.tenant_id` unset a tenant table (created by the test as owner, RLS via `eq_enable_rls`) returns 0 rows on `app_pool` but all rows on `pool`. → `eq-testkit/tests/isolation.rs::app_pool_enforces_rls`
 - AC2. With `RITMA_TEST_DATABASE_URL` set, no container is started (manual check, note it in the Report).
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-testkit/tests/isolation.rs` | `independent_dbs`, `template_has_migrations` |
+| `crates/eq-testkit/tests/isolation.rs` | `independent_dbs`, `template_has_migrations`, `app_pool_enforces_rls` |
 
 ## Definition of done
 - [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
