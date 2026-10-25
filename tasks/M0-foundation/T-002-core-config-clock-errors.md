@@ -2,7 +2,7 @@
 id: T-002
 title: Add config loading, the Clock abstraction and AppError → problem+json in eq-core
 milestone: M0
-status: blocked
+status: todo
 depends_on: [T-001]
 spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04, VAL-03, CAN-24]
 estimated_size: M
@@ -36,7 +36,8 @@ Every later crate can read a typed `Config`, get time from an injectable `Clock`
 ### In
 - `eq_core::config::{Config, Mode, FilesBackend, LogFormat}` with `Config::from_env() -> Result<Config, ConfigError>` and `Config::for_tests()`.
 - `eq_core::clock::{Clock (trait), SystemClock, Timestamp}` + `eq_core::clock::test::ManualClock` behind `#[cfg(any(test, feature = "testkit"))]`.
-- `eq_core::error::{AppError, FieldError, Problem}` + `impl IntoResponse for AppError` (axum) + `From<sqlx::Error>` mapping (RowNotFound → NotFound, pool timeout → Unavailable, others → Internal; the full SQLSTATE mapping in ERR-43 is added by the tasks that need it).
+- `eq_core::error::{AppError, FieldError, Problem}` + `impl IntoResponse for AppError` (axum) + `From<sqlx::Error>` mapping (RowNotFound → NotFound, pool timeout or connection loss → `Unavailable { retry_after_s: DB_UNAVAILABLE_RETRY_AFTER_S }`, others → Internal; the full SQLSTATE mapping in ERR-43 is added by the tasks that need it).
+- Technical constant (AGENTS §4.1, not a business value, so no policy field): `pub const DB_UNAVAILABLE_RETRY_AFTER_S: u64 = 5; // technical: client back-off hint when the pool times out or the connection drops`. The `Retry-After` header of an `Unavailable` error is always its `retry_after_s`. A `RateLimited` error carries the value its caller computed (T-115's limiter); T-002 only renders it.
 - ERR-21 registry: `pub struct ErrorCodeDef { pub code: &'static str, pub status: u16, pub title: &'static str }` and `eq_core::error::codes` with the core codes (`bad_request`, `unauthenticated`, `forbidden`, `not_found`, `module_disabled`, `validation`, `policy_violation`, `precondition_required`, `payload_too_large`, `locked`, `rate_limited`, `unavailable`, `setup_required`, `internal`) plus `pub const CODES: &[&ErrorCodeDef]`. `Problem.title` comes from the `ErrorCodeDef` that the `AppError` variant carries (`code: &'static ErrorCodeDef`), so a module crate passes its own registered definition and `eq-core` needs no registry injection or global state. Core codes are `pub static` items in `eq_core::error::codes` (use `&codes::NOT_FOUND`); module crates declare theirs as `pub static` in their `errors.rs` (ERR-21) and pass `&codes::SLOT_TAKEN`. A helper `pub fn validate_code(code: &str) -> bool` checks the ERR-20 format `^[a-z][a-z0-9_]{2,47}$`.
 - The problem `type` URI base is the constant `PROBLEM_BASE = "https://ritma.dev/problems/"` + code with `_` replaced by `-`.
 
@@ -254,7 +255,8 @@ None (technical only).
   - Recommendation: (a), because it keeps code/status/title together without global mutable registry state and lets each crate pass its own registered definition.
 
 - **Self-resolved (implementer, run 3, needs architect ratification):** OPS-01 says the trusted-proxy default includes private ranges in Docker but supplies no CIDRs or Docker-detection contract → when no explicit proxy list is configured, use only OPS-01's exact loopback CIDRs and require explicit `RITMA_TRUSTED_PROXIES` for additional proxies, because SBD-20's deny-by-default reading is safer than trusting an unspecified range.
-- **Q3 (blocking):** What retry duration or policy source must `From<sqlx::Error>` use for `PoolTimedOut`/connection-loss errors mapped to `Unavailable { retry_after_s }`?
+- **Resolved (architect, run-3 follow-up):** Q3 — option (a). The retry duration is the named technical constant `DB_UNAVAILABLE_RETRY_AFTER_S = 5` (Context). It is a back-off hint, not a business rule, and AGENTS §4.1 allows technical constants with a `// technical:` comment. Also ratified: the loopback-only default for `RITMA_TRUSTED_PROXIES` (explicit entries add proxies; SBD-20).
+- **Q3 (historical; resolved):** What retry duration or policy source must `From<sqlx::Error>` use for `PoolTimedOut`/connection-loss errors mapped to `Unavailable { retry_after_s }`?
   - Context: T-002 requires both this SQL mapping and a `Retry-After` response header for `Unavailable`, but specifies no retry duration or policy field. The Run 3 hard limit forbids inventing a duration.
   - Options: (a) amend the task/spec with an approved retry policy field or named technical value and use it in the SQL mapping; (b) change the SQL conversion contract so it can return `Unavailable` without an invented delay, then amend the required header behavior consistently in the task/spec.
   - Recommendation: (a), if the `Retry-After` requirement is retained, because it provides a traceable duration while preserving ERR-10 and the task's current response contract.
