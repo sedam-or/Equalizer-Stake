@@ -22,7 +22,7 @@ This file maps every concern to its chosen project, says what we wrap and what w
 | Rate limiting | `tower_governor` 0.7 (`governor`) | MIT/Apache | API-15 |
 | Extra extractors (cookies, multi-value query, typed headers) | `axum-extra` | MIT | `ValidatedQuery` (VAL-40) |
 | Async runtime | `tokio` 1 | MIT | |
-| Database driver, migrations, compile-checked SQL | `sqlx` 0.8 + `sqlx-cli` | MIT/Apache | `repo.rs` only (CA) |
+| Database driver, migrations, compile-checked SQL | `sqlx` 0.9 + `sqlx-cli` 0.9 | MIT/Apache | `repo.rs` only (CA) |
 | JSON | `serde`, `serde_json`, `serde_path_to_error` | MIT/Apache | pointers for V2 errors (VAL-07) |
 | YAML presets | `serde_yaml_ng` | MIT | SET-01 |
 | OpenAPI 3.1 | `utoipa` 5, `utoipa-axum`; `utoipa-scalar` for the dev API explorer (`RITMA_ENV=dev` only) | MIT/Apache | API-02 |
