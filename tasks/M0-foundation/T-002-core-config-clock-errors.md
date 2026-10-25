@@ -2,7 +2,7 @@
 id: T-002
 title: Add config loading, the Clock abstraction and AppError → problem+json in eq-core
 milestone: M0
-status: todo
+status: blocked
 depends_on: [T-001]
 spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04, VAL-03, CAN-24]
 estimated_size: M
@@ -168,41 +168,47 @@ None (technical only).
 
 ## Report
 
-**Plan** — Pending the security-interface decision in Q1:
-1. Add `config.rs` with `Config`, `Mode`, `FilesBackend`, `LogFormat`, map-based parsing, env loading, and the listed config tests → verify each exact config test.
-2. Add `clock.rs` with `Clock`, `SystemClock`, and test-only `ManualClock` → verify `manual_clock_advances` and the wall-clock lint exception.
-3. Add `error.rs` with the core code registry, `AppError`, `FieldError`, `Problem`, and response mapping → verify each exact error test and response headers/body.
-4. Wire modules and dependencies in `lib.rs` and `eq-core/Cargo.toml` → verify Cargo metadata and dependency guards.
-5. Run the task's Rust, local runtime, and repository checks → record only checks actually run.
+**Plan** — After the error-code title contract is resolved:
+1. Add the exact config, clock, and error tests first → verify each listed test fails against the current scaffold.
+2. Implement Figment-backed config parsing with the resolved `SecretString`/`SecretSlice` fields and hand-written redacted Debug → verify defaults, validation, warnings, and AC7/AC8.
+3. Implement `Clock`, `SystemClock`, and test-only `ManualClock` → verify the exact clock test and the scoped wall-clock lint exception.
+4. Implement `ErrorCodeDef`, the core registry, problem response mapping, task-local request ID, and SQL error mapping → verify every listed response test and header/body contract.
+5. Wire modules/dependencies and run the Rust, guard, and available runtime checks → report unavailable checks without marking them green.
 
-**Assumptions** — Use Figment for environment configuration because `spec/24-open-source-stack.md` OSS-04 selects it for OPS-01. No security or field-classification assumptions are made; Q1 blocks implementation until the secret-bearing `Config` contract is resolved.
+**Assumptions** — Use Figment for environment configuration per OSS-04/OPS-01 and task defaults for variables whose defaults are listed in OPS-01/07/10. Apply the resolved secret-bearing Config interface exactly: S3 values use secrecy types, Config/CaptchaConfig implement redacted Debug and do not derive Clone/serde. No assumption is made about resolving module-owned error titles from `eq-core`.
 
 **Test plan** —
-- AC1: Given a config map without `DATABASE_URL`, when `from_map` parses it, then it returns `Missing("DATABASE_URL")` → `config::tests::missing_database_url`.
-- AC2: Given a 16-byte decoded secret key, when `from_map` parses it, then it returns `Invalid` for `RITMA_SECRET_KEY` → `config::tests::short_secret_rejected`.
-- AC3: Given valid required inputs and omitted optional values, when defaults are applied, then listen, mode, and backup retention match the stated defaults → `config::tests::defaults`.
-- AC4: Given a conflict error with code `slot_taken`, when rendered, then status, type URI, code, and flattened extensions match the problem contract → `error::tests::conflict_problem_json`.
-- AC5: Given an internal error containing a private message, when rendered, then the response is generic and does not expose the inner message → `error::tests::internal_hides_detail`.
-- AC6: Given a manual clock, when advanced by a duration, then `now()` reflects the advance → `clock::tests::manual_clock_advances`.
-- Additional exact tests: `config::tests::unknown_vars_reported`; `error::tests::rate_limited_sets_retry_after`; `error::tests::validation_lists_errors`; `error::tests::unavailable_sets_retry_after`; `error::tests::core_codes_valid_and_unique`.
-- Edge cases: required and optional env values; missing/empty values; 31-byte and 32-byte decoded keys; standard and URL-safe base64; URL scheme validation and trailing slash normalization; unknown `RITMA_*` variables; absent request ID; empty/non-empty validation errors; retry-after values.
-- Error cases: config `Missing` and `Invalid`; problem mappings for every listed `AppError` variant; internal detail hiding; SQL `RowNotFound`, pool timeout, and other SQL errors.
-- Abuse case pending Q1: format a config populated with obviously fake credentials/tokens and assert its `Debug` output contains none of those values (`config_debug_redacts_secrets`).
+- Given a map without `DATABASE_URL`, when parsed, then `Missing("DATABASE_URL")` → `config::tests::missing_database_url`.
+- Given a 16-byte decoded key, when parsed, then it is rejected as `RITMA_SECRET_KEY` → `config::tests::short_secret_rejected`.
+- Given valid required values and omitted optional values, when defaults are applied, then the specified listen, mode, and backup retention are used → `config::tests::defaults`.
+- Given an unknown `RITMA_*` variable, when configuration loads, then a warning identifies its name → `config::tests::unknown_vars_reported`.
+- Given fake credentials and tokens, when Config is formatted with both Debug modes, then no fake secret appears and `[REDACTED]` does → `config::tests::debug_redacts_secrets`.
+- Given an invalid key, when parsing fails, then the error contains no part of the supplied value → `config::tests::error_does_not_echo_secret`.
+- Given a `slot_taken` conflict with extensions, when rendered, then status/code/type/extensions match the problem contract → `error::tests::conflict_problem_json`.
+- Given an internal error, when rendered, then status is 500 and detail hides the cause → `error::tests::internal_hides_detail`.
+- Given rate-limited or unavailable errors, when rendered, then `Retry-After` is set → `rate_limited_sets_retry_after` and `unavailable_sets_retry_after`.
+- Given field validation errors, when rendered, then the field error list is present → `validation_lists_errors`.
+- Given the core code registry, when validated, then every code matches ERR-20 and codes are unique → `core_codes_valid_and_unique`.
+- Given a manual clock, when advanced, then `now()` reflects the duration → `clock::tests::manual_clock_advances`.
+- Edge cases: missing/empty config entries; 31-byte versus 32-byte keys; standard and URL-safe base64; invalid URL scheme/trailing slash; unknown prefixed variables; absent request ID; empty/populated field error lists; retry values; SQL row-not-found, pool timeout, and other SQL errors.
+- Error cases: ConfigError missing/invalid, all AppError mappings, internal detail hiding, invalid code syntax, retry headers, and SQL error mapping.
+- Abuse cases: fake database URL password, key, CAPTCHA secret, setup token, SMTP URL, and metrics token never appear in compact/alternate Debug; invalid key input is not echoed.
 
-**Step 0 — Start** — `scripts/tasks-index.sh --check` passed; T-002 was the lowest eligible task under the run instruction that treats T-001 `review` as satisfied. Claimed on `task/T-002-core-config-clock-errors`; only this task file and generated `tasks/INDEX.md` are changed.
-**Step 1 — Task/spec** — Read the full T-002 task. It introduces S3 configuration values and a key, but does not classify them or specify SBD-50-compliant wrappers/redaction for the declared `Config` interface.
-**Step 2 — Dependencies** — Read T-001's Report and inspected its shipped workspace/manifests. T-001 supplies the workspace and `eq-core` scaffold; no dependency deviation prevents T-002. T-001 is `review`, accepted for ordering by the run instruction.
+**Step 0 — Start** — The preflight tree was clean on `run/codex-m0-m3` at required start commit `20f0e09b3a8d0bbd02c02ae72b2a8c75870332b3`; the task index check passed. T-001 is `review`, and T-002 was the lowest eligible task. Claimed as `in_progress` on `milestone/m0-foundation`, created from the run tip. The generated index reports one in-progress task.
+**Step 1 — Task/spec** — Read the full task and Q1's maintainer resolution. The security interface is now specified with S3 classifications, secrecy wrappers, hand-written redacted Debug, no Clone/serde on secret-bearing config types, and AC7/AC8. Read OPS-01/07/10, OSS-04, ERR-20/21/30/31, CQ-21/22/23/27/28, CA-01/31, and SBD-10/20/30/50/52. The response title resolver remains unspecified for codes owned by module crates.
+**Step 2 — Dependencies** — Read T-001's Report and inspected its workspace manifests and shipped `eq-core` scaffold. T-001 provides the workspace, lints, and empty core crate; its Cargo.lock deviation and PostgreSQL follow-up do not block this task. T-001 is `review`, accepted by the run ordering rule.
 **Step 3 — Design reference** — n/a; no UI work.
-**Step 4 — Plan and test plan** — Recorded above. Blocked before implementation under `WORKFLOW.md` §4 because the task's interface conflicts with SBD-10/SBD-50.
-**Steps 5–11** — Not run because Step 4 requires blocking before implementation. No code, runtime, debug loop, self-review, optimization, or implementation security audit was performed. Step 11 verification is limited to the task index and diff hygiene checks recorded below.
+**Step 4 — Plan and test plan** — Recorded above. Blocked before implementation under `WORKFLOW.md` §4: `AppError` stores only a code string, but `Problem.title` must come from the matching `ErrorCodeDef`. ERR-21 places module-owned code definitions in their owning crates, while this task puts the `IntoResponse` renderer in `eq-core` and defines no registry injection or title-bearing interface. AC4 also requires `slot_taken`, which is absent from the enumerated core `CODES`; ERR-30 names its title but does not supply a lookup mechanism for module-owned definitions.
+**Steps 5–11** — Not run because Step 4 requires blocking before implementation. No tests, code, runtime, debug loop, self-review, optimization, security audit, or full verification was performed.
 
-**Summary** — No implementation or tests were added. T-002 requires `Config` to derive plain `Debug` while holding key material and fields that can contain credentials or tokens; SBD-50 requires S3 values to use redacting, zeroizing secret wrappers and prohibits plain `Debug` on a struct holding secrets. SBD-10 also requires those fields to be classified and their protection specified, so the public field contract needs an explicit resolution before code can be written safely.
+**Summary** — No implementation was added. The resolved SBD-50 Config contract is now sufficient, but the error response interface still cannot satisfy ERR-21/ERR-30 for module-owned codes without choosing an unstated registry mechanism or changing `AppError`'s code fields.
 
-**Spec read** — `spec/16-code-quality.md` CQ-21, CQ-22, §12; `spec/17-clean-architecture.md` §1 and §4; `spec/18-security-by-design.md` §2, §4, §5.3; `spec/19-error-handling.md` §10; `spec/24-open-source-stack.md` OSS-04.
+**Spec read** — `spec/11-ops.md` OPS-01/07/10; `spec/16-code-quality.md` CQ-21/22/23/27/28 and §9/§12; `spec/17-clean-architecture.md` CA-01/31 and §4; `spec/18-security-by-design.md` SBD-10/20/30/50/52 and §8; `spec/19-error-handling.md` ERR-20/21/30/31/42/43; `spec/24-open-source-stack.md` OSS-04.
 
 **Files** —
-- Modified `tasks/M0-foundation/T-002-core-config-clock-errors.md` with this report, Q1, and `status: blocked`.
+- Modified `tasks/M0-foundation/T-002-core-config-clock-errors.md` with the updated Report and Q2.
 - Regenerated `tasks/INDEX.md` with `scripts/tasks-index.sh`.
+- No implementation files changed.
 
 **Acceptance criteria → tests** —
 | AC | Test | Result |
@@ -213,17 +219,19 @@ None (technical only).
 | AC4 | `error::tests::conflict_problem_json` | Not run: blocked before implementation. |
 | AC5 | `error::tests::internal_hides_detail` | Not run: blocked before implementation. |
 | AC6 | `clock::tests::manual_clock_advances` | Not run: blocked before implementation. |
+| AC7 | `config::tests::debug_redacts_secrets` | Not run: blocked before implementation. |
+| AC8 | `config::tests::error_does_not_echo_secret` | Not run: blocked before implementation. |
+| Additional listed tests | `unknown_vars_reported`, `rate_limited_sets_retry_after`, `validation_lists_errors`, `unavailable_sets_retry_after`, `core_codes_valid_and_unique` | Not run: blocked before implementation. |
 
-**Checks run** — `scripts/tasks-index.sh --check` passed before claiming and after the blocked status was generated. `git diff --check` passed. Rust tests, format, clippy, build, `make dev`, web checks, API generation, and SQLx preparation were not run because the security interface is unresolved and no implementation was written. `gitleaks` is unavailable locally.
-
-**Manual checks** — Not run; implementation is blocked.
+**Checks run** — `scripts/tasks-index.sh` regenerated the index; `scripts/tasks-index.sh --check` passed after setting the blocked status; `git diff --check` passed. Rust format, clippy, tests, build, runtime, API generation, SQLx, and repository guards were not run because implementation is blocked. Gitleaks is available user-locally at `/home/kepolu/.local/bin/gitleaks`; no task-specific secret scan was run because no code changed.
+**Manual checks** — n/a; no implementation.
 **Debug log** — None; no implementation failure occurred.
 **Performance** — n/a; no runtime path was added.
-**Security** — Triggers T3 (reads S3 values) and T4 (handles key material and tokens) apply. SBD-10 requires field classification and protection; SBD-50 requires S3 values in redacting, zeroizing secret wrappers and forbids plain `Debug` on a struct holding secrets. No abuse-case test or SBD-81 implementation audit was run because the required interface decision is unresolved. Q1 records the control needed before implementation.
-**Deviations** — None; implementation has not started.
-**Dependencies affected** — T-003 and later tasks depending on T-002 cannot start until this task is resolved and completed.
-**Rollback plan** — Revert the task-block commit; it changes only the task report/status and generated index.
-**Follow-ups** — Resolve Q1, update the task interface and security acceptance criteria, then restart T-002 from its task branch procedure.
+**Security** — Triggers T3 and T4 apply. The resolved task interface specifies the S3 classifications, secrecy wrappers, redacted Debug, no Clone/serde on Config or CaptchaConfig, and AC7/AC8. Those controls were not implemented or audited because Step 4 is blocked on the separate ErrorCodeDef title contract.
+**Deviations** — None; implementation has not started. The resolved interface already applies the run-authorized SBD-50 correction; no further interface changes were made.
+**Dependencies affected** — T-003 and all later task chains depending on T-002 remain ineligible until this task is resolved and completed.
+**Rollback plan** — Revert the blocked-task commit; it changes only this task's status/report and the generated task index.
+**Follow-ups** — The architect should amend `AppError` to carry a `&'static ErrorCodeDef` and update the AC4 call shape, or specify a registry injection mechanism that makes module-owned definitions visible to the `eq-core` renderer. Include the `slot_taken` definition and title in that contract.
 
 ## Questions
 - **Resolved (architect, 2026-10-25):** Q1 — option (a), as recommended. The Interfaces section now uses `secrecy` types for every S3 field, a hand-written redacting `Debug`, no `Clone`, a defined `CaptchaConfig`, and a `## Security` section with AC7 and AC8. Nothing else in M0–M3 reads the secret fields directly (T-003 `connect` takes `&Config`, T-004 holds `Arc<Config>`), so no other task changes.
@@ -231,3 +239,7 @@ None (technical only).
   - Context: T-002 lines 63–71 require `#[derive(Debug, Clone)]` and plain `String` fields for values that can hold credentials or tokens. `spec/18-security-by-design.md` SBD-10 requires S3 field classification/protection, and SBD-50 requires redacting, zeroizing wrappers and prohibits plain `Debug` on a struct holding secrets.
   - Options: (a) amend the interface as stated above and classify each S3 field; (b) define a different explicit secret-bearing `Config` shape that meets SBD-10/SBD-50 and update the task tests/interfaces to match.
   - Recommendation: (a), because it keeps the current `Config` layout while changing only the sensitive field types and debug behavior needed to meet the security spec.
+- **Q2 (blocking):** How must `AppError` expose an error-code title to the `eq-core` response renderer when the code is defined by another crate?
+  - Context: T-002 defines `AppError` code fields as `&'static str` and requires `Problem.title` to come from the matching `ErrorCodeDef`. ERR-21 says each crate owns its `CODES`, while `IntoResponse` is implemented in `eq-core`; the task defines no registry injection or title-bearing code reference. AC4 requires `slot_taken`, but the listed core `CODES` omit it (ERR-30 gives its title).
+  - Options: (a) change code fields in `AppError` to carry `&'static ErrorCodeDef` and update the task interface/tests; (b) specify a registry-injection API that makes module registries available to the core renderer.
+  - Recommendation: (a), because it keeps code/status/title together without global mutable registry state and lets each crate pass its own registered definition.
