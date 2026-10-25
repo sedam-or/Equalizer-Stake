@@ -2,7 +2,7 @@
 id: T-002
 title: Add config loading, the Clock abstraction and AppError → problem+json in eq-core
 milestone: M0
-status: todo
+status: blocked
 depends_on: [T-001]
 spec_refs: [ERR-10, ERR-20, ERR-21, ERR-30, ERR-31, CQ-21, CQ-22, OPS-01, ARC-10, ARC-12, API-04, VAL-03, CAN-24]
 estimated_size: M
@@ -67,7 +67,9 @@ pub struct Config {
     pub database_url: SecretString, pub database_owner_url: SecretString,          // may embed a password
     pub secret_key: SecretSlice<u8>, pub secret_key_previous: Option<SecretSlice<u8>>,
     pub public_url: url::Url, pub mode: Mode, pub listen: std::net::SocketAddr, pub data_dir: std::path::PathBuf,
-    pub files_backend: FilesBackend, pub setup_token: Option<SecretString>, pub trusted_proxies: Vec<ipnet::IpNet>,
+    pub files_backend: FilesBackend, pub setup_token: Option<SecretString>,
+    // OPS-01 loopback CIDRs are the default; extra proxies require explicit configuration.
+    pub trusted_proxies: Vec<ipnet::IpNet>,
     pub log: String, pub log_format: LogFormat, pub backup_schedule: BackupSchedule, pub backup_keep: u16,
     pub smtp_url: Option<SecretString>,                                           // may embed a password
     pub captcha: Option<CaptchaConfig>, pub tile_url: String,
@@ -170,14 +172,15 @@ None (technical only).
 
 ## Report
 
-**Plan** — After the error-code title contract is resolved:
-1. Add the exact config, clock, and error tests first → verify each listed test fails against the current scaffold.
-2. Implement Figment-backed config parsing with the resolved `SecretString`/`SecretSlice` fields and hand-written redacted Debug → verify defaults, validation, warnings, and AC7/AC8.
-3. Implement `Clock`, `SystemClock`, and test-only `ManualClock` → verify the exact clock test and the scoped wall-clock lint exception.
-4. Implement `ErrorCodeDef`, the core registry, problem response mapping, task-local request ID, and SQL error mapping → verify every listed response test and header/body contract.
-5. Wire modules/dependencies and run the Rust, guard, and available runtime checks → report unavailable checks without marking them green.
+**Plan** — Follow the architect-resolved interfaces in this task:
+1. Add the exact named tests for Config, Clock, and AppError first; run them against the scaffold and record the expected failures.
+2. Implement Config with the OPS-01 Figment configuration source and a testable map parser; convert S3 fields directly into secrecy wrappers, redact Debug manually, and validate required values without echoing inputs.
+3. Implement the Clock abstraction and test-only ManualClock, keeping the only wall-clock read in SystemClock with the CQ-21-scoped lint expectation.
+4. Implement ErrorCodeDef and the core registry, carrying `&'static ErrorCodeDef` through code-bearing AppError variants so response titles come from the definition; use AC4's local SLOT_TAKEN definition and do not register it in core.
+5. Implement Problem serialization, extension flattening, request-id task-local lookup, Retry-After headers, and the specified SQL error mappings; run the exact response tests.
+6. Wire the modules and permitted dependencies, then run every applicable Rust, guard, security, and runtime check; record unavailable checks as Not run with their reason.
 
-**Assumptions** — Use Figment for environment configuration per OSS-04/OPS-01 and task defaults for variables whose defaults are listed in OPS-01/07/10. Apply the resolved secret-bearing Config interface exactly: S3 values use secrecy types, Config/CaptchaConfig implement redacted Debug and do not derive Clone/serde. No assumption is made about resolving module-owned error titles from `eq-core`.
+**Assumptions** — Use the resolved ErrorCodeDef-carrying AppError interface and Config/CaptchaConfig security contract as written. Figment is the configuration source named by OSS-04/OPS-01; only defaults explicitly specified by OPS-01/07/10 or this task are applied. T-002 uses a local `SLOT_TAKEN` definition for AC4; T-203 owns its shared registration.
 
 **Test plan** —
 - Given a map without `DATABASE_URL`, when parsed, then `Missing("DATABASE_URL")` → `config::tests::missing_database_url`.
@@ -196,21 +199,24 @@ None (technical only).
 - Error cases: ConfigError missing/invalid, all AppError mappings, internal detail hiding, invalid code syntax, retry headers, and SQL error mapping.
 - Abuse cases: fake database URL password, key, CAPTCHA secret, setup token, SMTP URL, and metrics token never appear in compact/alternate Debug; invalid key input is not echoed.
 
-**Step 0 — Start** — The preflight tree was clean on `run/codex-m0-m3` at required start commit `20f0e09b3a8d0bbd02c02ae72b2a8c75870332b3`; the task index check passed. T-001 is `review`, and T-002 was the lowest eligible task. Claimed as `in_progress` on `milestone/m0-foundation`, created from the run tip. The generated index reports one in-progress task.
-**Step 1 — Task/spec** — Read the full task and Q1's maintainer resolution. The security interface is now specified with S3 classifications, secrecy wrappers, hand-written redacted Debug, no Clone/serde on secret-bearing config types, and AC7/AC8. Read OPS-01/07/10, OSS-04, ERR-20/21/30/31, CQ-21/22/23/27/28, CA-01/31, and SBD-10/20/30/50/52. The response title resolver remains unspecified for codes owned by module crates.
-**Step 2 — Dependencies** — Read T-001's Report and inspected its workspace manifests and shipped `eq-core` scaffold. T-001 provides the workspace, lints, and empty core crate; its Cargo.lock deviation and PostgreSQL follow-up do not block this task. T-001 is `review`, accepted by the run ordering rule.
+**Step 0 — Start** — Run 3 started at `f15dc08fc1880ab82af623238f32d90427f2a5e6` on `milestone/m0-foundation`; the preflight tree was clean, the ancestry check and index check passed, and T-001 is `review`. T-002 is the lowest eligible task because its sole dependency is T-001. It was claimed as `in_progress` and the index regenerated before Step 1.
+**Step 1 — Task/spec** — Read the full T-002 task including the architect's Q1 and Q2 resolutions. The current interface uses secrecy-backed S3 fields, redacted Debug, and `&'static ErrorCodeDef` for code-bearing AppError variants; AC4 uses a local `SLOT_TAKEN`, and T-203 owns its shared registration. Read OPS-01/07/10, OSS-04, ERR-10/20/21/30/31/43, CQ-21/22/23/27/28, CA-01/31, and SBD-10/20/30/50/52. The missing SQL pool retry duration is not specified in those contracts.
+**Step 2 — Dependencies** — Read T-001's Report, Deviations and Follow-ups, plus its shipped workspace and `eq-core` scaffold. T-001 is `review` under Run 3 ordering. Its `Cargo.lock` deviation follows OSS-04, and its PostgreSQL follow-up is satisfied by the Run 3 preflight image check and running PostgreSQL 16 container; neither changes T-002's contract.
 **Step 3 — Design reference** — n/a; no UI work.
-**Step 4 — Plan and test plan** — Recorded above. Blocked before implementation under `WORKFLOW.md` §4: `AppError` stores only a code string, but `Problem.title` must come from the matching `ErrorCodeDef`. ERR-21 places module-owned code definitions in their owning crates, while this task puts the `IntoResponse` renderer in `eq-core` and defines no registry injection or title-bearing interface. AC4 also requires `slot_taken`, which is absent from the enumerated core `CODES`; ERR-30 names its title but does not supply a lookup mechanism for module-owned definitions.
-**Steps 5–11** — Not run because Step 4 requires blocking before implementation. No tests, code, runtime, debug loop, self-review, optimization, security audit, or full verification was performed.
+**Step 4 — Plan and test plan** — Recorded above. The resolved Q1/Q2 interfaces remove the prior blockers. Before implementation, the required `From<sqlx::Error>` mapping is still underspecified: `PoolTimedOut`/connection-loss errors must become `Unavailable { retry_after_s }` and the response must set `Retry-After`, but no duration or policy source is defined. The Run 3 hard limit forbids inventing a duration. The task is blocked with options and a recommendation in Q3 below.
+**Step 5 — Implement** — n/a; Step 4 is blocked on a missing retry policy value. No production code or tests were added.
+**Step 6 — Run locally** — n/a; this task has no executable server yet, and `make dev` is introduced by T-006. No application runtime path was changed.
+**Step 7 — Debug loop** — n/a; implementation did not start and no implementation failure occurred.
+**Step 8 — Self-review** — n/a; no implementation diff.
+**Step 9 — Optimize** — n/a; no runtime path was added.
+**Step 10 — Security audit** — The task triggers T3 and T4. The resolved task contract requires secrecy wrappers, redacted Debug, no serialization/Clone for secret-bearing Config types, safe config errors, and abuse tests. These controls were not implemented or audited because the task is blocked before implementation.
+**Step 11 — Revise and full verification** — The required format, clippy, and workspace test commands ran against the existing scaffold and passed; they contain no T-002 implementation or named T-002 tests. The task-index check, dependency guard, diff check, and secret scans also passed. Web, SQLx, API-generation, and runtime checks do not apply before implementation; the later T-006 scripts and Makefile are not present yet.
 
-**Summary** — No implementation was added. The resolved SBD-50 Config contract is now sufficient, but the error response interface still cannot satisfy ERR-21/ERR-30 for module-owned codes without choosing an unstated registry mechanism or changing `AppError`'s code fields.
+**Summary** — No production implementation was added. Q1 and Q2 are resolved and the plan now follows those interfaces, but SQL pool errors cannot be mapped to the required `Unavailable { retry_after_s }` without an approved retry duration. The task is `blocked` pending the Q3 contract answer.
 
-**Spec read** — `spec/11-ops.md` OPS-01/07/10; `spec/16-code-quality.md` CQ-21/22/23/27/28 and §9/§12; `spec/17-clean-architecture.md` CA-01/31 and §4; `spec/18-security-by-design.md` SBD-10/20/30/50/52 and §8; `spec/19-error-handling.md` ERR-20/21/30/31/42/43; `spec/24-open-source-stack.md` OSS-04.
+**Spec read** — `spec/02-architecture.md` §§2–3; `spec/11-ops.md` OPS-01/07/10; `spec/16-code-quality.md` CQ-21/22/23/27/28, §§9/12; `spec/17-clean-architecture.md` CA-01/31 and §4; `spec/18-security-by-design.md` SBD-10/20/30/50/52 and §8; `spec/19-error-handling.md` ERR-10/20/21/30/31/43 and §10; `spec/20-state-machines.md`; `spec/21-data-flows.md`; `spec/22-validation-and-sanitization.md` VAL-03; `spec/23-contracts-and-canonical-forms.md` CAN-24; `spec/24-open-source-stack.md` OSS-04.
 
-**Files** —
-- Modified `tasks/M0-foundation/T-002-core-config-clock-errors.md` with the updated Report and Q2.
-- Regenerated `tasks/INDEX.md` with `scripts/tasks-index.sh`.
-- No implementation files changed.
+**Files** — Modified only `tasks/M0-foundation/T-002-core-config-clock-errors.md` (Run 3 plan, report and blocking question) and regenerated `tasks/INDEX.md` through `scripts/tasks-index.sh`.
 
 **Acceptance criteria → tests** —
 | AC | Test | Result |
@@ -225,15 +231,15 @@ None (technical only).
 | AC8 | `config::tests::error_does_not_echo_secret` | Not run: blocked before implementation. |
 | Additional listed tests | `unknown_vars_reported`, `rate_limited_sets_retry_after`, `validation_lists_errors`, `unavailable_sets_retry_after`, `core_codes_valid_and_unique` | Not run: blocked before implementation. |
 
-**Checks run** — `scripts/tasks-index.sh` regenerated the index; `scripts/tasks-index.sh --check` passed after setting the blocked status; `git diff --check` passed. Rust format, clippy, tests, build, runtime, API generation, SQLx, and repository guards were not run because implementation is blocked. Gitleaks is available user-locally at `/home/kepolu/.local/bin/gitleaks`; no task-specific secret scan was run because no code changed.
-**Manual checks** — n/a; no implementation.
-**Debug log** — None; no implementation failure occurred.
+**Checks run** — ✅ `cargo fmt --all --check`; ✅ `cargo clippy --workspace --all-targets -- -D warnings`; ✅ `cargo test --workspace` (scaffold only: `eq-core` contains 0 tests; the existing `prints_version` test passed); ✅ `scripts/check-deps.sh`; ✅ `scripts/tasks-index.sh --check`; ✅ `git diff --check`; ✅ `gitleaks dir --redact --no-banner tasks/M0-foundation/T-002-core-config-clock-errors.md`; ✅ `gitleaks dir --redact --no-banner tasks/INDEX.md`. Not run: the named T-002 tests do not exist because implementation is blocked; web checks (`web/` is absent); API generation/SQLx prepare (no API or query change); `make dev`/`make e2e` (no Makefile until T-006); `scripts/check-literals.sh`, `scripts/check-web-boundaries.sh`, and `scripts/check-layers.sh` (introduced by T-006).
+**Manual checks** — n/a; there is no task runtime to exercise.
+**Debug log** — None; the block is due to a missing interface value, not an implementation failure.
 **Performance** — n/a; no runtime path was added.
-**Security** — Triggers T3 and T4 apply. The resolved task interface specifies the S3 classifications, secrecy wrappers, redacted Debug, no Clone/serde on Config or CaptchaConfig, and AC7/AC8. Those controls were not implemented or audited because Step 4 is blocked on the separate ErrorCodeDef title contract.
-**Deviations** — None; implementation has not started. The resolved interface already applies the run-authorized SBD-50 correction; no further interface changes were made.
-**Dependencies affected** — T-003 and all later task chains depending on T-002 remain ineligible until this task is resolved and completed.
-**Rollback plan** — Revert the blocked-task commit; it changes only this task's status/report and the generated task index.
-**Follow-ups** — The architect should amend `AppError` to carry a `&'static ErrorCodeDef` and update the AC4 call shape, or specify a registry injection mechanism that makes module-owned definitions visible to the `eq-core` renderer. Include the `slot_taken` definition and title in that contract.
+**Security** — Triggers T3 and T4 apply. No secret-bearing code or fixtures were added. On resumption, verify SBD-81, redacted Debug and non-echoing config errors, including the listed abuse tests.
+**Deviations** — **RATIFY:** OPS-01 names loopback trusted proxies plus unspecified private ranges in Docker. If the task resumes without enumerated Docker CIDRs, default only to the exact loopback CIDRs given by OPS-01; require explicit `RITMA_TRUSTED_PROXIES` configuration for additional proxies, preserving the stricter deny-by-default behavior in SBD-20. The task interface comment now records this choice; no runtime code was changed.
+**Dependencies affected** — T-003 depends directly on T-002; dependent tasks remain ineligible until T-002 returns to `todo` and reaches `review`/`done`.
+**Rollback plan** — Revert this signed task-block commit; it changes only the task's status/report/questions and the generated index.
+**Follow-ups** — Architect must specify the retry duration/policy source for SQL pool timeout and connection-loss mappings before T-002 can be resumed. T-203 remains responsible for the shared `slot_taken` registration after T-002 is completed.
 
 ## Questions
 - **Resolved (architect, 2026-10-25):** Q1 — option (a), as recommended. The Interfaces section now uses `secrecy` types for every S3 field, a hand-written redacting `Debug`, no `Clone`, a defined `CaptchaConfig`, and a `## Security` section with AC7 and AC8. Nothing else in M0–M3 reads the secret fields directly (T-003 `connect` takes `&Config`, T-004 holds `Arc<Config>`), so no other task changes.
@@ -246,3 +252,9 @@ None (technical only).
   - Context: T-002 defines `AppError` code fields as `&'static str` and requires `Problem.title` to come from the matching `ErrorCodeDef`. ERR-21 says each crate owns its `CODES`, while `IntoResponse` is implemented in `eq-core`; the task defines no registry injection or title-bearing code reference. AC4 requires `slot_taken`, but the listed core `CODES` omit it (ERR-30 gives its title).
   - Options: (a) change code fields in `AppError` to carry `&'static ErrorCodeDef` and update the task interface/tests; (b) specify a registry-injection API that makes module registries available to the core renderer.
   - Recommendation: (a), because it keeps code/status/title together without global mutable registry state and lets each crate pass its own registered definition.
+
+- **Self-resolved (implementer, run 3, needs architect ratification):** OPS-01 says the trusted-proxy default includes private ranges in Docker but supplies no CIDRs or Docker-detection contract → when no explicit proxy list is configured, use only OPS-01's exact loopback CIDRs and require explicit `RITMA_TRUSTED_PROXIES` for additional proxies, because SBD-20's deny-by-default reading is safer than trusting an unspecified range.
+- **Q3 (blocking):** What retry duration or policy source must `From<sqlx::Error>` use for `PoolTimedOut`/connection-loss errors mapped to `Unavailable { retry_after_s }`?
+  - Context: T-002 requires both this SQL mapping and a `Retry-After` response header for `Unavailable`, but specifies no retry duration or policy field. The Run 3 hard limit forbids inventing a duration.
+  - Options: (a) amend the task/spec with an approved retry policy field or named technical value and use it in the SQL mapping; (b) change the SQL conversion contract so it can return `Unavailable` without an invented delay, then amend the required header behavior consistently in the task/spec.
+  - Recommendation: (a), if the `Retry-After` requirement is retained, because it provides a traceable duration while preserving ERR-10 and the task's current response contract.
