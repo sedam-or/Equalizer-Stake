@@ -48,6 +48,7 @@ fn defaults() {
 
     assert_eq!(config.listen, default_listen());
     assert_eq!(config.mode, Mode::Single);
+    assert_eq!(config.base_domain, None);
     assert_eq!(config.backup_keep, 14);
     assert_eq!(config.backup_schedule, BackupSchedule::Daily);
     assert_eq!(config.db_pool, 10);
@@ -57,6 +58,53 @@ fn defaults() {
         config.database_url.expose_secret(),
         config.database_owner_url.expose_secret()
     );
+}
+
+#[test]
+fn multi_mode_requires_base_domain() {
+    let mut values = valid_values();
+    values.insert(String::from("RITMA_MODE"), String::from("multi"));
+
+    assert!(matches!(
+        Config::from_map(values),
+        Err(ConfigError::Missing("RITMA_BASE_DOMAIN"))
+    ));
+}
+
+#[test]
+fn multi_mode_normalizes_base_domain() {
+    let mut values = valid_values();
+    values.insert(String::from("RITMA_MODE"), String::from("multi"));
+    values.insert(
+        String::from("RITMA_BASE_DOMAIN"),
+        String::from("APP.EXAMPLE.TEST."),
+    );
+
+    let config = Config::from_map(values).unwrap();
+
+    assert_eq!(config.base_domain.as_deref(), Some("app.example.test"));
+}
+
+#[test]
+fn base_domain_rejects_url_components() {
+    for invalid_domain in [
+        "https://app.example.test/path",
+        "app.example.test:80",
+        "user@app.example.test",
+        "127.0.0.1",
+        "[::1]",
+    ] {
+        let mut values = valid_values();
+        values.insert(String::from("RITMA_BASE_DOMAIN"), String::from(invalid_domain));
+
+        assert!(matches!(
+            Config::from_map(values),
+            Err(ConfigError::Invalid {
+                var: "RITMA_BASE_DOMAIN",
+                ..
+            })
+        ));
+    }
 }
 
 #[test]

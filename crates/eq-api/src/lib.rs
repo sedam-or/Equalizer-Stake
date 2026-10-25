@@ -1,7 +1,9 @@
 //! Router assembly for the Ritma API (spec/02 §2, ARC-01).
 
+use axum::extract::FromRef;
 use eq_core::clock::Clock;
 use eq_core::config::Config;
+use eq_core::tenant::TenantResolver;
 use sqlx::PgPool;
 use std::fmt;
 use std::sync::Arc;
@@ -27,6 +29,7 @@ use eq_scheduling as _;
 mod health;
 pub mod middleware;
 mod spa;
+pub mod tenant;
 
 /// ARC-01, ARC-04: shared infrastructure passed to API handlers.
 #[derive(Clone)]
@@ -34,6 +37,26 @@ pub struct AppState {
     pub pool: PgPool,
     pub config: Arc<Config>,
     pub clock: Arc<dyn Clock>,
+    pub tenant_resolver: TenantResolver,
+}
+
+impl AppState {
+    /// ARC-01, ARC-04: builds shared application state and its bounded tenant resolver.
+    pub fn new(pool: PgPool, config: Arc<Config>, clock: Arc<dyn Clock>) -> Self {
+        let tenant_resolver = TenantResolver::new(pool.clone(), Arc::clone(&config));
+        Self {
+            pool,
+            config,
+            clock,
+            tenant_resolver,
+        }
+    }
+}
+
+impl FromRef<AppState> for TenantResolver {
+    fn from_ref(state: &AppState) -> Self {
+        state.tenant_resolver.clone()
+    }
 }
 
 impl fmt::Debug for AppState {
@@ -43,6 +66,7 @@ impl fmt::Debug for AppState {
             .field("pool", &"[configured]")
             .field("config", &"[REDACTED]")
             .field("clock", &self.clock)
+            .field("tenant_resolver", &self.tenant_resolver)
             .finish()
     }
 }

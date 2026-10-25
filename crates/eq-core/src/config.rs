@@ -23,6 +23,7 @@ const KNOWN_ENV_VARS: &[&str] = &[
     "RITMA_SECRET_KEY_PREVIOUS",
     "RITMA_PUBLIC_URL",
     "RITMA_MODE",
+    "RITMA_BASE_DOMAIN",
     "RITMA_LISTEN",
     "RITMA_DATA_DIR",
     "RITMA_FILES_BACKEND",
@@ -105,6 +106,7 @@ pub struct Config {
     pub secret_key_previous: Option<SecretSlice<u8>>,
     pub public_url: url::Url,
     pub mode: Mode,
+    pub base_domain: Option<String>,
     pub listen: SocketAddr,
     pub data_dir: PathBuf,
     pub files_backend: FilesBackend,
@@ -153,6 +155,7 @@ impl Config {
         let secret_key_previous = take_optional_key(&mut values, "RITMA_SECRET_KEY_PREVIOUS")?;
         let public_url = take_public_url(&mut values)?;
         let mode = parse_optional(&mut values, "RITMA_MODE", Mode::Single, parse_mode)?;
+        let base_domain = take_base_domain(&mut values, mode)?;
         let listen = parse_optional(&mut values, "RITMA_LISTEN", default_listen(), |value| {
             SocketAddr::from_str(value).ok()
         })?;
@@ -194,6 +197,7 @@ impl Config {
             secret_key_previous,
             public_url,
             mode,
+            base_domain,
             listen,
             data_dir,
             files_backend,
@@ -226,6 +230,7 @@ impl Config {
             secret_key_previous: None,
             public_url,
             mode: Mode::Single,
+            base_domain: None,
             listen: SocketAddr::from(([127, 0, 0, 1], 8080)),
             data_dir: PathBuf::from("./data"),
             files_backend: FilesBackend::Local,
@@ -260,6 +265,7 @@ impl fmt::Debug for Config {
             )
             .field("public_url", &self.public_url)
             .field("mode", &self.mode)
+            .field("base_domain", &self.base_domain)
             .field("listen", &self.listen)
             .field("data_dir", &self.data_dir)
             .field("files_backend", &self.files_backend)
@@ -404,6 +410,41 @@ fn take_public_url(values: &mut SensitiveMap) -> Result<url::Url, ConfigError> {
         public_url.set_path(&path);
     }
     Ok(public_url)
+}
+
+fn take_base_domain(values: &mut SensitiveMap, mode: Mode) -> Result<Option<String>, ConfigError> {
+    let base_domain = take_optional_text(values, "RITMA_BASE_DOMAIN")?
+        .map(|value| value.expose_secret().to_owned())
+        .map(|value| {
+            parse_base_domain(&value).ok_or_else(|| {
+                invalid(
+                    "RITMA_BASE_DOMAIN",
+                    "must be a host name without a scheme, port or path",
+                )
+            })
+        })
+        .transpose()?;
+
+    if mode == Mode::Multi && base_domain.is_none() {
+        return Err(ConfigError::Missing("RITMA_BASE_DOMAIN"));
+    }
+
+    Ok(base_domain)
+}
+
+fn parse_base_domain(value: &str) -> Option<String> {
+    let authority = axum::http::uri::Authority::from_str(value).ok()?;
+    if authority.port().is_some() || value.contains('@') {
+        return None;
+    }
+
+    let parsed = url::Url::parse(&format!("http://{value}")).ok()?;
+    let host = match parsed.host()? {
+        url::Host::Domain(host) => host.trim_end_matches('.'),
+        url::Host::Ipv4(_) | url::Host::Ipv6(_) => return None,
+    };
+
+    Some(host.to_ascii_lowercase())
 }
 
 fn parse_optional<T>(

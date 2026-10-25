@@ -53,6 +53,7 @@ struct ReadyResponse {
 
 /// API-14, OPS-06: process liveness and database readiness routes.
 pub(super) fn router(state: AppState) -> Router {
+    let tenant_resolver = state.tenant_resolver.clone();
     let health_state = HealthState {
         app: state,
         migration_cache: Arc::new(Mutex::new(None)),
@@ -64,6 +65,10 @@ pub(super) fn router(state: AppState) -> Router {
         .fallback(crate::spa::fallback)
         .with_state(health_state)
         .layer(CatchPanicLayer::custom(handle_panic))
+        .layer(middleware::from_fn_with_state(
+            tenant_resolver,
+            crate::tenant::tenant_guard,
+        ))
         .layer(RequestBodyLimitLayer::new(BODY_LIMIT_BYTES))
         .layer(middleware::from_fn(security_headers_stub))
         .layer(CompressionLayer::new())

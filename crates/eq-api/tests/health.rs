@@ -33,6 +33,7 @@ fn app_state(database_url: String) -> anyhow::Result<AppState> {
         secret_key_previous: None,
         public_url: url::Url::parse("http://127.0.0.1:8080")?,
         mode: Mode::Single,
+        base_domain: None,
         listen: SocketAddr::from(([127, 0, 0, 1], 8080)),
         data_dir: PathBuf::from("./data"),
         files_backend: FilesBackend::Local,
@@ -51,11 +52,7 @@ fn app_state(database_url: String) -> anyhow::Result<AppState> {
         db_pool: 1,
         demo: false,
     };
-    Ok(AppState {
-        pool,
-        config: Arc::new(config),
-        clock: Arc::new(SystemClock),
-    })
+    Ok(AppState::new(pool, Arc::new(config), Arc::new(SystemClock)))
 }
 
 async fn send_get(

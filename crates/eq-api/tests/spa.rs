@@ -4,25 +4,38 @@ use axum::http::{Request, Response, StatusCode};
 use eq_api::{AppState, router};
 use eq_core::clock::SystemClock;
 use eq_core::config::{BackupSchedule, Config, FilesBackend, LogFormat, Mode};
-use secrecy::{SecretSlice, SecretString};
-use sqlx::postgres::PgPoolOptions;
+use secrecy::{ExposeSecret, SecretSlice, SecretString};
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tower::ServiceExt;
+use uuid::Uuid;
 
-fn app() -> anyhow::Result<axum::Router> {
-    let database_url = "postgres://eq_app:test-secret-app@127.0.0.1:1/ritma";
-    let pool = PgPoolOptions::new()
-        .max_connections(1)
-        .connect_lazy(database_url)?;
+#[path = "../../eq-testkit/src/db.rs"]
+mod shared_test_db;
+
+use shared_test_db::TestDb;
+
+async fn app() -> anyhow::Result<(axum::Router, TestDb)> {
+    let db = TestDb::new().await;
+    let slug = format!("spa{}", Uuid::now_v7().simple());
+    sqlx::query(
+        "INSERT INTO tenants (id, slug, name, country, preset_id, preset_version) \
+         VALUES ($1, $2, 'Test School', 'ID', 'test', 1)",
+    )
+    .bind(Uuid::now_v7())
+    .bind(slug)
+    .execute(&db.pool)
+    .await?;
+    let database_url = db.app_url.expose_secret();
     let config = Config {
         database_url: SecretString::from(database_url),
-        database_owner_url: SecretString::from("postgres://eq:test-secret-owner@localhost/ritma"),
+        database_owner_url: SecretString::from(db.url.expose_secret()),
         secret_key: SecretSlice::from(vec![0; 32]),
         secret_key_previous: None,
         public_url: url::Url::parse("http://127.0.0.1:8080")?,
         mode: Mode::Single,
+        base_domain: None,
         listen: SocketAddr::from(([127, 0, 0, 1], 8080)),
         data_dir: PathBuf::from("./data"),
         files_backend: FilesBackend::Local,
@@ -42,11 +55,14 @@ fn app() -> anyhow::Result<axum::Router> {
         demo: false,
     };
 
-    Ok(router(AppState {
-        pool,
-        config: Arc::new(config),
-        clock: Arc::new(SystemClock),
-    }))
+    Ok((
+        router(AppState::new(
+            db.app_pool.clone(),
+            Arc::new(config),
+            Arc::new(SystemClock),
+        )),
+        db,
+    ))
 }
 
 async fn send(app: axum::Router, path: &str, etag: Option<&str>) -> anyhow::Result<Response<Body>> {
@@ -63,7 +79,8 @@ async fn send(app: axum::Router, path: &str, etag: Option<&str>) -> anyhow::Resu
 
 #[tokio::test]
 async fn index_no_cache() -> anyhow::Result<()> {
-    let response = send(app()?, "/", None).await?;
+    let (app, _db) = app().await?;
+    let response = send(app, "/", None).await?;
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
@@ -87,13 +104,14 @@ async fn index_no_cache() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn asset_immutable() -> anyhow::Result<()> {
+    let (app, _db) = app().await?;
     let assets_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../web/dist/assets");
     let asset = std::fs::read_dir(assets_dir)?
         .filter_map(Result::ok)
         .map(|entry| entry.file_name().to_string_lossy().into_owned())
         .find(|file_name| file_name.ends_with(".js"))
         .ok_or_else(|| anyhow::anyhow!("no generated JavaScript asset exists in web/dist/assets"))?;
-    let response = send(app()?, &format!("/assets/{asset}"), None).await?;
+    let response = send(app, &format!("/assets/{asset}"), None).await?;
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
@@ -109,7 +127,8 @@ async fn asset_immutable() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn spa_fallback() -> anyhow::Result<()> {
-    let response = send(app()?, "/schedule/week", None).await?;
+    let (app, _db) = app().await?;
+    let response = send(app, "/schedule/week", None).await?;
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(
@@ -126,7 +145,8 @@ async fn spa_fallback() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn api_404_not_spa() -> anyhow::Result<()> {
-    let response = send(app()?, "/api/v1/nope", None).await?;
+    let (app, _db) = app().await?;
+    let response = send(app, "/api/v1/nope", None).await?;
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
     assert_eq!(
@@ -143,7 +163,8 @@ async fn api_404_not_spa() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn etag_304() -> anyhow::Result<()> {
-    let first = send(app()?, "/", None).await?;
+    let (app, _db) = app().await?;
+    let first = send(app.clone(), "/", None).await?;
     assert_eq!(first.status(), StatusCode::OK);
     let etag = first
         .headers()
@@ -152,7 +173,7 @@ async fn etag_304() -> anyhow::Result<()> {
         .to_str()?
         .to_owned();
 
-    let second = send(app()?, "/", Some(&etag)).await?;
+    let second = send(app, "/", Some(&etag)).await?;
     assert_eq!(second.status(), StatusCode::NOT_MODIFIED);
     assert_eq!(
         second.headers().get(ETAG).and_then(|value| value.to_str().ok()),

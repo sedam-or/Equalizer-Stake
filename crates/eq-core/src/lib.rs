@@ -11,3 +11,4 @@ pub mod ids;
 pub mod model;
 pub mod money;
 pub mod policy;
+pub mod tenant;
