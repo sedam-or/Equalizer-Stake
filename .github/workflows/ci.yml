@@ -227,6 +227,31 @@ jobs:
     needs: [detect, rust, web]
     if: needs.detect.outputs.e2e == 'true'
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: eq
+          POSTGRES_PASSWORD: eq
+          POSTGRES_DB: ritma
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U eq -d ritma"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://eq_app:eq_app@localhost:5433/ritma
+      RITMA_DATABASE_OWNER_URL: postgres://eq:eq@localhost:5433/ritma
+      RITMA_SECRET_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      RITMA_PUBLIC_URL: http://localhost:8080
+      RITMA_LISTEN: 127.0.0.1:8080
+      RITMA_DATA_DIR: /tmp/ritma-e2e
+      RITMA_BACKUP_SCHEDULE: off
+      E2E_BASE_URL: http://127.0.0.1:8080
+      E2E_SKIP_DB_START: "1"
+      E2E_PLAYWRIGHT_CONTAINER: "0"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -244,6 +269,13 @@ jobs:
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm -C web install --frozen-lockfile
       - run: pnpm -C web exec playwright install --with-deps chromium webkit
+      - name: Create the least-privilege application role
+        env:
+          POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
+        run: >-
+          docker exec "$POSTGRES_CONTAINER_ID" psql -U eq -d ritma
+          -v ON_ERROR_STOP=1
+          -c "CREATE ROLE eq_app LOGIN PASSWORD 'eq_app' NOSUPERUSER NOBYPASSRLS"
       - run: make e2e
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

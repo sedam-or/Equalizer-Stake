@@ -7,7 +7,9 @@
       "!src/api/schema.d.ts",
       "!pnpm-lock.yaml",
       "!dist",
-      "!node_modules"
+      "!node_modules",
+      "!test-results",
+      "!playwright-report"
     ]
   },
   "formatter": {
