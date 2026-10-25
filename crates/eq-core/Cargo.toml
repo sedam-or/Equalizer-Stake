@@ -5,5 +5,18 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[dependencies]
+iso_currency.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+utoipa.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+proptest.workspace = true
+
 [lints]
 workspace = true

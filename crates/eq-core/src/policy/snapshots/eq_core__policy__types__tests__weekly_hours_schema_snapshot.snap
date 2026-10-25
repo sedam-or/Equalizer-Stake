@@ -1,0 +1,99 @@
+---
+source: crates/eq-core/src/policy/types.rs
+expression: value
+---
+{
+  "$defs": {
+    "DayHours": {
+      "additionalProperties": false,
+      "description": "Opening-hours value for one weekday (spec/04 §5).",
+      "properties": {
+        "intervals": {
+          "items": {
+            "$ref": "#/$defs/TimeInterval"
+          },
+          "type": "array"
+        },
+        "open": {
+          "type": "boolean"
+        },
+        "weekday": {
+          "$ref": "#/$defs/Weekday"
+        }
+      },
+      "required": [
+        "weekday",
+        "open",
+        "intervals"
+      ],
+      "type": "object"
+    },
+    "TimeInterval": {
+      "description": "Half-open same-day interval; 24:00 is valid only as its end (spec/04 §5, CAN-10).",
+      "properties": {
+        "end": {
+          "pattern": "^(?:(?:[01][0-9]|2[0-3]):[0-5][0-9]|24:00)$",
+          "type": "string"
+        },
+        "start": {
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "type": "object"
+    },
+    "Weekday": {
+      "description": "Weekday encoded as its lowercase three-letter ISO calendar form (CAN-10).",
+      "oneOf": [
+        {
+          "const": "mon",
+          "description": "Monday.",
+          "type": "string"
+        },
+        {
+          "const": "tue",
+          "description": "Tuesday.",
+          "type": "string"
+        },
+        {
+          "const": "wed",
+          "description": "Wednesday.",
+          "type": "string"
+        },
+        {
+          "const": "thu",
+          "description": "Thursday.",
+          "type": "string"
+        },
+        {
+          "const": "fri",
+          "description": "Friday.",
+          "type": "string"
+        },
+        {
+          "const": "sat",
+          "description": "Saturday.",
+          "type": "string"
+        },
+        {
+          "const": "sun",
+          "description": "Sunday.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Seven validated opening-hours entries in Monday-through-Sunday order (spec/04 §5).",
+  "items": {
+    "$ref": "#/$defs/DayHours"
+  },
+  "maxItems": 7,
+  "minItems": 7,
+  "title": "WeeklyHours",
+  "type": "array"
+}
