@@ -60,7 +60,6 @@ moka = { version = "0.12", features = ["future"] }
 proptest = "1"
 insta = { version = "1", features = ["json", "yaml"] }
 testcontainers = "0.28"
-testcontainers-modules = { version = "0.11", features = ["postgres"] }
 axum-test = "17"
 serde_jcs = "0.1"
 phonenumber = "0.3"
@@ -77,6 +76,7 @@ eq-notify = { path = "crates/eq-notify" }
 eq-reports = { path = "crates/eq-reports" }
 eq-feedback = { path = "crates/eq-feedback" }
 eq-api = { path = "crates/eq-api" }
+eq-testkit = { path = "crates/eq-testkit" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
