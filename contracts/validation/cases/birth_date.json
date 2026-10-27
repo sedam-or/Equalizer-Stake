@@ -1,0 +1,14 @@
+[
+  {
+    "input": "2025-12-31",
+    "ok": true,
+    "canonical": "2025-12-31"
+  },
+  {
+    "input": "2026-01-02",
+    "ok": false,
+    "codes": [
+      "must_be_lte"
+    ]
+  }
+]

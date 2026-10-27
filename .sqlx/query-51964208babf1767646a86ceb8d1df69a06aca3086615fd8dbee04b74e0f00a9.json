@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT NULLIF(current_setting('app.tenant_id', true), '') AS current_tenant",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "current_tenant",
+        "type_info": "Text",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "51964208babf1767646a86ceb8d1df69a06aca3086615fd8dbee04b74e0f00a9"
+}

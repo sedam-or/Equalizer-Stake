@@ -11,6 +11,7 @@ repository = "https://github.com/sedam-or/Equalizer-Stake"
 [workspace.dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "time", "sync"] }
 axum = { version = "0.8", features = ["macros", "multipart"] }
+axum-extra = { version = "0.10", features = ["query"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["trace", "request-id", "compression-full", "limit", "cors", "set-header", "util", "catch-panic"] }
 tower_governor = "0.7"
@@ -20,10 +21,11 @@ figment = { version = "0.10", features = ["env"] }
 url = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_path_to_error = "0.1"
 serde_yaml_ng = "0.10"
 schemars = { version = "1", features = ["chrono04", "uuid1"] }
-utoipa = { version = "5", features = ["axum_extras", "uuid", "chrono"] }
-utoipa-axum = "0.2"
+utoipa = { version = "6", features = ["axum_extras", "uuid", "chrono"] }
+utoipa-axum = "0.3"
 jsonschema = "0.30"
 json-patch = "4"
 chrono = { version = "0.4", features = ["serde"] }
@@ -62,7 +64,11 @@ insta = { version = "1", features = ["json", "yaml"] }
 testcontainers = "0.28"
 axum-test = "17"
 serde_jcs = "0.1"
-phonenumber = "0.3"
+rlibphonenumber = "2"
+nutype = { version = "0.8", features = ["serde"] }
+unicode-normalization = "0.1"
+email_address = "0.2"
+celes = "3"
 iso_currency = "0.7.1"
 
 eq-core = { path = "crates/eq-core" }

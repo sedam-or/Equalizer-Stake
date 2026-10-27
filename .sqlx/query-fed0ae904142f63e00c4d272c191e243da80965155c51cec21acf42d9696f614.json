@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT pg_notify('eq_modules_changed', $1) AS notified",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "notified",
+        "type_info": "Void",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "fed0ae904142f63e00c4d272c191e243da80965155c51cec21acf42d9696f614"
+}

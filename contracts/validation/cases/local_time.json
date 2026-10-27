@@ -1,0 +1,19 @@
+[
+  {
+    "input": "09:30",
+    "ok": true,
+    "canonical": "09:30"
+  },
+  {
+    "input": "09:30:00",
+    "ok": true,
+    "canonical": "09:30"
+  },
+  {
+    "input": "24:00",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]

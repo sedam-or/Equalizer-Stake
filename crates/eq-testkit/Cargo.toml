@@ -8,6 +8,7 @@ publish = false
 
 [dependencies]
 anyhow.workspace = true
+async-trait.workspace = true
 axum-test.workspace = true
 chrono.workspace = true
 eq-api.workspace = true

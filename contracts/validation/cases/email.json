@@ -1,0 +1,28 @@
+[
+  {
+    "input": "Person@Example.INVALID ",
+    "ok": true,
+    "canonical": "person@example.invalid"
+  },
+  {
+    "input": "budi@[127.0.0.1]",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  },
+  {
+    "input": "\"quoted\"@example.invalid",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  },
+  {
+    "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx@example.invalid",
+    "ok": false,
+    "codes": [
+      "too_long"
+    ]
+  }
+]

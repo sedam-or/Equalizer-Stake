@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO tenant_modules (tenant_id, module_id, enabled, changed_by) VALUES ($1, $2, $3, $4) ON CONFLICT (tenant_id, module_id) DO UPDATE SET enabled = EXCLUDED.enabled, changed_at = now(), changed_by = EXCLUDED.changed_by",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "570f22bf4b5c3be5d16ae6db6d6a1376b8b46e463ae968ddadc8339bdeed0aab"
+}

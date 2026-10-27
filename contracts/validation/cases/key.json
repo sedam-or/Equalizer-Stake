@@ -1,0 +1,33 @@
+[
+  {
+    "input": "ab",
+    "ok": true,
+    "canonical": "ab"
+  },
+  {
+    "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ok": true,
+    "canonical": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  {
+    "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ok": false,
+    "codes": [
+      "too_long"
+    ]
+  },
+  {
+    "input": "a-b",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  },
+  {
+    "input": " ab ",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]

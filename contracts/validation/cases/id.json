@@ -1,0 +1,14 @@
+[
+  {
+    "input": "0192F3A4-1234-5678-9abc-def012345678",
+    "ok": true,
+    "canonical": "0192f3a4-1234-5678-9abc-def012345678"
+  },
+  {
+    "input": "0192f3a4123456789abcdef012345678",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "input": "id",
+    "ok": true,
+    "canonical": "ID"
+  },
+  {
+    "input": "US",
+    "ok": true,
+    "canonical": "US"
+  },
+  {
+    "input": "XX",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]

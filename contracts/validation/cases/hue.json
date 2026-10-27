@@ -1,0 +1,26 @@
+[
+  {
+    "input": 0,
+    "ok": true,
+    "canonical": 0
+  },
+  {
+    "input": 359,
+    "ok": true,
+    "canonical": 359
+  },
+  {
+    "input": -1,
+    "ok": false,
+    "codes": [
+      "must_be_gte"
+    ]
+  },
+  {
+    "input": 360,
+    "ok": false,
+    "codes": [
+      "must_be_lte"
+    ]
+  }
+]

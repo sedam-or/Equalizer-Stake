@@ -1,0 +1,43 @@
+[
+  {
+    "input": "",
+    "ok": false,
+    "codes": [
+      "required"
+    ]
+  },
+  {
+    "input": "A",
+    "ok": true,
+    "canonical": "A"
+  },
+  {
+    "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ok": true,
+    "canonical": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  {
+    "input": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ok": false,
+    "codes": [
+      "too_long"
+    ]
+  },
+  {
+    "input": "  Test   Person  ",
+    "ok": true,
+    "canonical": "Test Person"
+  },
+  {
+    "input": "A‮B",
+    "ok": false,
+    "codes": [
+      "invalid_characters"
+    ]
+  },
+  {
+    "input": "👩‍💻",
+    "ok": true,
+    "canonical": "👩‍💻"
+  }
+]

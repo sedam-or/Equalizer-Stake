@@ -2,7 +2,7 @@
 id: T-103
 title: Add core crypto (HKDF sub-keys, tenant DEK envelope, field encryption with AAD, blind index, file streams)
 milestone: M1
-status: todo
+status: review
 depends_on: [T-101, T-102]
 spec_refs: [SEC-01, SEC-02, SEC-03, SEC-04]
 estimated_size: M
@@ -70,99 +70,110 @@ pub fn bidx_phone(keys: &Keys, tenant: TenantId, phone: &str, default_region: &s
 | `crates/eq-core/tests/crypto.rs` | the AC names above |
 
 ## Definition of done
-- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
-- [ ] Rust checks pass
-- [ ] Commit `feat(core): envelope encryption and blind indexes [T-103]`, signed off
+- [x] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
+- [x] Rust checks pass
+- [x] Commit `feat(core): envelope encryption and blind indexes [T-103]`, signed off
 
 ## Report
 
-**Plan** — (1) Add the exact task-named crypto, phone-normalization, Unicode-normalization and cache dependencies, and the six AC tests → verify their APIs against the pinned crates and T-101's `Tx`/`tenant_keys`. (2) Implement derived keys with redacted formatting and a version-aware tenant keyring → verify labels, field AAD, rotation and previous-master unwrap. (3) Add blind-index normalization and bounded STREAM framing → verify tenant separation, E.164 output and the 3.5 MiB stream case. This plan is not executed because the required phone-parser dependency currently makes the unchanged supply-chain gate fail.
+**Plan** — (1) Write the six named acceptance tests and database fixture first. (2) Implement HKDF-derived keys and the tenant keyring over T-101's caller transaction, keeping `tenant_keys` SQL in the owner adapter. (3) Implement field/file envelopes, blind-index normalization and phone parsing with the architect-approved `rlibphonenumber` 2. Keep the repository `cargo deny` gate unchanged.
 
-**Assumptions** — None. The dependency contract, schema, cryptographic formats and technical constants are stated by the task and cited specs.
+**Assumptions** — None. SEC-01..04 define the key labels, envelope formats, AAD, stream chunk size and normalization. Fixtures use synthetic values only.
 
 **Test plan** —
-- AC1: Given a tenant with no DEK and an `Aad`, when a field is encrypted and decrypted in tenant transactions, then the original bytes are returned: `crypto::tests::roundtrip`.
-- AC2: Given valid ciphertext, when only `row_id` changes, then authentication fails as `CryptoError::Integrity`: `aad_binding`.
-- AC3: Given first-version ciphertext, when version 2 is inserted, then old ciphertext remains readable and new ciphertext uses version 2: `key_versioning`.
-- AC4: Given a DEK wrapped under master A, when master B is configured with A as the previous key, then it unwraps: `previous_master_unwraps`.
-- AC5: Given equivalent normalized emails, when blind indexes are computed, then same-tenant values match and cross-tenant values differ: `bidx_normalized_and_tenant_scoped`; phone E.164 and invalid input are included.
-- AC6: Given 3.5 MiB of random bytes, when file streaming encrypts and decrypts it, then the bytes match: `stream_roundtrip`.
-- Edges: empty and chunk-boundary streams; old/current versions; malformed headers; missing key; invalid UTF-8; invalid phone; Unicode NFC email.
-- Errors: authentication, framing, missing-key, database and phone-validation errors remain distinguishable.
-- Abuse: row/column/tenant ciphertext swaps, tampering, key debug formatting, and bounded streaming memory.
+- AC1: Given a tenant transaction and AAD, when a field is encrypted and decrypted, then the bytes match → `crypto::tests::roundtrip`.
+- AC2: Given valid field ciphertext, when `row_id` changes, then decryption returns `CryptoError::Integrity` → `crypto::tests::aad_binding`.
+- AC3: Given ciphertext under version 1, when version 2 becomes active, then old and new ciphertexts both decrypt and new writes use version 2 → `crypto::tests::key_versioning`.
+- AC4: Given a DEK wrapped by master A, when master B is configured with previous=A, then it unwraps → `crypto::tests::previous_master_unwraps`.
+- AC5: Given equivalent email inputs, when indexes are computed, then normalization is stable within a tenant and differs across tenants; phone is E.164 → `crypto::tests::bidx_normalized_and_tenant_scoped`.
+- AC6: Given 3.5 MiB of random bytes, when streamed through encrypt/decrypt, then bytes match → `crypto::tests::stream_roundtrip`.
+- Edges/errors: empty and chunk-boundary streams, malformed/truncated headers, tampered fields and streams, invalid phone/region, missing key, previous-master unwrap and rollback.
+- Abuse: tenant/table/column/row AAD swaps, transaction-tenant mismatch, secret `Debug`, cache rollback, and tenant-scoped blind indexes.
 
-**Summary** — Blocked before implementation. The task requires the `phonenumber` crate for SEC-04, but the currently published version's dependency graph includes an unmaintained advisory rejected by the repository's `cargo-deny` policy. No code, dependency or policy change was made.
+**Summary** — Added the `eq_core::crypto` seam for HKDF subkeys, versioned tenant DEKs, AAD-bound field encryption, bounded XChaCha20-Poly1305 STREAM encryption, and tenant-scoped email/phone blind indexes. Secrets use `SecretBox` and zeroization with hand-written redacted `Debug`; PostgreSQL access to `tenant_keys` is isolated in the private crypto repository adapter.
 
-**Spec read** — `spec/10-security-privacy.md` §2 (SEC-01..04); `spec/18-security-by-design.md` §§2, 5.3, 8 (SBD-48..51, SBD-81); `spec/24-open-source-stack.md` §§1–2 (OSS-02/phone parser/crypto); `spec/16-code-quality.md` §§9, 12; `spec/17-clean-architecture.md` §§1, 4, 7; `spec/29-erd.md` §§4–5, 7 (tenant_keys owner and migration); `WORKFLOW.md` §§3–4.
+**Spec read** — `spec/10-security-privacy.md` §2 (SEC-01..04); `spec/18-security-by-design.md` §§2, 5.3, 5.5, 8 (SBD-48..51, SBD-81); `spec/24-open-source-stack.md` §§1–2; `spec/16-code-quality.md` §§9, 12; `spec/17-clean-architecture.md` §§1, 3, 4 (CA-11/30/31); `spec/29-erd.md` §§4–5, 7 (owner/class/migration map); `WORKFLOW.md` §§3–4.
 
-**Files** — Updated only this task file and regenerated `tasks/INDEX.md`; no implementation or dependency files were changed.
+**Files** —
+- Modified `Cargo.lock` and `crates/eq-core/Cargo.toml` for the task's crypto/parser dependencies; workspace `Cargo.toml` already contains `rlibphonenumber = "2"` per the architect resolution.
+- Added `crates/eq-core/src/crypto.rs` and `crates/eq-core/src/crypto/repo.rs` for the crypto seam and owner-scoped SQL adapter; exported the module from `crates/eq-core/src/lib.rs`.
+- Added `crates/eq-core/tests/crypto.rs` with the six named acceptance tests and abuse/cache regressions.
+- Added five `.sqlx/query-*.json` files through `cargo sqlx prepare --workspace`.
+- Updated this task Report/status and regenerated `tasks/INDEX.md`.
+- No migration, API, web source or `deny.toml` change.
 
 **Acceptance criteria → tests**
 | AC | Test | Result |
 |---|---|---|
-| AC1 | `crypto::tests::roundtrip` | Not run: blocked before implementation. |
-| AC2 | `aad_binding` | Not run: blocked before implementation. |
-| AC3 | `key_versioning` | Not run: blocked before implementation. |
-| AC4 | `previous_master_unwraps` | Not run: blocked before implementation. |
-| AC5 | `bidx_normalized_and_tenant_scoped` | Not run: blocked before implementation. |
-| AC6 | `stream_roundtrip` | Not run: blocked before implementation. |
+| AC1 | `crypto::tests::roundtrip` | Passed. |
+| AC2 | `crypto::tests::aad_binding` | Passed; row, tenant, table and column binding regressions also passed. |
+| AC3 | `crypto::tests::key_versioning` | Passed; version 1 remained readable and new writes used version 2. |
+| AC4 | `crypto::tests::previous_master_unwraps` | Passed. |
+| AC5 | `crypto::tests::bidx_normalized_and_tenant_scoped` | Passed; email normalization, tenant separation, E.164 and invalid-phone cases passed. |
+| AC6 | `crypto::tests::stream_roundtrip` | Passed; 3.5 MiB, empty stream and tamper/header cases passed. |
 
 **Checks run** —
-- ✅ `cargo search phonenumber --limit 5` and `cargo info phonenumber` — current crates.io release is `0.3.10+9.0.33`.
-- ✅ `cargo deny check advisories` — passes for the unchanged workspace graph; `phonenumber` is not yet used by a crate and is therefore absent from that graph.
-- ✅ `scripts/tasks-index.sh --check` and `git diff --check` after the blocked status/index update.
-- Not run: Rust implementation/tests, E2E and crypto abuse tests; implementation stopped at the dependency gate.
-- Not run: `cargo sqlx prepare --workspace`; no query was added.
-- Not run: hosted CI; requires GitHub Actions.
+- ✅ `SQLX_OFFLINE=true cargo fmt --all --check`.
+- ✅ `SQLX_OFFLINE=true cargo clippy --workspace --all-targets -- -D warnings` after the repository-adapter move.
+- ✅ `SQLX_OFFLINE=true cargo test --workspace` after the repository-adapter move; all unit, API, CLI, database integration, crypto integration and doc tests passed. T-103 crypto cases: 12/12.
+- ✅ `cargo deny check`; advisories, bans, licenses and sources passed. It reported the existing duplicate `base64` versions and unmatched `CC0-1.0` allowance warning; `deny.toml` was unchanged.
+- ✅ `scripts/check-deps.sh && scripts/check-literals.sh && scripts/check-web-boundaries.sh && scripts/check-layers.sh`.
+- ✅ `env -u SQLX_OFFLINE DATABASE_URL=postgres://eq_app:test-secret-app@localhost:5434/ritma RITMA_DATABASE_OWNER_URL=postgres://eq:test-secret-owner@localhost:5434/ritma cargo sqlx prepare --workspace`; generated the five committed query metadata files against a fresh PostgreSQL 16.15 container.
+- ✅ `env -u SQLX_OFFLINE DATABASE_URL=postgres://eq_app:test-secret-app@localhost:5436/ritma RITMA_DATABASE_OWNER_URL=postgres://eq:test-secret-owner@localhost:5436/ritma cargo sqlx prepare --workspace --check` after moving the same queries into `crypto/repo.rs`.
+- ✅ `E2E_SKIP_DB_START=1 E2E_PLAYWRIGHT_CONTAINER=1 DATABASE_URL=postgres://eq_app:test-secret-app@localhost:5436/ritma RITMA_DATABASE_OWNER_URL=postgres://eq:test-secret-owner@localhost:5436/ritma RITMA_SECRET_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= RITMA_PUBLIC_URL=http://localhost:8080 RITMA_LISTEN=127.0.0.1:8080 RITMA_BACKUP_SCHEDULE=off make e2e`; 6/6 Chromium and mobile WebKit cases passed on the final code.
+- ✅ `scripts/tasks-index.sh --check`, `python3 scripts/erd.py --check`, and `git diff --check`.
+- n/a `python3 scripts/erd.py --migrations`; no migration changed.
+- n/a `make api` and web lint/typecheck/unit/i18n checks; no API or web source changed. `make e2e` did run the production web build and Playwright.
+- Not run: hosted GitHub Actions; it requires the hosted CI environment.
 
-**Manual checks** — Read the current `phonenumber` crate manifest and `postcard` feature declarations. `phonenumber` depends on `postcard` with default features; `postcard` defaults to `heapless-cas`, which brings `heapless 0.7.17` and `atomic-polyfill 1.0.3`. `deny.toml` sets `unmaintained = "all"`, so introducing that graph conflicts with the enforced security gate. `cargo info phonenumber` confirms no newer release is currently published.
+**Manual checks** — The crypto integration suite used ten fresh PostgreSQL 16 `TestDb::new()` containers for its DB-backed tests; the two pure tests did not need a database. SQLx metadata was generated on a separate fresh PostgreSQL 16.15 container at port 5434. The final browser run used fresh PostgreSQL 16.15 container `ritma-t103-final-20261027` at port 5436, applied the current migrations, seeded one synthetic `Test School` tenant using the same fixture shape as the repository's existing tenant tests, and passed 6/6 cases. That container was stopped and removed. `EXPLAIN (ANALYZE, BUFFERS)` on synthetic, rolled-back rows measured the active-key lookup at 0.195 ms, next-version lookup at 0.071 ms, and exact-version lookup at 0.033 ms.
 
-**Debug log** — Blocker analysis found no permitted dependency configuration that removes the transitive advisory without changing the pinned parser's source, selecting an unlisted parser, or suppressing the repository's all-unmaintained policy. The listed alternatives need an architect/spec decision; implementation was not started.
+**Debug log** — The first rollback regression run exposed that a DEK created inside an uncommitted transaction could enter the shared cache; cache insertion now checks `xmin` against the current transaction id, and the rollback regression passes. An early offline Clippy attempt lacked SQLx metadata; regenerated metadata from a disposable migrated database, verified it with `cargo sqlx prepare --workspace --check`, then offline Clippy passed. The first `make e2e` run on a fresh but unprovisioned DB passed both health checks and got 503 `setup_required` for four SPA requests; after seeding the existing synthetic tenant fixture shape, the rerun passed 6/6. The first migration launches also exposed required fake `RITMA_SECRET_KEY` and `RITMA_PUBLIC_URL` configuration; the migration succeeded after supplying the full Makefile E2E settings.
 
-**Performance** — n/a; no implementation was written.
+**Performance** — `EXPLAIN (ANALYZE, BUFFERS)` on synthetic, rolled-back rows measured active-key lookup 0.195 ms, next-version lookup 0.071 ms, and exact-version lookup 0.033 ms. STREAM buffers are bounded to the task's 1 MiB chunks and zeroized; the 3.5 MiB test passed.
 
-**Security** — Trigger T4: cryptographic keys and S2/S3 data. No crypto code was written and no security control was weakened. No abuse test can run until the dependency contract is resolved. The existing advisory policy remains unchanged.
+**Security** — Triggers T3 (S2/S3) and T4 (crypto/keys). SBD-81: (1) no HTTP handler or permission chain is added; (2) tenant comes from the caller's `Tx`, `app.tenant_id` is verified, and every repository query filters `tenant_id`; `tenant_keys` has no RLS by ERD-04 and is accessed through `eq_core::crypto`; (3) S3 master-derived keys and DEKs use `SecretBox<Zeroizing<_>>`, have manual redacted `Debug`, and are never serialized, logged or returned; (4) phone and region input are validated, stream framing is bounded, and malformed input is rejected; (5) no UI/API output is introduced; (6) AES-GCM field AAD, XChaCha STREAM and HMAC blind indexes stay inside `eq_core::crypto`; (7) no external call; (8) no business aggregate transition is added; first-DEK provisioning remains inside the caller transaction; (9) key rotation is owned by T-705 and no event name was invented here; (10) abuse tests cover AAD swaps, tampering, tenant mismatch, secret formatting and rollback cache poisoning. Test fixtures contain only synthetic values.
 
-**Deviations** — RATIFY: (1) complete the `FieldCipher` API through a `Keyring` and caller `Tx` because the Scope's free-function sketches lack the DB/key context required by its declared trait; add the file and manifest paths derived from Scope/Tests because the task omitted a Files table; (2) key the cache by `(tenant_id, key_version)` so AC3 can retain old and current DEKs; (3) use `SecretBox` with hand-written redacting `Debug` for all key-bearing structs per SBD-50. The task remains blocked independently on the phone-parser dependency question below.
+**Deviations** — RATIFY: (1) the task's free-function sketches omit database/keyring context and its Files table is missing; implement the operations as `Keyring` methods over the caller's `Tx`, place table SQL in private `crypto/repo.rs` per CA-30, and include the manifest/test/adapter paths required by Scope and architecture; (2) key the cache by `(tenant_id, key_version)` so AC3 keeps old and current DEKs readable; (3) use `SecretBox` with hand-written redacting `Debug` for key-bearing structs per SBD-50. The run-6 phone-parser question is resolved by the architect's `rlibphonenumber` 2 decision; no advisory exception was added. The initial key bootstrap does not create a domain event; SBD-53 explicitly assigns key rotation audit to the rotation flow, and no creation event is specified.
 
-**Dependencies affected** — T-110 depends on T-103. Other tasks remain ordered by their declared dependencies.
+**Dependencies affected** — T-110 can use `bidx_email`, `bidx_phone`, `normalize_email`, `normalize_phone` and the derived `Keys`; T-705 owns key rotation and must account for DEKs that still unwrap only with the previous KEK.
 
-**Rollback plan** — Revert the task-status/question/report commit and regenerate the index. No migration or source change exists.
+**Rollback plan** — Revert the single T-103 commit, which removes the crypto source/repository adapter/tests/dependencies and SQLx metadata. No migration or persistent schema change was introduced; disposable databases were removed.
 
-**Follow-ups** — Architect must resolve the phone-parser/supply-chain conflict before T-103 or dependent tasks can introduce `phonenumber` while keeping `cargo-deny` green.
+**Follow-ups** — Architect review of the three RATIFY choices above. Review whether lazy first-DEK initialization needs a named audit event; no event name was invented because SEC-02/SBD-53 do not define one for initial creation. T-101's default privileges let `eq_app` access `tenant_keys` directly even though ERD-04 says access only through `core::crypto`; assess a database-level restriction in the T-101-owned policy/migration scope. Reconcile the generic `phonenumber` mention in `spec/22` with the resolved `rlibphonenumber` contract without editing the spec in this task. Verify T-705 rewraps previous-master DEKs before retiring the old KEK. Review the approximate CQ-101 PR-size overage (1,090 lines across the new crypto source, SQL adapter and acceptance tests; lockfiles are excluded). Retain the known full-history gitleaks false positive at `Makefile:80` for maintainer review; the staged scan is recorded after final staging.
 
-**Step 0 — Start** — Started on clean `milestone/m1-core` at `5ea488f`; `scripts/tasks-index.sh --check` passed. T-101 and T-102 were both `review`, so T-103 was the lowest-ID eligible task. Set T-103 to `in_progress` and regenerated the index.
+**Step 0 — Start** — Resumed on `milestone/m1-core` at `513576f` with T-103 in progress and its implementation WIP present; T-101 and T-102 were `review`. Read the current Run Log, checked the index, and kept all task work on the milestone branch.
 
-**Step 1 — Task and spec** — Read the complete task and the cited SEC-01..04 requirements, including cryptographic formats, key labels, 1 MiB stream size and required parser. Read mandatory CQ-16, CA-17 and SBD-81 guidance.
+**Step 1 — Task and spec** — Read the complete T-103 task, its resolved parser contract and historical Questions, SEC-01..04, SBD-48..51/81, CQ-11/12/42/101, CA-11/30/31 and the ERD owner/class map.
 
-**Step 2 — Dependencies** — Read the full T-101 and T-102 Reports, including their RATIFY items and Follow-ups, plus the shipped tenant key schema, `Tx`, configuration secrets, validated types and dependency manifests. T-101's tenant_keys DDL is S3, has no RLS and is owned by `core::crypto`; T-102 contributes no crypto API. The prior reports' unrelated follow-ups do not change this contract.
+**Step 2 — Dependencies** — Read the T-101 and T-102 Reports (including RATIFY items and Follow-ups), T-101's `tenant_keys` DDL/privileges, T-102's validated types, the caller `Tx`, and the shipped config secret wrappers. The table is core-crypto-owned, has no RLS, and the app role's default DML grant is a human follow-up.
 
 **Step 3 — Design reference** — n/a; backend crypto task.
 
-**Step 4 — Plan and test plan** — Recorded above before implementation. Tests are mapped to every AC, edge, error and abuse case.
+**Step 4 — Plan and test plan** — Recorded above before implementation. Each AC maps to its exact named test; error, edge and abuse cases are listed.
 
-**Step 5 — Implement** — n/a; blocked before implementation by the required dependency conflict.
+**Step 5 — Implement** — Added HKDF key derivation, redacted secret wrappers, a versioned tenant keyring, AAD-bound field crypto, STREAM file crypto, blind indexes and phone normalization. Kept all production `tenant_keys` SQL in the private `crypto/repo.rs` adapter and added the AC/abuse tests.
 
-**Step 6 — Run locally** — n/a; no runtime behavior was implemented.
+**Step 6 — Run locally** — Ran the final workspace suite and `make e2e` against disposable PostgreSQL 16 databases. The crypto suite passed 12/12; final browser run passed 6/6 after seeding the synthetic tenant fixture.
 
-**Step 7 — Debug loop** — n/a; no implementation failure. The dependency tree was checked against the repository's enforced advisory policy.
+**Step 7 — Debug loop** — Corrected the rollback cache bug, refreshed SQLx metadata for offline compilation, and seeded the expected fake tenant after the first fresh-database E2E correctly returned `setup_required`. No application code or security gate was weakened.
 
-**Step 8 — Self code review** — n/a; no source diff.
+**Step 8 — Self code review** — Reviewed CA-30 repository placement, tenant scoping, AAD components, secret zeroization/redaction, parameterized SQL, rollback behavior, error mapping and bounded stream framing. No `#[allow]`, schema change or out-of-scope source path was added.
 
-**Step 9 — Optimize** — n/a; no code or query.
+**Step 9 — Optimize** — Measured the three tenant-key queries with `EXPLAIN (ANALYZE, BUFFERS)` over synthetic rolled-back rows; results are recorded under Performance. STREAM remains bounded by the required 1 MiB chunk.
 
-**Step 10 — Security audit** — Reviewed the SBD-81 crypto and supply-chain controls. No crypto change exists to audit; the advisory gate was not weakened.
+**Step 10 — Security audit** — Completed the SBD-81 crypto/tenant review above. Tests cover AAD swaps, tampering, transaction tenant mismatch, secret formatting and rollback cache poisoning. No real secrets or personal data were added.
 
-**Step 11 — Revise and verify** — n/a; no implementation to revise. The task index and whitespace checks pass after recording the blocker.
+**Step 11 — Revise and verify** — Final Rust format, Clippy and workspace tests passed after the repository-adapter move; SQLx check, cargo-deny, guard scripts, ERD/index checks, staged gitleaks and E2E are listed above.
 
-**Step 12 — Report, commit** — Blocker question recorded with options and recommendation; status set to `blocked`; index regenerated. The signed-off task blocker commit is pushed on `milestone/m1-core`.
+**Step 12 — Report, commit** — Set status to `review`, regenerated the index, and committed the implementation, tests, SQLx metadata and Report in one signed-off T-103 commit on `milestone/m1-core`.
 
 ## Questions
-- **Self-resolved (implementer, run 6, needs architect ratification):** The Scope lists field decrypt and stream helpers without DB transaction/keyring context, while the declared `FieldCipher` trait requires `&mut Tx`; it also omits source, manifest and test paths from a Files table → expose operations as `Keyring` methods using the declared transaction shape and list only paths directly required by Scope/Tests, because key lookup must use the caller's transaction and no global keyring is specified.
+- **Self-resolved (implementer, run 6, needs architect ratification):** The Scope lists field decrypt and stream helpers without DB transaction/keyring context, while the declared `FieldCipher` trait requires `&mut Tx`; it also omits source, manifest and test paths from a Files table → expose operations as `Keyring` methods using the caller's transaction, keep `tenant_keys` SQL in private `crypto/repo.rs` per CA-30, and include the paths required by Scope/Tests/architecture, because key lookup needs the caller transaction and no global keyring is specified.
 - **Self-resolved (implementer, run 6, needs architect ratification):** The cache is described as per-tenant, but AC3 requires an old ciphertext to decrypt after a new active DEK version is inserted → cache each `(tenant_id, key_version)` entry under that tenant so old and new keys coexist for the stated TTL.
 - **Self-resolved (implementer, run 6, needs architect ratification):** The interface's `Zeroizing` key arrays need a secret-safe public boundary → wrap key material in `secrecy::SecretBox` (and DEKs in `SecretBox<Zeroizing<[u8; 32]>>`) with hand-written redacting `Debug`, following the pre-authorised SBD-50 correction.
 - **Resolved (architect, 2026-10-27):** Q1 — option (c), as recommended: `phonenumber` is replaced by `rlibphonenumber` 2 (Apache-2.0, maintained libphonenumber port). Probed with the repository `deny.toml`: advisories, bans and licenses pass; the gate is unchanged and no exception is added. Spec 10, 22 and 24 are updated. In the workspace `Cargo.toml` remove `phonenumber` and add `rlibphonenumber = "2"`. API: `rlibphonenumber::PHONE_NUMBER_UTIL.parse(input, Some(region))` returns a `PhoneNumber`; `is_valid()`; `format_as(PhoneNumberFormat::E164)`. `region` is `rlibphonenumber::enums::Region`, built from the tenant's ISO alpha-2 country (a `Region` has no string constructor, so convert through a small private mapping from the alpha-2 code; an unknown code is a validation error, not a panic). Letters (vanity numbers) stay rejected, as before.
-- **Q1 (blocking):** How should T-103 use SEC-04's required phone parser while keeping the repository's `cargo-deny` unmaintained-advisory gate green, given the current `phonenumber` release pulls an unmaintained transitive crate?
+- **Q1 (resolved by architect; historical):** How should T-103 use SEC-04's required phone parser while keeping the repository's `cargo-deny` unmaintained-advisory gate green, given the current `phonenumber` release pulls an unmaintained transitive crate?
   - Context: `cargo info phonenumber` reports current release `0.3.10+9.0.33`; its manifest depends on `postcard` with default features, which enables `heapless-cas` and pulls `heapless 0.7.17` → `atomic-polyfill 1.0.3` (RUSTSEC-2023-0089). `deny.toml` sets `unmaintained = "all"`. This dependency is required by SEC-04/spec 24 and cannot be introduced without making the security gate fail.
   - Options: (a) add an advisory exception or relax the gate, which violates AGENTS §4 and SEC-22; (b) vendor/patch the parser or its transitive dependency to disable the unused default feature, which changes the approved dependency source and requires an explicit maintenance/security decision; (c) update spec 24 to name a maintained parser or wait for a published `phonenumber` release with a clean dependency graph.
   - Recommendation: (c), because it preserves the security gate and the task's specified dependency contract.
