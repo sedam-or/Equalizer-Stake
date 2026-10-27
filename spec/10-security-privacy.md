@@ -43,7 +43,7 @@ This document lists the **controls** the product has. How every change is design
 
 **SEC-04. Blind indexes and plaintext display names.**
 - `email_bidx` / `phone_bidx` = `HMAC-SHA256(HKDF(bidx_base, tenant_id), normalized_value)[0..16]`.
-- Normalisation: email is trimmed, lowercased and NFC. Phone is E.164 via `phonenumber` with the tenant country as default region.
+- Normalisation: email is trimmed, lowercased and NFC. Phone is E.164 via `rlibphonenumber` with the tenant country as default region.
 - **Trade-off (documented, accepted):** `display_name` is plaintext so that search, sorting and lists stay practical. It holds the name the school uses day to day (e.g. "Ayu S."). The full legal name, contacts and birth date are encrypted. The privacy notice states this.
 
 **SEC-05. Database roles and RLS.**
