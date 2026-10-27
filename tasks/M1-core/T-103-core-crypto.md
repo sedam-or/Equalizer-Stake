@@ -2,7 +2,7 @@
 id: T-103
 title: Add core crypto (HKDF sub-keys, tenant DEK envelope, field encryption with AAD, blind index, file streams)
 milestone: M1
-status: blocked
+status: todo
 depends_on: [T-101, T-102]
 spec_refs: [SEC-01, SEC-02, SEC-03, SEC-04]
 estimated_size: M
@@ -19,7 +19,7 @@ Any module can encrypt and decrypt PII fields and files for a tenant, and comput
   - AAD = `"{tenant_id}|{table}|{column}|{row_id}"`.
   - The current version is the max with `retired_at IS NULL`.
 - SEC-03: file encryption uses the same DEK and STREAM construction (`aead::stream::EncryptorBE32` with XChaCha20Poly1305 or AES-GCM-SIV; choose `chacha20poly1305::XChaCha20Poly1305` STREAM BE32) with 1 MiB chunks. The header is `0x02 || key_version || nonce_prefix(19)`.
-- SEC-04: `bidx(tenant, kind, normalized) = HMAC-SHA256(key = HKDF(bidx_base, info = tenant_id bytes), msg = kind || 0x00 || normalized)[0..16]`. `kind` is `"email"` or `"phone"`. Normalisation: email is trimmed, lowercased and NFC (crate `unicode-normalization`). Phone is parsed with `phonenumber` using the tenant country (ISO alpha-2) as default region and formatted as E.164. An invalid phone is a validation error.
+- SEC-04: `bidx(tenant, kind, normalized) = HMAC-SHA256(key = HKDF(bidx_base, info = tenant_id bytes), msg = kind || 0x00 || normalized)[0..16]`. `kind` is `"email"` or `"phone"`. Normalisation: email is trimmed, lowercased and NFC (crate `unicode-normalization`). Phone is parsed with `rlibphonenumber` (`PHONE_NUMBER_UTIL.parse(input, Some(region))`, `region` from the tenant country, ISO alpha-2) and formatted as E.164. An invalid phone is a validation error.
 
 ## Scope
 ### In
@@ -161,6 +161,7 @@ pub fn bidx_phone(keys: &Keys, tenant: TenantId, phone: &str, default_region: &s
 - **Self-resolved (implementer, run 6, needs architect ratification):** The Scope lists field decrypt and stream helpers without DB transaction/keyring context, while the declared `FieldCipher` trait requires `&mut Tx`; it also omits source, manifest and test paths from a Files table → expose operations as `Keyring` methods using the declared transaction shape and list only paths directly required by Scope/Tests, because key lookup must use the caller's transaction and no global keyring is specified.
 - **Self-resolved (implementer, run 6, needs architect ratification):** The cache is described as per-tenant, but AC3 requires an old ciphertext to decrypt after a new active DEK version is inserted → cache each `(tenant_id, key_version)` entry under that tenant so old and new keys coexist for the stated TTL.
 - **Self-resolved (implementer, run 6, needs architect ratification):** The interface's `Zeroizing` key arrays need a secret-safe public boundary → wrap key material in `secrecy::SecretBox` (and DEKs in `SecretBox<Zeroizing<[u8; 32]>>`) with hand-written redacting `Debug`, following the pre-authorised SBD-50 correction.
+- **Resolved (architect, 2026-10-27):** Q1 — option (c), as recommended: `phonenumber` is replaced by `rlibphonenumber` 2 (Apache-2.0, maintained libphonenumber port). Probed with the repository `deny.toml`: advisories, bans and licenses pass; the gate is unchanged and no exception is added. Spec 10, 22 and 24 are updated. In the workspace `Cargo.toml` remove `phonenumber` and add `rlibphonenumber = "2"`. API: `rlibphonenumber::PHONE_NUMBER_UTIL.parse(input, Some(region))` returns a `PhoneNumber`; `is_valid()`; `format_as(PhoneNumberFormat::E164)`. `region` is `rlibphonenumber::enums::Region`, built from the tenant's ISO alpha-2 country (a `Region` has no string constructor, so convert through a small private mapping from the alpha-2 code; an unknown code is a validation error, not a panic). Letters (vanity numbers) stay rejected, as before.
 - **Q1 (blocking):** How should T-103 use SEC-04's required phone parser while keeping the repository's `cargo-deny` unmaintained-advisory gate green, given the current `phonenumber` release pulls an unmaintained transitive crate?
   - Context: `cargo info phonenumber` reports current release `0.3.10+9.0.33`; its manifest depends on `postcard` with default features, which enables `heapless-cas` and pulls `heapless 0.7.17` → `atomic-polyfill 1.0.3` (RUSTSEC-2023-0089). `deny.toml` sets `unmaintained = "all"`. This dependency is required by SEC-04/spec 24 and cannot be introduced without making the security gate fail.
   - Options: (a) add an advisory exception or relax the gate, which violates AGENTS §4 and SEC-22; (b) vendor/patch the parser or its transitive dependency to disable the unused default feature, which changes the approved dependency source and requires an explicit maintenance/security decision; (c) update spec 24 to name a maintained parser or wait for a published `phonenumber` release with a clean dependency graph.

@@ -2,7 +2,7 @@
 id: T-102a
 title: Add field kinds, text sanitisers, limits and the ValidatedJson/ValidatedQuery extractors
 milestone: M1
-status: blocked
+status: todo
 depends_on: [T-002, T-102]
 spec_refs: [VAL-03, VAL-04, VAL-05, VAL-06, VAL-07, VAL-10, VAL-11, VAL-12, VAL-18, VAL-19, VAL-20, VAL-21, VAL-31, VAL-40, VAL-41, VAL-50, CAN-10, CAN-21, CAN-22, CAN-32, CAN-33, SBD-20, SBD-44, ERR-31, OSS-02]
 estimated_size: M
@@ -19,7 +19,7 @@ Every request field in Ritma is parsed through one shared set of **field kinds**
   - `multiline`: like `line`, but `\r\n`/`\r` → `\n`, tab → space, collapse runs within a line, trim line ends, ≥ 3 blank lines → 2, trim the whole text.
   - `identifier`: NFC, trim, no internal whitespace, case unchanged, then the kind's pattern.
   - `email`: NFC, trim, drop one trailing `.` on the domain, lowercase all, `email_address` (no quoted local part, no IP literal, domain has a dot), ≤ 254 total, local ≤ 64.
-  - `phone`: trim, `phonenumber::parse(Some(ctx.country), s)`, `is_valid()`, output E.164; letters rejected.
+  - `phone`: trim, `PHONE_NUMBER_UTIL.parse(s, Some(region))` (`region` from `ctx.country`), `is_valid()`, output E.164 via `format_as(PhoneNumberFormat::E164)`; letters rejected.
   - `secret`: NFKC only; no trim; reject C0 controls; never echo the value or put it in `params`.
 - **Forbidden characters** (VAL-12, all profiles except `secret`): C0 except `\n` in multiline, DEL, C1, U+202A–U+202E, U+2066–U+2069, noncharacters (U+FDD0–U+FDEF and U+xFFFE/U+xFFFF), private use (U+E000–U+F8FF, planes 15–16), more than 8 consecutive combining marks. LRM/RLM allowed in `line`/`multiline`, stripped in `identifier`/`email`.
 - **Canonical forms** (CAN-10): `Id` lowercase hyphenated UUID only; `Instant` RFC 3339 **with offset** (missing offset rejected), ≤ 6 fractional digits; `LocalDate` `YYYY-MM-DD`; `Geo` rounded to 6 decimals; booleans only `true`/`false` (also in query strings); `Money` within ±10^15 (`MONEY_MAX_ABS_MINOR`, technical).
@@ -53,7 +53,7 @@ Every request field in Ritma is parsed through one shared set of **field kinds**
 | `crates/eq-core/src/errors.rs` | modify | field code registry |
 | `contracts/validation/cases/*.json` | create | shared parity cases |
 | `Cargo.toml` | modify | central workspace dependency declarations per CQ-27 |
-| `crates/eq-core/Cargo.toml` | modify | use the workspace `nutype`, `unicode-normalization`, `email_address`, `phonenumber`, `serde_path_to_error`, `axum-extra` (query), and `celes` dependencies |
+| `crates/eq-core/Cargo.toml` | modify | use the workspace `nutype`, `unicode-normalization`, `email_address`, `rlibphonenumber`, `serde_path_to_error`, `axum-extra` (query), and `celes` dependencies |
 
 ## Interfaces
 ```rust
@@ -245,6 +245,7 @@ None. All limits here are technical (`// technical:`) or come from the DDL. Poli
 - **Self-resolved (implementer, run 4, needs architect ratification):** AC2 requires source body-key ordering, while the specified DTO plus `Collector::field` interface retains only the adapter's later call order → define the returned error order as `Collector` invocation order and test that contract; source key order cannot be recovered after DTO deserialization without changing the interface (VAL-04).
 - **Self-resolved (implementer, run 4, needs architect ratification):** The generic `Raw<K>`/`Password` path carries a secret although only the profile behavior is specified → use secrecy-backed input/output wrappers with hand-written redacted `Debug` and no `Clone`/`Serialize`/plain `Debug` derive (SBD-50).
 - **Self-resolved (implementer, run 4, needs architect ratification):** The task lists only `crates/eq-core/Cargo.toml` for new dependencies, while CQ-27 requires a single workspace dependency declaration → add those declarations to the workspace `Cargo.toml` and reference them with `.workspace = true` in `eq-core` (CQ-27).
+- **Resolved (architect, 2026-10-27):** Q1 — option (a): `phonenumber` is replaced by `rlibphonenumber` 2 (Apache-2.0, maintained libphonenumber port). Probed with the repository `deny.toml`: advisories, bans and licenses pass; the gate is unchanged and no exception is added. Spec 10, 22 and 24 are updated. In the workspace `Cargo.toml` remove `phonenumber` and add `rlibphonenumber = "2"`. API: `rlibphonenumber::PHONE_NUMBER_UTIL.parse(input, Some(region))` returns a `PhoneNumber`; `is_valid()`; `format_as(PhoneNumberFormat::E164)`. `region` is `rlibphonenumber::enums::Region`, built from the tenant's ISO alpha-2 country (a `Region` has no string constructor, so convert through a small private mapping from the alpha-2 code; an unknown code is a validation error, not a panic). Letters (vanity numbers) stay rejected, as before.
 - **Q1 (blocking):** How should T-102a use the task-mandated `phonenumber` parser while keeping the required `cargo deny check` green when its published build dependency brings in `atomic-polyfill 1.0.3` (RUSTSEC-2023-0089)?
   - Context: `spec/24-open-source-stack.md` OSS-02 and this task require `phonenumber`; `cargo tree --target all -e normal,build -i atomic-polyfill` traces it through `phonenumber` → build dependency `postcard` → `heapless 0.7.17` → `atomic-polyfill`. `deny.toml` sets `unmaintained = "all"`; `cargo deny check` fails advisories. `cargo audit` exits successfully but reports the same unmaintained advisory as a warning. Removing it by ignoring the advisory would weaken the security gate.
   - Options: (a) update OSS-02 and this task to a maintained phone-number parser whose dependency tree passes the existing advisory policy; (b) identify and approve a compatible upstream release/patch that removes the build-time chain while preserving the required parser contract.
