@@ -46,6 +46,8 @@ type SecretKey = SecretBox<Zeroizing<[u8; KEY_BYTES]>>;
 type CachedDek = Arc<SecretKey>;
 type HmacSha256 = Hmac<Sha256>;
 
+mod repo;
+
 /// SEC-01, SBD-50: master-derived keys are zeroized on drop and redacted on Debug.
 pub struct Keys {
     pub jwt: SecretKey,
@@ -350,54 +352,19 @@ impl Keyring {
     }
 
     async fn current_dek(&self, tx: &mut Tx, tenant: TenantId) -> Result<(i32, CachedDek), CryptoError> {
-        if let Some(row) = sqlx::query!(
-            "SELECT key_version FROM tenant_keys \
-             WHERE tenant_id = $1 AND retired_at IS NULL \
-             ORDER BY key_version DESC LIMIT 1 FOR UPDATE",
-            tenant.0
-        )
-        .fetch_optional(tx.conn())
-        .await?
-        {
-            return Ok((
-                row.key_version,
-                self.dek_for_version(tx, tenant, row.key_version).await?,
-            ));
+        if let Some(version) = repo::current_version(tx, tenant).await? {
+            return Ok((version, self.dek_for_version(tx, tenant, version).await?));
         }
 
         let mut raw_dek = Zeroizing::new([0_u8; KEY_BYTES]);
         OsRng.fill_bytes(raw_dek.as_mut());
         let wrapped = wrap_dek(&self.keys, &raw_dek)?;
-        let row = sqlx::query!(
-            "SELECT COALESCE(MAX(key_version), 0) + 1 AS \"next_version!\" \
-             FROM tenant_keys WHERE tenant_id = $1",
-            tenant.0
-        )
-        .fetch_one(tx.conn())
-        .await?;
-        let next = row.next_version;
-        sqlx::query!(
-            "INSERT INTO tenant_keys (tenant_id, key_version, dek_enc) \
-             VALUES ($1, $2, $3) ON CONFLICT (tenant_id, key_version) DO NOTHING",
-            tenant.0,
-            next,
-            wrapped.as_slice()
-        )
-        .execute(tx.conn())
-        .await?;
+        let next = repo::next_version(tx, tenant).await?;
+        repo::insert_key(tx, tenant, next, wrapped.as_slice()).await?;
 
-        let Some(row) = sqlx::query!(
-            "SELECT key_version FROM tenant_keys \
-             WHERE tenant_id = $1 AND retired_at IS NULL \
-             ORDER BY key_version DESC LIMIT 1 FOR UPDATE",
-            tenant.0
-        )
-        .fetch_optional(tx.conn())
-        .await?
-        else {
+        let Some(active_version) = repo::current_version(tx, tenant).await? else {
             return Err(CryptoError::Operation);
         };
-        let active_version = row.key_version;
         let active_dek = self.dek_for_version(tx, tenant, active_version).await?;
         Ok((active_version, active_dek))
     }
@@ -415,22 +382,12 @@ impl Keyring {
         if let Some(dek) = self.cache.get(&cache_key).await {
             return Ok(dek);
         }
-        let Some(row) = sqlx::query!(
-            "SELECT dek_enc, \
-                    xmin::text::bigint = (txid_current() % $3) AS \"uncommitted!\" \
-             FROM tenant_keys WHERE tenant_id = $1 AND key_version = $2",
-            tenant.0,
-            version,
-            POSTGRES_XID_MODULUS
-        )
-        .fetch_optional(tx.conn())
-        .await?
-        else {
+        let Some((dek_enc, uncommitted)) = repo::wrapped_key(tx, tenant, version).await? else {
             return Err(CryptoError::Integrity);
         };
-        let unwrapped = unwrap_dek(&self.keys, &row.dek_enc)?;
+        let unwrapped = unwrap_dek(&self.keys, &dek_enc)?;
         let dek = Arc::new(SecretBox::new(Box::new(unwrapped)));
-        if !row.uncommitted {
+        if !uncommitted {
             self.cache.insert(cache_key, Arc::clone(&dek)).await;
         }
         Ok(dek)
@@ -531,11 +488,9 @@ fn blind_index(
 }
 
 async fn ensure_tx_tenant(tx: &mut Tx, tenant: TenantId) -> Result<(), CryptoError> {
-    let row = sqlx::query!("SELECT NULLIF(current_setting('app.tenant_id', true), '') AS current_tenant")
-        .fetch_one(tx.conn())
-        .await?;
+    let current_tenant = repo::transaction_tenant(tx).await?;
     let expected = tenant.0.to_string();
-    if row.current_tenant.as_deref() != Some(expected.as_str()) {
+    if current_tenant.as_deref() != Some(expected.as_str()) {
         return Err(CryptoError::TenantMismatch);
     }
     Ok(())
