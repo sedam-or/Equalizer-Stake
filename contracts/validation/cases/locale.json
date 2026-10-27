@@ -1,0 +1,19 @@
+[
+  {
+    "input": "id-ID",
+    "ok": true,
+    "canonical": "id"
+  },
+  {
+    "input": "EN",
+    "ok": true,
+    "canonical": "en"
+  },
+  {
+    "input": "fr",
+    "ok": false,
+    "codes": [
+      "not_allowed"
+    ]
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "input": [
+      "0192f3a4-1234-5678-9abc-def012345678"
+    ],
+    "ok": true,
+    "canonical": [
+      "0192f3a4-1234-5678-9abc-def012345678"
+    ]
+  },
+  {
+    "input": [],
+    "ok": true,
+    "canonical": []
+  },
+  {
+    "input": [
+      "bad-id"
+    ],
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  },
+  {
+    "input": [
+      "0192f3a4-1234-5678-9abc-def012345678",
+      "0192f3a4-1234-5678-9abc-def012345678"
+    ],
+    "ok": false,
+    "codes": [
+      "not_unique"
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "input": "idr",
+    "ok": true,
+    "canonical": "IDR"
+  },
+  {
+    "input": "USD",
+    "ok": false,
+    "codes": [
+      "not_allowed"
+    ]
+  },
+  {
+    "input": "ZZZ",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]
