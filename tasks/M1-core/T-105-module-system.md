@@ -100,9 +100,9 @@ Dependency table (MOD-03):
 | `crates/eq-api/tests/registry.rs` | `registry_graph_valid`, `registry_order_matches_enum` |
 
 ## Definition of done
-- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
-- [ ] Rust checks pass; `scripts/check-deps.sh` passes (stub crates must respect the layering)
-- [ ] Commit `feat(core): module system and runtime gating [T-105]`, signed off
+- [x] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
+- [x] Rust checks pass; `scripts/check-deps.sh` passes (stub crates must respect the layering)
+- [x] Commit `feat(core): module system and runtime gating [T-105]`, signed off
 
 ## Report
 
@@ -127,7 +127,7 @@ Dependency table (MOD-03):
 
 **Spec read** — `spec/03-module-system.md` §§2–5; `spec/02-architecture.md` ARC-03/07/08/09; `spec/16-code-quality.md` §§9/12; `spec/17-clean-architecture.md` §§3–4/7; `spec/18-security-by-design.md` §§2/4/7–8; `spec/19-error-handling.md` §§2/4; `spec/24-open-source-stack.md` §§2/6; `spec/29-erd.md` §§4–5/7. Read T-104's Report and shipped TenantCtx, resolver and request gate before implementation.
 
-**Files** — Implemented the paths listed in Files, including the shared AppState move, module contracts and ports, gate/cache/repository/service, module stubs, API registry tests, sink doubles, and SQLx metadata. Updated only this task's Report/Questions and generated `tasks/INDEX.md`. Removed one unfulfilled `clippy::expect_used` expectation from the cache-race test after the strict lint gate identified it. No migration, web source, spec, or other task file changed.
+**Files** — Implemented the paths listed in Files, including the shared AppState move, module contracts and ports, gate/cache/repository/service, module stubs, API registry tests, sink doubles, and SQLx metadata. Added the serialized cache miss/invalidation lock and the cross-tenant RLS integration test. This report is being corrected in a follow-up documentation commit; no migration, web source, spec, or other task file changed.
 
 **Acceptance criteria → tests**
 | AC | Test | Result |
@@ -139,34 +139,39 @@ Dependency table (MOD-03):
 | AC5 | `gate_invalidated_by_notify` | Passed against PostgreSQL 16 |
 | AC6 | `toggle_audits_and_emits` | Passed; sink doubles record each changed module |
 | Registry | `registry_graph_valid`, `registry_order_matches_enum` | Both passed |
-| Cache race | `cache_miss_racing_invalidation_cannot_reinsert_stale_state` | Passed after lint annotation cleanup |
+| Tenant isolation (abuse) | `tenant_modules_are_isolated_under_rls` | Passed with an `eq_app` connection; a tenant cannot read the other tenant's module state |
+| Cache race | `cache_miss_racing_invalidation_cannot_reinsert_stale_state` | Passed; invalidation is serialized with cache fills so stale state is not reinserted |
 
 **Checks run** —
-- ✅ `RITMA_TEST_DATABASE_URL=<disposable PostgreSQL 16 URL> cargo test --workspace` — 149 passed, 0 failed, including database integrations and all T-105 tests.
-- ✅ `cargo test -p eq-core --lib module::gate::tests` — 2 passed; `cargo test -p eq-api --test registry` — 2 passed after the final lint-only edit.
-- ✅ `make lint` — format, strict Clippy, web lint/typecheck/build, dependency and boundary/layer guards passed.
+- ✅ `cargo fmt --all --check`.
+- ✅ `SQLX_OFFLINE=true cargo clippy --workspace --all-targets -- -D warnings`.
+- ✅ `env RITMA_TEST_DATABASE_URL=postgres://postgres:test-secret-suite@127.0.0.1:32769/postgres SQLX_OFFLINE=true cargo test --workspace -- --test-threads=1` — 151 passed, 0 failed: 15 `eq-api`, 126 `eq-core`, 5 `eq-server`, and 5 `eq-testkit` tests. Database tests used disposable PostgreSQL 16 containers.
+- ✅ `cargo test -p eq-core --lib cache_miss_racing_invalidation_cannot_reinsert_stale_state` — 1 passed.
+- ✅ `RITMA_TEST_DATABASE_URL=postgres://eq_app:test-secret-app@127.0.0.1:32769/postgres SQLX_OFFLINE=true cargo test -p eq-core --test module_gate tenant_modules_are_isolated_under_rls -- --exact` — 1 passed with the non-superuser `eq_app` role.
 - ✅ `cargo deny check` — exit 0; advisories, bans, licenses, and sources passed. It reports duplicate `base64` lock entries and the existing unmatched `CC0-1.0` license warning; deny configuration was unchanged.
-- ✅ `DATABASE_URL=<disposable PostgreSQL URL> SQLX_OFFLINE=false cargo sqlx prepare --workspace -- --all-targets` — generated the SQLx metadata for the new queries.
-- ✅ `python3 scripts/erd.py --migrations && python3 scripts/erd.py --check` — 15 migrated tables checked; ERD matches the DDL.
-- ✅ `scripts/tasks-index.sh --check`, `git diff --check`, and each of `scripts/check-deps.sh`, `scripts/check-literals.sh`, `scripts/check-web-boundaries.sh`, `scripts/check-layers.sh`.
-- ✅ `make e2e` with `E2E_SKIP_DB_START=1`, a disposable PostgreSQL 16 database, and one synthetic tenant — 6/6 Chromium/mobile WebKit smoke tests passed.
-- The repository has no `justfile` or `just check` target. The supported Makefile lint/E2E targets and the workspace test command above were run instead. Hosted GitHub Actions and `pnpm -C web test` were not run; this task adds no web source and the browser smoke suite ran.
+- ✅ `env DATABASE_URL=postgres://postgres:test-secret-suite@127.0.0.1:32769/ritma_t105_e2e_20261027 SQLX_OFFLINE=false cargo sqlx prepare --workspace --check`.
+- ✅ `python3 scripts/erd.py --migrations` and `python3 scripts/erd.py --check` — 15 migrated tables checked; ERD matches the DDL. No migration was changed by T-105.
+- ✅ `scripts/tasks-index.sh --check`, `git diff --check`, `scripts/check-deps.sh`, `scripts/check-literals.sh`, `scripts/check-web-boundaries.sh`, and `scripts/check-layers.sh`.
+- ✅ `env E2E_SKIP_DB_START=1 DATABASE_URL=postgres://eq_app:test-secret-app@127.0.0.1:32769/ritma_t105_e2e_20261027 RITMA_DATABASE_OWNER_URL=postgres://postgres:test-secret-suite@127.0.0.1:32769/ritma_t105_e2e_20261027 RITMA_SECRET_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= RITMA_PUBLIC_URL=http://127.0.0.1:8080 RITMA_LISTEN=127.0.0.1:8080 RITMA_BACKUP_SCHEDULE=off RITMA_MODE=single SQLX_OFFLINE=true make e2e` — 6/6 browser smoke tests passed (Chromium and mobile WebKit) against fresh database `ritma_t105_e2e_20261027` in disposable PostgreSQL 16.15 container `ritma-t105-suite-20261027`.
+- ✅ `pnpm -C web build` (run by `make e2e`).
+- ⚠️ `gitleaks detect --redact --no-banner` reported the pre-existing false positive at `Makefile:80-85` (`curl-auth-user`); no secret rule or allow-list was changed.
+- Not run: hosted GitHub Actions require the hosted CI environment. `pnpm -C web lint`, `typecheck`, `test`, and `i18n:check` were not run because T-105 changes no web source; browser E2E and the web build ran.
 
-**Manual checks** — The E2E fixture was inserted into the disposable database, then deleted; a follow-up query returned zero tenants. The PostgreSQL container was stopped. Module integration tests used the least-privileged `eq_app` connection, and the gate observes a committed toggle after tenant notification.
+**Manual checks** — `make e2e` launched the server and exercised real browser requests on Chromium and mobile WebKit against a fresh PostgreSQL 16.15 database. After the run, `SELECT count(*) FROM tenants WHERE id = 'f1050000-0000-7000-8000-000000000001'` returned `0`; the disposable `ritma-t105-suite-20261027` container is stopped. The module isolation integration test used the least-privileged `eq_app` role, and the gate test observed a committed toggle after tenant notification. No standalone manual toggle request applies because T-105 adds no toggle HTTP handler.
 
-**Debug log** — The first E2E attempt stopped before building because the global Corepack shim requested an unavailable pnpm 12.15.0 module. The web package pins pnpm 9.15.9; activating that pinned version with `corepack prepare pnpm@9.15.9 --activate` fixed the local tool cache, and E2E passed. The first final `make lint` run found an unfulfilled `clippy::expect_used` expectation on the async cache-race test; removing that annotation made `make lint` pass. An earlier check also caught a planner edge case where `module_required_by` named an unrelated module; `required_by_only_reports_removed_dependencies` now covers the regression.
+**Debug log** — The first E2E attempt stopped before building because Corepack tried to load an unavailable pnpm 12.15.0 module. Activating the task-pinned pnpm 9.15.9 with `corepack prepare pnpm@9.15.9 --activate` fixed the local tool cache. Initial migration starts also reported missing `RITMA_SECRET_KEY`, then missing `RITMA_PUBLIC_URL`; adding the required fake local values allowed the migration and E2E run to complete. Default-parallel workspace tests hit PostgreSQL testcontainer startup timeouts; the final serial workspace command above passed. A planner edge case where `module_required_by` named an unrelated module was fixed and is covered by `required_by_only_reports_removed_dependencies`.
 
 **Performance** — No benchmark was required or taken. Cache TTL is 30 seconds as specified by MOD-05.
 
 **Security** — Tenant identity comes from TenantCtx; module-state SQL is scoped by tenant in the caller's transaction and protected by RLS. Cache invalidation accepts only a valid tenant UUID payload. Toggle callbacks, audit and event writes share the caller transaction, and failure propagates for rollback. Disabled routes return the module-specific 404 without exposing another tenant's state. Test data is synthetic. No new permission, external service, secret, or PII field was introduced. `cargo deny check` passed without an advisory exception or gate change.
 
-**Deviations** — Applied D-56's architect resolution: workspace `utoipa` 6 and `utoipa-axum` 0.3; `deny.toml` stayed unchanged. Implementer resolutions requiring architect ratification: (1) move shared AppState to eq-core and derive ordering for ModuleId to preserve the normative route signature and requested BTreeSet API; (2) add the omitted Files/Security paths and controls already required by the Scope and cited architecture/security specs; (3) use the existing T-107/T-108/T-314 handler/checklist contracts, ARC-08 typed ports, and T-113's more precise `required_by` extension. These choices follow the higher-priority decision/spec and preserve the acceptance contract.
+**Deviations** — Applied D-56's architect resolution: workspace `utoipa` 6 and `utoipa-axum` 0.3; `deny.toml` stayed unchanged. Implementer resolutions requiring architect ratification: (1) move shared AppState to eq-core and derive ordering for ModuleId to preserve the normative route signature and requested BTreeSet API; (2) add the omitted Files/Security paths and controls already required by the Scope and cited architecture/security specs; (3) use the existing T-107/T-108/T-314 handler/checklist contracts, ARC-08 typed ports, and T-113's more precise `required_by` extension. These choices follow the higher-priority decision/spec and preserve the acceptance contract. Because the original task commit was already pushed and must not be rewritten, this factual Report correction is recorded in a separate signed documentation commit; the original commit also contains an extra `Co-authored-by` line, which is retained for human review rather than rewriting pushed history.
 
 **Dependencies affected** — T-104 is `review` and its commit is an ancestor of this branch. T-106 and later dependants may proceed after T-105 is recorded as `review`.
 
 **Rollback plan** — Revert the T-105 commit; no migration or persistent data change was added.
 
-**Follow-ups** — Architect ratification remains requested for the three implementer resolutions above. The dependency question is resolved by D-56; no blocking question remains.
+**Follow-ups** — Architect ratification remains requested for the three implementer resolutions above. The dependency question is resolved by D-56; no blocking question remains. Human review should assess the implementation size (2,478 insertions and 109 deletions across 50 files, including Cargo.lock, generated SQLx metadata and module stubs) against CQ-101 and decide whether to accept the extra `Co-authored-by` line in the already-pushed implementation commit. No history rewrite is recommended. The repository's existing gitleaks false positive at `Makefile:80-85` remains for maintainer review.
 
 **Step 0 — Start** — Resumed T-105 on `milestone/m1-core`; verified its dependency commit, current branch, task status, and generated index.
 
@@ -190,7 +195,7 @@ Dependency table (MOD-03):
 
 **Step 10 — Security audit** — Reviewed tenant/module controls and ran the dependency/security gate; `cargo deny check` passed with the existing warnings noted above.
 
-**Step 11 — Final verification** — All named acceptance tests and listed checks passed. Hosted CI was not run locally.
+**Step 11 — Final verification** — `cargo fmt --all --check`, strict workspace Clippy, serial workspace tests (151/151), targeted cache-race and RLS tests, `cargo deny check`, SQLx metadata check, ERD and task-index checks, guard scripts, and fresh-database browser E2E (6/6) passed as listed above. Hosted GitHub Actions and the web lint/typecheck/unit/i18n suites were not run for the reasons stated above. The gitleaks scan retained its existing false positive.
 
 **Step 12 — Report** — Complete; ready for review.
 
