@@ -1,0 +1,26 @@
+[
+  {
+    "input": 9,
+    "ok": false,
+    "codes": [
+      "must_be_gte"
+    ]
+  },
+  {
+    "input": 10,
+    "ok": true,
+    "canonical": 10
+  },
+  {
+    "input": 480,
+    "ok": true,
+    "canonical": 480
+  },
+  {
+    "input": 481,
+    "ok": false,
+    "codes": [
+      "must_be_lte"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "input": "abc",
+    "ok": true,
+    "canonical": "abc"
+  },
+  {
+    "input": "a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-aa",
+    "ok": true,
+    "canonical": "a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-a-aa"
+  },
+  {
+    "input": "ab",
+    "ok": false,
+    "codes": [
+      "too_short"
+    ]
+  },
+  {
+    "input": "a--b",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]

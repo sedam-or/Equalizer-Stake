@@ -1,0 +1,19 @@
+[
+  {
+    "input": "0812-3456-7890",
+    "ok": true,
+    "canonical": "+6281234567890"
+  },
+  {
+    "input": "+14155552671",
+    "ok": true,
+    "canonical": "+14155552671"
+  },
+  {
+    "input": "1-800-FLOWERS",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]

@@ -1,0 +1,33 @@
+[
+  {
+    "input": "1900-01-01",
+    "ok": true,
+    "canonical": "1900-01-01"
+  },
+  {
+    "input": "2100-12-31",
+    "ok": true,
+    "canonical": "2100-12-31"
+  },
+  {
+    "input": "1899-12-31",
+    "ok": false,
+    "codes": [
+      "must_be_gte"
+    ]
+  },
+  {
+    "input": "2101-01-01",
+    "ok": false,
+    "codes": [
+      "must_be_lte"
+    ]
+  },
+  {
+    "input": "2026-2-01",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]

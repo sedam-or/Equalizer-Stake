@@ -1,0 +1,40 @@
+[
+  {
+    "input": -1,
+    "ok": false,
+    "codes": [
+      "must_be_gte"
+    ]
+  },
+  {
+    "input": 0,
+    "ok": true,
+    "canonical": {
+      "amount_minor": 0,
+      "currency": "IDR"
+    }
+  },
+  {
+    "input": 1000,
+    "ok": true,
+    "canonical": {
+      "amount_minor": 1000,
+      "currency": "IDR"
+    }
+  },
+  {
+    "input": 1000000000000000,
+    "ok": true,
+    "canonical": {
+      "amount_minor": 1000000000000000,
+      "currency": "IDR"
+    }
+  },
+  {
+    "input": 1000000000000001,
+    "ok": false,
+    "codes": [
+      "must_be_lte"
+    ]
+  }
+]

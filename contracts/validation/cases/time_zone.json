@@ -1,0 +1,21 @@
+[
+  {
+    "input": "Asia/Jakarta",
+    "ok": true,
+    "canonical": "Asia/Jakarta"
+  },
+  {
+    "input": "WIB",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  },
+  {
+    "input": "+07:00",
+    "ok": false,
+    "codes": [
+      "invalid_format"
+    ]
+  }
+]

@@ -57,6 +57,16 @@ pub mod codes {
         status: 404,
         title: "Module disabled",
     };
+    pub static MODULE_DEPENDENCY: ErrorCodeDef = ErrorCodeDef {
+        code: "module_dependency",
+        status: 422,
+        title: "Module dependency not satisfied",
+    };
+    pub static MODULE_REQUIRED_BY: ErrorCodeDef = ErrorCodeDef {
+        code: "module_required_by",
+        status: 422,
+        title: "Module is required by an enabled module",
+    };
     pub static VALIDATION: ErrorCodeDef = ErrorCodeDef {
         code: "validation",
         status: 422,
@@ -109,6 +119,8 @@ pub mod codes {
         &FORBIDDEN,
         &NOT_FOUND,
         &MODULE_DISABLED,
+        &MODULE_DEPENDENCY,
+        &MODULE_REQUIRED_BY,
         &VALIDATION,
         &POLICY_VIOLATION,
         &PRECONDITION_REQUIRED,

@@ -1,0 +1,34 @@
+[
+  {
+    "input": {
+      "lat": -6.2,
+      "lng": 106.8166673
+    },
+    "ok": true,
+    "canonical": {
+      "lat": -6.2,
+      "lng": 106.816667
+    }
+  },
+  {
+    "input": {
+      "lat": 90,
+      "lng": 180
+    },
+    "ok": true,
+    "canonical": {
+      "lat": 90.0,
+      "lng": 180.0
+    }
+  },
+  {
+    "input": {
+      "lat": 90.1,
+      "lng": 0
+    },
+    "ok": false,
+    "codes": [
+      "must_be_lte"
+    ]
+  }
+]

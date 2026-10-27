@@ -1,0 +1,41 @@
+[
+  {
+    "input": {
+      "id": "Bahasa",
+      "en": "English"
+    },
+    "ok": true,
+    "canonical": {
+      "en": "English",
+      "id": "Bahasa"
+    }
+  },
+  {
+    "input": {
+      "en": "English"
+    },
+    "ok": false,
+    "codes": [
+      "required"
+    ]
+  },
+  {
+    "input": {
+      "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "ok": false,
+    "codes": [
+      "too_long"
+    ]
+  },
+  {
+    "input": {
+      "id": "Bahasa",
+      "fr": "Francais"
+    },
+    "ok": false,
+    "codes": [
+      "not_allowed"
+    ]
+  }
+]

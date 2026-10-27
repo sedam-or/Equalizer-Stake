@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT key_version FROM tenant_keys WHERE tenant_id = $1 AND retired_at IS NULL ORDER BY key_version DESC LIMIT 1 FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "key_version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "tenant_keys",
+            "name": "key_version"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e48a86f1097608ef1db81f3a7bdf797957a9c343ffe769428da30419c647ad45"
+}

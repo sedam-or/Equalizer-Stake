@@ -6,9 +6,12 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+anyhow.workspace = true
 eq-audit.workspace = true
 eq-core.workspace = true
 eq-identity.workspace = true
+serde_json.workspace = true
+utoipa-axum.workspace = true
 
 [lints]
 workspace = true

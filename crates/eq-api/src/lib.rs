@@ -1,12 +1,6 @@
 //! Router assembly for the Ritma API (spec/02 §2, ARC-01).
 
-use axum::extract::FromRef;
-use eq_core::clock::Clock;
-use eq_core::config::Config;
-use eq_core::tenant::TenantResolver;
-use sqlx::PgPool;
-use std::fmt;
-use std::sync::Arc;
+pub use eq_core::app_state::AppState;
 
 #[cfg(feature = "attendance")]
 use eq_attendance as _;
@@ -28,50 +22,18 @@ use eq_scheduling as _;
 
 mod health;
 pub mod middleware;
+pub mod modules;
 mod spa;
 pub mod tenant;
 
-/// ARC-01, ARC-04: shared infrastructure passed to API handlers.
-#[derive(Clone)]
-pub struct AppState {
-    pub pool: PgPool,
-    pub config: Arc<Config>,
-    pub clock: Arc<dyn Clock>,
-    pub tenant_resolver: TenantResolver,
-}
-
-impl AppState {
-    /// ARC-01, ARC-04: builds shared application state and its bounded tenant resolver.
-    pub fn new(pool: PgPool, config: Arc<Config>, clock: Arc<dyn Clock>) -> Self {
-        let tenant_resolver = TenantResolver::new(pool.clone(), Arc::clone(&config));
-        Self {
-            pool,
-            config,
-            clock,
-            tenant_resolver,
-        }
-    }
-}
-
-impl FromRef<AppState> for TenantResolver {
-    fn from_ref(state: &AppState) -> Self {
-        state.tenant_resolver.clone()
-    }
-}
-
-impl fmt::Debug for AppState {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("AppState")
-            .field("pool", &"[configured]")
-            .field("config", &"[REDACTED]")
-            .field("clock", &self.clock)
-            .field("tenant_resolver", &self.tenant_resolver)
-            .finish()
-    }
-}
-
 /// API-14, OPS-06: builds the process health and readiness routes.
 pub fn router(state: AppState) -> axum::Router {
-    health::router(state)
+    let registry = modules::registry();
+    let manifests = registry.manifests();
+    let enabled = std::sync::Arc::new(eq_core::module::gate::EnabledModulesCache::new(
+        state.pool.clone(),
+        &manifests,
+    ));
+    let module_routes = modules::routes(&registry, enabled);
+    health::router(state, module_routes)
 }
