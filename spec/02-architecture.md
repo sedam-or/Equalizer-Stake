@@ -179,7 +179,7 @@ This table pins the core crates. The complete map of open-source building blocks
 | Async | `tokio` 1 (multi-thread) |
 | DB | PostgreSQL ≥ 16 with `btree_gist`, `pgcrypto`; `sqlx` 0.8 (postgres, uuid, chrono, json, migrate, offline) |
 | Serialization | `serde`, `serde_json`, `serde_yaml_ng` (presets) |
-| Schema | `schemars` 1.x (policy JSON Schema), `utoipa` 5 + `utoipa-axum` (OpenAPI 3.1) |
+| Schema | `schemars` 1.x (policy JSON Schema), `utoipa` 6 + `utoipa-axum` 0.3 (OpenAPI 3.1) |
 | Time | `chrono` 0.4, `chrono-tz`, `cron` (expression parsing) |
 | IDs | `uuid` 1 with `v7` |
 | Auth/crypto | `jsonwebtoken` 9, `argon2` 0.5, `aes-gcm` 0.10, `rand` 0.8, `sha2`, `hmac`, `zeroize` |
