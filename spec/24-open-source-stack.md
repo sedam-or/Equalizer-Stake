@@ -25,14 +25,14 @@ This file maps every concern to its chosen project, says what we wrap and what w
 | Database driver, migrations, compile-checked SQL | `sqlx` 0.9 + `sqlx-cli` 0.9 | MIT/Apache | `repo.rs` only (CA) |
 | JSON | `serde`, `serde_json`, `serde_path_to_error` | MIT/Apache | pointers for V2 errors (VAL-07) |
 | YAML presets | `serde_yaml_ng` | MIT | SET-01 |
-| OpenAPI 3.1 | `utoipa` 5, `utoipa-axum`; `utoipa-scalar` for the dev API explorer (`RITMA_ENV=dev` only) | MIT/Apache | API-02 |
+| OpenAPI 3.1 | `utoipa` 6, `utoipa-axum` 0.3 (0.2 pulls unmaintained `paste`, RUSTSEC-2024-0436); `utoipa-scalar` 0.4 for the dev API explorer (`RITMA_ENV=dev` only) | MIT/Apache | API-02 |
 | JSON Schema generation / validation | `schemars` 1 / `jsonschema` | MIT | POL-06/10 |
 | JSON Merge Patch (presets, PATCH) | `json-patch` (`merge`) | MIT/Apache | POL-09, CAN-22 |
 | Canonical JSON (RFC 8785) | `serde_jcs` | MIT/Apache | CAN-70 |
 | Validated newtypes | `nutype` | MIT | `eq_core::fields` (VAL-20) |
 | Unicode normalisation | `unicode-normalization` | MIT/Apache | VAL-11 |
 | Email syntax | `email_address` | MIT | VAL-11 |
-| Phone numbers | `phonenumber` (libphonenumber port) | Apache-2.0 | VAL-11 |
+| Phone numbers | `rlibphonenumber` 2 (libphonenumber port; replaces `phonenumber` 0.3, whose build dependency `postcard` → `heapless 0.7` → `atomic-polyfill` fails the advisory gate, RUSTSEC-2023-0089) | Apache-2.0 | VAL-11 |
 | Currency metadata (exponents) | `iso_currency` | MIT/Apache | `eq_core::money` |
 | Country codes | `celes` | MIT/Apache | CAN-10 |
 | Locale negotiation | `fluent-langneg` + `unic-langid` | MIT/Apache | CAN-35 |
