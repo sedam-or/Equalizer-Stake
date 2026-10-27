@@ -7,6 +7,7 @@ use uuid::Uuid;
 /// ARC-04: role associated with an acting person or system process.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActorRole {
+    Anonymous,
     Owner,
     Admin,
     Instructor,
@@ -26,6 +27,16 @@ pub struct ActorCtx {
 }
 
 impl ActorCtx {
+    /// ARC-04: builds a personless request actor before authentication.
+    pub fn anonymous(ip: Option<IpAddr>, request_id: Option<Uuid>) -> Self {
+        Self {
+            person_id: None,
+            role: ActorRole::Anonymous,
+            ip,
+            request_id,
+        }
+    }
+
     /// ARC-04: builds a personless actor for a named system process.
     pub fn system(_kind: &'static str) -> Self {
         Self {

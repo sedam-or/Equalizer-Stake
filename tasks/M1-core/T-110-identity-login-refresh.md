@@ -3,7 +3,7 @@ id: T-110
 title: Add identity schema, IdentityPolicy, password hashing, login, JWT access tokens, rotating refresh sessions, logout and the Actor extractor
 milestone: M1
 status: todo
-depends_on: [T-103, T-106, T-109]
+depends_on: [T-102a, T-103, T-106, T-109]
 spec_refs: [IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-09, SEC-10, SEC-12, STM-22, STM-23, CAN-34, D-37, AUTH-02, AUTH-03, AUTH-05, AUTH-06]
 estimated_size: M
 ---

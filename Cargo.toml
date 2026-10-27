@@ -63,6 +63,7 @@ testcontainers = "0.28"
 axum-test = "17"
 serde_jcs = "0.1"
 phonenumber = "0.3"
+iso_currency = "0.7.1"
 
 eq-core = { path = "crates/eq-core" }
 eq-audit = { path = "crates/eq-audit" }

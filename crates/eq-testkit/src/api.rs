@@ -34,11 +34,11 @@ impl TestApp {
     pub async fn new() -> Self {
         let db = TestDb::new().await;
         let clock = test_clock();
-        let state = AppState {
-            pool: db.app_pool.clone(),
-            config: Arc::new(Config::for_tests()),
-            clock: Arc::new(clock.clone()),
-        };
+        let state = AppState::new(
+            db.app_pool.clone(),
+            Arc::new(Config::for_tests()),
+            Arc::new(clock.clone()),
+        );
         let Ok(server) = TestServer::new(router(state)) else {
             panic!("test API server setup failed; details redacted");
         };

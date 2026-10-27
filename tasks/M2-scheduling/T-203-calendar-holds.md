@@ -48,7 +48,8 @@ pub fn reservation_holds(resource: Uuid, booker: Uuid, start: Timestamp, end: Ti
 
 ## Scope
 ### In
-- `eq_core::calendar` as above, plus `From<CalendarError> for AppError` (Conflict → 409 `slot_taken` with an empty conflicts list; callers enrich it).
+- `eq_core::calendar` as above, plus `From<CalendarError> for AppError` (Conflict → `AppError::Conflict { code: &codes::SLOT_TAKEN, … }`, 409, with an empty conflicts list; callers enrich it).
+- Register the shared code `pub static SLOT_TAKEN: ErrorCodeDef = ErrorCodeDef { code: "slot_taken", status: 409, title: "Slot already taken" }` in `eq_core::error::codes` and add it to `CODES` (ERR-21, ERR-30; scheduling and rental both use it, and `eq-core` cannot depend on them).
 
 ### Out
 - Session/reservation logic.

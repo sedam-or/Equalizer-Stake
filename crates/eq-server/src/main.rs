@@ -150,13 +150,10 @@ async fn serve() -> Result<ExitCode> {
         .await
         .with_context(|| format!("bind HTTP listener at {}", config.listen))?;
     let local_addr = listener.local_addr()?;
-    let state = eq_api::AppState {
-        pool,
-        config,
-        clock: Arc::new(SystemClock),
-    };
+    let state = eq_api::AppState::new(pool, config, Arc::new(SystemClock));
     let (shutdown_sender, shutdown_receiver) = tokio::sync::oneshot::channel();
-    let server = axum::serve(listener, eq_api::router(state))
+    let make_service = eq_api::router(state).into_make_service_with_connect_info::<SocketAddr>();
+    let server = axum::serve(listener, make_service)
         .with_graceful_shutdown(async move {
             let _ = shutdown_receiver.await;
         })

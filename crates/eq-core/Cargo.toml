@@ -15,6 +15,9 @@ base64.workspace = true
 chrono.workspace = true
 figment.workspace = true
 ipnet.workspace = true
+iso_currency.workspace = true
+moka.workspace = true
+schemars.workspace = true
 secrecy.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -22,12 +25,16 @@ sqlx.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+utoipa.workspace = true
 uuid.workspace = true
 url.workspace = true
 zeroize.workspace = true
 
 [dev-dependencies]
+insta.workspace = true
+proptest.workspace = true
 testcontainers.workspace = true
+tower.workspace = true
 
 [lints]
 workspace = true

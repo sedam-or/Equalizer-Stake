@@ -27,8 +27,8 @@ CREATE INDEX audit_entries_entity ON audit.entries (tenant_id, entity_type, enti
 CREATE INDEX audit_entries_unsealed ON audit.entries (tenant_id, seq) WHERE hash IS NULL;
 CREATE TABLE audit.checkpoints (tenant_id uuid NOT NULL, seq bigint NOT NULL, hash bytea NOT NULL, at timestamptz NOT NULL, PRIMARY KEY (tenant_id, seq));
 ```
-- Grants: `eq_app` gets `INSERT, SELECT` on `audit.entries` and `USAGE` on its sequence. No UPDATE or DELETE. RLS on `audit.entries` (SELECT + INSERT by `tenant_id`). No RLS on `checkpoints`.
-- `SECURITY DEFINER` functions (owner `eq_owner`, `SET search_path = pg_catalog, audit`), EXECUTE granted to `eq_app`:
+- Grants: `eq_app` gets `GRANT USAGE ON SCHEMA audit` (the default privileges from T-003 cover only `public`, so without this `eq_app` cannot even see the table), `INSERT, SELECT` on `audit.entries` and `USAGE` on its sequence (revoke any `UPDATE`/`DELETE` that default privileges would otherwise give). No UPDATE or DELETE. RLS on `audit.entries` (SELECT + INSERT by `tenant_id`). No RLS on `checkpoints`.
+- `SECURITY DEFINER` functions (the owner is the role that runs the migration; the specs call it `eq_owner`, but **no role of that name is created**, so do not `ALTER … OWNER TO eq_owner`; `SET search_path = pg_catalog, audit`), EXECUTE granted to `eq_app`:
   - `audit.seal(p_tenant uuid, p_rows jsonb)`: writes `prev_hash, hash, sealed_at` **only** for rows where `hash IS NULL`. The hash is computed in Rust; the function just persists it.
   - `audit.anonymize(p_tenant uuid, p_before timestamptz, p_subject uuid DEFAULT NULL)`: for rows with `at < p_before` (or referencing `p_subject` as actor or entity), it sets `redaction_proof = sha256(coalesce(before::text,'')||coalesce(after::text,''))` (only if null), redacts PII keys, nulls `ip`, and sets `anonymized_at`.
     - PII keys: `display_name, email, phone, name, legal_name, address, note, comment`, at any depth.

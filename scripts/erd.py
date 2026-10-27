@@ -5,6 +5,10 @@ The normative DDL lives in spec/06-domain-model.md §3-§4 and spec/04-policy-en
 This script parses it and owns every block of spec/29-erd.md between
 `<!-- BEGIN GENERATED: <name> -->` and `<!-- END GENERATED: <name> -->`.
 
+The migration check also reads the table/column ownership map in §7 of
+spec/29-erd.md so a column assigned to a later ALTER migration is not required
+in the table's original CREATE migration.
+
 Usage:
   scripts/erd.py --write        regenerate the generated blocks of spec/29-erd.md (architect only)
   scripts/erd.py --check        fail if spec/29-erd.md is stale against the DDL (CI)
@@ -417,25 +421,77 @@ def norm_type(t):
     return TYPE_ALIASES.get(t, t)
 
 
+def migration_ownership(doc, spec_tables):
+    """Return the migration owner for each table and explicitly mapped column."""
+    section = re.search(r"^## 7\.\s+Table.*?\n(.*?)(?=^## |\Z)", doc, re.M | re.S)
+    if not section:
+        sys.exit("erd.py: spec/29-erd.md has no §7 migration map")
+
+    table_owners, column_owners = {}, {}
+    for line in section.group(1).splitlines():
+        if not line.startswith("| `"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        migration = cells[0].strip("`")
+        creates = cells[2]
+        explicit_columns = re.findall(r"\bcolumn\s+`?([\w.]+)\.([\w]+)`?", creates)
+        for table, column in explicit_columns:
+            column_owners[(table, column)] = migration
+        if explicit_columns:
+            continue
+        for table in spec_tables:
+            if re.search(rf"(?<![\w.]){re.escape(table)}(?![\w.])", creates):
+                table_owners[table] = migration
+    return table_owners, column_owners
+
+
 def check_migrations():
     spec, _ = load_spec()
     files = sorted(MIGRATIONS.glob("*.sql")) if MIGRATIONS.is_dir() else []
-    mig, _ = {}, None
+    migration_names = {f.name for f in files}
+    table_owners, column_owners = migration_ownership(ERD_DOC.read_text(), set(spec))
+    mig = {}
+    table_files, column_files = {}, {}
     for f in files:
+        before = {table: {column["name"] for column in info["cols"]} for table, info in mig.items()}
         parse_sql(re.sub(r"--[^\n]*", "", f.read_text()), None, mig, [])
+        for table, info in mig.items():
+            if table not in before:
+                table_files[table] = f.name
+                for column in info["cols"]:
+                    column_files[(table, column["name"])] = f.name
+                continue
+            for column in info["cols"]:
+                if column["name"] not in before[table]:
+                    column_files[(table, column["name"])] = f.name
     errors = []
     for t, info in mig.items():
         if t not in spec:
             errors.append(f"{t}: table not in the normative DDL (spec/06 §4)")
             continue
+        expected_table_file = table_owners.get(t)
+        if expected_table_file is None:
+            errors.append(f"{t}: table not mapped in spec/29-erd.md §7")
+        elif table_files.get(t) != expected_table_file:
+            errors.append(f"{t}: created in {table_files.get(t)}, mapped to {expected_table_file}")
         scols = {c["name"]: c for c in spec[t]["cols"]}
         mcols = {c["name"]: c for c in info["cols"]}
-        for name in scols.keys() - mcols.keys():
-            errors.append(f"{t}.{name}: missing in migrations")
         for name in mcols.keys() - scols.keys():
             errors.append(f"{t}.{name}: not in the normative DDL")
-        for name in scols.keys() & mcols.keys():
-            s, m = scols[name], mcols[name]
+        for name, s in scols.items():
+            expected_file = column_owners.get((t, name), expected_table_file)
+            actual_file = column_files.get((t, name))
+            if expected_file is None:
+                continue
+            if name not in mcols:
+                if expected_file in migration_names:
+                    errors.append(f"{t}.{name}: missing in migrations ({expected_file} exists)")
+                continue
+            if actual_file != expected_file:
+                errors.append(f"{t}.{name}: present in {actual_file}, mapped to {expected_file}")
+            m = mcols[name]
             if norm_type(s["type"]) != norm_type(m["type"]):
                 errors.append(f"{t}.{name}: type {m['type']!r} != spec {s['type']!r}")
             if s["not_null"] != m["not_null"]:
