@@ -4,6 +4,7 @@ pub mod actor;
 pub mod brand;
 pub mod clock;
 pub mod config;
+pub mod crypto;
 pub mod db;
 pub mod error;
 pub mod errors;
