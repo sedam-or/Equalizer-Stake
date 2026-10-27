@@ -64,7 +64,7 @@ Tags: **[tool]** CI enforces it, **[review]** reviewers check it, **[D-nn]** a d
 | `multiline` | Notes, comments, descriptions, review notes, consent text | As `line`, except: `\r\n` and `\r` become `\n`; tabs become a space; whitespace runs **within** a line collapse; trailing spaces per line are removed; more than 2 consecutive blank lines become 2; trim the whole text |
 | `identifier` | `Key`, `Slug`, codes, `reference_code`, `booking_type_key` | NFC, trim. **No** internal whitespace allowed. Case is **not** changed (keys are case-sensitive and already lowercase by pattern). Then the kind's pattern |
 | `email` | `Email` | NFC, trim, remove one trailing `.` on the domain, lowercase the whole address (IDN-01), then `email_address` parsing (non-quoted local part, DNS-style domain with at least one dot, no IP literal) and length checks (≤ 254, local ≤ 64) |
-| `phone` | `Phone` | Trim, then `phonenumber::parse(Some(tenant_country), input)`, then `is_valid()`. Output E.164. Letters (vanity numbers) are rejected |
+| `phone` | `Phone` | Trim, then `PHONE_NUMBER_UTIL.parse(input, Some(region))` (`region` = the tenant country as `rlibphonenumber::enums::Region`), then `is_valid()`. Output E.164. Letters (vanity numbers) are rejected |
 | `secret` | Passwords | NFKC only (CAN-10). No trimming, no collapsing. Reject only C0 controls except none → `invalid_characters`. Never logged, never echoed, never included in field-error `params` |
 | `none` | Tokens, ids, enums, numbers, dates | No text normalisation. The kind's parser is strict (CAN-10) |
 
