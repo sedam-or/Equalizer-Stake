@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT module_id FROM tenant_modules WHERE tenant_id = $1 AND enabled = TRUE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "module_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "tenant_modules",
+            "name": "module_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1dcb2b42b574984d8fb8b69e877bd480ea398354b68502f73714e3fbecbd7fae"
+}

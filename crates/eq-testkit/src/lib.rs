@@ -3,6 +3,7 @@
 pub mod api;
 pub mod clock;
 pub mod db;
+pub mod module_sinks;
 pub mod rng;
 
 pub use db::TestDb;

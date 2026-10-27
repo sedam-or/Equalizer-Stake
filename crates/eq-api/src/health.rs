@@ -52,16 +52,18 @@ struct ReadyResponse {
 }
 
 /// API-14, OPS-06: process liveness and database readiness routes.
-pub(super) fn router(state: AppState) -> Router {
+pub(super) fn router(state: AppState, module_routes: Router<AppState>) -> Router {
     let tenant_resolver = state.tenant_resolver.clone();
     let health_state = HealthState {
         app: state,
         migration_cache: Arc::new(Mutex::new(None)),
     };
 
+    let module_routes = module_routes.with_state(health_state.app.clone());
     let router = Router::new()
         .route("/healthz", get(healthz))
         .route("/readyz", get(readyz))
+        .merge(module_routes)
         .fallback(crate::spa::fallback)
         .with_state(health_state)
         .layer(CatchPanicLayer::custom(handle_panic))

@@ -2,3 +2,7 @@
 
 use eq_audit as _;
 use eq_core as _;
+use serde_json as _;
+use utoipa_axum as _;
+
+eq_core::impl_module_stub!(IdentityModule, Identity, "identity", "users", true, &[], &[]);

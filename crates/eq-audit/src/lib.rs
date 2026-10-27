@@ -1,3 +1,7 @@
 //! The audit log module for Ritma (spec/02 §2).
 
 use eq_core as _;
+use serde_json as _;
+use utoipa_axum as _;
+
+eq_core::impl_module_stub!(AuditModule, Audit, "audit", "scroll-text", true, &[], &[]);
