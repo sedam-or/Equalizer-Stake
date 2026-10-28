@@ -2,7 +2,7 @@
 id: T-110a
 title: Identity schema, login and credential validation
 milestone: M1
-status: todo
+status: draft
 depends_on: [T-102a, T-103, T-106, T-109d]
 spec_refs: [IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-09, SEC-10, SEC-12, STM-22, STM-23, CAN-34, D-37, AUTH-02, AUTH-03, AUTH-05, AUTH-06]
 estimated_size: M
@@ -80,18 +80,28 @@ pub struct MaybeActor(pub Option<Actor>);
 
 ## Scope
 ### In
-- Implement only AC 1, 2, 6, 7, 8, 9 and the tests assigned to T-110a in this split.
-- Use the task's inline context and canonical interface definitions for those criteria.
+- Final aggregate verification that the five implementation parts below satisfy this contract and its exact named tests.
 ### Out
-- AC and behavior owned by the sibling split part(s) listed in T-110.
+- Reimplementing behavior owned by T-110a1 through T-110a5; fix only a defect required for the aggregate contract.
+
+## Split
+The combined schema, policy model/module, password/JWT, login persistence, HTTP login and actor/role-switch implementation exceeds CQ-101's approximately 400 changed-line review guide. Preserve all original ACs and test names, each assigned once. This parent remains `draft` until every part is `review`, then returns to `todo` for aggregate verification.
+
+| Part | Owns | Depends on | Original ACs/tests | Status |
+|---|---|---|---|---|
+| T-110a1 | Identity schema and RoleMap | T-102a, T-103, T-106, T-109d | mapped DDL and RLS; ERD migration check | in_progress |
+| T-110a1b | Validated identity policy model | T-110a1, T-106 | defaults/ranges/serde; `invalid_values_rejected_on_deserialize`, `out_of_range_timeout_rejected` | todo |
+| T-110a1c | Identity policy module schema and summaries | T-110a1b, T-106 | schema/summary; `defaults_schema_and_summary_match_contract` | todo |
+| T-110a2 | Password validation/hash and JWT primitive | T-110a1c, T-102a, T-103 | AC9; `common_rejected`, `max_len_128`, `argon_params`, `roundtrip`, `expired_rejected`, `wrong_tenant_rejected` | todo |
+| T-110a3 | Login/lockout domain service and persistence | T-110a2, T-106, T-109d | AC2 behavior; service and abuse tests | todo |
+| T-110a4 | HTTP login route and response | T-110a3 | AC1, AC2, AC6; `login_success`, `lockout_flow`, `login_constant_time` | todo |
+| T-110a5 | Actor extraction, permission derivation and role switching | T-110a4 | AC7, AC8; `switch_role`, `owner_gets_admin_perms_without_admin` | todo |
 
 ## Files
 | Path | Action | Purpose |
 |---|---|---|
-| `crates/eq-identity/src/jwt.rs` | create or modify | Path named in this task's contract. |
-| `crates/eq-identity/src/password.rs` | create or modify | Path named in this task's contract. |
-| `crates/eq-identity/tests/api_auth.rs` | test | Task-listed verification file. |
-| `migrations/0007_identity.sql` | create or modify | Path named in this task's contract. |
+| `tasks/M1-core/T-110a-*.md` | modify | Track the implementation parts and final aggregate report. |
+| `tasks/INDEX.md` | generate | Reflect part status through `scripts/tasks-index.sh`. |
 
 ## Interfaces
 Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
@@ -132,18 +142,21 @@ Follow the ordered behavior already stated in Context, Scope and Acceptance crit
 - [ ] Commit `feat(identity): login, tokens and refresh rotation [T-110a]`, signed off
 
 ## Report
-**Deviations** — RATIFY: TD-063
+**Plan** — (1) Verify the four identity tables against `spec/06` §4.2 and T-110's exact `spec/29` §7 row, then add `0007_identity.sql` → verify `scripts/erd.py --migrations`. (2) Implement password validation and Argon2id hashing with the task's exact parameters and common-password source → verify `common_rejected`, `max_len_128`, and `argon_params`. (3) Implement the JWT claims and checks using the shipped `Keys.jwt` → verify `roundtrip`, `expired_rejected`, and `wrong_tenant_rejected`. (4) Implement the identity policy, role grants, login/lockout/role-switch application flow, transaction-bound audit/outbox effects, and the `Actor` extractor → verify the exact AC1/2/6/7/8 API tests and the policy/security boundaries. (5) Wire the module routes into the shipped registry and generate OpenAPI → verify `make api` and the generated contract. (6) Run the available static checks, ERD and secret scans; record build, database and runtime checks as `Not run` wherever the active disk/resource restrictions prohibit their prerequisites.
 
-**Deviations** — RATIFY: TD-068, use the canonical refresh-session DDL and detect reuse from the existing revoked timestamp and family successor row., CQ-101 split of the original task contract; the assigned AC and test names are preserved in this part.
+**Assumptions** — The parent split is authoritative: this part owns initial login, lockout, password/JWT behavior, role switch, owner permission fallback and the assigned tests; refresh rotation, CSRF enforcement and password-change invalidation remain with T-110b. All policy values, roles, problem codes, events, audit actions and table columns come from the task/spec; no new business value or schema object will be introduced. The current run's recorded disk restriction continues to prohibit creating a Cargo target cache, database, or container.
 
-**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
-**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+**Test plan** — AC1: Given a tenant with an active admin and valid credentials, when `POST /auth/login` runs, then it returns 200 with an admin JWT and canonical `eq_rt` cookie and writes `security.login.success` → `api_auth::login_success`. AC2: Given the default lockout policy, when five wrong passwords are followed by a correct password, then the result is 423 with `until`, the account-locked event/audit are written, and wrong credentials while locked remain generic 401 → `lockout_flow`. AC6: Given unknown-email and known-email/wrong-password attempts, when each is measured 20 times, then p50 latency differs by at most 50 ms → `login_constant_time` (ignored locally as specified). AC7: Given active admin and guardian memberships, when the person logs in then switches to guardian, then the token role changes and permissions shrink → `switch_role`. AC8: Given an owner with no active tenant admin, when permissions are computed, then `identity.people.write` is present; after an admin exists it is absent → `owner_gets_admin_perms_without_admin`. AC9: Given `password123` and policy minimum 10, when a new password is validated, then the result is `password_weak` → `password::tests::common_rejected`. Unit edges cover empty, 1, 128, and 129 Unicode-scalar password lengths; Argon2 parameter stability; malformed/expired/wrong-tenant JWTs; email normalization and unknown-email dummy verification. Abuse cases cover unknown-user timing, lockout enumeration, cross-tenant token use, role escalation, redacted secret formatting, and no PII/secret logging. Database-backed cases use a disposable PostgreSQL 16 fixture only if the active resource restrictions permit creating it; otherwise report the exact tests as `Not run`.
+
+**Deviations** — RATIFY: TD-063, TD-066–TD-068 inherited from T-110; TD-096 splits this implementation into five reviewable parts while preserving every original AC and named test exactly once. Additional implementation decisions are recorded in the owning part and `tasks/DECISIONS.md`.
 
 ## Questions
 - **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** the original task exceeds CQ-101 limits → split its acceptance criteria and named tests across the listed dependent parts, preserving every original test name exactly once.
 - **Self-resolved (implementer, run 6, needs architect ratification; TD-068):** STM-22/D-37 describe `revoked_reason`, but spec 06 §4.2 and ERD §7 define the complete `refresh_sessions` schema without that column → add no column and detect reuse from `revoked_at` plus a newer row in the same `family_id`, because the mapped schema and IDN-04 behavior are the available source of truth.
 - **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
 - **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+- **Self-resolved (implementer, run 7, needs architect ratification; TD-096):** this task combines five independently verifiable identity concerns and would exceed CQ-101 → split schema/policy, password/JWT, login service, login HTTP and actor/role-switch work into T-110a1–T-110a5, preserve all listed test names once, and run this parent only after all parts are review.
 
 ## Review
 n/a — pending review after implementation.

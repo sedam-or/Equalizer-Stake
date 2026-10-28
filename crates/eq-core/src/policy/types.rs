@@ -192,6 +192,22 @@ pub enum Weekday {
     Sun,
 }
 
+/// Identity policy values keyed by the closed role set (IDN-01, POL-13).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RoleMap<T> {
+    /// IDN-01, POL-13: owner role value.
+    pub owner: T,
+    /// IDN-01, POL-13: administrator role value.
+    pub admin: T,
+    /// IDN-01, POL-13: instructor role value.
+    pub instructor: T,
+    /// IDN-01, POL-13: guardian role value.
+    pub guardian: T,
+    /// IDN-01, POL-13: student role value.
+    pub student: T,
+}
+
 impl Weekday {
     const ORDERED: [Self; 7] = [
         Self::Mon,
@@ -614,8 +630,8 @@ mod tests {
     use crate::money::Money;
 
     use super::{
-        Bps, DayHours, DayOfMonth, GeoPoint, I18nText, LocalTime, Locale, MinorAmount, TimeInterval, Weekday,
-        WeeklyHours,
+        Bps, DayHours, DayOfMonth, GeoPoint, I18nText, LocalTime, Locale, MinorAmount, RoleMap, TimeInterval,
+        Weekday, WeeklyHours,
     };
 
     fn local_time(value: &str) -> LocalTime {
@@ -627,6 +643,19 @@ mod tests {
         assert!(DayOfMonth::new(29).is_err());
         assert!(serde_json::from_str::<DayOfMonth>("29").is_err());
         assert_eq!(DayOfMonth::new(28).expect("day 28 is valid").get(), 28);
+    }
+
+    #[test]
+    fn role_map_rejects_unknown_role_keys() {
+        let roles = json!({
+            "owner": 30,
+            "admin": 30,
+            "instructor": 60,
+            "guardian": 120,
+            "student": 120,
+            "platform": 10
+        });
+        assert!(serde_json::from_value::<RoleMap<u16>>(roles).is_err());
     }
 
     #[test]

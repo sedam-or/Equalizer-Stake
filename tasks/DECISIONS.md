@@ -90,8 +90,13 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-093 | T-109 | `tasks/M1-core/T-109-audit.md` | Acquire the shared tenant advisory transaction lock before each audit record insert and test writer/sealer serialization so a slower lower-sequence transaction cannot commit after a higher-sequence row is sealed. |
 | TD-094 | T-109 | `tasks/M1-core/T-109-audit.md` | Make the writer/sealer regression test observe the sealer blocked on the PostgreSQL advisory lock before committing the writer; bound test-only observation with a 10-second timeout and 10-millisecond polling interval. |
 | TD-095 | T-110 | `tasks/M1-core/T-110-identity-login-refresh.md` | Align the tracker-only parent with its child task frontmatter and Scope: list T-110a as depending on T-109d, mark both children todo, and replace the implementation migration path with the parent task/index files. |
+| TD-096 | T-110a | `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md` | The child combines schema/policy, password/JWT, login persistence, HTTP login and actor/role-switch implementation and would exceed CQ-101's review guide → split those concerns into five ordered parts, preserve each original AC/test exactly once, and retain T-110a as a final aggregate task. |
+| TD-097 | T-110a1b | `tasks/M1-core/T-110a1b-validated-identity-policy-model.md` | The parent policy sketch exposes bounded values as public fields → use private fields and validating constructors/deserialization per CQ-23/CAN-10 while keeping the invariant-free generic RoleMap fields public. |
+| TD-098 | T-110a1 | `tasks/M1-core/T-110a1-identity-schema-and-policy.md` | The policy value and module implementation combined with the mapped schema would exceed CQ-101's review guide → keep T-110a1 to DDL/RoleMap, then split policy values and module integration into ordered tasks. |
+| TD-099 | T-110a1 | `tasks/M1-core/T-110a1-identity-schema-and-policy.md` | T-110a1 lists SBD-30 trigger T1 although its scope adds no endpoint → remove T1 and retain T3/T4 for S3 columns and tenant RLS. |
+| TD-100 | T-110a1 | `tasks/M1-core/T-110a1-identity-schema-and-policy.md` | The parent split/index included T-110a3–T-110a5 while their task files were not named by T-110a1 → include the successor contracts so the generated index and task files are committed atomically. |
 
-**Total mapped self-resolutions:** 85.
+**Total mapped self-resolutions:** 90.
 
 ## Detailed entries added in run 6
 
@@ -548,4 +553,49 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** List only the parent task and generated task index as files, set both child tracker statuses to todo, and show T-109d as T-110a's dependency.
 - **Why:** This changes no identity behavior, schema, permission or dependency. It makes the tracking contract reflect the already-shipped child tasks and current index.
 - **Changed:** `tasks/M1-core/T-110-identity-login-refresh.md`, `tasks/INDEX.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-096 — Split T-110a into ordered implementation parts
+
+- **Question:** T-110a combines five independently testable identity concerns whose implementation and tests are expected to exceed CQ-101's approximately 400 changed-line review guide.
+- **Options:** Keep the task combined and review a large change; split schema/policy, password/JWT, login service, HTTP login, and actor/role switching into ordered parts while retaining the original as final aggregate verification.
+- **Decision:** Add T-110a1 through T-110a5 with explicit Files, AC/test ownership, and dependency edges; leave T-110a draft until every part is review, then promote T-110a for aggregate verification.
+- **Why:** CQ-101 requires larger work to be split before implementation, while each original AC and named test can keep a single owner. The split introduces no behavior, business value, permission, schema, or migration number.
+- **Changed:** T-110a, the five new T-110a part task files, `tasks/DECISIONS.md`, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-097 — Validate identity policy values at construction and deserialization
+
+- **Question:** The parent task sketches public bounded policy fields, while CQ-23/CAN-10 require invalid value types to reject invalid construction and deserialization.
+- **Options:** Preserve public fields and rely on call-site validation; use private fields with validating constructors and deserialize through those constructors.
+- **Decision:** Use private fields for `IdentityPolicy` and `Lockout`, add validating constructors/accessors, and validate every deserialized value; keep the generic `RoleMap<T>` fields public because it has no value invariant.
+- **Why:** The CQ-23/CAN-10 value-type invariant applies to bounded policy values; `RoleMap<T>` only names the five closed roles and imposes no independent value constraint.
+- **Changed:** `crates/eq-identity/src/policy.rs`, the T-110a1b task Report/Questions, this register, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-098 — Split identity schema and policy work by concern
+
+- **Question:** T-110a1 combined the mapped identity migration, shared `RoleMap`, validated policy values, policy schema metadata and module integration, exceeding CQ-101's approximate review-size guidance.
+- **Options:** Keep the combined change; retain the migration/RoleMap task and add ordered policy-model and module-integration tasks.
+- **Decision:** T-110a1 owns the mapped DDL and shared RoleMap; T-110a1b owns validated policy values; T-110a1c owns Identity module registration, schema metadata and summaries.
+- **Why:** Each part has a small, independently verifiable contract and dependency edge, and no schema or policy behavior is changed by the decomposition.
+- **Changed:** T-110a parent split table, T-110a1/1b/1c task files, T-110a2 dependency, this register, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-099 — Align T-110a1 security triggers with its scope
+
+- **Question:** T-110a1 lists SBD-30 trigger T1 even though its scope adds no endpoint.
+- **Options:** Keep T1 as a conservative overclassification; remove T1 and retain the triggers that match the migration's S3 fields and RLS behavior.
+- **Decision:** Remove T1 and keep T3/T4.
+- **Why:** SBD-30 defines T1 for endpoint changes, while T3 covers S2/S3 data and T4 covers RLS/database security touched by the task.
+- **Changed:** `tasks/M1-core/T-110a1-identity-schema-and-policy.md` and this register.
+- **Ratify:** Yes.
+
+### TD-100 — Keep the identity task split and index consistent
+
+- **Question:** The parent split and generated index include T-110a3–T-110a5, but their task files were not named in T-110a1's `Files` list.
+- **Options:** Commit an index that refers to task files absent from the commit; include the ordered successor contracts and generated index with the task split.
+- **Decision:** Include T-110a3, T-110a4 and T-110a5 task files in T-110a1's scope and `Files` list, and commit them with the parent split and index.
+- **Why:** CQ-15 requires a generated index that reflects the task files present in the repository. The current parent split already assigns each original behavior/test to one successor; committing the file set atomically preserves that contract without implementing successor behavior. The complete task-definition change is 805 lines, above CQ-101's approximate 400-line guide; this is disclosed for maintainer ratification because the files define one ordered identity split and the implementation itself stays within the narrow schema/RoleMap scope.
+- **Changed:** `tasks/M1-core/T-110a1-identity-schema-and-policy.md`, the three successor task files, the parent tracker, `tasks/DECISIONS.md` and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
