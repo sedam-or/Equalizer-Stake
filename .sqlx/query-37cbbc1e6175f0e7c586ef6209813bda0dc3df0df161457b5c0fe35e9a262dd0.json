@@ -1,0 +1,179 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT seq, id, tenant_id, at, actor_id, actor_role, action, entity_type, entity_id, category, \"before\" AS before_json, \"after\" AS after_json, ip::text AS ip, request_id FROM audit.entries WHERE tenant_id = $1 AND hash IS NULL ORDER BY seq",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "seq",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "seq"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "actor_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "actor_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "actor_role",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "actor_role"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "action",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "action"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "entity_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "entity_type"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "entity_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "entity_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "category",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "category"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "before_json",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "before"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "after_json",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "after"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "ip",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 13,
+        "name": "request_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "request_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      null,
+      true
+    ]
+  },
+  "hash": "37cbbc1e6175f0e7c586ef6209813bda0dc3df0df161457b5c0fe35e9a262dd0"
+}

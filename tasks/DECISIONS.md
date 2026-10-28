@@ -78,8 +78,11 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-071 | T-109 | `tasks/M1-core/T-109-audit.md` | Add `reason` to recursive AUD-05 redaction because ERD-05 requires free-text keys that may describe a minor to be anonymized. |
 | TD-072 | T-109 | `tasks/M1-core/T-109-audit.md` | Use the `audit.checkpoints.at DEFAULT now()` from spec 06 §4.11, which is absent from the abbreviated task sketch. |
 | TD-073 | T-109 | `tasks/M1-core/T-109-audit.md` | Supply the existing `PolicyStore` to audit jobs through an optional `JobCtx` dependency because `audit.retention` must use it and T-108's shipped context does not carry it. |
+| TD-084 | T-109e | `tasks/M1-core/T-109e-audit-chain.md:30` | Treat `from_seq` and `to_seq` as inclusive endpoints because the named bounds should both be checked rather than silently omitted. |
+| TD-085 | T-109e | `tasks/M1-core/T-109e-audit-chain.md:23` | Keep audit-chain SQL in the existing repository adapter because CA-11/CQ-24 require persistence queries to stay in the module's `repo.rs`. |
+| TD-086 | T-109e | `tasks/M1-core/T-109e-audit-chain.md:45` | Fail sealing without writes when a later entry/checkpoint is already sealed after the first unsealed sequence, because extending that chain would violate sequence order and append-only integrity. |
 
-**Total mapped self-resolutions:** 73.
+**Total mapped self-resolutions:** 76.
 
 ## Detailed entries added in run 6
 
@@ -428,4 +431,31 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Keep `AuditEvent` and `record` in `record.rs`; put transaction-context checks, role conversion and SQL in `repo.rs`.
 - **Why:** CA-11/CQ-24 define adapter placement, and the private repository preserves the exact public signature while keeping SQL inside the audit module's own tables.
 - **Changed:** `crates/eq-audit/src/lib.rs`, `crates/eq-audit/src/record.rs`, `crates/eq-audit/src/repo.rs`, `tasks/M1-core/T-109d-audit-record-api.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-084 — Verify both named audit sequence endpoints
+
+- **Question:** The `verify(tenant, from_seq, to_seq)` interface names both bounds but does not state whether the range includes them.
+- **Options:** Include both endpoints or use a half-open range that excludes `to_seq`.
+- **Decision:** Treat the range as inclusive and query `seq >= from_seq AND seq <= to_seq`.
+- **Why:** This checks both explicitly named boundary sequences instead of silently omitting the final one; it changes no business, schema, security or tenant-isolation rule.
+- **Changed:** `crates/eq-audit/src/sealer.rs`, `tasks/M1-core/T-109e-audit-chain.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-085 — Keep audit-chain SQL in the repository adapter
+
+- **Question:** T-109e lists `sealer.rs` but omits the existing repository adapter, while the implementation needs parameterized SQL for audit tables.
+- **Options:** Put the queries in the sealer orchestration module or add task-owned query helpers to `repo.rs`.
+- **Decision:** Keep SQL in `repo.rs`; leave hash construction and chain orchestration in `sealer.rs`.
+- **Why:** CA-11/CQ-24 require table access to stay in the module's repository adapter, and this preserves the existing audit module boundary.
+- **Changed:** `crates/eq-audit/src/repo.rs`, `crates/eq-audit/src/sealer.rs`, `tasks/M1-core/T-109e-audit-chain.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-086 — Fail closed on an out-of-order sealed chain
+
+- **Question:** The parent requires sequence-ordered hashing but does not state how to handle an unsealed sequence before a later already-sealed row or checkpoint.
+- **Options:** Continue from the latest sealed hash, rewrite later immutable hashes, or stop without persisting new hashes.
+- **Decision:** Return an internal error and make no seal updates when the existing state cannot be extended in sequence order.
+- **Why:** Continuing or rewriting would violate AUD-03/04 chain order and append-only integrity; failing closed preserves the stored evidence without changing schema or business behavior.
+- **Changed:** `crates/eq-audit/src/repo.rs`, `crates/eq-audit/src/sealer.rs`, task-owned `.sqlx` metadata, `tasks/M1-core/T-109e-audit-chain.md`, and this register.
 - **Ratify:** Yes.

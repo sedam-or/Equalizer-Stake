@@ -9,6 +9,8 @@ mod repo;
 pub use policy::Category;
 pub mod record;
 pub use record::{AuditEvent, record};
+pub mod sealer;
+pub use sealer::{Sealer, VerifyReport};
 pub mod __private {
     pub use serde;
     pub use serde_json;
