@@ -384,3 +384,21 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The discovery runner explicitly adds the test start directory while preserving Python isolated mode; all eight fixture tests pass without changing the gate or tests.
 - **Changed:** `tasks/M1-core/T-109b-audit-schema.md` and this decision register.
 - **Ratify:** Yes.
+
+### TD-079 — Preserve the policy validation error path
+
+- **Question:** A broad constructor-validation reading could reject an audit policy's cross-field violation during deserialization, before `PolicyDoc::validate` can return the specified `must_be_lte` field pointer.
+- **Options:** Reject the relation in `new`/Deserialize and accept a generic root serde error; or validate individual field bounds in the constructor/deserializer and apply cross-field policy validation after deserialization.
+- **Decision:** Keep range and enum validation in `new`/Deserialize; keep `anonymize_pii_after_years <= retention_years` in `PolicyDoc::validate`.
+- **Why:** POL-10 prescribes schema → serde → cross-field validation, and parent T-109 requires `must_be_lte` at `/anonymize_pii_after_years`.
+- **Changed:** `tasks/M1-core/T-109c-audit-policy.md` and `crates/eq-audit/src/policy.rs`.
+- **Ratify:** Yes.
+
+### TD-080 — Order audit policy schema fields
+
+- **Question:** The policy contract requires `x-ui: advanced`, but the `XUi` builder also requires an order that the task does not specify.
+- **Options:** Choose an independent order; or follow the declared policy field order.
+- **Decision:** Use order values 1, 2 and 3 for `retention_years`, `anonymize_pii_after_years` and `admin_categories`, respectively.
+- **Why:** This is deterministic presentation metadata following the contract's field order; it does not change a business rule or field default.
+- **Changed:** `crates/eq-audit/src/policy.rs` and `tasks/M1-core/T-109c-audit-policy.md`.
+- **Ratify:** Yes.

@@ -4,6 +4,8 @@ extern crate self as eq_audit;
 
 pub use eq_audit_derive::Auditable;
 use eq_core as _;
+pub mod policy;
+pub use policy::Category;
 pub mod __private {
     pub use serde;
     pub use serde_json;
