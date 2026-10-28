@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.policies SET document = $1 WHERE tenant_id = $2 AND module_id = 'core'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Jsonb",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "81dbc245765b4ded8c7c476695211cd0bb6600d034dae11844b343bf5f27d01a"
+}

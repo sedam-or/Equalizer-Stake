@@ -15,6 +15,7 @@ eq-api.workspace = true
 eq-core = { workspace = true, features = ["testkit"] }
 rand.workspace = true
 secrecy.workspace = true
+serde_json.workspace = true
 sqlx.workspace = true
 testcontainers.workspace = true
 tokio.workspace = true

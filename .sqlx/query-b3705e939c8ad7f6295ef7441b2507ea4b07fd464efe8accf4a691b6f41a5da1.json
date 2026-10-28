@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT preset_id, preset_version FROM public.resolve_tenant_preset($1)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "preset_id",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "preset_version",
+        "type_info": "Int4",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "b3705e939c8ad7f6295ef7441b2507ea4b07fd464efe8accf4a691b6f41a5da1"
+}

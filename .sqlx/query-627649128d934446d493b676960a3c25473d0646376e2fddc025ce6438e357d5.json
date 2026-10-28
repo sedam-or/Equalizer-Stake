@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COALESCE(MAX(version), 0) AS \"max_version!\" FROM public.policies WHERE tenant_id = $1 AND module_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "max_version!",
+        "type_info": "Int4",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "627649128d934446d493b676960a3c25473d0646376e2fddc025ce6438e357d5"
+}

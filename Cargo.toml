@@ -26,7 +26,7 @@ serde_yaml_ng = "0.10"
 schemars = { version = "1", features = ["chrono04", "uuid1"] }
 utoipa = { version = "6", features = ["axum_extras", "uuid", "chrono"] }
 utoipa-axum = "0.3"
-jsonschema = "0.30"
+jsonschema = { version = "0.17", default-features = false, features = ["draft202012"] }
 json-patch = "4"
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = { version = "0.10", features = ["serde"] }

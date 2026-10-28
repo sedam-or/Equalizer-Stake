@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.policies (tenant_id, module_id, version, schema_version, effective_from, document, note, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int4",
+        "Int4",
+        "Timestamptz",
+        "Jsonb",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "862e044d2744832edf71240e22cdc62b9162f6995960559a410edf250ac410c5"
+}
