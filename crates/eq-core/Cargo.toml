@@ -18,6 +18,7 @@ base64.workspace = true
 chacha20poly1305.workspace = true
 chrono.workspace = true
 chrono-tz.workspace = true
+cron.workspace = true
 celes.workspace = true
 email_address.workspace = true
 figment.workspace = true

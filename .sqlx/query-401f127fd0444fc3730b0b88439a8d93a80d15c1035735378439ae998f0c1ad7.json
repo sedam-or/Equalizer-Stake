@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.cron_state (tenant_id, kind, last_fire_at) VALUES ($1, $2, $3) ON CONFLICT (tenant_id, kind) DO UPDATE SET last_fire_at = GREATEST(public.cron_state.last_fire_at, EXCLUDED.last_fire_at)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "401f127fd0444fc3730b0b88439a8d93a80d15c1035735378439ae998f0c1ad7"
+}

@@ -1,0 +1,91 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH candidates AS ( SELECT id FROM public.jobs WHERE status = 'queued' AND run_at <= $1 AND (tenant_id IS NULL OR tenant_id = ANY($2)) ORDER BY run_at, id FOR UPDATE SKIP LOCKED LIMIT $3 ) UPDATE public.jobs AS job SET status = 'running', locked_until = $1 + make_interval(secs => $4::double precision), attempts = job.attempts + 1 FROM candidates WHERE job.id = candidates.id RETURNING job.id, job.tenant_id, job.kind, job.payload, job.attempts, job.max_attempts",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "jobs",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "jobs",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "jobs",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "payload",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "jobs",
+            "name": "payload"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "attempts",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "jobs",
+            "name": "attempts"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "max_attempts",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "jobs",
+            "name": "max_attempts"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "UuidArray",
+        "Int8",
+        "Float8"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "92589cc238c3ca8bb096f71774848b294a9391f25907e9533dc0ef55f5714399"
+}

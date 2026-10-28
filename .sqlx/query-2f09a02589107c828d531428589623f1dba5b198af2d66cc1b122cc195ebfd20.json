@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT last_fire_at FROM public.cron_state WHERE tenant_id = $1 AND kind = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "last_fire_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "cron_state",
+            "name": "last_fire_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "2f09a02589107c828d531428589623f1dba5b198af2d66cc1b122cc195ebfd20"
+}

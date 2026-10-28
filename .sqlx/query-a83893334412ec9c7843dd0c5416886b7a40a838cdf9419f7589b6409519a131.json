@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.jobs SET status = 'queued', locked_until = NULL, run_at = $2::timestamptz + make_interval(secs => $3::double precision), last_error = $4 WHERE id = $1 AND status = 'running'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Float8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a83893334412ec9c7843dd0c5416886b7a40a838cdf9419f7589b6409519a131"
+}

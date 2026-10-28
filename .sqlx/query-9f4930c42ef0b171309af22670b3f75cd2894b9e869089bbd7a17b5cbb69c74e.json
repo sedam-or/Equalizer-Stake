@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.jobs (id, tenant_id, kind, payload, run_at, status, attempts, locked_until) VALUES ($1, $2, $3, '{}'::jsonb, $4::timestamptz, 'running', 1, $4::timestamptz - INTERVAL '1 second')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9f4930c42ef0b171309af22670b3f75cd2894b9e869089bbd7a17b5cbb69c74e"
+}

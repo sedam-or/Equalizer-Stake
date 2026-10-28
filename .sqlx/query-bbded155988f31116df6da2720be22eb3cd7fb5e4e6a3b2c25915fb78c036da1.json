@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.jobs SET status = 'queued', locked_until = NULL WHERE status = 'running' AND locked_until <= $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bbded155988f31116df6da2720be22eb3cd7fb5e4e6a3b2c25915fb78c036da1"
+}

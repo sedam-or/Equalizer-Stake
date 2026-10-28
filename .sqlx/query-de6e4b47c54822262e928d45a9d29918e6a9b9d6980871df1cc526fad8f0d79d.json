@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.jobs (id, tenant_id, kind, payload, run_at, dedupe_key) VALUES ($1, $2, $3, '{}'::jsonb, $4, $5) ON CONFLICT (dedupe_key) DO NOTHING RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "jobs",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "de6e4b47c54822262e928d45a9d29918e6a9b9d6980871df1cc526fad8f0d79d"
+}
