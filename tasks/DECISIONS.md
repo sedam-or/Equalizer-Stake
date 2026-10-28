@@ -46,9 +46,9 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-040 | T-105 | `tasks/M1-core/T-105-module-system.md:205` | The Module signature refers to ChecklistItem, EventHandler, JobHandler, CronSpec, PortRegistry and sink interfaces without declaring all their shapes; T-107/T-108 define event and job handlers, T-314 defines checklist fields, and ARC-08 defines typed port registration → use those contracts for the scaffolding, keep preset resolution behind PolicyInit, and use T-113's exact `required_by` response extension because its API shape is more precise than T-105's `(+ missing)` note. |
 | TD-041 | T-106 | `tasks/M1-core/T-106-policy-store.md:193` | T-106's patch-taking `ensure_initial` sketch differs from the shipped T-105 `PolicyInit` signature → preserve the no-patch port signature and keep a patch-taking `PolicyStore` method for setup callers, because T-105 is the shipped code contract and spec 05 §2.2 step 7 initializes every module's policy during setup. |
 | TD-042 | T-106 | `tasks/M1-core/T-106-policy-store.md:194` | T-106 requires policy-change audit/event effects through T-105 sink traits, whose shipped methods only cover module toggles → add policy-specific methods to those same typed traits using the task's exact audit action and event name, because the task explicitly selects these ports and POL-03/SBD-53 require the effects. |
-| TD-043 | T-107 | `tasks/M1-core/T-107-outbox-dispatcher.md:133` | T-107 asks for `outbox.next_attempt_at` and `outbox.dead_letter_at`, but spec/06 §4.1 and spec/29 §7 define an exhaustive outbox schema without those columns → keep the mapped DDL exact, encode retry due state in a versioned `last_error` marker and dead state as `attempts >= 5`, because ERD-03 and the run's schema boundary forbid undeclared columns. The fifth listed backoff is unused because the row becomes dead after the fifth failure. |
-| TD-044 | T-107 | `tasks/M1-core/T-107-outbox-dispatcher.md:134` | T-107's initial `Event` sketch omits CAN-60 `actor` and `request_id` and uses a borrowed event type that cannot represent a persisted row; CAN-60 lists only `admin \| system`, while T-105 ships a closed `ActorRole` with the full active role set → carry actor/request context in the stored envelope, expose persisted event types as `String`, and preserve the shipped role values instead of collapsing distinct actors, because role attribution must not be changed or guessed. Architect ratification is needed for the canonical event role values. |
-| TD-045 | T-107 | `tasks/M1-core/T-107-outbox-dispatcher.md:135` | STM-80 names audited owner Retry/Discard actions, but the explicit T-107 API surface is only `emit`, `Dispatcher::run`, and `drain_once`, and the audit migration/API is not a dependency yet → implement durable dispatcher states and OPS-08 attention items; defer owner mutations until the authorized action and audit contract exists, because adding an unscoped permission or bypassing audit would violate SBD-40/53. |
+| TD-043 | T-107c | `tasks/M1-core/T-107c-retry-dead-letter.md:94` | T-107 asks for retry/dead timestamps absent from the exhaustive schema → keep the mapped DDL and encode retry due as `ritma-retry-v1:<due_unix_ms>:handler_failed`, dead as `ritma-dead-v1:handler_failed`, and the predicate as `attempts >= 5`; the fifth backoff is unused at the specified terminal threshold. |
+| TD-044 | T-107a | `tasks/M1-core/T-107a-event-emission.md:164` | CAN-60 lists event roles as `admin \| system`, while T-105 ships a closed `ActorRole` with additional roles → carry actor/request context in the event envelope and serialize the shipped role values rather than collapse distinct actors. |
+| TD-045 | T-107c | `tasks/M1-core/T-107c-retry-dead-letter.md:95` | STM-80 names audited owner Retry/Discard actions without an authorized permission/audit contract in this task → create a high-severity `outbox_dead_letter` attention item with an event-id-only payload and stable dedupe key, and defer owner mutations until the authorized audited surface exists. |
 | TD-046 | T-106 | `tasks/M1-core/T-106-policy-store.md:200` | Missing-row policy fallback needs the tenant's stored preset identity, but `eq_app` cannot select `tenants` → resolve only `(preset_id, preset_version)` with a least-privilege function and keep embedded patch lookup behind `PresetPatchSource`, preserving `PolicyStore` APIs and avoiding cross-module SQL joins. |
 | TD-047 | T-106 | `tasks/M1-core/T-106-policy-store.md:201` | A prior resolver sketch included a transaction-context guard, while the delegated directive specifies an exact SQL SECURITY DEFINER function → implement the delegated body and pinned `search_path`, return existing identity/version only, and grant execution to `eq_app`; the store validates the supplied tenant against its transaction context. |
 | TD-048 | T-106 | `tasks/M1-core/T-106-policy-store.md:202` | T-106 has no migration row, but its delegated resolver needs a function migration and `0010`/`0012` are assigned → use unused slot `0011_core_tenant_preset_resolver.sql`; it creates no table or column and leaves `spec/29` unchanged. |
@@ -57,8 +57,10 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-051 | T-106 | `tasks/M1-core/T-106-policy-store.md:205` | Missing-row fallback must return `Versioned<P>` but has no persisted `effective_from` → use synthetic version 0 and the lookup's requested instant, avoiding an invented date or out-of-range timestamp. |
 | TD-052 | T-106 | `tasks/M1-core/T-106-policy-store.md:206` | The cache needs a bounded technical capacity → cap it at 1,024 tenant/module keys as a process-local memory guard without truncating policy history. |
 | TD-053 | T-106 | `tasks/M1-core/T-106-policy-store.md:207` | AC1 names `policy::tests::effective_dating`, but the test needs the database fixture from the integration test harness → nest the test under the exact `policy::tests` module path in the integration file. |
+| TD-054 | T-107 | `tasks/M1-core/T-107-outbox-dispatcher.md:173` | The T-107 prototype exceeded CQ-101's approximate 400-line task guide → split schema/emission, handler delivery, and retry/dead-letter lifecycle into T-107a/b/c; keep each original AC/test in one part and point each consumer to the part that provides its contract. |
+| TD-055 | T-107a | `tasks/M1-core/T-107a-event-emission.md:165` | The task sketch uses `String` for `Event.event_type`, while shipped T-105 uses `&'static str` → retain the shipped shape and the mapped PostgreSQL `text` column. |
 
-**Total mapped self-resolutions:** 53.
+**Total mapped self-resolutions:** 55.
 
 ## Detailed entries added in run 6
 
@@ -134,4 +136,22 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Nest the integration test under `policy::tests`.
 - **Why:** It preserves the exact listed test name and reuses the task's existing PostgreSQL fixture with the fewest changes.
 - **Changed:** Moved only the test function into nested modules in `crates/eq-core/tests/policy_store.rs`.
+- **Ratify:** Yes.
+
+### TD-054 — Split the outbox task under CQ-101
+
+- **Question:** How should the T-107 implementation that exceeded CQ-101's approximate 400-line guide be decomposed while preserving its contracts and consumers?
+- **Options:** Keep one oversized task; or split it into dependent tasks for the exact schema/event producer, handler delivery and receipts, then retry/dead-letter lifecycle.
+- **Decision:** Use the three-part chain T-107a → T-107b → T-107c, assigning each original acceptance criterion and test name to exactly one part.
+- **Why:** CQ-101 requires oversized work to be split before implementation; the sequence keeps each commit reviewable and preserves dependency order without changing the schema or event names.
+- **Changed:** Converted T-107 into a draft split parent, created the three part files, changed T-108 to depend on T-107a (the task that creates `jobs`), and changed T-116a to depend on T-107c (the complete dispatcher contract). The delegated directive called this TD-002, but TD-002 is already assigned to T-002 in this local register.
+- **Ratify:** Yes.
+
+### TD-055 — Preserve the shipped event type shape
+
+- **Question:** Should T-107a change the shipped `Event.event_type` field from `&'static str` to `String` to match its interface sketch?
+- **Options:** Change the public handler contract; preserve the shipped static string shape while storing the event type in the mapped text column; add a second event envelope type.
+- **Decision:** Preserve `&'static str` on the existing `Event` and keep `outbox.event_type` as PostgreSQL `text`.
+- **Why:** T-105's event-handler contract is already shipped; the difference is a representation shape, and changing it is outside this part's minimal producer scope.
+- **Changed:** T-107a task interface and implementation use the shipped shape; no schema change.
 - **Ratify:** Yes.

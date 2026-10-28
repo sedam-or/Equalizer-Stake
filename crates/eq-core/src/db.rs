@@ -64,7 +64,11 @@ pub async fn run_migrations(owner_url: &str) -> anyhow::Result<()> {
 }
 
 /// ARC-04: a transaction scoped to one tenant and actor.
-pub struct Tx(Transaction<'static, Postgres>);
+pub struct Tx {
+    transaction: Transaction<'static, Postgres>,
+    tenant: TenantId,
+    actor: ActorCtx,
+}
 
 impl std::fmt::Debug for Tx {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -75,12 +79,27 @@ impl std::fmt::Debug for Tx {
 impl Tx {
     /// ARC-04: returns the active transaction connection without exposing deref access.
     pub fn conn(&mut self) -> &mut PgConnection {
-        &mut self.0
+        &mut self.transaction
+    }
+
+    /// ARC-04: returns the tenant captured when the transaction began.
+    pub(crate) fn tenant(&self) -> TenantId {
+        self.tenant
+    }
+
+    /// ARC-04: returns the actor captured when the transaction began.
+    pub(crate) fn actor(&self) -> &ActorCtx {
+        &self.actor
     }
 
     /// ARC-04: commits the transaction.
     pub async fn commit(self) -> Result<(), sqlx::Error> {
-        self.0.commit().await
+        self.transaction.commit().await
+    }
+
+    /// ARC-04: rolls the transaction back.
+    pub async fn rollback(self) -> Result<(), sqlx::Error> {
+        self.transaction.rollback().await
     }
 }
 
@@ -106,7 +125,11 @@ pub async fn begin(pool: &PgPool, tenant: TenantId, actor: &ActorCtx) -> Result<
     .fetch_one(&mut *transaction)
     .await?;
 
-    Ok(Tx(transaction))
+    Ok(Tx {
+        transaction,
+        tenant,
+        actor: actor.clone(),
+    })
 }
 
 /// SEC-05: starts a tenant transaction with a personless system actor.

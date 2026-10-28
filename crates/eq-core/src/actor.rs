@@ -1,11 +1,13 @@
 //! Request and job identity passed to transaction helpers (ARC-04, SEC-05).
 
 use crate::ids::PersonId;
+use serde::{Deserialize, Serialize};
 use std::net::IpAddr;
 use uuid::Uuid;
 
 /// ARC-04: role associated with an acting person or system process.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ActorRole {
     Anonymous,
     Owner,

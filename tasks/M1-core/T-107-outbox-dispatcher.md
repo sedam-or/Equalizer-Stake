@@ -2,7 +2,7 @@
 id: T-107
 title: Add the transactional outbox, event envelope, and dispatcher with idempotent handlers and retries
 milestone: M1
-status: blocked
+status: draft
 depends_on: [T-105]
 spec_refs: [ARC-07, MOD-04, CAN-60, CAN-61, STM-80]
 estimated_size: M
@@ -58,28 +58,62 @@ pub trait EventHandler: Send + Sync {
 ### Out
 - Job runner (T-108). Concrete handlers (module tasks).
 
+## Split
+The original scope exceeded CQ-101's approximate 400 changed-line guide. Keep this file as the parent contract; implement each original acceptance criterion in exactly one dependent part.
+
+| Part | Owns | Depends on |
+|---|---|---|
+| T-107a | Exact outbox/event-receipt/jobs schema, event envelope and transaction-bound emission; original AC1 | T-105 |
+| T-107b | Bounded dispatcher claims, handler receipts, aggregate ordering and module gating; original AC2, AC5, AC6 | T-107a |
+| T-107c | LISTEN/poll lifecycle, retry/dead-letter state and OPS-08 attention items; original AC3, AC4 | T-107b |
+
+The jobs table remains in the single migration owned by this parent so T-108 can depend on T-107a, the part that provides that schema. T-116a depends on T-107c for the completed event and dispatcher contract.
+
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `tasks/M1-core/T-107a-event-emission.md`, `T-107b-dispatcher-delivery.md`, `T-107c-retry-dead-letter.md` | create | Split the original implementation into bounded dependent tasks |
+| `tasks/M1-core/T-108-jobs-and-cron.md`, `T-116a-contract-tests-and-api-fuzzing.md` | modify | Point real schema/dispatcher consumers to their owning parts |
+| `tasks/INDEX.md` | regenerate | Reflect the split task graph |
+| `tasks/DECISIONS.md` | modify | Record the delegated CQ-101 split decision |
+
+## Interfaces
+The original event and dispatcher contract above is distributed across T-107a–T-107c. Those parts preserve the specified `Event`, `DomainEvent`, `emit`, `EventHandler`, `Dispatcher::drain_once`, and `Dispatcher::run` contracts. The split adds no event name, schema field, permission or error code.
+
+## Business rules
+No new business rule is introduced. The event backoff list and five-failure terminal threshold remain the values already specified by this task and STM-80; retry/dead state uses only the existing `outbox.last_error` and `outbox.attempts` columns.
+
+## Security
+- Triggers: tenant isolation and trusted actor/request metadata in asynchronous handler effects (SBD-30).
+- Data classes touched: event and outbox fields are S1 per ERD-04; payloads carry ids and minimal facts only and must not contain S2/S3 values (CAN-60).
+- Tenant context comes from `Tx`; the dispatcher applies each row's tenant before calling a handler. Outbox, receipts and jobs retain the mapped no-RLS system-table design.
+- Never log event payloads, raw handler errors or PII; log ids and stable failure codes only (SBD-30/42/81, OPS-03).
+- Abuse cases: rollback leaves no event; tenant mismatch is rejected; receipts prevent duplicate effects; disabled modules are skipped; failure details do not leak payload or handler error text.
+
+## Implementation notes
+Implement T-107a, then T-107b, then T-107c. T-107a owns the exact three mapped table definitions and adds only the statement-level notification trigger. T-107b may return a handler error with the event still pending; T-107c adds durable backoff and dead-letter handling before exposing the long-running `run` loop.
+
 ## Acceptance criteria
-- AC1. `emit` in a tx that rolls back leaves no outbox row. → `outbox::tests::rollback_no_event`
-- AC2. Two dispatcher instances on the same DB deliver each event to a handler exactly once (count receipts and handler invocations over 500 events). → `two_dispatchers_exactly_once_per_handler`
-- AC3. A handler failing twice then succeeding is called 3 times; the event ends with `dispatched_at` set and `attempts=2`. → `retry_then_success` (with a `TestClock`/fast backoff override in tests)
-- AC4. After 5 failures, the row is dead (`attempts = 5` and the dead marker is stored) and no more attempts happen. → `dead_letter_after_max`
-- AC5. Events for the same aggregate are handled in id order. → `order_within_aggregate`
-- AC6. A handler of a disabled module is skipped and receipted. → `disabled_module_handler_skipped`
+- AC1. Original event-rollback criterion belongs to T-107a.
+- AC2. Original two-dispatcher exactly-once criterion belongs to T-107b.
+- AC3. Original handler retry-then-success criterion belongs to T-107c.
+- AC4. Original five-failure dead-letter criterion belongs to T-107c.
+- AC5. Original same-aggregate ordering criterion belongs to T-107b.
+- AC6. Original disabled-module receipt criterion belongs to T-107b.
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-core/tests/outbox.rs` | the AC names above |
+| n/a | This split parent owns no tests; each original test name is listed by exactly one part. |
 
 ## Definition of done
-- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
-- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
-- [ ] Rust checks pass
-- [ ] Commit `feat(core): transactional outbox and dispatcher [T-107]`, signed off
+- [ ] All original acceptance criteria and tests are owned once by T-107a–T-107c.
+- [ ] Each part reaches `review` or `done` with its required checks and signed-off commit.
+- [ ] T-108 depends on T-107a and T-116a depends on T-107c.
 
 ## Report
 
-**Plan** — (1) Add `migrations/0004_core_outbox_jobs.sql` with the three exact DDL definitions mapped to T-107 in spec/29 §7 and a statement-level NOTIFY trigger → verify with the migration test and `scripts/erd.py --migrations`. (2) Extend `Tx` with trusted tenant and actor/request context → verify rollback and context propagation tests. (3) Add CAN-60 `Event`, typed `DomainEvent`, transaction-bound `emit`, and the T-105 `EventSink` implementation → verify the envelope and tenant-mismatch tests. (4) Add PostgreSQL dispatch with LISTEN/poll wake-up, bounded group concurrency, aggregate ordering, receipts, module gating, retry/dead state → verify the six AC tests and dispatcher lifecycle test. (5) Run Rust, SQLx, deny, guard, ERD, security-scan, and disposable PostgreSQL browser E2E checks → record each result below.
+**Plan** — Split the CQ-101-sized scope into T-107a (schema and event emission), T-107b (bounded handler delivery, receipts, ordering and module gating), and T-107c (retry/dead state and notification/poll lifecycle). Each part keeps its own Plan and test plan and owns distinct original acceptance criteria. Implement the first eligible part, then continue in dependency order.
 
 **Assumptions** — The spec/06 DDL and spec/29 schema map are exhaustive. Retry scheduling is encoded only in existing `outbox.last_error`; `attempts >= 5` is the durable dead-state predicate. CAN-60 metadata comes from trusted `Tx` context. The shipped T-105 `ActorRole` is preserved, with its role mismatch recorded for architect ratification. Payloads remain opaque to the dispatcher and are not logged. Database tests use the `eq_app` pool; browser E2E uses a fresh disposable PostgreSQL 16 database.
 
@@ -121,19 +155,21 @@ The full persona flows JRN-01..12 are not implemented by this backend-only task;
 
 **Security** — Review of the reverted prototype: triggers were tenant isolation and actor/request metadata. SBD-81: (1) no new HTTP endpoint or permission surface; internal event delivery uses the registered handler set. (2) tenant came from `Tx`, `emit` rejected mismatch, and handler transactions called `begin_system` for the event tenant; integration checks used `eq_app` (`NOSUPERUSER NOBYPASSRLS`). Tables had no RLS as required by the mapped system-table DDL. (3) no new schema columns; payload was not emitted to logs, and log fields contained event/tenant/actor/request IDs, type, attempt and code. Handler error chains were retained per ERR-71 and handler messages must remain PII-free. (4) emitted event types were compile-time constants and payloads typed at the producer boundary; malformed stored envelopes failed closed to a PII-free marker. (5) no HTML/CSV output. (6) no secret or cryptographic handling added. (7) no external calls. (8) unique `(handler_id, event_id)` receipts, transaction rollback, and `SKIP LOCKED` claims protected effects against duplicate dispatch; concurrency and rollback tests passed. (9) audited owner retry/discard actions were not exposed; see the STM-80 scope deviation. (10) tenant-mismatch, rollback, two-dispatcher, disabled-module, and retry/dead abuse cases were covered. Full gitleaks scan found only the existing Makefile false positive; changed prototype paths were clean.
 
-**Deviations** — RATIFY: (1) The task sketch asks for retry/dead timestamp columns absent from the exhaustive schema; exact DDL is kept and retry/dead state uses versioned `last_error` markers plus `attempts`. The fifth backoff is unused because the row becomes dead at five failures. (2) CAN-60 lists `admin | system`, while T-105 ships `ActorRole` with owner, admin, instructor, guardian, student and system; preserve the shipped roles rather than collapse actor attribution. (3) STM-80 names audited owner Retry/Discard actions, but T-107 exposes only `emit`, `run`, and `drain_once`, and the relevant authorized action/API contract is not in scope; those actions remain deferred. All three are detailed under Questions for architect ratification. The implementation retains the source anyhow error chain for ERR-71 and does not place the event payload in logs.
+**Deviations** — RATIFY: (1) The task sketch asks for retry/dead timestamp columns absent from the exhaustive schema; exact DDL is kept and retry/dead state uses versioned `last_error` markers plus `attempts`. The fifth backoff is unused because the row becomes dead at five failures. (2) CAN-60 lists `admin | system`, while T-105 ships `ActorRole` with owner, admin, instructor, guardian, student and system; preserve the shipped roles rather than collapse actor attribution. (3) STM-80 names audited owner Retry/Discard actions, but T-107 exposes only `emit`, `run`, and `drain_once`, and the relevant authorized action/API contract is not in scope; those actions remain deferred. All three are detailed under Questions for architect ratification. The implementation retains the source anyhow error chain for ERR-71 and does not place the event payload in logs. Decision register references: TD-043, TD-044, TD-045 (same order as the self-resolved bullets under Questions; see `tasks/DECISIONS.md`).
 
 **Dependencies affected** — No prototype code or migration was shipped, so no downstream task can depend on these contracts. T-108 remains ineligible while T-107 is blocked. The prototype migration had shared the required `jobs` table, as T-107 specifies.
 
 **Rollback plan** — No implementation commit or migration remains on the branch. The temporary prototype used only the disposable PostgreSQL container, which was stopped and removed; no shared database was changed.
 
-**Follow-ups** — Resolve the blocking task-splitting question below, then architect ratification for the three preserved self-resolution items. The prototype's non-generated diff exceeded CQ-101; `outbox.rs` alone contributed 627 changed lines. Existing full-repository Gitleaks false positive at `Makefile:80-85` remains. OpenCode free-model audit could not run in `child-opencode` (Nemotron unavailable, DeepSeek free quota exhausted, Hy3 route refused connections); Codex completed the local self-review and checks.
+**Follow-ups** — The original prototype's non-generated diff exceeded CQ-101; `outbox.rs` alone contributed 627 changed lines. Its implementation remains only in the separate `child-opencode` worktree as review input and is not shipped on this branch. OpenCode read-only review attempts in this run could not complete: Nemotron was unavailable and DeepSeek/Beam free routes reported quota exhausted. The existing full-repository Gitleaks false positive at `Makefile:80-85` remains for human review.
 
 ## Questions
-- **Self-resolved (implementer, run 5, needs architect ratification):** T-107 asks for `outbox.next_attempt_at` and `outbox.dead_letter_at`, but spec/06 §4.1 and spec/29 §7 define an exhaustive outbox schema without those columns → keep the mapped DDL exact, encode retry due state in a versioned `last_error` marker and dead state as `attempts >= 5`, because ERD-03 and the run's schema boundary forbid undeclared columns. The fifth listed backoff is unused because the row becomes dead after the fifth failure.
-- **Self-resolved (implementer, run 5, needs architect ratification):** T-107's initial `Event` sketch omits CAN-60 `actor` and `request_id` and uses a borrowed event type that cannot represent a persisted row; CAN-60 lists only `admin | system`, while T-105 ships a closed `ActorRole` with the full active role set → carry actor/request context in the stored envelope, expose persisted event types as `String`, and preserve the shipped role values instead of collapsing distinct actors, because role attribution must not be changed or guessed. Architect ratification is needed for the canonical event role values.
-- **Self-resolved (implementer, run 5, needs architect ratification):** STM-80 names audited owner Retry/Discard actions, but the explicit T-107 API surface is only `emit`, `Dispatcher::run`, and `drain_once`, and the audit migration/API is not a dependency yet → implement durable dispatcher states and OPS-08 attention items; defer owner mutations until the authorized action and audit contract exists, because adding an unscoped permission or bypassing audit would violate SBD-40/53.
-- **Q1 (blocking):** T-107's prototype exceeds CQ-101's approximate 400 changed-line limit, which requires larger work to be split into tasks first; may the architect decompose the T-107 scope and acceptance criteria into smaller dependent tasks before implementation resumes?
+- **Q1 (historical; resolved by delegated objective):** T-107's prototype exceeds CQ-101's approximate 400 changed-line limit, which requires larger work to be split into tasks first; may the architect decompose the T-107 scope and acceptance criteria into smaller dependent tasks before implementation resumes?
   - Context: the prototype added 1,446 lines across source, tests, migration, query metadata, manifests and reports; excluding generated metadata and lockfiles, the task still exceeds 400 lines. CQ-101 says bigger work gets split into tasks first. No code has been retained in this blocked commit.
   - Options: (a) split implementation into smaller architect-authored tasks, each within CQ-101; (b) revise the task's scope/AC through an architect task update before resuming.
   - Recommendation: (a), because CQ-101 explicitly requires larger work to be split before implementation and keeps each reviewable unit narrow.
+- **Resolved (delegated objective, run 6):** Q1 — split into the three dependent implementation parts listed in `## Split`.
+- **Self-resolved (implementer, run 6, needs architect ratification):** the original T-107 interface exceeds CQ-101's implementation-size guide → split schema/emission, handler delivery, and retry/dead-letter lifecycle into T-107a–T-107c, preserve each original AC and test in one part, and point each consumer to the part that provides its required contract. [TD-054]
+
+## Review
+n/a until reviewer feedback.

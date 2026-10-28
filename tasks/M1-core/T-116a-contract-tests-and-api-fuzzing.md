@@ -3,7 +3,7 @@ id: T-116a
 title: Add contract tests (API fuzzing with Schemathesis, event schema snapshots, field-kind coverage)
 milestone: M1
 status: todo
-depends_on: [T-102a, T-107, T-114, T-115]
+depends_on: [T-102a, T-107c, T-114, T-115]
 spec_refs: [CAN-03, CAN-60, CAN-61, CAN-95, CAN-96, CAN-97, VAL-02, VAL-51, VAL-53, TST-10, TST-17, TST-18, ERR-21, OSS-20, OSS-21]
 estimated_size: M
 ---
