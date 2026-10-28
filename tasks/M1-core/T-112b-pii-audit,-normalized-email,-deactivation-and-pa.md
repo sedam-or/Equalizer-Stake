@@ -2,7 +2,7 @@
 id: T-112b
 title: PII audit, normalized email, deactivation and pagination
 milestone: M1
-status: draft
+status: todo
 depends_on: [T-112a]
 spec_refs: [IDN-10, IDN-11, IDN-13, SEC-03, SEC-04, AUD-01, API-05, API-06, API-07, PRD-02, STM-20, STM-26, STM-27, VAL-25, VAL-51, AUTH-04]
 estimated_size: M

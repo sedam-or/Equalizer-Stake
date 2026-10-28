@@ -2,7 +2,7 @@
 id: T-511
 title: Add the instructor check-in page: today's sessions, camera with on-device face detection, GPS, and the offline queue
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-306, T-315, T-510]
 spec_refs: [ATT-06, ATT-07, FE-35, SEC-20]
 estimated_size: M

@@ -2,7 +2,7 @@
 id: T-502
 title: Add the pure check-in evaluation (window, GPS with accuracy and jitter, photo checks, face ratio) and outcome
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-501]
 spec_refs: [ATT-02, ATT-03, TST-01]
 estimated_size: S

@@ -2,7 +2,7 @@
 id: T-709
 title: Add observability: structured logs, Prometheus metrics, dead-letter alerts, clock-skew check
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-708]
 spec_refs: [OPS-06, OPS-07, OPS-08, OPS-09]
 estimated_size: S

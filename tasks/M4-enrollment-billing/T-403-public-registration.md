@@ -2,7 +2,7 @@
 id: T-403
 title: Add the public registration API (/public/registrations) with consent, honeypot, encrypted applicant data and payment proof
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-303, T-402]
 spec_refs: [ENR-03, SEC-03, SEC-13, AUD-12, API-08]
 estimated_size: M

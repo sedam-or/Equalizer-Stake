@@ -2,7 +2,7 @@
 id: T-302b
 title: Setup modules, policy completion, validation and reset
 milestone: M3
-status: draft
+status: todo
 depends_on: [T-302a]
 spec_refs: [SET-02, SET-10, SET-11, SET-12, SET-13, MOD-06, POL-09, PRD-04]
 estimated_size: M

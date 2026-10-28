@@ -2,7 +2,7 @@
 id: T-302a
 title: First-run token, school creation and preset seeding
 milestone: M3
-status: draft
+status: todo
 depends_on: [T-002, T-101, T-103, T-104, T-105, T-106, T-110b, T-113b, T-301]
 spec_refs: [SET-02, SET-10, SET-11, SET-12, SET-13, MOD-06, POL-09, PRD-04]
 estimated_size: M

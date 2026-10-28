@@ -2,7 +2,7 @@
 id: T-412
 title: Add monthly cycle issuance (daily cron checks the policy day), grouping per payer, pending charges and invoice issuing
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-408, T-411]
 spec_refs: [BIL-02, BIL-04, ARC-09, TST-15]
 estimated_size: M

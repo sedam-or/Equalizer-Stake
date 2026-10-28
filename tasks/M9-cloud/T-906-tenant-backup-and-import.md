@@ -2,7 +2,7 @@
 id: T-906
 title: Add per-tenant backup/restore and import of desktop or self-host backups into the cloud
 milestone: M9
-status: draft
+status: todo
 depends_on: [T-905]
 spec_refs: [CLD-33, DST-25]
 estimated_size: M

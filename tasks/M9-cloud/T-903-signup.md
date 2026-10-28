@@ -2,7 +2,7 @@
 id: T-903
 title: Add cloud signup (magic link, Google OIDC), slug and region choice, then the unchanged setup wizard
 milestone: M9
-status: draft
+status: todo
 depends_on: [T-302b, T-902]
 spec_refs: [CLD-10, SET-11, PRD-04]
 estimated_size: M

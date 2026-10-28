@@ -2,7 +2,7 @@
 id: T-608
 title: Add feedback: progress notes with publish modes, ratings with limits and anonymity, and moderation
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-113b, T-607]
 spec_refs: [FBK-01, FBK-02, FBK-03, FBK-04]
 estimated_size: M

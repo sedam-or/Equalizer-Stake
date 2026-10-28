@@ -2,7 +2,7 @@
 id: T-405
 title: Add enrollment changes (level, series, price plan) effective from a date
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-404]
 spec_refs: [ENR-06, POL-05]
 estimated_size: S

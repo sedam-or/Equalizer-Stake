@@ -2,7 +2,7 @@
 id: T-415
 title: Add invoice cancel/adjust, manual and one-off invoices, credit notes, and HTML/PDF documents
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-414]
 spec_refs: [BIL-09, BIL-10, BIL-11]
 estimated_size: M

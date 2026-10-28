@@ -2,7 +2,7 @@
 id: T-507
 title: Add the email (SMTP) and WhatsApp channels, channel settings with encrypted secrets, and test send
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-103, T-506]
 spec_refs: [NTF-08, SEC-23, SEC-21]
 estimated_size: M

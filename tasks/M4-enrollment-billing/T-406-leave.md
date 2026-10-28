@@ -2,7 +2,7 @@
 id: T-406
 title: Add leave (cuti): request, limits per year, notice, fee, over-limit handling and billing suspension
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-212, T-405]
 spec_refs: [ENR-07, POL-05]
 estimated_size: M

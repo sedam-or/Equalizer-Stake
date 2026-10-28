@@ -2,7 +2,7 @@
 id: T-705
 title: Add master-key and tenant-DEK rotation (CLI) with background re-encryption
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-103, T-704]
 spec_refs: [SEC-01, SEC-02]
 estimated_size: S

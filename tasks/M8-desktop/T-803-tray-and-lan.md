@@ -2,7 +2,7 @@
 id: T-803
 title: Add the system tray menu and LAN access with the phones-and-tablets QR code
 milestone: M8
-status: draft
+status: todo
 depends_on: [T-802]
 spec_refs: [DST-20, DST-21]
 estimated_size: S

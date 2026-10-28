@@ -2,7 +2,7 @@
 id: T-901
 title: Add the eq-platform crate (feature `platform`) and the platform schema with its role
 milestone: M9
-status: draft
+status: todo
 depends_on: [T-808]
 spec_refs: [CLD-11, SEC-05, ARC-06]
 estimated_size: S

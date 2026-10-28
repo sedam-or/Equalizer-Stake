@@ -2,7 +2,7 @@
 id: T-404
 title: Add registration review and the approval transaction (people, links, enrollments, memberships, invites)
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-403]
 spec_refs: [ENR-04, IDN-07, SCH-07]
 estimated_size: M

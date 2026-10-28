@@ -2,7 +2,7 @@
 id: T-710
 title: Add the docs site (Starlight): owner guides in Bahasa Indonesia first, English second, rules help linked from the app
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-709]
 spec_refs: [DST-43, FE-20]
 estimated_size: M

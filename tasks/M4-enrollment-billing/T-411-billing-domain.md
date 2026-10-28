@@ -2,7 +2,7 @@
 id: T-411
 title: Add the pure billing domain: totals, proration, unique codes, due instants, late fee and term snapshots
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-410]
 spec_refs: [BIL-01, BIL-03, BIL-06, ARC-11, TST-02]
 estimated_size: M

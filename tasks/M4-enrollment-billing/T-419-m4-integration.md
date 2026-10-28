@@ -2,7 +2,7 @@
 id: T-419
 title: M4 integration — the music-school month: register, approve, schedule, issue, pay, overdue, freeze, unfreeze
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-418]
 spec_refs: [TST-07, TST-15, PRD-06]
 estimated_size: S

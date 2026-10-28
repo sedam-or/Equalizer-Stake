@@ -2,7 +2,7 @@
 id: T-408
 title: Add eligibility (exam readiness) and the BillableSource port for billing
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-407]
 spec_refs: [ENR-09, ARC-08]
 estimated_size: S

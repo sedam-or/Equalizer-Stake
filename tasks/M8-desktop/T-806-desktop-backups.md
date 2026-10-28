@@ -2,7 +2,7 @@
 id: T-806
 title: Add desktop backups: daily schedule, missed-run catch-up, folder choice, retention, tray warning
 milestone: M8
-status: draft
+status: todo
 depends_on: [T-701, T-805]
 spec_refs: [DST-23, OPS-05]
 estimated_size: S

@@ -2,7 +2,7 @@
 id: T-601
 title: Add the rental schema, RentalPolicy (booking types, payment, who can book) and the RentalModule wiring
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-513]
 spec_refs: [RNT-01, POL-01, MOD-03]
 estimated_size: S

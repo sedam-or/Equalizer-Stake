@@ -2,7 +2,7 @@
 id: T-409
 title: Add the student/guardian import (CSV/XLSX) with preview and atomic commit
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-303, T-408]
 spec_refs: [ENR-11, DST-41, SEC-13]
 estimated_size: M

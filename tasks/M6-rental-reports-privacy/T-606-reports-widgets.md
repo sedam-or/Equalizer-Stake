@@ -2,7 +2,7 @@
 id: T-606
 title: Add ReportsPolicy and module-aware dashboard widgets with caching and access rules
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-605]
 spec_refs: [RPT-01, RPT-02, RPT-03, RPT-06, FE-16]
 estimated_size: M

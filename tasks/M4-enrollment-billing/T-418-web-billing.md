@@ -2,7 +2,7 @@
 id: T-418
 title: Add the billing web pages: invoices, payment verification queue, payers, guardian invoices with payment instructions, and the frozen banner
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-416, T-417]
 spec_refs: [BIL-07, BIL-08, BIL-11, FE-32, FE-33]
 estimated_size: M

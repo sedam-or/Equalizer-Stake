@@ -2,7 +2,7 @@
 id: T-117b
 title: M1 API journey and audit integration
 milestone: M1
-status: draft
+status: todo
 depends_on: [T-117a]
 spec_refs: [ARC-04, ARC-05, ARC-07, ARC-09, AUD-04, MOD-04, TST-04, OPS-04, CAN-96]
 estimated_size: M

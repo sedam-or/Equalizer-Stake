@@ -32,6 +32,10 @@ crate = "eq-audit"
 allow = ["AGPL-3.0-only"]
 
 [[licenses.exceptions]]
+crate = "eq-audit-derive"
+allow = ["AGPL-3.0-only"]
+
+[[licenses.exceptions]]
 crate = "eq-billing"
 allow = ["AGPL-3.0-only"]
 

@@ -2,7 +2,7 @@
 id: T-508
 title: Add routing with fallback, retries with backoff, circuit breaker, quiet hours and per-payer aggregation
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-507]
 spec_refs: [NTF-03, NTF-04, NTF-05, NTF-06, TST-15, PRD-13]
 estimated_size: M

@@ -2,7 +2,7 @@
 id: T-113a
 title: Core policy and versioned settings API
 milestone: M1
-status: draft
+status: todo
 depends_on: [T-102, T-104, T-105, T-106, T-109, T-112b]
 spec_refs: [POL-06, POL-07, POL-10, POL-12, MOD-06, MOD-09, API-14, AUD-07, PRD-06, STM-12, STM-13, VAL-23, AUTH-01, AUTH-04]
 estimated_size: M

@@ -2,7 +2,7 @@
 id: T-509
 title: Add message templates (en/id × channel) and subscribe notify to the event catalog; add the in-app inbox
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-508]
 spec_refs: [NTF-07, TST-09]
 estimated_size: M

@@ -2,7 +2,7 @@
 id: T-410
 title: Add the billing schema, BillingPolicy and the BillingModule wiring
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-113b, T-408]
 spec_refs: [BIL-01, POL-01, POL-12, MOD-03]
 estimated_size: S

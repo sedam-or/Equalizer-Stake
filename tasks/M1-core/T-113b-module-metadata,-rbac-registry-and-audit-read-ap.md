@@ -2,7 +2,7 @@
 id: T-113b
 title: Module metadata, RBAC registry and audit read API
 milestone: M1
-status: draft
+status: todo
 depends_on: [T-113a]
 spec_refs: [POL-06, POL-07, POL-10, POL-12, MOD-06, MOD-09, API-14, AUD-07, PRD-06, STM-12, STM-13, VAL-23, AUTH-01, AUTH-04]
 estimated_size: M

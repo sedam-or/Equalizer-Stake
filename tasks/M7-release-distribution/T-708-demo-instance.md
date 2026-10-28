@@ -2,7 +2,7 @@
 id: T-708
 title: Add demo mode: seed-demo data, role login buttons, nightly reset
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-707]
 spec_refs: [DST-44, OPS-02]
 estimated_size: S

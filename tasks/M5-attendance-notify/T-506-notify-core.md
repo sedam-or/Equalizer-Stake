@@ -2,7 +2,7 @@
 id: T-506
 title: Add the notify schema, NotifyPolicy, the Notifier port implementation and the delivery pipeline
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-416, T-505]
 spec_refs: [NTF-01, NTF-02, NTF-09, NTF-10]
 estimated_size: M

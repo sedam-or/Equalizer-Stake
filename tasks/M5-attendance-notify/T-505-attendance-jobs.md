@@ -2,7 +2,7 @@
 id: T-505
 title: Add attendance jobs: review SLA reminders and escalation, and photo retention purge
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-504]
 spec_refs: [ATT-05, ATT-08, TST-15]
 estimated_size: S

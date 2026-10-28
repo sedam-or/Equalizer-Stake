@@ -2,7 +2,7 @@
 id: T-704
 title: Add the release pipeline: static binaries, multi-arch image, SBOM, checksums, cosign, release-please
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-703]
 spec_refs: [DST-01, DST-05, SEC-22, OSS-20, OSS-21]
 estimated_size: M

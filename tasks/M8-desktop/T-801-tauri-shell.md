@@ -2,7 +2,7 @@
 id: T-801
 title: Add the Tauri 2 desktop app that runs the server in-process and opens the setup wizard
 milestone: M8
-status: draft
+status: todo
 depends_on: [T-711]
 spec_refs: [DST-20, DST-02]
 estimated_size: M

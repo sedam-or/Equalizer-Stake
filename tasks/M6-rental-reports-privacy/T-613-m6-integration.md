@@ -2,7 +2,7 @@
 id: T-613
 title: M6 integration — studio rental school and privacy requests end to end, plus the full a11y sweep
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-612]
 spec_refs: [TST-07, TST-11]
 estimated_size: S

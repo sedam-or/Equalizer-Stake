@@ -2,7 +2,7 @@
 id: T-402
 title: Add enrollment create/activate/end with payer resolution, age and guardian rules, and the state machine
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-209, T-210, T-212, T-401]
 spec_refs: [ENR-01, ENR-02, ENR-05, DOM-01]
 estimated_size: M

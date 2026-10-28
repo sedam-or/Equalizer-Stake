@@ -2,7 +2,7 @@
 id: T-804
 title: Add the secure-link mode (Cloudflare tunnel via broker) so phones get HTTPS for camera, GPS and PWA
 milestone: M8
-status: draft
+status: todo
 depends_on: [T-803]
 spec_refs: [DST-22, SEC-06]
 estimated_size: M

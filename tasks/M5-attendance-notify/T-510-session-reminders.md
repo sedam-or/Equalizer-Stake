@@ -2,7 +2,7 @@
 id: T-510
 title: Add the scheduling reminders job (minutes-before windows from NotifyPolicy)
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-509]
 spec_refs: [NTF-01, MOD-01]
 estimated_size: S

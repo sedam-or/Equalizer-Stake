@@ -2,7 +2,7 @@
 id: T-117
 title: M1 integration — wire real audit and outbox sinks, start background workers, seed CLI, end-to-end API scenario
 milestone: M1
-status: draft
+status: todo
 depends_on: [T-105, T-106, T-107c, T-108, T-109, T-113b, T-114, T-116, T-116a]
 spec_refs: [ARC-04, ARC-05, ARC-07, ARC-09, AUD-04, MOD-04, TST-04, OPS-04, CAN-96]
 estimated_size: M

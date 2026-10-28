@@ -2,7 +2,7 @@
 id: T-604
 title: Add rental jobs (hold expiry, auto-complete) and payment confirmation on invoice paid
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-603]
 spec_refs: [RNT-06, RNT-07, RNT-09, TST-15]
 estimated_size: S

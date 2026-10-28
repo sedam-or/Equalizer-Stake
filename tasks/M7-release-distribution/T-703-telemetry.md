@@ -2,7 +2,7 @@
 id: T-703
 title: Add opt-in anonymous telemetry with a plain-language toggle and documented payload
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-702]
 spec_refs: [DST-40]
 estimated_size: S

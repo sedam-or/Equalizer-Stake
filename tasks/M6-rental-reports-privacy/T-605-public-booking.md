@@ -2,7 +2,7 @@
 id: T-605
 title: Add guest booking (/public/rental) with contact capture, verification and abuse limits
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-604]
 spec_refs: [RNT-10, SEC-11, API-15]
 estimated_size: S

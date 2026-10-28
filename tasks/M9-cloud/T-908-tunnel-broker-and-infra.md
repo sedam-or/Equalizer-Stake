@@ -2,7 +2,7 @@
 id: T-908
 title: Add the tunnel broker service for desktop secure links and the cloud infrastructure docs
 milestone: M9
-status: draft
+status: todo
 depends_on: [T-804, T-907]
 spec_refs: [DST-22, CLD-30, CLD-31, CLD-32, CLD-34]
 estimated_size: M

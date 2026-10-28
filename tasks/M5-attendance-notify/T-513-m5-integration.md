@@ -2,7 +2,7 @@
 id: T-513
 title: M5 integration — a teaching day: reminders, check-in, marks, no-show credit and notifications with channel failure
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-512]
 spec_refs: [TST-07, TST-15, TST-16]
 estimated_size: S

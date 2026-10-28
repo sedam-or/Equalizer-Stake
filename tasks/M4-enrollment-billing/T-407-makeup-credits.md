@@ -2,7 +2,7 @@
 id: T-407
 title: Add make-up credits from cancellations, skipped occurrences and no-shows, with expiry and booking
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-208, T-406]
 spec_refs: [ENR-08, SCH-09, SCH-10, SCH-11]
 estimated_size: M

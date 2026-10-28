@@ -2,7 +2,7 @@
 id: T-612
 title: Add reports dashboard and printables, feedback pages, the audit log page with verify, and /privacy
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-611]
 spec_refs: [RPT-01, FBK-01, AUD-07, AUD-10, AUD-11]
 estimated_size: M

@@ -2,7 +2,7 @@
 id: T-702
 title: Add 'Export everything' (ZIP of CSV per entity + manifest + files) in an open format
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-701]
 spec_refs: [DST-42, PRD-01]
 estimated_size: S

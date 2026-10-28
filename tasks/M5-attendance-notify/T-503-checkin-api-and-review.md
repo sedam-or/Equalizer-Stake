@@ -2,7 +2,7 @@
 id: T-503
 title: Add the check-in API (photo upload, GPS, client face ratio), duplicate protection, and admin review
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-303, T-502]
 spec_refs: [ATT-01, ATT-03, ATT-04, SEC-13]
 estimated_size: M

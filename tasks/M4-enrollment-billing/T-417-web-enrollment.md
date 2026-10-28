@@ -2,7 +2,7 @@
 id: T-417
 title: Add the enrollment web pages: /join, registrations review, student profile, guardian student switcher, leave, credits and import wizard
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-409, T-315]
 spec_refs: [ENR-03, ENR-04, ENR-07, ENR-08, ENR-10, ENR-11, FE-30, FE-34]
 estimated_size: M

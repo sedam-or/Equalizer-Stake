@@ -2,7 +2,7 @@
 id: T-706
 title: Add the Docker one-liner installer (install.sh) and the documented compose stack with Caddy
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-705]
 spec_refs: [DST-30, DST-31, DST-02]
 estimated_size: M

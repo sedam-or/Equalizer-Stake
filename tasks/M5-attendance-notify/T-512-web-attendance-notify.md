@@ -2,7 +2,7 @@
 id: T-512
 title: Add attendance review and marks UI, the notifications inbox and bell, channel settings and notification preferences
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-511]
 spec_refs: [ATT-05, ATT-10, NTF-08, NTF-10, FE-33]
 estimated_size: M

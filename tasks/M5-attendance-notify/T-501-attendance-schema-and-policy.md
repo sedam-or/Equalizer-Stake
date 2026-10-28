@@ -2,7 +2,7 @@
 id: T-501
 title: Add the attendance schema, AttendancePolicy and the AttendanceModule wiring
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-408, T-419]
 spec_refs: [ATT-01, POL-01, MOD-03, SEC-07]
 estimated_size: S

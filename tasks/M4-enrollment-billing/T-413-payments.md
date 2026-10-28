@@ -2,7 +2,7 @@
 id: T-413
 title: Add payments: record (staff), submit with proof (payer), verify/reject, partial payments and paid transitions
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-412]
 spec_refs: [BIL-07, BIL-12, SEC-07, SEC-13, API-08]
 estimated_size: M

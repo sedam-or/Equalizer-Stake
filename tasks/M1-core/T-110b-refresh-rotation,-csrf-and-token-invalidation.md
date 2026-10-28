@@ -2,7 +2,7 @@
 id: T-110b
 title: Refresh rotation, CSRF and token invalidation
 milestone: M1
-status: draft
+status: todo
 depends_on: [T-110a]
 spec_refs: [IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-09, SEC-10, SEC-12, STM-22, STM-23, CAN-34, D-37, AUTH-02, AUTH-03, AUTH-05, AUTH-06]
 estimated_size: M

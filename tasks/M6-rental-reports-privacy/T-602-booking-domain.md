@@ -2,7 +2,7 @@
 id: T-602
 title: Add the pure booking validation and pricing (15-minute slices, peak rates)
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-601]
 spec_refs: [RNT-02, RNT-03, TST-02]
 estimated_size: S

@@ -2,7 +2,7 @@
 id: T-701
 title: Add encrypted backup and restore (CLI + scheduled + UI trigger) with the round-trip test
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-613]
 spec_refs: [OPS-05, SEC-31, TST-13, PRD-16]
 estimated_size: M

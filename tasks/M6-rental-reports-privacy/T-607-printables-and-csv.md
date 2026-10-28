@@ -2,7 +2,7 @@
 id: T-607
 title: Add printable reports and CSV exports for every list
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-606]
 spec_refs: [RPT-04, RPT-05, AUD-01]
 estimated_size: S

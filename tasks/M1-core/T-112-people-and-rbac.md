@@ -2,7 +2,7 @@
 id: T-112
 title: Add the people API with scoped queries, role management, guardian–student links and deactivation
 milestone: M1
-status: draft
+status: todo
 depends_on: [T-102a, T-110b, T-111]
 spec_refs: [IDN-10, IDN-11, IDN-13, SEC-03, SEC-04, AUD-01, API-05, API-06, API-07, PRD-02, STM-20, STM-26, STM-27, VAL-25, VAL-51, AUTH-04]
 estimated_size: M

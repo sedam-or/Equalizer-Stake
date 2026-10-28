@@ -2,7 +2,7 @@
 id: T-808
 title: M8 integration — install, setup, phone check-in over the tunnel, backup, update, move to cloud export
 milestone: M8
-status: draft
+status: todo
 depends_on: [T-807]
 spec_refs: [DST-02, DST-25]
 estimated_size: S

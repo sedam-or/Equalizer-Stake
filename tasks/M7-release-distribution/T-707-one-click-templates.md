@@ -2,7 +2,7 @@
 id: T-707
 title: Add 1-click deploy templates (Railway, Render, DigitalOcean, Coolify, CasaOS, Umbrel; Elestio and YunoHost docs)
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-706]
 spec_refs: [DST-10, DST-11]
 estimated_size: M

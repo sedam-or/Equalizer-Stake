@@ -2,7 +2,7 @@
 id: T-902
 title: Add multi-mode routing hardening and custom domains with on-demand TLS checks
 milestone: M9
-status: draft
+status: todo
 depends_on: [T-104, T-901]
 spec_refs: [CLD-01, CLD-02, CLD-03]
 estimated_size: S

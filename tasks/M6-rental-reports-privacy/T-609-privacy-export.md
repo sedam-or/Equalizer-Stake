@@ -2,7 +2,7 @@
 id: T-609
 title: Add the data-subject export (ZIP of JSON + CSV) with signed download and expiry
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-608]
 spec_refs: [AUD-10, SEC-15, DST-42]
 estimated_size: S

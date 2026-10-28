@@ -2,7 +2,7 @@
 id: T-504
 title: Add student attendance marks with lock window, no-show events and completion checks
 milestone: M5
-status: draft
+status: todo
 depends_on: [T-503]
 spec_refs: [ATT-10, ATT-11, ATT-12]
 estimated_size: M

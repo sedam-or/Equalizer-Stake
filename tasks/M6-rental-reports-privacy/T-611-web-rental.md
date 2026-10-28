@@ -2,7 +2,7 @@
 id: T-611
 title: Add the rental web pages: book a room, my reservations, admin reservations and rate cards, and the public /book page
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-312, T-315, T-610]
 spec_refs: [RNT-04, RNT-10, FE-31]
 estimated_size: M

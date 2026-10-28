@@ -2,7 +2,7 @@
 id: T-416
 title: Add billing reminders, checklist items, has_data and the remaining on_disable effects
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-415]
 spec_refs: [BIL-05, MOD-08, SET-13]
 estimated_size: S

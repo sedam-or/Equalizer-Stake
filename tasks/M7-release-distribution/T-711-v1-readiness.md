@@ -2,7 +2,7 @@
 id: T-711
 title: v1.0 readiness — security review checklist, performance budget, README assets, and launch checklist
 milestone: M7
-status: draft
+status: todo
 depends_on: [T-710]
 spec_refs: [SEC-22, OPS-07, OPS-10, TST-05, PRD-10, PRD-11]
 estimated_size: S

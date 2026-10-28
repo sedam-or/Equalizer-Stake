@@ -2,7 +2,7 @@
 id: T-302
 title: Add the setup API (status, presets, countries, school, modules, rules, complete, reset) and the first-run setup token
 milestone: M3
-status: draft
+status: todo
 depends_on: [T-301]
 spec_refs: [SET-02, SET-10, SET-11, SET-12, SET-13, MOD-06, POL-09, PRD-04]
 estimated_size: M

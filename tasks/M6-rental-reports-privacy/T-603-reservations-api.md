@@ -2,7 +2,7 @@
 id: T-603
 title: Add reservations: create with holds at creation, approval, booker cancellation with refund terms, and billing events
 milestone: M6
-status: draft
+status: todo
 depends_on: [T-415, T-602]
 spec_refs: [RNT-04, RNT-05, RNT-08, DOM-10, API-08]
 estimated_size: M

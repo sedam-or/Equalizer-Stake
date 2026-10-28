@@ -2,7 +2,7 @@
 id: T-401
 title: Add the enrollment schema, EnrollmentPolicy and the EnrollmentModule wiring
 milestone: M4
-status: draft
+status: todo
 depends_on: [T-315]
 spec_refs: [ENR-05, POL-01, POL-06, MOD-03]
 estimated_size: S

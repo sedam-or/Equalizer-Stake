@@ -2,7 +2,7 @@
 id: T-907
 title: Add abuse controls (signup limits, disposable email block, suspend switch) and the AGPL source link
 milestone: M9
-status: draft
+status: todo
 depends_on: [T-906]
 spec_refs: [CLD-35, CLD-40]
 estimated_size: S

@@ -2,7 +2,7 @@
 id: T-802
 title: Add embedded Postgres (postgresql_embedded) and OS-keychain secrets with the recovery kit
 milestone: M8
-status: draft
+status: todo
 depends_on: [T-801]
 spec_refs: [DST-20, SEC-31]
 estimated_size: M
