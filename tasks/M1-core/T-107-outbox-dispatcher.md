@@ -61,11 +61,11 @@ pub trait EventHandler: Send + Sync {
 ## Split
 The original scope exceeded CQ-101's approximate 400 changed-line guide. Keep this file as the parent contract; implement each original acceptance criterion in exactly one dependent part.
 
-| Part | Owns | Depends on |
-|---|---|---|
-| T-107a | Exact outbox/event-receipt/jobs schema, event envelope and transaction-bound emission; original AC1 | T-105 |
-| T-107b | Bounded dispatcher claims, handler receipts, aggregate ordering and module gating; original AC2, AC5, AC6 | T-107a |
-| T-107c | LISTEN/poll lifecycle, retry/dead-letter state and OPS-08 attention items; original AC3, AC4 | T-107b |
+| Part | Owns | Depends on | Status |
+|---|---|---|---|
+| T-107a | Exact outbox/event-receipt/jobs schema, event envelope and transaction-bound emission; original AC1 | T-105 | review |
+| T-107b | Bounded dispatcher claims, handler receipts, aggregate ordering and module gating; original AC2, AC5, AC6 | T-107a | review |
+| T-107c | LISTEN/poll lifecycle, retry/dead-letter state and OPS-08 attention items; original AC3, AC4 | T-107b | draft |
 
 The jobs table remains in the single migration owned by this parent so T-108 can depend on T-107a, the part that provides that schema. T-116a depends on T-107c for the completed event and dispatcher contract.
 

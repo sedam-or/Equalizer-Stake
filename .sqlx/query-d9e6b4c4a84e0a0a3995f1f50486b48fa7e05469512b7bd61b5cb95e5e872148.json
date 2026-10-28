@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.outbox SET dispatched_at = clock_timestamp() WHERE id = $1 AND dispatched_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d9e6b4c4a84e0a0a3995f1f50486b48fa7e05469512b7bd61b5cb95e5e872148"
+}

@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH aggregate_heads AS MATERIALIZED ( SELECT DISTINCT ON (tenant_id, aggregate_id) id FROM public.outbox WHERE dispatched_at IS NULL AND aggregate_id IS NOT NULL ORDER BY tenant_id, aggregate_id, id ) SELECT candidate.id, candidate.tenant_id, candidate.event_type, candidate.aggregate_id, candidate.payload, candidate.occurred_at FROM public.outbox AS candidate WHERE candidate.dispatched_at IS NULL AND (candidate.aggregate_id IS NULL OR candidate.id IN ( SELECT id FROM aggregate_heads )) ORDER BY candidate.id LIMIT $1 FOR UPDATE OF candidate SKIP LOCKED",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "outbox",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "outbox",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "event_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "outbox",
+            "name": "event_type"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "aggregate_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "outbox",
+            "name": "aggregate_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "payload",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "outbox",
+            "name": "payload"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "occurred_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "outbox",
+            "name": "occurred_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "a1ccadfd37af26be54434c1a59dba3449842f6396a2763175937c98a00482c68"
+}

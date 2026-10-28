@@ -59,8 +59,10 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-053 | T-106 | `tasks/M1-core/T-106-policy-store.md:207` | AC1 names `policy::tests::effective_dating`, but the test needs the database fixture from the integration test harness → nest the test under the exact `policy::tests` module path in the integration file. |
 | TD-054 | T-107 | `tasks/M1-core/T-107-outbox-dispatcher.md:173` | The T-107 prototype exceeded CQ-101's approximate 400-line task guide → split schema/emission, handler delivery, and retry/dead-letter lifecycle into T-107a/b/c; keep each original AC/test in one part and point each consumer to the part that provides its contract. |
 | TD-055 | T-107a | `tasks/M1-core/T-107a-event-emission.md:165` | The task sketch uses `String` for `Event.event_type`, while shipped T-105 uses `&'static str` → retain the shipped shape and the mapped PostgreSQL `text` column. |
+| TD-056 | T-107b | `tasks/M1-core/T-107b-dispatcher-delivery.md:93` | The dispatcher contract does not define an event with no registered subscriber → treat the empty handler set as successful delivery and mark the event dispatched, following FLW-03's “all handlers succeeded” transition. |
+| TD-057 | T-107b | `tasks/M1-core/T-107b-dispatcher-delivery.md:94` | FLW-03 requires sequential delivery per aggregate, but `FOR UPDATE SKIP LOCKED` over a bounded batch can let a second dispatcher claim later rows beyond the first 100 rows → claim only the oldest pending event per non-null `(tenant_id, aggregate_id)` until that event is marked dispatched, preserving ordering without a schema change; leave null-aggregate rows independently claimable. |
 
-**Total mapped self-resolutions:** 55.
+**Total mapped self-resolutions:** 56.
 
 ## Detailed entries added in run 6
 
@@ -154,4 +156,22 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Preserve `&'static str` on the existing `Event` and keep `outbox.event_type` as PostgreSQL `text`.
 - **Why:** T-105's event-handler contract is already shipped; the difference is a representation shape, and changing it is outside this part's minimal producer scope.
 - **Changed:** T-107a task interface and implementation use the shipped shape; no schema change.
+- **Ratify:** Yes.
+
+### TD-056 — Complete events with no subscribers
+
+- **Question:** Should a pending event with no registered handler subscription remain pending or be considered complete?
+- **Options:** Keep it pending indefinitely for a future handler; treat the empty handler set as successful; or return an error and leave it pending.
+- **Decision:** Treat the empty handler set as successful and mark the event dispatched.
+- **Why:** FLW-03 marks the event dispatched after all subscribed handlers succeed; with no subscriber there are no handler effects to run. This also avoids repeatedly claiming an event that has no consumer.
+- **Changed:** T-107b records this behavior and adds a focused integration test; no schema or event name is introduced.
+- **Ratify:** Yes.
+
+### TD-057 — Preserve aggregate order across dispatchers
+
+- **Question:** Can a second dispatcher claim later events for an aggregate while the first dispatcher holds its oldest events in a batch?
+- **Options:** Rely on batch row locks; serialize all dispatchers globally; or expose only each aggregate's oldest pending event to the claim query.
+- **Decision:** For non-null aggregate IDs, claim only the oldest pending event for each `(tenant_id, aggregate_id)` while that event remains pending. Keep null-aggregate rows independently claimable.
+- **Why:** FLW-03 requires sequential delivery per aggregate, while a null aggregate has no sequence to preserve. Row locks alone do not protect rows beyond the first dispatcher's 100-row batch; materialized aggregate-head selection preserves non-null aggregate order without a new lock table, advisory-lock scheme or schema change.
+- **Changed:** T-107b adds a materialized aggregate-head CTE to the claim query and a PostgreSQL test that holds the oldest handler while a second dispatcher attempts to drain 150 same-aggregate events.
 - **Ratify:** Yes.

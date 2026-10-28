@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.event_receipts (handler_id, event_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING handler_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "handler_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "event_receipts",
+            "name": "handler_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1c7e36006d47a298ad38f0a97744e3e1cee4dc122b9722f6809e6a1951f8d9a9"
+}
