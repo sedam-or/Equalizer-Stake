@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.attention_items (id, tenant_id, module_id, kind, payload, severity, dedupe_key) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (tenant_id, dedupe_key) DO UPDATE SET payload = EXCLUDED.payload, severity = EXCLUDED.severity, resolved_at = NULL, resolved_by = NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Jsonb",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a9ac2cccfde6e4fa2e6d5b2eea7a9444716bc200eff1911664a10206643fa35d"
+}

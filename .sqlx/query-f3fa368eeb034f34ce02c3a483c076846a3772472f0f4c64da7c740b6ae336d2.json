@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT min(seq) AS first_seq, max(seq) AS last_seq FROM audit.entries WHERE tenant_id = $1 AND at >= $2 AND at <= $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "first_seq",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "last_seq",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "f3fa368eeb034f34ce02c3a483c076846a3772472f0f4c64da7c740b6ae336d2"
+}

@@ -97,6 +97,11 @@ pub(super) struct VerifyRow {
     pub(super) redaction_proof: Option<Vec<u8>>,
 }
 
+pub(super) struct RecentSequenceBounds {
+    pub(super) first_seq: Option<i64>,
+    pub(super) last_seq: Option<i64>,
+}
+
 pub(super) async fn check_transaction_tenant(tx: &mut Tx, tenant: TenantId) -> Result<(), AppError> {
     let transaction_tenant = sqlx::query_scalar!(
         "SELECT NULLIF(pg_catalog.current_setting('app.tenant_id', true), '')::uuid AS tenant_id"
@@ -199,6 +204,55 @@ pub(super) async fn verify_rows(
     .fetch_all(tx.conn())
     .await?;
     Ok(rows)
+}
+
+pub(super) async fn recent_sequence_bounds(
+    tx: &mut Tx,
+    tenant: TenantId,
+    from_at: DateTime<Utc>,
+    to_at: DateTime<Utc>,
+) -> Result<RecentSequenceBounds, AppError> {
+    let bounds = sqlx::query!(
+        "SELECT min(seq) AS first_seq, max(seq) AS last_seq \
+         FROM audit.entries WHERE tenant_id = $1 AND at >= $2 AND at <= $3",
+        tenant.0,
+        from_at,
+        to_at
+    )
+    .fetch_one(tx.conn())
+    .await?;
+    Ok(RecentSequenceBounds {
+        first_seq: bounds.first_seq,
+        last_seq: bounds.last_seq,
+    })
+}
+
+pub(super) async fn anonymize(tx: &mut Tx, tenant: TenantId, before: DateTime<Utc>) -> Result<(), AppError> {
+    let _outcome = sqlx::query!(
+        "WITH maintenance AS MATERIALIZED (SELECT audit.anonymize($1, $2, NULL)) \
+         SELECT true AS completed FROM maintenance",
+        tenant.0,
+        before
+    )
+    .fetch_one(tx.conn())
+    .await?;
+    Ok(())
+}
+
+pub(super) async fn purge_expired(
+    tx: &mut Tx,
+    tenant: TenantId,
+    before: DateTime<Utc>,
+) -> Result<(), AppError> {
+    let _outcome = sqlx::query!(
+        "WITH maintenance AS MATERIALIZED (SELECT audit.purge_expired($1, $2)) \
+         SELECT true AS completed FROM maintenance",
+        tenant.0,
+        before
+    )
+    .fetch_one(tx.conn())
+    .await?;
+    Ok(())
 }
 
 fn actor_role(role: ActorRole) -> Result<&'static str, AppError> {

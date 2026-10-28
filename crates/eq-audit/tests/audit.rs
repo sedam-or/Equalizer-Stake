@@ -1,13 +1,24 @@
 use anyhow::Result;
-use chrono::{DateTime, Utc};
-use eq_audit::{AuditEvent, Category, Sealer, record};
+use chrono::{DateTime, Months, Utc};
+use eq_audit::policy::AuditPolicy;
+use eq_audit::{AuditEvent, AuditRetentionJob, AuditVerifyRecentJob, Category, Sealer, record};
 use eq_core::actor::{ActorCtx, ActorRole};
+use eq_core::clock::SystemClock;
 use eq_core::db;
 use eq_core::ids::TenantId;
+use eq_core::jobs::{JobCtx, JobHandler};
+use eq_core::model::TenantStatus;
+use eq_core::module::ModuleRegistry;
+use eq_core::money::Currency;
+use eq_core::policy::types::Locale;
+use eq_core::policy::{PolicyStore, PresetPatchSource, PresetSourceError};
+use eq_core::tenant::TenantInfo;
 use eq_testkit::TestDb;
-use serde_json::json;
-use sqlx::Error;
+use eq_testkit::module_sinks::ModuleSinkDoubles;
+use serde_json::{Value, json};
+use sqlx::{Error, Row};
 use std::net::IpAddr;
+use std::sync::Arc;
 use uuid::Uuid;
 
 async fn tenant(db: &TestDb) -> Result<TenantId> {
@@ -280,6 +291,199 @@ async fn audit_functions_reject_cross_tenant_arguments() -> Result<()> {
         tx.rollback().await?;
     }
     Ok(())
+}
+
+#[tokio::test]
+async fn audit_retention_job_uses_policy_store() -> Result<()> {
+    let db = TestDb::new().await;
+    let tenant = tenant(&db).await?;
+    let purged_seq = record_entry(&db, tenant, None, Some(json!({ "value": "old-entry" })), None).await?;
+    let retained_seq = record_entry(
+        &db,
+        tenant,
+        None,
+        Some(json!({
+            "person": { "display_name": "test-person-109g", "reason": "test-minor-note-109g" }
+        })),
+        Some("192.0.2.10".parse()?),
+    )
+    .await?;
+    let now =
+        sqlx::query_scalar::<_, DateTime<Utc>>("SELECT pg_catalog.clock_timestamp() + interval '1 second'")
+            .fetch_one(&db.pool)
+            .await?;
+    let retained_at = now
+        .checked_sub_months(Months::new(18))
+        .ok_or_else(|| anyhow::anyhow!("test retention timestamp is in range"))?;
+    let purged_at = now
+        .checked_sub_months(Months::new(72))
+        .ok_or_else(|| anyhow::anyhow!("test purge timestamp is in range"))?;
+    sqlx::query("UPDATE audit.entries SET at = $3 WHERE tenant_id = $1 AND seq = $2")
+        .bind(tenant.0)
+        .bind(retained_seq)
+        .bind(retained_at)
+        .execute(&db.pool)
+        .await?;
+    sqlx::query("UPDATE audit.entries SET at = $3 WHERE tenant_id = $1 AND seq = $2")
+        .bind(tenant.0)
+        .bind(purged_seq)
+        .bind(purged_at)
+        .execute(&db.pool)
+        .await?;
+    Sealer::new(db.app_pool.clone()).seal_tenant(tenant).await?;
+
+    let policy_store = policy_store(&db).await?;
+    let actor = ActorCtx::system("audit-test");
+    let policy = AuditPolicy::new(5, 1, vec![Category::Operational])
+        .map_err(|_| anyhow::anyhow!("test audit policy is valid"))?;
+    let mut policy_tx = db::begin(&db.app_pool, tenant, &actor).await?;
+    policy_store
+        .put(&mut policy_tx, tenant, policy, now.clone(), &actor, None)
+        .await?;
+    policy_tx.commit().await?;
+
+    let ctx = JobCtx {
+        tenant: Some(Arc::new(tenant_info(tenant))),
+        pool: db.app_pool.clone(),
+        clock: Arc::new(SystemClock),
+        now,
+        policy_store: Some(policy_store),
+    };
+    AuditRetentionJob
+        .run(&ctx, &Value::Null)
+        .await
+        .map_err(anyhow::Error::new)?;
+
+    let retained = sqlx::query(
+        "SELECT \"after\", ip::text AS ip, redaction_proof \
+         FROM audit.entries WHERE tenant_id = $1 AND seq = $2",
+    )
+    .bind(tenant.0)
+    .bind(retained_seq)
+    .fetch_one(&db.pool)
+    .await?;
+    let after = retained
+        .try_get::<Option<Value>, _>("after")?
+        .ok_or_else(|| anyhow::anyhow!("retained test entry has after JSON"))?;
+    let after_text = after.to_string();
+    assert!(!after_text.contains("test-person-109g"));
+    assert!(!after_text.contains("test-minor-note-109g"));
+    assert!(after_text.contains("REDACTED-"));
+    assert!(retained.try_get::<Option<String>, _>("ip")?.is_none());
+    assert!(
+        retained
+            .try_get::<Option<Vec<u8>>, _>("redaction_proof")?
+            .is_some()
+    );
+
+    let purged = sqlx::query_scalar::<_, bool>(
+        "SELECT EXISTS(SELECT 1 FROM audit.entries WHERE tenant_id = $1 AND seq = $2)",
+    )
+    .bind(tenant.0)
+    .bind(purged_seq)
+    .fetch_one(&db.pool)
+    .await?;
+    assert!(!purged);
+    let checkpoint_seq = sqlx::query_scalar::<_, i64>(
+        "SELECT seq FROM audit.checkpoints WHERE tenant_id = $1 ORDER BY seq DESC LIMIT 1",
+    )
+    .bind(tenant.0)
+    .fetch_one(&db.pool)
+    .await?;
+    assert_eq!(checkpoint_seq, purged_seq);
+
+    let report = Sealer::new(db.app_pool.clone())
+        .verify(tenant, retained_seq, retained_seq)
+        .await?;
+    assert_eq!(report.first_mismatch, None);
+    Ok(())
+}
+
+#[tokio::test]
+async fn audit_verify_job_raises_attention_on_mismatch() -> Result<()> {
+    let db = TestDb::new().await;
+    let tenant = tenant(&db).await?;
+    let seq = record_entry(&db, tenant, None, Some(json!({ "value": "initial" })), None).await?;
+    Sealer::new(db.app_pool.clone()).seal_tenant(tenant).await?;
+    sqlx::query("UPDATE audit.entries SET after = $1 WHERE tenant_id = $2 AND seq = $3")
+        .bind(sqlx::types::Json(json!({ "value": "tampered" })))
+        .bind(tenant.0)
+        .bind(seq)
+        .execute(&db.pool)
+        .await?;
+    let now =
+        sqlx::query_scalar::<_, DateTime<Utc>>("SELECT pg_catalog.clock_timestamp() + interval '1 second'")
+            .fetch_one(&db.pool)
+            .await?;
+
+    let ctx = JobCtx {
+        tenant: Some(Arc::new(tenant_info(tenant))),
+        pool: db.app_pool.clone(),
+        clock: Arc::new(SystemClock),
+        now,
+        policy_store: None,
+    };
+    AuditVerifyRecentJob
+        .run(&ctx, &Value::Null)
+        .await
+        .map_err(anyhow::Error::new)?;
+
+    let item = sqlx::query(
+        "SELECT module_id, kind, severity, payload, dedupe_key \
+         FROM public.attention_items WHERE tenant_id = $1 AND kind = 'audit_chain_mismatch'",
+    )
+    .bind(tenant.0)
+    .fetch_one(&db.pool)
+    .await?;
+    assert_eq!(item.try_get::<String, _>("module_id")?, "audit");
+    assert_eq!(item.try_get::<String, _>("kind")?, "audit_chain_mismatch");
+    assert_eq!(item.try_get::<String, _>("severity")?, "high");
+    assert_eq!(item.try_get::<Value, _>("payload")?["sequence"], seq);
+    assert_eq!(
+        item.try_get::<String, _>("dedupe_key")?,
+        format!("audit_chain_mismatch:{seq}")
+    );
+    Ok(())
+}
+
+#[derive(Debug)]
+struct NoPresetPatches;
+
+impl PresetPatchSource for NoPresetPatches {
+    fn policy_patch(
+        &self,
+        _preset_id: &str,
+        _preset_version: i32,
+        _module: eq_core::module::ModuleId,
+    ) -> std::result::Result<Option<Value>, PresetSourceError> {
+        Ok(None)
+    }
+}
+
+async fn policy_store(db: &TestDb) -> Result<Arc<PolicyStore>> {
+    let sinks = ModuleSinkDoubles::default();
+    let modules = Arc::new(ModuleRegistry::new(Vec::new()));
+    let store = PolicyStore::new(
+        db.app_pool.clone(),
+        modules,
+        Arc::new(NoPresetPatches),
+        sinks.audit_sink(),
+        sinks.event_sink(),
+        Arc::new(SystemClock),
+    )
+    .await?;
+    Ok(Arc::new(store))
+}
+
+fn tenant_info(tenant: TenantId) -> TenantInfo {
+    TenantInfo {
+        id: tenant,
+        slug: String::from("audit-test"),
+        status: TenantStatus::Active,
+        timezone: String::from("UTC"),
+        locale: Locale::En,
+        currency: Currency::IDR,
+    }
 }
 
 async fn record_entry(

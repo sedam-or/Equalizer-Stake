@@ -81,8 +81,11 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-084 | T-109e | `tasks/M1-core/T-109e-audit-chain.md:30` | Treat `from_seq` and `to_seq` as inclusive endpoints because the named bounds should both be checked rather than silently omitted. |
 | TD-085 | T-109e | `tasks/M1-core/T-109e-audit-chain.md:23` | Keep audit-chain SQL in the existing repository adapter because CA-11/CQ-24 require persistence queries to stay in the module's `repo.rs`. |
 | TD-086 | T-109e | `tasks/M1-core/T-109e-audit-chain.md:45` | Fail sealing without writes when a later entry/checkpoint is already sealed after the first unsealed sequence, because extending that chain would violate sequence order and append-only integrity. |
+| TD-087 | T-109g | `tasks/M1-core/T-109g-audit-jobs.md` | Add the omitted repository paths and SQLx metadata because CA-11/CA-30/CQ-24/CQ-42 require owner-only table access and checked-in descriptions for compile-time queries. |
+| TD-088 | T-109g | `tasks/M1-core/T-109g-audit-jobs.md` | Use the descriptive attention kind `audit_chain_mismatch`, sequence-only payload, and tenant-scoped dedupe key because the task requires a high-severity audit mismatch item but supplies no exact stable identifier. |
+| TD-089 | T-109g | `tasks/M1-core/T-109g-audit-jobs.md` | Implement the core-owned `attention::raise` API named by STM-14 because the task's required item targets core-owned `attention_items` and no API is shipped. |
 
-**Total mapped self-resolutions:** 76.
+**Total mapped self-resolutions:** 79.
 
 ## Detailed entries added in run 6
 
@@ -458,4 +461,31 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Return an internal error and make no seal updates when the existing state cannot be extended in sequence order.
 - **Why:** Continuing or rewriting would violate AUD-03/04 chain order and append-only integrity; failing closed preserves the stored evidence without changing schema or business behavior.
 - **Changed:** `crates/eq-audit/src/repo.rs`, `crates/eq-audit/src/sealer.rs`, task-owned `.sqlx` metadata, `tasks/M1-core/T-109e-audit-chain.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-087 — Keep audit-job queries in the repository adapter
+
+- **Question:** T-109g's Files table omits the repository paths and SQLx offline metadata needed for compile-time queries.
+- **Options:** Place SQL in job orchestration code or add private audit repository helpers and the checked-in query metadata.
+- **Decision:** Keep audit query helpers in `crates/eq-audit/src/repo.rs`; route the core-owned table write through `eq_core::attention::raise` and its repository; include the four exact metadata files for compile-time queries in T-109g's file contract.
+- **Why:** CA-11/CA-30/CQ-24/CQ-42 assign table access to the owning module's repository, and SQLX_OFFLINE requires descriptions for compile-time query macros.
+- **Changed:** `crates/eq-audit/src/jobs.rs`, `crates/eq-audit/src/repo.rs`, `crates/eq-core/src/lib.rs`, `crates/eq-core/src/attention.rs`, `crates/eq-core/src/attention/repo.rs`, the four T-109g `.sqlx` metadata files, and this register.
+- **Ratify:** Yes.
+
+### TD-088 — Use an idempotent audit-chain attention item
+
+- **Question:** T-109g asks for a high-severity audit mismatch attention item but does not define its stable kind, payload or dedupe shape.
+- **Options:** Store only the failure category, add audit-entry content, or store the sequence that failed verification.
+- **Decision:** Use module `audit`, kind `audit_chain_mismatch`, payload containing only the mismatched sequence, severity `high`, and dedupe key `audit_chain_mismatch:<sequence>`.
+- **Why:** The mismatch sequence is the minimum diagnostic needed to locate the failure, and deduping by tenant/sequence is safe across job retries without storing PII or changing schema, permissions or events.
+- **Changed:** `crates/eq-audit/src/repo.rs`, `crates/eq-audit/src/jobs.rs`, `crates/eq-audit/tests/audit.rs`, and this register.
+- **Ratify:** Yes.
+
+### TD-089 — Use the core-owned attention port
+
+- **Question:** T-109g requires `eq-audit` to raise a row in `attention_items`, but ERD-04 assigns that table to core and the task provides no shared API.
+- **Options:** Write the core table from `eq-audit`, emit a new cross-module event, or add the `attention::raise` API named by STM-14.
+- **Decision:** Implement `eq_core::attention::raise` with SQL in the core-owned repository and invoke it inside the caller's tenant transaction.
+- **Why:** STM-14 names `attention::raise` as the any-module creation path; CA-30 prohibits `eq-audit` from directly writing a core-owned table. This adds no schema, event, permission or role grant.
+- **Changed:** `crates/eq-core/src/lib.rs`, `crates/eq-core/src/attention.rs`, `crates/eq-core/src/attention/repo.rs`, `crates/eq-audit/src/jobs.rs`, `tasks/M1-core/T-109g-audit-jobs.md`, and this register.
 - **Ratify:** Yes.

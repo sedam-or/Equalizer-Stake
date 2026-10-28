@@ -8,6 +8,7 @@ use crate::error::AppError;
 use crate::ids::TenantId;
 use crate::module::ModuleRegistry;
 use crate::module::gate::EnabledModuleSet;
+use crate::policy::PolicyStore;
 use crate::tenant::TenantInfo;
 use anyhow::anyhow;
 use async_trait::async_trait;
@@ -43,6 +44,8 @@ pub struct JobCtx {
     pub clock: Arc<dyn Clock>,
     /// ARC-10 instant at which this worker claimed the job.
     pub now: Timestamp,
+    /// T-109/POL-04: shared policy service for handlers that evaluate tenant policy.
+    pub policy_store: Option<Arc<PolicyStore>>,
 }
 
 impl fmt::Debug for JobCtx {
@@ -53,6 +56,10 @@ impl fmt::Debug for JobCtx {
             .field("pool", &"[configured]")
             .field("clock", &"[configured]")
             .field("now", &self.now)
+            .field(
+                "policy_store",
+                &self.policy_store.as_ref().map(|_| "[configured]"),
+            )
             .finish()
     }
 }
@@ -147,6 +154,7 @@ pub struct JobRunner {
     handlers: HashMap<String, Arc<dyn JobHandler>>,
     enabled: Arc<dyn EnabledModuleSet>,
     clock: Arc<dyn Clock>,
+    policy_store: Option<Arc<PolicyStore>>,
 }
 
 impl fmt::Debug for JobRunner {
@@ -155,6 +163,10 @@ impl fmt::Debug for JobRunner {
             .debug_struct("JobRunner")
             .field("pool", &"[configured]")
             .field("handler_count", &self.handlers.len())
+            .field(
+                "policy_store",
+                &self.policy_store.as_ref().map(|_| "[configured]"),
+            )
             .finish_non_exhaustive()
     }
 }
@@ -178,7 +190,14 @@ impl JobRunner {
             handlers,
             enabled,
             clock,
+            policy_store: None,
         }
+    }
+
+    /// T-109/POL-04: supplies the shared policy service to handlers that need tenant policy.
+    pub fn with_policy_store(mut self, policy_store: Arc<PolicyStore>) -> Self {
+        self.policy_store = Some(policy_store);
+        self
     }
 
     /// ARC-09: reaps expired leases and processes one bounded batch due at `now`.
@@ -226,6 +245,7 @@ impl JobRunner {
                     pool: self.pool.clone(),
                     clock: Arc::clone(&self.clock),
                     now,
+                    policy_store: self.policy_store.clone(),
                 };
                 match handler.run(&context, &job.payload).await {
                     Ok(()) => repo::mark_done(&self.pool, job.id, now, None).await?,

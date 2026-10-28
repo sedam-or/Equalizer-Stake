@@ -2,6 +2,7 @@
 
 pub mod actor;
 pub mod app_state;
+pub mod attention;
 pub mod brand;
 pub mod clock;
 pub mod config;

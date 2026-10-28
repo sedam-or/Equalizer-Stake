@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH maintenance AS MATERIALIZED (SELECT audit.anonymize($1, $2, NULL)) SELECT true AS completed FROM maintenance",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "completed",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "cba1904818c014471c89c6ec422bcdc531b8f5c116714f2fac1df3e428c36bb3"
+}

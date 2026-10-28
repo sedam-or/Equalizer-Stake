@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH maintenance AS MATERIALIZED (SELECT audit.purge_expired($1, $2)) SELECT true AS completed FROM maintenance",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "completed",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "84eb188f940e98368bfe6d0547b0a1f87799fdda112248bb90d05388797edc62"
+}
