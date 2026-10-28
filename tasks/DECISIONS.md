@@ -599,3 +599,21 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** CQ-15 requires a generated index that reflects the task files present in the repository. The current parent split already assigns each original behavior/test to one successor; committing the file set atomically preserves that contract without implementing successor behavior. The complete task-definition change is 805 lines, above CQ-101's approximate 400-line guide; this is disclosed for maintainer ratification because the files define one ordered identity split and the implementation itself stays within the narrow schema/RoleMap scope.
 - **Changed:** `tasks/M1-core/T-110a1-identity-schema-and-policy.md`, the three successor task files, the parent tracker, `tasks/DECISIONS.md` and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
+
+### TD-101 — Match identity policy security triggers to the scope
+
+- **Question:** T-110a1b lists T1/T3 although it adds no endpoint and its policy values are S1.
+- **Options:** Keep the broad trigger list; or apply the SBD-30 definitions to this task's actual scope.
+- **Decision:** Mark T4 only because the task changes authentication policy values.
+- **Why:** SBD-30 defines T1 for endpoint changes, T3 for S2/S3 data, and T4 for authentication.
+- **Changed:** `tasks/M1-core/T-110a1b-validated-identity-policy-model.md` and this register.
+- **Ratify:** Yes.
+
+### TD-102 — Record the identity policy spec references
+
+- **Question:** T-110a1b implements the invite-expiry and TOTP policy fields but omits IDN-05 and IDN-12 from `spec_refs`.
+- **Options:** Leave the field references implicit; or include the IDs that define those fields and variants.
+- **Decision:** Add IDN-05 and IDN-12 to the task's `spec_refs`.
+- **Why:** Spec 04 §6.2 includes invite expiry and TOTP; spec 25 assigns TOTP the IDN-12 contract.
+- **Changed:** `tasks/M1-core/T-110a1b-validated-identity-policy-model.md` and this register.
+- **Ratify:** Yes.

@@ -1440,6 +1440,8 @@ dependencies = [
  "anyhow",
  "eq-audit",
  "eq-core",
+ "schemars 1.2.3",
+ "serde",
  "serde_json",
  "utoipa-axum",
 ]
