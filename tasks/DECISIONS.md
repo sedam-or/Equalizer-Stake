@@ -87,8 +87,10 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-090 | T-109h | `tasks/M1-core/T-109h-audit-module.md` | Schedule `audit.verify_recent` daily at 03:30 tenant-local after the parent-specified 03:00 retention job, because the parent requires a nightly verifier schedule but omits its exact time. |
 | TD-091 | T-109h | `tasks/M1-core/T-109h-audit-module.md` | Classify module-toggle and policy-change audit records as Security per SBD-53 and include their module identity/state in snapshots, because the sink contract names actions but does not provide this context and ModuleId has no UUID form. |
 | TD-092 | T-109h | `tasks/M1-core/T-109h-audit-module.md` | Register the implemented AuditSink port and add explicit integration tests for caller-transaction writes and tenant mismatch rejection because the task's original security test only checked module registration. |
+| TD-093 | T-109 | `tasks/M1-core/T-109-audit.md` | Acquire the shared tenant advisory transaction lock before each audit record insert and test writer/sealer serialization so a slower lower-sequence transaction cannot commit after a higher-sequence row is sealed. |
+| TD-094 | T-109 | `tasks/M1-core/T-109-audit.md` | Make the writer/sealer regression test observe the sealer blocked on the PostgreSQL advisory lock before committing the writer; bound test-only observation with a 10-second timeout and 10-millisecond polling interval. |
 
-**Total mapped self-resolutions:** 82.
+**Total mapped self-resolutions:** 84.
 
 ## Detailed entries added in run 6
 
@@ -518,4 +520,22 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Register the stateless `AuditModule` as the existing `AuditSink` port and add database-backed checks for both audit actions in one caller transaction, rollback behavior, and mismatched tenant rejection.
 - **Why:** MOD-04/ARC-08 provide the module port-registration hook, SBD-73 requires an abuse-case test for the tenant boundary, and the test preserves the existing `AuditSink` signatures and audit transaction semantics.
 - **Changed:** `crates/eq-audit/src/module.rs`, `crates/eq-audit/tests/audit.rs`, `tasks/M1-core/T-109h-audit-module.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-093 — Serialize audit writers with chain sealing
+
+- **Question:** `audit.entries.seq` is allocated before transaction commit, but the sealer's tenant lock is not acquired by `record`; a slower lower-sequence writer can commit after a higher-sequence row has already been sealed.
+- **Options:** Leave writer transactions outside the sealer lock and rely on the next verification to expose the broken ordering; acquire the existing per-tenant advisory transaction lock before inserting each audit row.
+- **Decision:** Acquire the same `audit.seal:<tenant_id>` transaction lock in the audit repository before inserting, and add `concurrent_writer_and_sealer_preserve_sequence_order` to hold a record transaction open while sealing starts and verify the resulting chain.
+- **Why:** The task requires an append-only, sequence-ordered tamper-evident chain. A PostgreSQL sequence reflects allocation order, not transaction commit order. Sharing the existing lock serializes record insertion with sealing/anonymization/purge without changing schema, wire values, permissions or business behavior; the lock remains held by the caller's transaction so an audit failure still rolls back with the business change.
+- **Changed:** `crates/eq-audit/src/repo.rs`, `crates/eq-audit/tests/audit.rs`, `tasks/M1-core/T-109-audit.md`, `tasks/INDEX.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-094 — Synchronize the writer/sealer regression test
+
+- **Question:** The test spawned the sealer and immediately committed the writer, so the sealer could start only after commit and fail to exercise lock contention.
+- **Options:** Commit after spawning and rely on scheduling; wait until PostgreSQL reports a sealer session blocked on the advisory lock before releasing the writer transaction.
+- **Decision:** Poll `pg_stat_activity` for the sealer's advisory-lock wait before committing the writer. Use a 10-second test-only timeout and a 10-millisecond poll interval.
+- **Why:** The regression test must demonstrate that sealing starts while the writer transaction still owns the lock. The bounded observation is technical test synchronization only; it does not change application behavior, database policy, or a user-visible deadline.
+- **Changed:** `crates/eq-audit/tests/audit.rs`, `tasks/M1-core/T-109-audit.md`, and this register.
 - **Ratify:** Yes.

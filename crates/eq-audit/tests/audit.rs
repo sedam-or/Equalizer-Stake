@@ -20,7 +20,11 @@ use serde_json::{Value, json};
 use sqlx::{Error, Row};
 use std::net::IpAddr;
 use std::sync::Arc;
+use std::time::Duration;
 use uuid::Uuid;
+
+const SEALER_LOCK_WAIT_TIMEOUT: Duration = Duration::from_secs(10); // technical: allow PostgreSQL activity state to expose the test lock wait.
+const SEALER_ACTIVITY_POLL_INTERVAL: Duration = Duration::from_millis(10); // technical: observe lock state without busy polling.
 
 async fn tenant(db: &TestDb) -> Result<TenantId> {
     let id = TenantId(Uuid::now_v7());
@@ -339,6 +343,84 @@ async fn concurrent_sealers() -> Result<()> {
 
     let report = first.verify(tenant, first_seq, second_seq).await?;
     assert_eq!(report.checked, 2);
+    assert_eq!(report.first_mismatch, None);
+    Ok(())
+}
+
+#[tokio::test]
+async fn concurrent_writer_and_sealer_preserve_sequence_order() -> Result<()> {
+    let db = TestDb::new().await;
+    let tenant = tenant(&db).await?;
+    let request_id = Uuid::now_v7();
+    let actor = ActorCtx {
+        person_id: None,
+        role: ActorRole::System,
+        ip: None,
+        request_id: Some(request_id),
+    };
+    let mut writer_tx = db::begin(&db.app_pool, tenant, &actor).await?;
+    record(
+        &mut writer_tx,
+        AuditEvent {
+            action: "test.audit.writer_sealer",
+            category: Category::Operational,
+            entity_type: "test",
+            entity_id: None,
+            before: None,
+            after: Some(json!({ "sequence": "writer" })),
+            actor: &actor,
+        },
+    )
+    .await?;
+
+    let sequence = sqlx::query_scalar::<_, i64>(
+        "SELECT seq FROM audit.entries WHERE tenant_id = $1 AND request_id = $2",
+    )
+    .bind(tenant.0)
+    .bind(request_id)
+    .fetch_one(writer_tx.conn())
+    .await?;
+    let lock_key = format!("audit.seal:{}", tenant.0);
+    let lock_available = sqlx::query_scalar::<_, bool>(
+        "SELECT pg_catalog.pg_try_advisory_xact_lock(pg_catalog.hashtext($1)::bigint)",
+    )
+    .bind(lock_key)
+    .fetch_one(&db.pool)
+    .await?;
+    assert!(!lock_available, "record must hold the tenant lock until commit");
+
+    let sealer = Sealer::new(db.app_pool.clone());
+    let seal_task = tokio::spawn(async move { sealer.seal_tenant(tenant).await });
+
+    tokio::time::timeout(SEALER_LOCK_WAIT_TIMEOUT, async {
+        loop {
+            let sealer_waiting = sqlx::query_scalar::<_, bool>(
+                "SELECT EXISTS (\
+                     SELECT 1 FROM pg_catalog.pg_stat_activity \
+                     WHERE datname = pg_catalog.current_database() \
+                       AND pid <> pg_catalog.pg_backend_pid() \
+                       AND wait_event_type = 'Lock' \
+                       AND query LIKE '%pg_catalog.pg_advisory_xact_lock%'\
+                 )",
+            )
+            .fetch_one(&db.pool)
+            .await?;
+            if sealer_waiting {
+                break;
+            }
+            tokio::time::sleep(SEALER_ACTIVITY_POLL_INTERVAL).await;
+        }
+        Ok::<(), sqlx::Error>(())
+    })
+    .await??;
+
+    writer_tx.commit().await?;
+    seal_task.await??;
+
+    let report = Sealer::new(db.app_pool.clone())
+        .verify(tenant, sequence, sequence)
+        .await?;
+    assert_eq!(report.checked, 1);
     assert_eq!(report.first_mismatch, None);
     Ok(())
 }

@@ -27,6 +27,8 @@ pub(super) async fn record(tx: &mut Tx, event: AuditEvent<'_>) -> Result<(), App
     })?;
 
     let actor_role = actor_role(event.actor.role)?;
+    // TD-093: keep sequence allocation and commit order behind the sealer's tenant lock.
+    lock_tenant(tx, TenantId(tenant_id)).await?;
     let id = Uuid::now_v7();
     let actor_id = event.actor.person_id.map(|person_id| person_id.0);
     let action = event.action;
