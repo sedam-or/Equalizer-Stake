@@ -5,6 +5,7 @@ extern crate self as eq_audit;
 pub use eq_audit_derive::Auditable;
 use eq_core as _;
 pub mod jobs;
+pub mod module;
 pub mod policy;
 mod repo;
 pub use policy::Category;
@@ -12,6 +13,7 @@ pub mod record;
 pub use record::{AuditEvent, record};
 pub mod sealer;
 pub use jobs::{AuditRetentionJob, AuditVerifyRecentJob};
+pub use module::AuditModule;
 pub use sealer::{Sealer, VerifyReport};
 pub mod __private {
     pub use serde;
@@ -19,8 +21,6 @@ pub mod __private {
 }
 use serde_json::Value;
 use utoipa_axum as _;
-
-eq_core::impl_module_stub!(AuditModule, Audit, "audit", "scroll-text", true, &[], &[]);
 
 /// AUD-02: serializable snapshot of the fields safe to include in an audit entry.
 pub trait Auditable {

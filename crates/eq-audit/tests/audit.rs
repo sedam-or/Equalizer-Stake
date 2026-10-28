@@ -1,17 +1,18 @@
 use anyhow::Result;
 use chrono::{DateTime, Months, Utc};
 use eq_audit::policy::AuditPolicy;
-use eq_audit::{AuditEvent, AuditRetentionJob, AuditVerifyRecentJob, Category, Sealer, record};
+use eq_audit::{AuditEvent, AuditModule, AuditRetentionJob, AuditVerifyRecentJob, Category, Sealer, record};
 use eq_core::actor::{ActorCtx, ActorRole};
 use eq_core::clock::SystemClock;
 use eq_core::db;
 use eq_core::ids::TenantId;
 use eq_core::jobs::{JobCtx, JobHandler};
 use eq_core::model::TenantStatus;
-use eq_core::module::ModuleRegistry;
+use eq_core::module::{ModuleId, ModuleRegistry};
 use eq_core::money::Currency;
 use eq_core::policy::types::Locale;
 use eq_core::policy::{PolicyStore, PresetPatchSource, PresetSourceError};
+use eq_core::ports::sinks::{AuditSink, PolicyChange};
 use eq_core::tenant::TenantInfo;
 use eq_testkit::TestDb;
 use eq_testkit::module_sinks::ModuleSinkDoubles;
@@ -89,6 +90,79 @@ async fn audit_failure_rolls_back() -> Result<()> {
     .fetch_one(&db.pool)
     .await?;
     assert!(!exists);
+    Ok(())
+}
+
+#[tokio::test]
+async fn audit_sink_records_changes_in_the_caller_transaction() -> Result<()> {
+    let db = TestDb::new().await;
+    let tenant = tenant(&db).await?;
+    let actor = ActorCtx::system("audit-sink-test");
+    let sink = AuditModule;
+    let mut tx = db::begin(&db.app_pool, tenant, &actor).await?;
+
+    sink.record_module_toggle(&mut tx, tenant, &actor, ModuleId::Scheduling, true)
+        .await?;
+    sink.record_policy_change(
+        &mut tx,
+        tenant,
+        &actor,
+        PolicyChange {
+            module: ModuleId::Audit,
+            version: 1,
+            previous: None,
+            document: json!({
+                "retention_years": 7,
+                "anonymize_pii_after_years": 2,
+                "admin_categories": ["operational"]
+            }),
+        },
+    )
+    .await?;
+
+    let actions =
+        sqlx::query_scalar::<_, String>("SELECT action FROM audit.entries WHERE tenant_id = $1 ORDER BY seq")
+            .bind(tenant.0)
+            .fetch_all(tx.conn())
+            .await?;
+    assert_eq!(
+        actions,
+        vec!["core.module.enabled".to_owned(), "core.policy.changed".to_owned()]
+    );
+    tx.rollback().await?;
+
+    let persisted = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND action IN ('core.module.enabled', 'core.policy.changed')",
+    )
+    .bind(tenant.0)
+    .fetch_one(&db.pool)
+    .await?;
+    assert_eq!(persisted, 0);
+    Ok(())
+}
+
+#[tokio::test]
+async fn audit_sink_rejects_mismatched_tenant_context() -> Result<()> {
+    let db = TestDb::new().await;
+    let tenant_id = tenant(&db).await?;
+    let other_tenant = tenant(&db).await?;
+    let actor = ActorCtx::system("audit-sink-test");
+    let sink = AuditModule;
+    let mut tx = db::begin(&db.app_pool, tenant_id, &actor).await?;
+
+    let result = sink
+        .record_module_toggle(&mut tx, other_tenant, &actor, ModuleId::Scheduling, true)
+        .await;
+    assert!(result.is_err());
+    tx.rollback().await?;
+
+    let persisted = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND action = 'core.module.enabled'",
+    )
+    .bind(tenant_id.0)
+    .fetch_one(&db.pool)
+    .await?;
+    assert_eq!(persisted, 0);
     Ok(())
 }
 

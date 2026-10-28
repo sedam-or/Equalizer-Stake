@@ -84,8 +84,11 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-087 | T-109g | `tasks/M1-core/T-109g-audit-jobs.md` | Add the omitted repository paths and SQLx metadata because CA-11/CA-30/CQ-24/CQ-42 require owner-only table access and checked-in descriptions for compile-time queries. |
 | TD-088 | T-109g | `tasks/M1-core/T-109g-audit-jobs.md` | Use the descriptive attention kind `audit_chain_mismatch`, sequence-only payload, and tenant-scoped dedupe key because the task requires a high-severity audit mismatch item but supplies no exact stable identifier. |
 | TD-089 | T-109g | `tasks/M1-core/T-109g-audit-jobs.md` | Implement the core-owned `attention::raise` API named by STM-14 because the task's required item targets core-owned `attention_items` and no API is shipped. |
+| TD-090 | T-109h | `tasks/M1-core/T-109h-audit-module.md` | Schedule `audit.verify_recent` daily at 03:30 tenant-local after the parent-specified 03:00 retention job, because the parent requires a nightly verifier schedule but omits its exact time. |
+| TD-091 | T-109h | `tasks/M1-core/T-109h-audit-module.md` | Classify module-toggle and policy-change audit records as Security per SBD-53 and include their module identity/state in snapshots, because the sink contract names actions but does not provide this context and ModuleId has no UUID form. |
+| TD-092 | T-109h | `tasks/M1-core/T-109h-audit-module.md` | Register the implemented AuditSink port and add explicit integration tests for caller-transaction writes and tenant mismatch rejection because the task's original security test only checked module registration. |
 
-**Total mapped self-resolutions:** 79.
+**Total mapped self-resolutions:** 82.
 
 ## Detailed entries added in run 6
 
@@ -488,4 +491,31 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Implement `eq_core::attention::raise` with SQL in the core-owned repository and invoke it inside the caller's tenant transaction.
 - **Why:** STM-14 names `attention::raise` as the any-module creation path; CA-30 prohibits `eq-audit` from directly writing a core-owned table. This adds no schema, event, permission or role grant.
 - **Changed:** `crates/eq-core/src/lib.rs`, `crates/eq-core/src/attention.rs`, `crates/eq-core/src/attention/repo.rs`, `crates/eq-audit/src/jobs.rs`, `tasks/M1-core/T-109g-audit-jobs.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-090 — Schedule recent audit verification after retention
+
+- **Question:** T-109h asks for both audit cron schedules from parent T-109, but the parent specifies only `audit.retention` at `0 3 * * *` tenant-local.
+- **Options:** Run `audit.verify_recent` at the same 03:00 instant; choose a second tenant-local nightly time after the maintenance job.
+- **Decision:** Run `audit.verify_recent` at `30 3 * * *` tenant-local.
+- **Why:** This keeps the check nightly as T-109g describes and avoids overlapping the audit anonymization/purge job that starts at 03:00. The job remains tenant-local as required by `CronSpec`.
+- **Changed:** `crates/eq-audit/src/module.rs`, `tasks/M1-core/T-109h-audit-module.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-091 — Preserve audit context for core actions
+
+- **Question:** The `AuditSink` port identifies toggle/policy actions but does not prescribe their category or snapshot context; `ModuleId` cannot be stored in the UUID-only `entity_id` field.
+- **Options:** Omit the module identifier from snapshots; add a new persisted identifier/schema value; or keep `entity_id` absent and place the module id and state/document in the JSON snapshots.
+- **Decision:** Use `Category::Security` for module toggles and policy changes, `entity_type` `module`/`policy`, no `entity_id`, and snapshots carrying the module slug with enabled state or policy version/document.
+- **Why:** SBD-53 explicitly lists module toggles and policy changes as security-relevant audit events. The snapshot carries enough context without inventing a UUID, table column, permission or event name.
+- **Changed:** `crates/eq-audit/src/module.rs`, `crates/eq-audit/src/lib.rs`, `tasks/M1-core/T-109h-audit-module.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-092 — Verify the audit sink's transaction and tenant boundary
+
+- **Question:** T-109h's named abuse-case test checked only module registration and did not exercise the `AuditSink` tenant boundary; the `Module` interface also has an explicit port-registration hook.
+- **Options:** Leave the port implementation unregistered and rely on future manual construction; retain only the schedule-registration test; or register `AuditSink` and test same-transaction writes plus rejection when the supplied tenant differs from the transaction context.
+- **Decision:** Register the stateless `AuditModule` as the existing `AuditSink` port and add database-backed checks for both audit actions in one caller transaction, rollback behavior, and mismatched tenant rejection.
+- **Why:** MOD-04/ARC-08 provide the module port-registration hook, SBD-73 requires an abuse-case test for the tenant boundary, and the test preserves the existing `AuditSink` signatures and audit transaction semantics.
+- **Changed:** `crates/eq-audit/src/module.rs`, `crates/eq-audit/tests/audit.rs`, `tasks/M1-core/T-109h-audit-module.md`, and this register.
 - **Ratify:** Yes.
