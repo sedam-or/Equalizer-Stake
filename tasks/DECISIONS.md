@@ -402,3 +402,30 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** This is deterministic presentation metadata following the contract's field order; it does not change a business rule or field default.
 - **Changed:** `crates/eq-audit/src/policy.rs` and `tasks/M1-core/T-109c-audit-policy.md`.
 - **Ratify:** Yes.
+
+### TD-081 — Reject unmapped anonymous audit actors
+
+- **Question:** `ActorRole` includes `Anonymous`, while the mapped `audit.entries.actor_role` values list owner, admin, instructor, guardian, student, system and platform only.
+- **Options:** Persist an additional `anonymous` value not listed in the audit data dictionary; map it to another role; or reject the event before insertion.
+- **Decision:** Reject `Anonymous` audit events with the existing internal error; do not map it to another actor role.
+- **Why:** The audit role values in spec 06 §4.9 and ERD-04 are the schema contract. Rejecting the unmapped role is the fail-closed choice and invents no persisted role value.
+- **Changed:** `crates/eq-audit/src/record.rs`, `tasks/M1-core/T-109d-audit-record-api.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-082 — Include task-owned SQLx offline metadata
+
+- **Question:** T-109d adds compile-time SQLx queries but its Files table omits `.sqlx/` and `Cargo.lock`.
+- **Options:** Avoid query macros and lose compile-time query validation; or include the exact generated metadata and dependency edge required for the offline build.
+- **Decision:** Use the existing `SQLX_OFFLINE=true` query-macro path and include only the matching metadata and lockfile changes for T-109d.
+- **Why:** `.cargo/config.toml` makes offline query metadata part of the build contract, and AGENTS.md requires metadata updates when a query changes.
+- **Changed:** `.sqlx/`, `Cargo.lock`, `crates/eq-audit/Cargo.toml`, `crates/eq-audit/src/repo.rs`, `tasks/M1-core/T-109d-audit-record-api.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-083 — Keep audit SQL in the repository adapter
+
+- **Question:** T-109d's Files table omits `repo.rs`, while CA-11/CQ-24 require SQL persistence to live in that adapter.
+- **Options:** Put SQL in `record.rs` without the repository adapter; or keep the public contract in `record.rs` and delegate persistence to the module's private `repo.rs`.
+- **Decision:** Keep `AuditEvent` and `record` in `record.rs`; put transaction-context checks, role conversion and SQL in `repo.rs`.
+- **Why:** CA-11/CQ-24 define adapter placement, and the private repository preserves the exact public signature while keeping SQL inside the audit module's own tables.
+- **Changed:** `crates/eq-audit/src/lib.rs`, `crates/eq-audit/src/record.rs`, `crates/eq-audit/src/repo.rs`, `tasks/M1-core/T-109d-audit-record-api.md`, and this register.
+- **Ratify:** Yes.

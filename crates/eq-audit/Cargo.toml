@@ -13,10 +13,11 @@ serde.workspace = true
 serde_json.workspace = true
 schemars.workspace = true
 utoipa-axum.workspace = true
+sqlx.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
 eq-testkit.workspace = true
-sqlx.workspace = true
 tokio.workspace = true
 
 [lints]
