@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH aggregate_heads AS MATERIALIZED ( SELECT DISTINCT ON (tenant_id, aggregate_id) id FROM public.outbox WHERE dispatched_at IS NULL AND aggregate_id IS NOT NULL ORDER BY tenant_id, aggregate_id, id ) SELECT candidate.id, candidate.tenant_id, candidate.event_type, candidate.aggregate_id, candidate.payload, candidate.occurred_at FROM public.outbox AS candidate WHERE candidate.dispatched_at IS NULL AND (candidate.aggregate_id IS NULL OR candidate.id IN ( SELECT id FROM aggregate_heads )) ORDER BY candidate.id LIMIT $1 FOR UPDATE OF candidate SKIP LOCKED",
+  "query": "WITH aggregate_heads AS MATERIALIZED ( SELECT DISTINCT ON (tenant_id, aggregate_id) id FROM public.outbox WHERE dispatched_at IS NULL AND attempts < $3 AND aggregate_id IS NOT NULL AND (last_error IS NULL OR last_error <> $4) ORDER BY tenant_id, aggregate_id, id ) SELECT candidate.id, candidate.tenant_id, candidate.attempts, candidate.event_type, candidate.aggregate_id, candidate.payload, candidate.occurred_at FROM public.outbox AS candidate WHERE candidate.dispatched_at IS NULL AND candidate.attempts < $3 AND (candidate.last_error IS NULL OR CASE WHEN candidate.last_error ~ '^ritma-retry-v1:[0-9]+:handler_failed$' THEN split_part(candidate.last_error, ':', 2)::bigint <= $2 ELSE false END) AND (candidate.aggregate_id IS NULL OR candidate.id IN ( SELECT id FROM aggregate_heads )) ORDER BY candidate.id LIMIT $1 FOR UPDATE OF candidate SKIP LOCKED",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,17 @@
       },
       {
         "ordinal": 2,
+        "name": "attempts",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "outbox",
+            "name": "attempts"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
         "name": "event_type",
         "type_info": "Text",
         "origin": {
@@ -37,7 +48,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "aggregate_id",
         "type_info": "Uuid",
         "origin": {
@@ -48,7 +59,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "payload",
         "type_info": "Jsonb",
         "origin": {
@@ -59,7 +70,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "occurred_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -72,10 +83,14 @@
     ],
     "parameters": {
       "Left": [
-        "Int8"
+        "Int8",
+        "Int8",
+        "Int4",
+        "Text"
       ]
     },
     "nullable": [
+      false,
       false,
       false,
       false,
@@ -84,5 +99,5 @@
       false
     ]
   },
-  "hash": "a1ccadfd37af26be54434c1a59dba3449842f6396a2763175937c98a00482c68"
+  "hash": "300dd99a79829af596eb3e1c2ae13b66b27545d1dcdf9b51d3c1bf656dae0e64"
 }

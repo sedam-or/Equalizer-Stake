@@ -1,12 +1,15 @@
 use anyhow::Result;
-use chrono::Utc;
+use chrono::{DateTime, Duration as ChronoDuration, Utc};
 use eq_core::actor::{ActorCtx, ActorRole};
+use eq_core::clock::Clock;
 use eq_core::db;
 use eq_core::error::AppError;
 use eq_core::ids::{PersonId, TenantId};
 use eq_core::module::ModuleId;
 use eq_core::module::gate::EnabledModuleSet;
-use eq_core::outbox::{Dispatcher, DomainEvent, Event, EventHandler, OutboxEventSink, emit};
+use eq_core::outbox::{
+    Dispatcher, DomainEvent, Event, EventHandler, EventHandlerError, OutboxEventSink, emit,
+};
 use eq_core::ports::sinks::EventSink;
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -14,7 +17,9 @@ use serde_json::{Value, json};
 use sqlx::Row;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tokio::sync::Notify;
+use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 #[expect(
@@ -28,8 +33,8 @@ use shared_test_db::TestDb;
 
 const EVENT_TYPE: &str = "core.test.v1";
 
-fn test_time() -> chrono::DateTime<Utc> {
-    chrono::DateTime::UNIX_EPOCH
+fn test_time() -> DateTime<Utc> {
+    DateTime::UNIX_EPOCH
 }
 
 #[derive(Debug, JsonSchema, Serialize)]
@@ -78,7 +83,7 @@ async fn insert_event(
         "request_id": null,
         "payload": { "test": true }
     });
-    let occurred_at = chrono::DateTime::UNIX_EPOCH;
+    let occurred_at = DateTime::UNIX_EPOCH;
     sqlx::query!(
         "INSERT INTO public.outbox (id, tenant_id, event_type, aggregate_id, payload, occurred_at) \
          VALUES ($1, $2, $3, $4, $5, $6)",
@@ -111,6 +116,37 @@ async fn count_dispatched(db: &TestDb) -> Result<i64> {
     )
 }
 
+async fn outbox_attempt_state(
+    db: &TestDb,
+    event_id: Uuid,
+) -> Result<(i32, Option<String>, Option<DateTime<Utc>>)> {
+    let row = sqlx::query("SELECT attempts, last_error, dispatched_at FROM public.outbox WHERE id = $1")
+        .bind(event_id)
+        .fetch_one(&db.pool)
+        .await?;
+    Ok((
+        row.try_get("attempts")?,
+        row.try_get("last_error")?,
+        row.try_get("dispatched_at")?,
+    ))
+}
+
+async fn count_dead_letter_attention(db: &TestDb, tenant: TenantId, event_id: Uuid) -> Result<i64> {
+    let mut tx = db::begin_system(&db.app_pool, tenant).await?;
+    let count = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM public.attention_items \
+         WHERE tenant_id = $1 AND dedupe_key = $2 AND kind = 'outbox_dead_letter' \
+           AND severity = 'high' AND payload = jsonb_build_object('event_id', $3::text)",
+    )
+    .bind(tenant.0)
+    .bind(format!("outbox_dead_letter:{event_id}"))
+    .bind(event_id)
+    .fetch_one(tx.conn())
+    .await?;
+    tx.rollback().await?;
+    Ok(count)
+}
+
 struct TestModuleGate {
     enabled: bool,
 }
@@ -128,7 +164,8 @@ struct RecordingHandler {
     subscriptions: &'static [&'static str],
     calls: Arc<AtomicUsize>,
     seen: Arc<Mutex<Vec<(Uuid, String)>>>,
-    fails: bool,
+    failures_before_success: usize,
+    permanent: bool,
 }
 
 impl Clone for RecordingHandler {
@@ -139,7 +176,8 @@ impl Clone for RecordingHandler {
             subscriptions: self.subscriptions,
             calls: Arc::clone(&self.calls),
             seen: Arc::clone(&self.seen),
-            fails: self.fails,
+            failures_before_success: self.failures_before_success,
+            permanent: self.permanent,
         }
     }
 }
@@ -152,12 +190,24 @@ impl RecordingHandler {
             subscriptions,
             calls: Arc::new(AtomicUsize::new(0)),
             seen: Arc::new(Mutex::new(Vec::new())),
-            fails: false,
+            failures_before_success: 0,
+            permanent: false,
         }
     }
 
     fn failing(mut self) -> Self {
-        self.fails = true;
+        self.failures_before_success = usize::MAX;
+        self
+    }
+
+    fn fails_before_success(mut self, count: usize) -> Self {
+        self.failures_before_success = count;
+        self
+    }
+
+    fn permanently_failing_before_success(mut self, count: usize) -> Self {
+        self.failures_before_success = count;
+        self.permanent = true;
         self
     }
 }
@@ -176,17 +226,23 @@ impl EventHandler for RecordingHandler {
         self.subscriptions
     }
 
-    async fn handle(&self, tx: &mut db::Tx, event: &Event) -> Result<()> {
-        self.calls.fetch_add(1, Ordering::SeqCst);
+    async fn handle(&self, tx: &mut db::Tx, event: &Event) -> Result<(), EventHandlerError> {
+        let call = self.calls.fetch_add(1, Ordering::SeqCst) + 1;
         let tenant_id = sqlx::query_scalar::<_, String>("SELECT current_setting('app.tenant_id', true)")
             .fetch_one(tx.conn())
-            .await?;
+            .await
+            .map_err(anyhow::Error::from)?;
         self.seen
             .lock()
             .map_err(|_| anyhow::anyhow!("test observation mutex poisoned"))?
             .push((event.id, tenant_id));
-        if self.fails {
-            anyhow::bail!("synthetic handler failure");
+        if call <= self.failures_before_success {
+            let error = anyhow::anyhow!("test-secret-handler-failure");
+            return Err(if self.permanent {
+                EventHandlerError::Permanent(error)
+            } else {
+                EventHandlerError::Retryable(error)
+            });
         }
         Ok(())
     }
@@ -197,6 +253,42 @@ fn dispatcher(db: &TestDb, handler: RecordingHandler, enabled: bool) -> Dispatch
         db.app_pool.clone(),
         vec![Box::new(handler)],
         Arc::new(TestModuleGate { enabled }),
+    )
+}
+
+#[derive(Clone, Debug)]
+struct ManualTestClock(Arc<Mutex<DateTime<Utc>>>);
+
+impl ManualTestClock {
+    fn new(at: DateTime<Utc>) -> Self {
+        Self(Arc::new(Mutex::new(at)))
+    }
+
+    fn advance(&self, duration: ChronoDuration) {
+        let mut now = self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(next) = now.checked_add_signed(duration) {
+            *now = next;
+        }
+    }
+}
+
+impl Clock for ManualTestClock {
+    fn now(&self) -> eq_core::clock::Timestamp {
+        *self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+}
+
+fn dispatcher_with_clock(
+    db: &TestDb,
+    handler: RecordingHandler,
+    enabled: bool,
+    clock: Arc<dyn Clock>,
+) -> Dispatcher {
+    Dispatcher::new_with_clock(
+        db.app_pool.clone(),
+        vec![Box::new(handler)],
+        Arc::new(TestModuleGate { enabled }),
+        clock,
     )
 }
 
@@ -222,14 +314,15 @@ impl EventHandler for BlockingOrderingHandler {
         &[EVENT_TYPE]
     }
 
-    async fn handle(&self, tx: &mut db::Tx, event: &Event) -> Result<()> {
+    async fn handle(&self, tx: &mut db::Tx, event: &Event) -> Result<(), EventHandlerError> {
         if event.id == self.blocked_event {
             self.started.notify_one();
             self.release.notified().await;
         }
         let tenant_id = sqlx::query_scalar::<_, String>("SELECT current_setting('app.tenant_id', true)")
             .fetch_one(tx.conn())
-            .await?;
+            .await
+            .map_err(anyhow::Error::from)?;
         self.seen
             .lock()
             .map_err(|_| anyhow::anyhow!("test observation mutex poisoned"))?
@@ -471,7 +564,7 @@ async fn order_within_aggregate() -> Result<()> {
     let started = Arc::clone(&handler.started);
     let release = Arc::clone(&handler.release);
     let first_drain = tokio::spawn(async move { first_dispatcher.drain_once().await });
-    tokio::time::timeout(std::time::Duration::from_secs(5), started.notified()).await?;
+    tokio::time::timeout(Duration::from_secs(5), started.notified()).await?;
 
     // While the oldest event is held in its handler transaction, a second dispatcher must not
     // claim any later event from the same tenant/aggregate, even when those rows are outside the
@@ -552,15 +645,194 @@ async fn duplicate_receipt_skips_handler() -> Result<()> {
 #[tokio::test]
 async fn handler_failure_rolls_back_receipt_and_keeps_event_pending() -> Result<()> {
     let (db, tenant) = fixture().await?;
-    insert_event(&db, Uuid::from_u128(0x400), tenant, EVENT_TYPE, None).await?;
+    let event_id = Uuid::from_u128(0x400);
+    insert_event(&db, event_id, tenant, EVENT_TYPE, None).await?;
 
     let handler = RecordingHandler::new("test.outbox.failure", &[EVENT_TYPE]).failing();
     let calls = Arc::clone(&handler.calls);
     let dispatcher = dispatcher(&db, handler, true);
-    assert!(dispatcher.drain_once().await.is_err());
+    assert_eq!(dispatcher.drain_once().await?, 1);
 
     assert_eq!(calls.load(Ordering::SeqCst), 1);
     assert_eq!(count_handler_receipts(&db, "test.outbox.failure").await?, 0);
     assert_eq!(count_dispatched(&db).await?, 0);
+    let (attempts, last_error, dispatched_at) = outbox_attempt_state(&db, event_id).await?;
+    assert_eq!(attempts, 1);
+    assert!(
+        last_error
+            .as_ref()
+            .is_some_and(|marker| marker.starts_with("ritma-retry-v1:"))
+    );
+    assert!(!last_error.is_some_and(|marker| marker.contains("test-secret-handler-failure")));
+    assert_eq!(dispatched_at, None);
     Ok(())
+}
+
+#[tokio::test]
+async fn retry_then_success() -> Result<()> {
+    let (db, tenant) = fixture().await?;
+    let event_id = Uuid::from_u128(0x401);
+    insert_event(&db, event_id, tenant, EVENT_TYPE, None).await?;
+
+    let handler = RecordingHandler::new("test.outbox.retry", &[EVENT_TYPE]).fails_before_success(2);
+    let calls = Arc::clone(&handler.calls);
+    let clock = ManualTestClock::new(test_time());
+    let dispatcher = dispatcher_with_clock(&db, handler, true, Arc::new(clock.clone()));
+
+    assert_eq!(dispatcher.drain_once().await?, 1);
+    assert_eq!(dispatcher.drain_once().await?, 0);
+    clock.advance(ChronoDuration::seconds(1));
+    assert_eq!(dispatcher.drain_once().await?, 1);
+    assert_eq!(dispatcher.drain_once().await?, 0);
+    clock.advance(ChronoDuration::seconds(5));
+    assert_eq!(dispatcher.drain_once().await?, 1);
+
+    assert_eq!(calls.load(Ordering::SeqCst), 3);
+    let (attempts, last_error, dispatched_at) = outbox_attempt_state(&db, event_id).await?;
+    assert_eq!(attempts, 2);
+    assert_eq!(last_error, None);
+    assert!(dispatched_at.is_some());
+    assert_eq!(
+        dispatcher.counters(),
+        eq_core::outbox::DispatcherCounters {
+            attempted: 3,
+            dispatched: 1,
+            failed: 2,
+            retry_scheduled: 2,
+            dead_lettered: 0,
+        }
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn dead_letter_after_max() -> Result<()> {
+    let (db, tenant) = fixture().await?;
+    let event_id = Uuid::from_u128(0x402);
+    insert_event(&db, event_id, tenant, EVENT_TYPE, None).await?;
+
+    let handler = RecordingHandler::new("test.outbox.dead", &[EVENT_TYPE]).failing();
+    let calls = Arc::clone(&handler.calls);
+    let clock = ManualTestClock::new(test_time());
+    let dispatcher = dispatcher_with_clock(&db, handler, true, Arc::new(clock.clone()));
+    let backoff = [1_i64, 5, 30, 300];
+    for delay in backoff {
+        assert_eq!(dispatcher.drain_once().await?, 1);
+        clock.advance(ChronoDuration::seconds(delay));
+    }
+    assert_eq!(dispatcher.drain_once().await?, 1);
+    assert_eq!(dispatcher.drain_once().await?, 0);
+
+    assert_eq!(calls.load(Ordering::SeqCst), 5);
+    let (attempts, last_error, dispatched_at) = outbox_attempt_state(&db, event_id).await?;
+    assert_eq!(attempts, 5);
+    assert_eq!(last_error.as_deref(), Some("ritma-dead-v1:handler_failed"));
+    assert_eq!(dispatched_at, None);
+    assert_eq!(count_dead_letter_attention(&db, tenant, event_id).await?, 1);
+    assert_eq!(
+        dispatcher.counters(),
+        eq_core::outbox::DispatcherCounters {
+            attempted: 5,
+            dispatched: 0,
+            failed: 5,
+            retry_scheduled: 4,
+            dead_lettered: 1,
+        }
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn permanent_handler_failure_dead_letters_without_retry() -> Result<()> {
+    let (db, tenant) = fixture().await?;
+    let event_id = Uuid::from_u128(0x403);
+    let following_event_id = Uuid::from_u128(0x404);
+    let aggregate_id = Uuid::from_u128(0x405);
+    insert_event(&db, event_id, tenant, EVENT_TYPE, Some(aggregate_id)).await?;
+    insert_event(&db, following_event_id, tenant, EVENT_TYPE, Some(aggregate_id)).await?;
+
+    let handler =
+        RecordingHandler::new("test.outbox.permanent", &[EVENT_TYPE]).permanently_failing_before_success(1);
+    let calls = Arc::clone(&handler.calls);
+    let dispatcher = dispatcher(&db, handler, true);
+    assert_eq!(dispatcher.drain_once().await?, 1);
+    assert_eq!(dispatcher.drain_once().await?, 1);
+    assert_eq!(dispatcher.drain_once().await?, 0);
+
+    assert_eq!(calls.load(Ordering::SeqCst), 2);
+    let (attempts, last_error, _) = outbox_attempt_state(&db, event_id).await?;
+    assert_eq!(attempts, 1);
+    assert_eq!(last_error.as_deref(), Some("ritma-dead-v1:handler_failed"));
+    assert_eq!(count_dead_letter_attention(&db, tenant, event_id).await?, 1);
+    let (_, following_last_error, following_dispatched_at) =
+        outbox_attempt_state(&db, following_event_id).await?;
+    assert_eq!(following_last_error, None);
+    assert!(following_dispatched_at.is_some());
+    assert_eq!(
+        dispatcher.counters(),
+        eq_core::outbox::DispatcherCounters {
+            attempted: 2,
+            dispatched: 1,
+            failed: 1,
+            retry_scheduled: 0,
+            dead_lettered: 1,
+        }
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn unknown_failure_marker_fails_closed() -> Result<()> {
+    let (db, tenant) = fixture().await?;
+    let event_id = Uuid::from_u128(0x405);
+    insert_event(&db, event_id, tenant, EVENT_TYPE, None).await?;
+    sqlx::query("UPDATE public.outbox SET last_error = $2 WHERE id = $1")
+        .bind(event_id)
+        .bind("unknown-marker-v0")
+        .execute(&db.pool)
+        .await?;
+
+    let handler = RecordingHandler::new("test.outbox.unknown-marker", &[EVENT_TYPE]);
+    let calls = Arc::clone(&handler.calls);
+    let dispatcher = dispatcher(&db, handler, true);
+    assert_eq!(dispatcher.drain_once().await?, 0);
+    assert_eq!(calls.load(Ordering::SeqCst), 0);
+    let (attempts, last_error, dispatched_at) = outbox_attempt_state(&db, event_id).await?;
+    assert_eq!(attempts, 0);
+    assert_eq!(last_error.as_deref(), Some("unknown-marker-v0"));
+    assert_eq!(dispatched_at, None);
+    Ok(())
+}
+
+#[tokio::test]
+async fn run_wakes_after_commit_and_stops_on_cancel() -> Result<()> {
+    let (db, tenant) = fixture().await?;
+    let handler = RecordingHandler::new("test.outbox.run", &[EVENT_TYPE]);
+    let calls = Arc::clone(&handler.calls);
+    let dispatcher = Arc::new(dispatcher(&db, handler, true));
+    let shutdown = CancellationToken::new();
+    let run_dispatcher = Arc::clone(&dispatcher);
+    let run_shutdown = shutdown.clone();
+    let run = tokio::spawn(async move { run_dispatcher.run(run_shutdown).await });
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    insert_event(&db, Uuid::from_u128(0x404), tenant, EVENT_TYPE, None).await?;
+    tokio::time::timeout(Duration::from_secs(5), async {
+        while calls.load(Ordering::SeqCst) == 0 {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await?;
+    shutdown.cancel();
+    tokio::time::timeout(Duration::from_secs(5), run).await???;
+    assert_eq!(calls.load(Ordering::SeqCst), 1);
+    Ok(())
+}
+
+#[test]
+fn handler_error_debug_redacts_source_text() {
+    let error = EventHandlerError::Retryable(anyhow::anyhow!("test-secret-handler-failure"));
+    let debug = format!("{error:?}");
+    assert!(!debug.contains("test-secret-handler-failure"));
+    assert!(!error.to_string().contains("test-secret-handler-failure"));
 }

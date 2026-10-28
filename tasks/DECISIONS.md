@@ -175,3 +175,12 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** FLW-03 requires sequential delivery per aggregate, while a null aggregate has no sequence to preserve. Row locks alone do not protect rows beyond the first dispatcher's 100-row batch; materialized aggregate-head selection preserves non-null aggregate order without a new lock table, advisory-lock scheme or schema change.
 - **Changed:** T-107b adds a materialized aggregate-head CTE to the claim query and a PostgreSQL test that holds the oldest handler while a second dispatcher attempts to drain 150 same-aggregate events.
 - **Ratify:** Yes.
+
+### TD-058 — Classify event-handler failures per ERR-52
+
+- **Question:** Should every event-handler error use the retry schedule, or should event handlers distinguish transient and permanent failures?
+- **Options:** Treat all failures as retryable until five attempts; classify failures as retryable or permanent and dead-letter permanent failures immediately.
+- **Decision:** Use a typed `EventHandlerError` with retryable and permanent variants. Apply the specified retry schedule only to retryable errors and dead-letter permanent errors immediately.
+- **Why:** ERR-51 and ERR-52 explicitly require the same retryable/permanent split for event handlers; permanent failures do not retry.
+- **Changed:** T-107c's handler contract and tests implement the split; no schema change.
+- **Ratify:** Yes.

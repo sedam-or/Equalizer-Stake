@@ -10,6 +10,7 @@ repository = "https://github.com/sedam-or/Equalizer-Stake"
 
 [workspace.dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "time", "sync"] }
+tokio-util = { version = "0.7", features = ["rt"] }
 axum = { version = "0.8", features = ["macros", "multipart"] }
 axum-extra = { version = "0.10", features = ["query"] }
 tower = "0.5"
