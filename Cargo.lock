@@ -1319,8 +1319,11 @@ dependencies = [
  "anyhow",
  "eq-audit-derive",
  "eq-core",
+ "eq-testkit",
  "serde",
  "serde_json",
+ "sqlx",
+ "tokio",
  "utoipa-axum",
 ]
 

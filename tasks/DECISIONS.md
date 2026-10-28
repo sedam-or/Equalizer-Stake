@@ -366,3 +366,21 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** Current spec 18 defines the applicable classification, trigger, abuse-case and security-review rules; AUD-02 itself defines which marked fields are redacted or skipped.
 - **Changed:** `tasks/M1-core/T-109a-auditable-derive.md` and this register; implementation behavior is unchanged.
 - **Ratify:** Yes.
+
+### TD-077 — Declare audit schema test dependencies
+
+- **Question:** T-109b requires an integration test against `TestDb::app_pool` and SQLx but does not list `crates/eq-audit/Cargo.toml` among its files.
+- **Options:** Avoid a direct manifest change and leave the listed test unable to compile; or add the required crates as dev dependencies and include the manifest in the task's file list.
+- **Decision:** Add workspace `eq-testkit`, `sqlx` and `tokio` dependencies under `[dev-dependencies]` in `crates/eq-audit/Cargo.toml`.
+- **Why:** Rust integration tests need direct dependencies, and TST-20 requires privilege checks through the non-superuser `TestDb::app_pool`; dev dependencies do not expand production dependencies.
+- **Changed:** `Cargo.lock`, `crates/eq-audit/Cargo.toml`, `crates/eq-audit/tests/audit.rs`, and `tasks/M1-core/T-109b-audit-schema.md`.
+- **Ratify:** Yes.
+
+### TD-078 — Use isolated unittest discovery for the task gate tests
+
+- **Question:** The prescribed `python3 -I -m unittest scripts/tests/test_tasks_lint.py` invocation cannot import `scripts` because Python isolated mode excludes the current directory from module lookup.
+- **Options:** Drop the gate fixture tests; or use unittest discovery rooted at `scripts/tests` to execute the same file under isolated mode.
+- **Decision:** Run `python3 -I -m unittest discover -s scripts/tests -p 'test_tasks_lint.py'`.
+- **Why:** The discovery runner explicitly adds the test start directory while preserving Python isolated mode; all eight fixture tests pass without changing the gate or tests.
+- **Changed:** `tasks/M1-core/T-109b-audit-schema.md` and this decision register.
+- **Ratify:** Yes.
