@@ -2,7 +2,7 @@
 id: T-110
 title: Add identity schema, IdentityPolicy, password hashing, login, JWT access tokens, rotating refresh sessions, logout and the Actor extractor
 milestone: M1
-status: todo
+status: review
 depends_on: [T-102a, T-103, T-106, T-109d]
 spec_refs: [IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-09, SEC-10, SEC-12, STM-22, STM-23, CAN-34, D-37, AUTH-02, AUTH-03, AUTH-05, AUTH-06]
 estimated_size: M
@@ -12,7 +12,6 @@ estimated_size: M
 People log in with email and password, get a 10-minute in-memory access token plus a rotating HttpOnly refresh cookie, and every authenticated request yields an `Actor` with the active role and permission set.
 
 ## Context
-- DDL from spec 06 §4.2, verbatim, into `migrations/0007_identity.sql`: `credentials`, `refresh_sessions`, `invites`, `password_resets` (see the SQL below). RLS via `eq_enable_rls` on all four.
 ```sql
 CREATE TABLE credentials (person_id uuid PRIMARY KEY REFERENCES persons(id), tenant_id uuid NOT NULL REFERENCES tenants(id),
   password_hash text, password_changed_at timestamptz, totp_secret_enc bytea, totp_enabled boolean NOT NULL DEFAULT false,
@@ -87,13 +86,14 @@ pub struct MaybeActor(pub Option<Actor>);
 ## Split
 | Part | Owns | Depends on | Status |
 |---|---|---|---|
-| T-110a | Identity schema, login and credential validation; AC 1, 2, 6, 7, 8, 9 | T-102a, T-103, T-106, T-109 | draft |
-| T-110b | Refresh rotation, CSRF and token invalidation; AC 3, 4, 5 | T-110a | draft |
+| T-110a | Identity schema, login and credential validation; AC 1, 2, 6, 7, 8, 9 | T-102a, T-103, T-106, T-109d | todo |
+| T-110b | Refresh rotation, CSRF and token invalidation; AC 3, 4, 5 | T-110a | todo |
 
 ## Files
 | Path | Action | Purpose |
 |---|---|---|
-| `migrations/0007_identity.sql` | create or modify | Path named in this task's contract. |
+| `tasks/M1-core/T-110-identity-login-refresh.md` | modify | Track the split contract, report and status. |
+| `tasks/INDEX.md` | regenerate | Reflect this task and the child dependency chain. |
 
 ## Interfaces
 Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
@@ -102,7 +102,7 @@ Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values s
 Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
 
 ## Security
-No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+No runtime security control is implemented by this tracker-only parent. T-110a and T-110b carry the SBD-30 triggers, protections and abuse tests for their implementation.
 
 ## Implementation notes
 Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
@@ -116,17 +116,51 @@ Follow the ordered behavior already stated in Context, Scope and Acceptance crit
 | n/a | Child parts own all implementation tests. |
 
 ## Definition of done
-- [ ] Every original criterion and test name is assigned once to a dependent child.
-- [ ] The task index reflects the child dependency chain.
+- [x] Every original criterion and test name is assigned once to a dependent child.
+- [x] The task index reflects the child dependency chain.
 
 ## Report
-**Deviations** — RATIFY: TD-063
+**Plan** — (1) Compare this parent's tracker rows and Files table with its tracker-only Scope and the T-110a/T-110b frontmatter → verify child statuses, dependencies and implementation ownership. (2) Map every original acceptance criterion and named test to exactly one child → verify the complete AC/test inventory. (3) Read dependency Reports and shipped interfaces, then reconcile the parent tracker without changing implementation behavior → verify T-102a Email, T-103 crypto helpers/Keys, T-106 PolicyStore, and T-109d record API are available. (4) Regenerate the index and run task, ERD-document, diff and secret checks → verify parent and child statuses match the task index.
 
-**Deviations** — RATIFY: TD-068, use the canonical refresh-session DDL and detect reuse from the existing revoked timestamp and family successor row., split this CQ-101-sized scope into dependent implementation parts while retaining this file as the contract parent.
+**Assumptions** — T-110's Scope is authoritative: this parent tracks the split contract and dependency order only. Runtime authentication, database changes, endpoint behavior and security controls belong to T-110a and T-110b. Their existing todo frontmatter is the current state; the parent tracker is updated to match it.
 
-**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
-**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+**Test plan** — AC1: Given the parent contract and its two child tasks, when original criteria and test names are inventoried, then AC1, AC2, AC6–AC9 belong to T-110a and AC3–AC5 belong to T-110b exactly once. Verify T-110a tests login_success, lockout_flow, login_constant_time, switch_role, owner_gets_admin_perms_without_admin, common_rejected, max_len_128, argon_params, roundtrip, expired_rejected and wrong_tenant_rejected; verify T-110b tests refresh_reuse_revokes_family, refresh_requires_csrf and password_change_invalidates_access. Edge cases: absent or repeated AC/test ownership, stale child status, or a dependency row that differs from child frontmatter. Error/abuse tests execute in the implementation children; no runtime test belongs to this tracker parent.
 
+**Summary** — Aligned the T-110 split table with the two child tasks: both are todo, and T-110a depends on T-109d as its frontmatter specifies. Replaced the misplaced migration path with the tracker task and generated index, and clarified that runtime security controls are owned by the children. The nine original behavior criteria and all fourteen named implementation tests map to one child each; no identity code or schema changed.
+
+**Spec read** — spec/06-domain-model.md §4.2; spec/16-code-quality.md §§9/12; spec/17-clean-architecture.md §§1/4; spec/18-security-by-design.md §§5.1/5.4/8; spec/19-error-handling.md §10; spec/20-state-machines.md STM-22/23 and D-37; spec/23-contracts-and-canonical-forms.md CAN-34; spec/25-auth-and-access-control.md §§1–3; spec/29-erd.md §§3.2/5/7; spec/adr/0016-in-memory-jwt-with-rotating-refresh-cookie.md.
+
+**Files** —
+- tasks/M1-core/T-110-identity-login-refresh.md — corrected tracker files, split statuses/dependency, security scope, DoD and Report.
+- tasks/DECISIONS.md — record the tracker reconciliation as TD-095.
+- tasks/INDEX.md — regenerate status from task frontmatter.
+
+**Acceptance criteria → tests**
+
+| AC | Test | Result |
+|---|---|---|
+| AC1 | Split ownership inventory across T-110a and T-110b | Pass: AC1, AC2, AC6–AC9 are assigned to T-110a; AC3–AC5 are assigned to T-110b, each once. |
+| AC1 | Named test ownership inventory | Pass: the eleven T-110a names and three T-110b names listed in the Test plan are each present once in their child task contracts. |
+
+**Checks run** — Passed: `scripts/tasks-index.sh --check`; `python3 -I scripts/tasks-lint.py`; `PYTHONDONTWRITEBYTECODE=1 python3 -I -m unittest discover -s scripts/tests -p 'test_tasks_lint.py'` (8/8); `python3 -I scripts/erd.py --check`; `git diff --check`; targeted Gitleaks scans of the parent task, decisions register and generated index (0 findings after replacing a generic detector false positive). Rust, database, server and browser checks are n/a for this tracker-only Scope.
+
+**Manual checks** — Read dependency Reports and follow-ups for T-102a, T-103, T-106 and T-109d, and inspected their shipped Email field kind, Keys/bidx_email/normalize_email APIs, PolicyStore and transaction-bound audit record API. T-103's phone parser is the resolved rlibphonenumber 2 dependency; no spec dependency override is needed. T-109d's historical follow-up about record/sealer locking was superseded by parent T-109 TD-093 and was preserved as history. Compared T-110a/b frontmatter, split Scope, ACs, Files, Security sections and test lists. No database, server or browser behavior is in this parent Scope.
+
+**Debug log** — No check failed. The initial tracker had stale child statuses/dependency and an implementation migration in its Files table; TD-095 corrects those mechanical inconsistencies.
+
+**Performance** — n/a; documentation-only tracker task.
+
+**Security** — No runtime security trigger is implemented by this parent. T-110a and T-110b have explicit T1/T3/T4 Security sections, S2/S3 classifications, tenant-bound controls, token handling and abuse tests; this task only reconciles their ownership map. No secret, PII fixture, role, permission or security control was changed.
+
+**Deviations** — RATIFY TD-063: split the oversized identity contract across dependent children while assigning each behavior and test once. RATIFY TD-068: preserve the mapped refresh-session schema without revoked_reason and use revoked_at plus a family successor to detect reuse. RATIFY TD-066/TD-067: classify the original behavior's security triggers and complete the required task headings from the existing contract. RATIFY TD-095: reconcile the tracker Files, child statuses and T-110a dependency with its Scope and shipped child frontmatter; no business, schema or authorization rule changed.
+
+**Dependencies affected** — T-110a is now accurately recorded as depending on T-102a, T-103, T-106 and T-109d; T-110b depends on T-110a. T-111 and later identity consumers continue to depend on the child implementation chain, not this tracker parent.
+
+**Rollback plan** — Revert this documentation-only commit to restore the previous parent tracker. No code, database schema, persistent data or deployed behavior changes.
+
+**Follow-ups** — T-110a owns login, identity schema, credentials, password validation, JWTs and the Actor/permissions behavior assigned in its Scope. T-110b owns refresh rotation, CSRF and token invalidation. Execute their database, Rust, OpenAPI and security tests in those tasks; the parent adds no runtime checks.
+
+**Workflow steps 0–12** — Step 0: selected the lowest eligible task T-110 on dev; dependencies were review, the task index was current, and the pre-existing SQLx/.pending/.hold/cache WIP remained untouched. Set this task in_progress and regenerated the index. Step 1: read the whole parent and both child contracts plus their cited identity/schema/security rules. Step 2: read T-102a, T-103, T-106 and T-109d Reports, Deviations, Follow-ups, RATIFY items and shipped interfaces. Step 3: n/a, tracker-only task without UI work. Step 4: recorded this plan and the AC/test ownership audit before editing task content. Step 5: changed only the parent tracker, decision register and generated index; no implementation or test behavior changed. Step 6: n/a, no runtime behavior in this Scope. Step 7: no failure occurred. Step 8: reviewed the documentation diff for exact child frontmatter alignment, unique AC/test ownership, and no schema/security invention. Step 9: n/a. Step 10: confirmed the parent has no runtime security control; both implementation children carry SBD-30 sections and abuse tests. Step 11: ran the available task, ERD-document, diff and secret checks; Rust, SQL and browser checks are n/a for this documentation-only parent. Step 12: completed this Report, set review, regenerated the index, and prepared one signed commit and push to dev.
 ## Questions
 - **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** the original task exceeds CQ-101 limits → split its acceptance criteria and named tests across the listed dependent parts, preserving every original test name exactly once.
 - **Self-resolved (implementer, run 6, needs architect ratification; TD-068):** STM-22/D-37 describe `revoked_reason`, but spec 06 §4.2 and ERD §7 define the complete `refresh_sessions` schema without that column → add no column and detect reuse from `revoked_at` plus a newer row in the same `family_id`, because the mapped schema and IDN-04 behavior are the available source of truth.
@@ -134,4 +168,4 @@ Follow the ordered behavior already stated in Context, Scope and Acceptance crit
 - **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
 
 ## Review
-n/a — pending review after implementation.
+n/a — pending human review.

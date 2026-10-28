@@ -89,8 +89,9 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-092 | T-109h | `tasks/M1-core/T-109h-audit-module.md` | Register the implemented AuditSink port and add explicit integration tests for caller-transaction writes and tenant mismatch rejection because the task's original security test only checked module registration. |
 | TD-093 | T-109 | `tasks/M1-core/T-109-audit.md` | Acquire the shared tenant advisory transaction lock before each audit record insert and test writer/sealer serialization so a slower lower-sequence transaction cannot commit after a higher-sequence row is sealed. |
 | TD-094 | T-109 | `tasks/M1-core/T-109-audit.md` | Make the writer/sealer regression test observe the sealer blocked on the PostgreSQL advisory lock before committing the writer; bound test-only observation with a 10-second timeout and 10-millisecond polling interval. |
+| TD-095 | T-110 | `tasks/M1-core/T-110-identity-login-refresh.md` | Align the tracker-only parent with its child task frontmatter and Scope: list T-110a as depending on T-109d, mark both children todo, and replace the implementation migration path with the parent task/index files. |
 
-**Total mapped self-resolutions:** 84.
+**Total mapped self-resolutions:** 85.
 
 ## Detailed entries added in run 6
 
@@ -538,4 +539,13 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Poll `pg_stat_activity` for the sealer's advisory-lock wait before committing the writer. Use a 10-second test-only timeout and a 10-millisecond poll interval.
 - **Why:** The regression test must demonstrate that sealing starts while the writer transaction still owns the lock. The bounded observation is technical test synchronization only; it does not change application behavior, database policy, or a user-visible deadline.
 - **Changed:** `crates/eq-audit/tests/audit.rs`, `tasks/M1-core/T-109-audit.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-095 — Align the identity split tracker with its children
+
+- **Question:** The T-110 tracker says its Scope is split tracking only, but its Files table names the implementation migration and its split table lists T-110a as depending on T-109 with both children still draft; the child frontmatter is todo and T-110a depends on T-109d.
+- **Options:** Keep the stale parent sketch; update only T-110's tracker rows to match its stated Scope and the child task frontmatter/dependency graph.
+- **Decision:** List only the parent task and generated task index as files, set both child tracker statuses to todo, and show T-109d as T-110a's dependency.
+- **Why:** This changes no identity behavior, schema, permission or dependency. It makes the tracking contract reflect the already-shipped child tasks and current index.
+- **Changed:** `tasks/M1-core/T-110-identity-login-refresh.md`, `tasks/INDEX.md`, and this register.
 - **Ratify:** Yes.
