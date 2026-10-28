@@ -3,7 +3,7 @@ id: T-206
 title: Add one-off session creation and the dry-run check, with conflict-to-409 mapping
 milestone: M2
 status: todo
-depends_on: [T-203, T-204, T-205]
+depends_on: [T-112b, T-203, T-204, T-205]
 spec_refs: [SCH-01, SCH-02, SCH-03, SCH-06, DOM-10, DOM-11, API-08, AUD-01]
 estimated_size: M
 ---
@@ -39,6 +39,27 @@ An admin books a session. Either it is stored with all holds in one transaction,
 ### Out
 - Alternatives (T-207). Reschedule/cancel (T-208). Lists (T-211).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-scheduling/tests/api_sessions.rs` | test | Task-listed verification file. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T2, T7 (SBD-30).
+- Data classes touched: S1 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- S/E: spoofed identity, unauthorized role or tenant scope → auth mode and permission checks precede data access; scope in SQL and RLS remain mandatory (SBD-40/41/42, AUTH-05, SEC-05).
+- T/R: duplicate or unauthorized state transitions → use transactional state checks, idempotency/If-Match where specified, and audit committed mutations (SBD-53/57, STM rules in the task).
+- Abuse-case acceptance criterion: `check_is_dry_run` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. Buffer: session 15:00–15:45 in Room 1, buffer 10 → booking Room 1 at 15:50 → 409 with conflict subject `resource`. At 15:55 → 201. → `api_sessions::buffer_rule`
 - AC2. Instructor clash: T teaches 15:00–15:45 in Room 1 → T in Room 2 at 15:30 → 409, subject = T with `subject_name` = T's display_name. → `instructor_clash`
@@ -60,4 +81,14 @@ An admin books a session. Either it is stored with all holds in one transaction,
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

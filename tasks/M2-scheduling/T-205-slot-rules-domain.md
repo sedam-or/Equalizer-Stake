@@ -46,6 +46,20 @@ pub fn to_local(ts: Timestamp, tz: Tz) -> NaiveDateTime; pub fn from_local(l: Na
 ### Out
 - Conflict checks (DB) and alternatives (T-207).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-scheduling/src/domain/slot.rs` | create or modify | Path named in this task's contract. |
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. Mon 14:30–17:00: 16:15+45 fits; 16:30+45 doesn't; 14:30+30 fits. → `slot::tests::opening_hours_examples`
 - AC2. Property: if `fits_opening_hours(s, e)`, then for every minute m in [s, e) the local time is inside an open interval. → `proptest fits_implies_inside`
@@ -66,4 +80,14 @@ pub fn to_local(ts: Timestamp, tz: Tz) -> NaiveDateTime; pub fn from_local(l: Na
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

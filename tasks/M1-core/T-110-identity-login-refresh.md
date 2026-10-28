@@ -2,7 +2,7 @@
 id: T-110
 title: Add identity schema, IdentityPolicy, password hashing, login, JWT access tokens, rotating refresh sessions, logout and the Actor extractor
 milestone: M1
-status: todo
+status: draft
 depends_on: [T-102a, T-103, T-106, T-109]
 spec_refs: [IDN-01, IDN-02, IDN-03, IDN-04, IDN-05, IDN-06, IDN-09, SEC-10, SEC-12, STM-22, STM-23, CAN-34, D-37, AUTH-02, AUTH-03, AUTH-05, AUTH-06]
 estimated_size: M
@@ -73,56 +73,65 @@ pub struct MaybeActor(pub Option<Actor>);
   `PermSet` is computed from the registry: the union of `PermissionDef.roles` containing the active role, across **enabled** modules. Owner without any active admin in the tenant → add the admin set (IDN-11, computed, cached 30 s). Deactivated membership → 401.
 
 - **Alignment with spec 20–24** (added with the canonical-behaviour specs):
-  - Add `revoked_reason text CHECK (revoked_reason IN ('rotated','logout','reuse','password','deactivated','admin'))` to `refresh_sessions` (STM-22, D-37), so rotation can be told apart from logout when detecting reuse.
+  - Do not add `revoked_reason`: spec 06 §4.2 and ERD §7 define `refresh_sessions` without it. Detect reuse from a revoked token whose `family_id` has a newer `created_at` row, then revoke the family, audit `security.refresh_reuse`, and return 401 `session_expired`; this preserves the existing IDN-04 behavior without an unmapped column.
   - Lock counters follow STM-23 (`FOR UPDATE` on the credentials row). Login parses `email` with the T-102a `Email` kind but maps **every** failure, including a malformed email, to 401 `invalid_credentials` (VAL-25 §5.1).
   - Cookie attributes exactly as CAN-34.
 - Consolidated view of this mechanism (keys, token anatomy, timings, invalidation): spec 25 §2–§4 and ADR-0016. The values in this task are the same; if they ever differ, block and ask.
 
 ## Scope
 ### In
-- The migration, `IdentityPolicy`, `eq_identity::{password, jwt, refresh, lockout, service::AuthService}`, the `Actor`/`MaybeActor` extractors, and `PermSet`.
-- Endpoints with `#[utoipa::path]`: `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `POST /auth/logout-all`, `POST /auth/switch-role`.
-- Login response DTO: `{access_token, expires_in, person: PersonMe, roles: [Role], active_role, needs_totp?: bool, needs_totp_setup?: bool}`. For `PersonMe` here, fill `{id, display_name, locale, roles, active_role, permissions}`; the remaining fields come in T-111.
-- `IdentityModule` replaces the stub: manifest, policy wiring, routes, `permissions()` with the table below, and the cron `identity.cleanup` (`30 3 * * *`): delete refresh sessions expired > 30 days, and used or expired invites and resets older than 30 days (technical const 30 d).
-
-Permissions declared by identity (IDN table):
-
-| key | default roles |
-|---|---|
-| identity.people.read | owner, admin, instructor, guardian, student (scope enforced in queries) |
-| identity.people.read_pii | owner, admin, guardian, student |
-| identity.people.write | admin |
-| identity.roles.write | owner, admin |
-| identity.admins.manage | owner |
-
+- Track the split task contract and dependency order only.
 ### Out
-- Invites, reset, `/me`, TOTP enrolment (T-111). People API (T-112).
+- All implementation and tests, which are assigned to the child parts below.
+
+## Split
+| Part | Owns | Depends on | Status |
+|---|---|---|---|
+| T-110a | Identity schema, login and credential validation; AC 1, 2, 6, 7, 8, 9 | T-102a, T-103, T-106, T-109 | draft |
+| T-110b | Refresh rotation, CSRF and token invalidation; AC 3, 4, 5 | T-110a | draft |
+
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `migrations/0007_identity.sql` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
 
 ## Acceptance criteria
-- AC1. Valid admin login → 200, a JWT with `role=admin`, an `eq_rt` cookie with HttpOnly + SameSite=Strict (+ Secure under an https public URL), and audit `security.login.success`. → `api_auth::login_success`
-- AC2. Lockout 5/15/15: 5 wrong passwords, then the correct one → 423 with `until`, an outbox `identity.account_locked.v1`, and a wrong password during the lock → 401 `invalid_credentials`. → `lockout_flow`
-- AC3. Refresh R1 → R2. Presenting R1 again → 401, R2 is revoked too, and audit `security.refresh_reuse`. → `refresh_reuse_revokes_family`
-- AC4. Refresh without `X-EQ-CSRF` → 403. → `refresh_requires_csrf`
-- AC5. After `password_changed_at` changes, an old access token → 401. → `password_change_invalidates_access`
-- AC6. Unknown email vs known email + wrong password: p50 latency differs ≤ 50 ms over 20 tries each. → `login_constant_time` (`#[ignore]` locally; runs in CI)
-- AC7. A person with admin + guardian logs in as admin, then switches to guardian → the new token has `role=guardian` and the permissions shrink. → `switch_role`
-- AC8. An owner in a tenant with no admin has `identity.people.write`. After an admin exists, they don't. → `owner_gets_admin_perms_without_admin`
-- AC9. Common password `password123` with min length 10 → 422 `password_weak` (verified via the `validate_new_password` unit). → `password::tests::common_rejected`
+- AC1. Every original acceptance criterion and test is assigned exactly once to a child part in the Split table.
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-identity/tests/api_auth.rs` | AC1–AC8 |
-| `crates/eq-identity/src/password.rs` | `common_rejected`, `max_len_128`, `argon_params` |
-| `crates/eq-identity/src/jwt.rs` | `roundtrip`, `expired_rejected`, `wrong_tenant_rejected` |
+| n/a | Child parts own all implementation tests. |
 
 ## Definition of done
-- [ ] `scripts/erd.py --migrations` passes (ERD-03): every table and column this task migrates matches the `spec/06` DDL and the task's row in `spec/29-erd.md` §7
-- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
-- [ ] Rust checks pass; `scripts/check-literals.sh` passes
-- [ ] `make api` regenerated
-- [ ] Commit `feat(identity): login, tokens and refresh rotation [T-110]`, signed off
+- [ ] Every original criterion and test name is assigned once to a dependent child.
+- [ ] The task index reflects the child dependency chain.
 
 ## Report
+**Deviations** — RATIFY: TD-063
+
+**Deviations** — RATIFY: TD-068, use the canonical refresh-session DDL and detect reuse from the existing revoked timestamp and family successor row., split this CQ-101-sized scope into dependent implementation parts while retaining this file as the contract parent.
+
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
 
 ## Questions
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** the original task exceeds CQ-101 limits → split its acceptance criteria and named tests across the listed dependent parts, preserving every original test name exactly once.
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-068):** STM-22/D-37 describe `revoked_reason`, but spec 06 §4.2 and ERD §7 define the complete `refresh_sessions` schema without that column → add no column and detect reuse from `revoked_at` plus a newer row in the same `family_id`, because the mapped schema and IDN-04 behavior are the available source of truth.
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

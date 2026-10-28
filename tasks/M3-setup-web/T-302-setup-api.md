@@ -2,7 +2,7 @@
 id: T-302
 title: Add the setup API (status, presets, countries, school, modules, rules, complete, reset) and the first-run setup token
 milestone: M3
-status: todo
+status: draft
 depends_on: [T-301]
 spec_refs: [SET-02, SET-10, SET-11, SET-12, SET-13, MOD-06, POL-09, PRD-04]
 estimated_size: M
@@ -53,32 +53,56 @@ The server side of "set up your school in 3 steps". One transaction per step, re
 
 ## Scope
 ### In
-- `eq_core::setup` service + handlers in `eq-api`, the `SetupGuard`, the startup token logic, the slug helper, and the step-gating middleware.
-
+- Track the split task contract and dependency order only.
 ### Out
-- The SPA wizard (T-310). Cloud signup (M9). Sample data (`sample: true`, M7 demo).
+- All implementation and tests, which are assigned to the child parts below.
+
+## Split
+| Part | Owns | Depends on | Status |
+|---|---|---|---|
+| T-302a | First-run token, school creation and preset seeding; AC 1, 2, 3, 8 | T-002, T-101, T-103, T-104, T-105, T-106, T-110b, T-113b, T-301 | draft |
+| T-302b | Setup modules, policy completion, validation and reset; AC 4, 5, 6, 7, 9 | T-302a | draft |
+
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `tasks/M3-setup-web/T-302a-*.md` | create or modify | Path named in this task's contract. |
+| `tasks/M3-setup-web/T-302b-*.md` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
 
 ## Acceptance criteria
-- AC1. Fresh install: `/setup/status` → `{completed:false, current_step:1, needs_token:true}`. `POST /school` without a token → 401, with a wrong token → 401, with the right token → 201 + an access token, and the token file is deleted. → `api_setup::first_run_token`
-- AC2. After step 1 with `music_school` + 3 rooms: 3 resources "Ruang 1..3" (locale id), 4 offerings, 2 level tracks, the price plans in IDR, the modules from the preset enabled, the scheduling policy v1 equal to the preset values, and the identity policy `password_min_length = 8`. → `school_seeds_music_preset`
-- AC3. Currency SGD with music_school → price plans 0 and `price_needs_review = true`. → `missing_currency_needs_review`
-- AC4. Step 2 with `[billing]` alone → 422 `module_dependency`. → `modules_step_dependency`
-- AC5. `POST /complete` with a changed buffer → scheduling v2 (`note = "setup"`), unchanged modules stay v1, and `setup_completed_at` is set. → `complete_writes_only_changed`
-- AC6. `POST /complete` with an invalid billing doc → 422 with pointer `/billing/...` (use scheduling if billing is still a stub: `/scheduling/buffer_minutes`) and nothing saved. → `complete_validation_atomic`
-- AC7. Reset after a session exists → 409 `setup_reset_blocked`. → `reset_blocked_with_data`
-- AC8. A second `POST /school` in single mode → 409 `already_set_up`. → `cannot_setup_twice`
-- AC9. "Next → Next → Finish" with **every** preset (no edits) succeeds. → `next_next_finish_all_presets` (SET-13)
+- AC1. Every original acceptance criterion and test is assigned exactly once to a child part in the Split table.
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-api/tests/api_setup.rs` | AC names above |
+| n/a | Child parts own all implementation tests. |
 
 ## Definition of done
-- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
-- [ ] Rust checks pass; `make api` regenerated
-- [ ] Commit `feat(core): setup wizard API [T-302]`, signed off
+- [ ] Every original criterion and test name is assigned once to a dependent child.
+- [ ] The task index reflects the child dependency chain.
 
 ## Report
+**Deviations** — RATIFY: TD-063, split this CQ-101-sized scope into dependent implementation parts while retaining this file as the contract parent.
+
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
 
 ## Questions
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** the original task exceeds CQ-101 limits → split its acceptance criteria and named tests across the listed dependent parts, preserving every original test name exactly once.
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

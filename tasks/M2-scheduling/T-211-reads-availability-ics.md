@@ -3,7 +3,7 @@ id: T-211
 title: Add session lists and calendar views, /me/schedule, availability, attention list, instructor availability and iCal feeds
 milestone: M2
 status: todo
-depends_on: [T-210]
+depends_on: [T-207, T-210]
 spec_refs: [SCH-14, SCH-15, SCH-16, IDN-10, API-05, API-09]
 estimated_size: M
 ---
@@ -41,6 +41,29 @@ Everyone sees the schedule that's theirs: admins the whole school, instructors t
 ### Out
 - The SPA (M3).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-scheduling/src/domain/availability.rs` | create or modify | Path named in this task's contract. |
+| `crates/eq-scheduling/tests/api_reads.rs` | test | Task-listed verification file. |
+| `migrations/0012_ics.sql` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T1, T2, T3, T4 (SBD-30).
+- Data classes touched: S2/S3 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- S/E: spoofed identity, unauthorized role or tenant scope → auth mode and permission checks precede data access; scope in SQL and RLS remain mandatory (SBD-40/41/42, AUTH-05, SEC-05).
+- I: S2/S3 disclosure or secret leakage → encrypt/hash as specified, require `read_pii` for sensitive reads, and never log personal data or secret values (SBD-10/21/23, SEC-02/03/21).
+- Abuse-case acceptance criterion: `guardian_calendar_scope` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. A guardian sees only sessions with their linked students, and other participants appear only as `others_count`. → `api_reads::guardian_calendar_scope`
 - AC2. Room 1, Mon 14:30–17:00, step 15, duration 45, buffer 10, one existing session 15:00–15:45 (resource hold `[15:00, 15:55)`) → slots exactly `["16:00", "16:15"]`. 14:30 fails because `[14:30, 15:25)` overlaps the hold, 15:55 is not aligned to the step, and 16:30 + 45 exceeds 17:00. → `availability_exact`
@@ -63,4 +86,14 @@ Everyone sees the schedule that's theirs: admins the whole school, instructors t
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

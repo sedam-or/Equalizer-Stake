@@ -3,7 +3,7 @@ id: T-603
 title: Add reservations: create with holds at creation, approval, booker cancellation with refund terms, and billing events
 milestone: M6
 status: draft
-depends_on: [T-602]
+depends_on: [T-415, T-602]
 spec_refs: [RNT-04, RNT-05, RNT-08, DOM-10, API-08]
 estimated_size: M
 ---
@@ -25,6 +25,27 @@ Members book a room themselves; the room is held immediately, approvals and paym
 - Jobs (T-604)
 - Public booking (T-605)
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-rental/tests/api_reservations.rs` | test | Task-listed verification file. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T1, T2, T7 (SBD-30).
+- Data classes touched: S1/S2 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- S/E: spoofed identity, unauthorized role or tenant scope → auth mode and permission checks precede data access; scope in SQL and RLS remain mandatory (SBD-40/41/42, AUTH-05, SEC-05).
+- T/R: duplicate or unauthorized state transitions → use transactional state checks, idempotency/If-Match where specified, and audit committed mutations (SBD-53/57, STM rules in the task).
+- Abuse-case acceptance criterion: `cancellation_window` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. AC1 shared ledger with lessons → `api_reservations::shared_ledger`
 - AC2. AC4 window refund → `cancellation_window`
@@ -44,4 +65,14 @@ Members book a room themselves; the room is held immediately, approvals and paym
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

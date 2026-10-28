@@ -54,6 +54,23 @@ pub fn reservation_holds(resource: Uuid, booker: Uuid, start: Timestamp, end: Ti
 ### Out
 - Session/reservation logic.
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-core/tests/calendar.rs` | test | Task-listed verification file. |
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T7 (SBD-30).
+- Data classes touched: S1 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- T/R: duplicate or unauthorized state transitions → use transactional state checks, idempotency/If-Match where specified, and audit committed mutations (SBD-53/57, STM rules in the task).
+- Abuse-case acceptance criterion: `claim_atomic` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. `session_holds` with buffer 10: the resource and instructor ranges end at end+10, participants at end. → `calendar::tests::hold_shapes`
 - AC2. Claiming two sessions back-to-back in the same room with buffer 10 → the second at end+5 conflicts, at end+10 succeeds. → `buffer_enforced_by_db`
@@ -73,4 +90,14 @@ pub fn reservation_holds(resource: Uuid, booker: Uuid, start: Timestamp, end: Ti
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

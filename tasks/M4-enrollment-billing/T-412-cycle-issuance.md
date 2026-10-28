@@ -3,7 +3,7 @@ id: T-412
 title: Add monthly cycle issuance (daily cron checks the policy day), grouping per payer, pending charges and invoice issuing
 milestone: M4
 status: draft
-depends_on: [T-411]
+depends_on: [T-408, T-411]
 spec_refs: [BIL-02, BIL-04, ARC-09, TST-15]
 estimated_size: M
 ---
@@ -26,6 +26,26 @@ On the school's issue day, every family gets exactly one correct invoice, even w
 ### Out
 - Payments (T-413)
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-billing/tests/issuance.rs` | test | Task-listed verification file. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T7 (SBD-30).
+- Data classes touched: S1 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- T/R: duplicate or unauthorized state transitions → use transactional state checks, idempotency/If-Match where specified, and audit committed mutations (SBD-53/57, STM rules in the task).
+- Abuse-case acceptance criterion: `cycle_exactly_once` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. Module AC1 → `issuance::cycle_exactly_once`
 - AC2. Two planners/runners concurrently → still 2 invoices → `issuance_concurrent`
@@ -44,4 +64,14 @@ On the school's issue day, every family gets exactly one correct invoice, even w
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

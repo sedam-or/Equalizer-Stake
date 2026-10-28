@@ -36,6 +36,29 @@ After setup, owners change features and rules with the same components as the wi
 ### Out
 - Channels (M5). Privacy settings UI (M6).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `web/e2e/settings.spec.ts` | test | Task-listed verification file. |
+| `web/src/modules/settings/branding.test.tsx` | test | Task-listed verification file. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T2, T5 (SBD-30).
+- Data classes touched: S1/S2 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- S/E: spoofed identity, unauthorized role or tenant scope → auth mode and permission checks precede data access; scope in SQL and RLS remain mandatory (SBD-40/41/42, AUTH-05, SEC-05).
+- T/D: hostile content or remote response → validate bounds at the boundary; uploads are sniffed/limited and external calls use allow-listed hosts, TLS verification and timeouts (SBD-20/44/47, VAL-52).
+- I: unsafe file or rendered/exported content → re-encode uploads, escape HTML, guard CSV formulas, and use safe attachment headers (SBD-45/46, SEC-13/14).
+- Abuse-case acceptance criterion: `admin read only` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. E2E: change the scheduling buffer with "Start of next month" → the list shows the pending chip. History shows v2 with that date. The `/sessions/check` behaviour before that date still uses the old buffer (API assertion). → `web/e2e/settings.spec.ts › future dated rule`
 - AC2. Two browser contexts edit the same module; the second save gets the conflict dialog. → `version conflict`
@@ -57,4 +80,14 @@ After setup, owners change features and rules with the same components as the wi
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

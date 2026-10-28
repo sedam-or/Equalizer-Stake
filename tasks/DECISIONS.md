@@ -62,7 +62,21 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-056 | T-107b | `tasks/M1-core/T-107b-dispatcher-delivery.md:93` | The dispatcher contract does not define an event with no registered subscriber → treat the empty handler set as successful delivery and mark the event dispatched, following FLW-03's “all handlers succeeded” transition. |
 | TD-057 | T-107b | `tasks/M1-core/T-107b-dispatcher-delivery.md:94` | FLW-03 requires sequential delivery per aggregate, but `FOR UPDATE SKIP LOCKED` over a bounded batch can let a second dispatcher claim later rows beyond the first 100 rows → claim only the oldest pending event per non-null `(tenant_id, aggregate_id)` until that event is marked dispatched, preserving ordering without a schema change; leave null-aggregate rows independently claimable. |
 
-**Total mapped self-resolutions:** 56.
+| TD-058 | T-107c | `tasks/M1-core/T-107c-retry-dead-letter.md` | Apply ERR-52's retryable/permanent classification to event handlers and dead-letter permanent failures immediately. |
+| TD-059 | T-108 | `tasks/M1-core/T-108-jobs-and-cron.md` | Use the spec 24 `cron` crate and adapt the five-field schedule syntax. |
+| TD-060 | T-108 | `tasks/M1-core/T-108-jobs-and-cron.md` | Use ERR-51's typed retryable/permanent `JobError` variants. |
+| TD-061 | T-108 | `tasks/M1-core/T-108-jobs-and-cron.md` | Bound worker claims with a technical batch constant of 100. |
+| TD-062 | T-108 | `tasks/M1-core/T-108-jobs-and-cron.md` | Accept trusted active `TenantInfo` metadata; do not add a cross-tenant resolver or grant. |
+| TD-063 | T-110, T-112, T-113, T-117, T-302 | Split oversized task contracts into dependent parts while preserving all listed ACs and tests. |
+| TD-064 | T-108 | `tasks/M1-core/T-108-jobs-and-cron.md` | Reuse T-107c's OPS-08 attention-item shape for tenant job dead letters. |
+| TD-065 | T-108 | `tasks/M1-core/T-108-jobs-and-cron.md` | Do not invent platform tenancy/schema for attention; retain ids-only logging and report the unmet platform alert row. |
+| TD-066 | todo/draft tasks listed in `tasks/HYGIENE.md` | Add or complete spec-backed SBD-30 Security sections; use `No triggers.` only after review. |
+| TD-067 | todo/draft tasks listed in `tasks/HYGIENE.md` | Fill required task-template headings from each task's existing contract without adding behavior. |
+| TD-068 | T-110 | `tasks/M1-core/T-110-identity-login-refresh.md` | Keep the spec 06/ERD refresh-session schema; detect reuse through `revoked_at` and a newer row in the same `family_id` rather than adding `revoked_reason`. |
+| TD-069 | T-209, T-210 | `tasks/M2-scheduling/T-209-series.md` | Make T-209 the provider of the reusable materialisation core; T-210 extends it with jobs, cycle caps and closure behavior. |
+| TD-070 | T-804, T-908 | `tasks/M8-desktop/T-804-secure-tunnel.md` | Keep a mockable broker-client seam in M8 and make the M9 broker service depend on and implement that contract. |
+
+**Total mapped self-resolutions:** 70.
 
 ## Detailed entries added in run 6
 
@@ -183,4 +197,115 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Use a typed `EventHandlerError` with retryable and permanent variants. Apply the specified retry schedule only to retryable errors and dead-letter permanent errors immediately.
 - **Why:** ERR-51 and ERR-52 explicitly require the same retryable/permanent split for event handlers; permanent failures do not retry.
 - **Changed:** T-107c's handler contract and tests implement the split; no schema change.
+- **Ratify:** Yes.
+
+
+### TD-059 — Use the approved cron parser
+
+- **Question:** The task sketch names `croner`, while spec 24 lists the pinned Rust crate `cron`.
+- **Options:** Add the unlisted crate; or use the mapped `cron` crate and adapt its seconds/year fields.
+- **Decision:** Use the workspace `cron` dependency and preserve five-field `CronSpec.schedule` values through an adapter.
+- **Why:** OSS-01/02 makes the spec stack authoritative; the adapter changes no module-facing schedule contract.
+- **Changed:** `crates/eq-core/Cargo.toml`, `Cargo.lock`, `crates/eq-core/src/jobs.rs`, and T-108.
+- **Ratify:** Yes.
+
+### TD-060 — Use typed job failures
+
+- **Question:** The task's handler sketch uses `anyhow::Result`, but ERR-51 specifies retryable and permanent failures.
+- **Options:** Keep the generic result; or return the ERR-51 `JobError` variants.
+- **Decision:** Use `Result<(), JobError>` with `Retryable(anyhow::Error)` and `Permanent(anyhow::Error)`.
+- **Why:** The error-handling spec defines the state transition and the handler classification.
+- **Changed:** Job handler contract, runner, tests and T-108.
+- **Ratify:** Yes.
+
+### TD-061 — Bound the worker claim batch
+
+- **Question:** ARC-09 uses a claim limit `n` without a value.
+- **Options:** Use an unbounded claim; or choose a conservative technical batch limit.
+- **Decision:** Use `JOB_CLAIM_BATCH_SIZE = 100` as a technical bound, matching the shipped outbox worker.
+- **Why:** This limits one worker claim without affecting any business rule or persisted history.
+- **Changed:** `crates/eq-core/src/jobs.rs` and `tasks/M1-core/T-108-jobs-and-cron.md`.
+- **Ratify:** Yes.
+
+### TD-062 — Keep tenant enumeration behind the caller
+
+- **Question:** T-108 requires planning active tenants, but the shipped app role has no allowed active-tenant list resolver.
+- **Options:** Add a new cross-tenant function/grant; use an owner pool; or have the trusted integration caller pass `TenantInfo` values.
+- **Decision:** Keep existing database privileges unchanged and accept a trusted `&[TenantInfo]` in the planner/runner.
+- **Why:** This avoids broad access and does not add a schema object or grant; active tenant sourcing remains an integration responsibility.
+- **Changed:** Planner and runner interfaces, tests and T-108.
+- **Ratify:** Yes.
+
+### TD-063 — Split oversized task contracts
+
+- **Question:** Several `todo`/`draft` task files exceeded CQ-101 size limits.
+- **Options:** Retain oversized tasks; or split the listed acceptance criteria and named tests into a dependent chain.
+- **Decision:** Split T-110, T-112, T-113, T-117 and T-302 into parent contracts and implementation parts; preserve every original test name exactly once and point consumers at the part that provides their contract.
+- **Why:** CQ-101 requires oversized work to be split before implementation.
+- **Changed:** The five parent tasks, their part files and dependent task references; see `tasks/HYGIENE.md` and `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-064 — Record tenant job dead letters
+
+- **Question:** ERR-51 requires an attention row for dead-lettered jobs, but T-108 does not define the row's kind or payload.
+- **Options:** Add a schema object; or follow T-107c's existing OPS-08 pattern with a job-id-only reference, payload and dedupe key.
+- **Decision:** Use `kind='job_dead_letter'`, `ref_type='job'`, the job id as `ref_id`, a `{job_id}` payload, high severity and `job_dead_letter:<id>` dedupe.
+- **Why:** It reuses the mapped `attention_items` table and the already shipped dead-letter alert pattern without adding schema or PII.
+- **Changed:** `crates/eq-core/src/jobs/repo.rs`, `crates/eq-core/tests/jobs.rs` and T-108.
+- **Ratify:** Yes.
+
+### TD-065 — Preserve the platform-job boundary
+
+- **Question:** A platform job has `tenant_id = NULL`, but the mapped `attention_items.tenant_id` is NOT NULL.
+- **Options:** Invent a tenant/schema for platform alerts; or retain the platform job's ids-only alert log and report that it cannot create a tenant-scoped attention row.
+- **Decision:** Do not invent a tenant or schema. Keep the fixed ids-only alert log and report the missing platform attention row as an ERR-51 limitation.
+- **Why:** Spec 06/29 provide no platform attention table, and tenant isolation forbids attributing the alert to an unrelated tenant.
+- **Changed:** T-108 Report and Questions; no schema change.
+- **Ratify:** Yes.
+
+### TD-066 — Add spec-backed security sections
+
+- **Question:** The task audit found `todo`/`draft` tasks with SBD-30 triggers but no Security section, and keyword candidates that may be false positives.
+- **Options:** Add one generic section to every task; or review each candidate and describe only its applicable data classes, controls and abuse tests from specs 18/25/22, using `No triggers.` for confirmed false positives.
+- **Decision:** Review each task and apply the spec-backed section only; affected task IDs are listed in the security portion of `tasks/HYGIENE.md`.
+- **Why:** SBD-30 requires threat controls for real triggers and does not justify adding permissions or behavior.
+- **Changed:** Security sections and Questions/Reports on the affected todo/draft tasks.
+- **Ratify:** Yes.
+
+### TD-067 — Complete required task headings
+
+- **Question:** The audit found missing headings required by `tasks/_TEMPLATE.md`.
+- **Options:** Leave tasks structurally incomplete; or fill the required headings using each task's existing contract and mark inapplicable content `n/a`/`No triggers.`.
+- **Decision:** Complete only the missing headings from each task's current Scope, interfaces, ACs and tests; do not add implementation behavior.
+- **Why:** WORKFLOW §3 requires the standard report/task structure, while AGENTS §0 forbids designing new scope.
+- **Changed:** Required headings in the affected todo/draft task files; task ID evidence is in `tasks/HYGIENE.md`.
+- **Ratify:** Yes.
+
+
+### TD-068 — Preserve the mapped refresh-session schema
+
+- **Question:** STM-22/D-37 and T-110 describe `revoked_reason`, but spec 06 §4.2 and ERD §7 define `refresh_sessions` without that column.
+- **Options:** Add an unmapped column; or keep the canonical DDL and identify reuse from the revoked token plus a newer row in the same `family_id`.
+- **Decision:** Do not add `revoked_reason`; detect a presented revoked token with a newer family row, revoke the family, write the existing security audit, and return `session_expired`.
+- **Why:** The task's schema map and the explicit Run 6 no-new-column rule prohibit schema drift; IDN-04 already defines reuse by the family having a newer row.
+- **Changed:** T-110 parent, T-110a and T-110b task contracts; no migration or table change.
+- **Ratify:** Yes.
+
+
+### TD-069 — Keep materialisation core with its earlier provider
+
+- **Question:** T-209 first says it consumes the materialiser core from T-210, then says the core belongs in T-209 and T-210 extends it.
+- **Options:** Make T-209 depend on a later task; or keep the reusable planner in T-209 and implement the job, cycle cap and closure extension in T-210.
+- **Decision:** T-209 owns the base `plan_occurrences`/`apply` core; T-210 extends it with jobs and the remaining scheduling rules.
+- **Why:** The task's own later ownership statement and dependency order identify T-209 as the provider; T-210 already depends on T-209.
+- **Changed:** T-209 wording and both task Reports/Questions; no interface outside the task contract is added.
+- **Ratify:** Yes.
+
+### TD-070 — Keep the tunnel broker dependency pointed forward
+
+- **Question:** M8 T-804 uses a broker implemented by M9 T-908, but CA-10 requires a testable external-I/O adapter and M8 cannot depend backward on M9.
+- **Options:** Call an unspecified M9 endpoint directly from T-804; or define the client seam in T-804 and make T-908 depend on that seam for its service implementation.
+- **Decision:** T-804 owns the mockable client boundary; T-908 depends on T-804 and implements the broker service. Endpoint and rate-limit details remain governed by DST-22 and the T-908 contract when that task is promoted.
+- **Why:** CA-10 requires a mockable adapter for external I/O, and stacked milestone order requires M9 to follow M8.
+- **Changed:** T-804/T-908 Reports and Questions; T-908 dependency metadata; no new wire path or business limit was selected.
 - **Ratify:** Yes.

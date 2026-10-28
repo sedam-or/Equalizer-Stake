@@ -3,7 +3,7 @@ id: T-109
 title: Add the audit log (schema, record API, Auditable redaction, sealer hash chain, verify, anonymise and purge functions)
 milestone: M1
 status: todo
-depends_on: [T-106, T-108]
+depends_on: [T-003, T-005, T-105, T-106, T-108]
 spec_refs: [AUD-01, AUD-02, AUD-03, AUD-04, AUD-05, AUD-06, ARC-05, SEC-07]
 estimated_size: M
 ---
@@ -65,6 +65,28 @@ pub trait Auditable { fn audit_snapshot(&self) -> serde_json::Value; }
 ### Out
 - The audit HTTP API (T-113 adds `/audit/entries`, `/audit/verify`). Privacy and deletion requests (M6).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-audit-derive/tests/derive.rs` | test | Task-listed verification file. |
+| `crates/eq-audit/tests/audit.rs` | test | Task-listed verification file. |
+| `migrations/0006_audit.sql` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T4 (SBD-30).
+- Data classes touched: S1/S2 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- I: S2/S3 disclosure or secret leakage → encrypt/hash as specified, require `read_pii` for sensitive reads, and never log personal data or secret values (SBD-10/21/23, SEC-02/03/21).
+- Abuse-case acceptance criterion: `redact_attr` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. A test service writes a row and audits it, with the audit forced to fail (trigger raising on a marker action) → the business row doesn't exist. → `audit::tests::audit_failure_rolls_back`
 - AC2. `UPDATE audit.entries SET after='{}'` as `eq_app` → permission denied. DELETE → denied. → `app_role_cannot_mutate`
@@ -88,4 +110,14 @@ pub trait Auditable { fn audit_snapshot(&self) -> serde_json::Value; }
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

@@ -5,6 +5,10 @@ set -euo pipefail
 export LC_ALL=C # technical: byte-order sort and compare, so T-102 < T-102a < T-103 on every machine
 cd "$(dirname "$0")/.."
 
+if [[ "${1:-}" == "--check" ]]; then
+  python3 -I scripts/tasks-lint.py
+fi
+
 tmp="$(mktemp)"
 trap 'rm -f "$tmp" "$tmp.rows"' EXIT
 

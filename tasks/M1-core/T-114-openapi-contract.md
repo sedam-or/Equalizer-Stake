@@ -3,7 +3,7 @@ id: T-114
 title: Merge per-module OpenAPI, add `ritma openapi` output, the committed web/openapi.json and the contract-drift CI job
 milestone: M1
 status: todo
-depends_on: [T-113]
+depends_on: [T-004, T-005, T-006, T-102a, T-113b]
 spec_refs: [API-02, MOD-04, TST-10, API-01, API-03, API-13, CAN-03, CAN-20, VAL-20]
 estimated_size: S
 ---
@@ -36,6 +36,26 @@ One OpenAPI 3.1 document describes every compiled endpoint and DTO, including pr
 ### Out
 - The SPA client wrapper (M3).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-api/tests/openapi.rs` | test | Task-listed verification file. |
+| `web/openapi.json` | create or modify | Path named in this task's contract. |
+| `web/src/api/*.gen.ts` | create or modify | Path named in this task's contract. |
+| `web/src/api/schema.d.ts` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. `openapi` output is byte-identical across two runs. → `openapi::tests::deterministic`
 - AC2. Every axum route (method + path) has an operation, and vice versa. → `routes_match_openapi`
@@ -53,4 +73,17 @@ One OpenAPI 3.1 document describes every compiled endpoint and DTO, including pr
 
 ## Report
 
+**Deviations** — RATIFY: TD-063, dependency references now target the final split part that provides the referenced contract.
+
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** this task depended on the original parent contract after its CQ-101 split → depend on the final implementation part that provides the contract, because the parent now owns only the split map.
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

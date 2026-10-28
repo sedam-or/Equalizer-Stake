@@ -3,7 +3,7 @@ id: T-304
 title: Add the full design tokens (3 layers), Tailwind 4 bridge, dark mode, density, self-hosted fonts and tenant theming
 milestone: M3
 status: todo
-depends_on: [T-302]
+depends_on: [T-302b]
 spec_refs: [DS-01, DS-02, DS-03, DS-04, DS-10]
 estimated_size: M
 ---
@@ -46,12 +46,34 @@ Every visual value comes from one token file. Tenants can safely change hue, cor
   4. Inject `<style id="tenant-theme">` with the overrides. Inputs come from `meta/app.brand` (`brand_hue`, `corner_style`).
 - **Guard:** `web/scripts/check-raw-colors.mjs` fails on `#[0-9a-f]{3,8}\b`, `rgb(`, `hsl(`, `oklch(` in `src/**/*.{ts,tsx,css}` outside `src/styles/tokens.css` and `src/lib/theme.ts`, and on Tailwind palette classes (`(bg|text|border|ring|fill|stroke)-(red|blue|green|gray|slate|zinc|neutral|stone|amber|yellow|lime|emerald|teal|cyan|sky|indigo|violet|purple|fuchsia|pink|rose|orange)-\d`). Add it to `pnpm lint`.
 
+## Context
+The task-specific contract is stated in this file's Goal, Scope and Acceptance criteria; do not infer additional behavior.
+
 ## Scope
 ### In
 - `web/src/styles/tokens.css`, `app.css`, the fonts, `lib/theme.ts` (+ tests), `lib/density.ts`, the guard script, and the provider in `main.tsx` that applies theme and density.
 
 ### Out
 - Components (T-305).
+
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `web/scripts/check-raw-colors.test.ts` | test | Task-listed verification file. |
+| `web/src/lib/theme.test.ts` | test | Task-listed verification file. |
+| `web/src/styles/tokens.css` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
 
 ## Acceptance criteria
 - AC1. Vitest: for every hue 0..359 step 1, the generated theme passes all three contrast checks after adjustment. → `theme.test.ts › all hues accessible`
@@ -73,4 +95,17 @@ Every visual value comes from one token file. Tenants can safely change hue, cor
 
 ## Report
 
+**Deviations** — RATIFY: TD-063, dependency references now target the final split part that provides the referenced contract.
+
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** this task depended on the original parent contract after its CQ-101 split → depend on the final implementation part that provides the contract, because the parent now owns only the split map.
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

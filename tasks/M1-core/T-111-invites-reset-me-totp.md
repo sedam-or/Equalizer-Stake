@@ -3,7 +3,7 @@ id: T-111
 title: Add invites, password reset, /me endpoints, TOTP enrolment and device sessions
 milestone: M1
 status: todo
-depends_on: [T-110]
+depends_on: [T-103, T-110b]
 spec_refs: [IDN-07, IDN-08, IDN-12, IDN-13, SEC-12, STM-21, STM-24, STM-25, AUTH-06]
 estimated_size: M
 ---
@@ -42,6 +42,28 @@ No password is ever sent. People join by invite link and recover by single-use r
 ### Out
 - Sending email or WhatsApp (M5 notify). The people admin API (T-112).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-identity/tests/api_invites.rs`, `api_reset.rs`, `api_me.rs` | test | Task-listed verification file. |
+| `migrations/0008_identity_totp_recovery.sql` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T1, T3, T4 (SBD-30).
+- Data classes touched: S2/S3 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- S/E: spoofed identity, unauthorized role or tenant scope → auth mode and permission checks precede data access; scope in SQL and RLS remain mandatory (SBD-40/41/42, AUTH-05, SEC-05).
+- I: S2/S3 disclosure or secret leakage → encrypt/hash as specified, require `read_pii` for sensitive reads, and never log personal data or secret values (SBD-10/21/23, SEC-02/03/21).
+- Abuse-case acceptance criterion: `forgot_rate_limited_silently` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. Invite accept within the TTL → login response, membership `active`. → `api_invites::accept_ok`
 - AC2. Invite older than `invite_expires_days` → 410 `invite_expired`. → `accept_expired_410`
@@ -65,4 +87,17 @@ No password is ever sent. People join by invite link and recover by single-use r
 
 ## Report
 
+**Deviations** — RATIFY: TD-063, dependency references now target the final split part that provides the referenced contract.
+
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** this task depended on the original parent contract after its CQ-101 split → depend on the final implementation part that provides the contract, because the parent now owns only the split map.
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

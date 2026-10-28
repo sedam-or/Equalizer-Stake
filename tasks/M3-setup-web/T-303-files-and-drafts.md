@@ -3,7 +3,7 @@ id: T-303
 title: Add the core files service (upload, sniff, re-encode, sanitize SVG, encrypt, local/S3 storage, signed URLs) and the drafts API
 milestone: M3
 status: todo
-depends_on: [T-302, T-102a]
+depends_on: [T-002, T-101, T-102a, T-103, T-115, T-302b]
 spec_refs: [SEC-13, SEC-14, SEC-15, API-12, FE-30, VAL-15, VAL-16, CAN-81, FLW-54, STM-15, OSS-02]
 estimated_size: M
 ---
@@ -54,6 +54,30 @@ One safe path for every uploaded file (logos and avatars now; photos, payment pr
 ### Out
 - Module-specific upload endpoints (M4–M6 call `FileService`).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `crates/eq-api/tests/api_drafts.rs` | test | Task-listed verification file. |
+| `crates/eq-core/tests/files.rs` | test | Task-listed verification file. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T3, T4, T5, T6 (SBD-30).
+- Data classes touched: S2/S3 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- I: S2/S3 disclosure or secret leakage → encrypt/hash as specified, require `read_pii` for sensitive reads, and never log personal data or secret values (SBD-10/21/23, SEC-02/03/21).
+- T/D: hostile content or remote response → validate bounds at the boundary; uploads are sniffed/limited and external calls use allow-listed hosts, TLS verification and timeouts (SBD-20/44/47, VAL-52).
+- I: unsafe file or rendered/exported content → re-encode uploads, escape HTML, guard CSV formulas, and use safe attachment headers (SBD-45/46, SEC-13/14).
+- S/T/I: forged or replayed external events → verify signatures in constant time before parsing, deduplicate provider event IDs, and never log raw bodies (SBD-63).
+- Abuse-case acceptance criterion: `encrypted_at_rest` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. Uploading a JPEG with EXIF GPS → the stored file has no EXIF (parse it and assert). → `files::tests::exif_stripped`
 - AC2. A PNG renamed `.jpg` with Content-Type `image/jpeg` is stored as `image/png`. A text file posing as PNG → 422. → `magic_bytes_win`
@@ -76,4 +100,17 @@ One safe path for every uploaded file (logos and avatars now; photos, payment pr
 
 ## Report
 
+**Deviations** — RATIFY: TD-063, dependency references now target the final split part that provides the referenced contract.
+
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** this task depended on the original parent contract after its CQ-101 split → depend on the final implementation part that provides the contract, because the parent now owns only the split map.
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

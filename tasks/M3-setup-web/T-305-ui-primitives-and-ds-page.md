@@ -48,6 +48,24 @@ Component specs (spec 09 §4). Implement exactly these variants and states:
 ### Out
 - PolicyForm, ModuleCard and ScheduleGrid (later tasks).
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `web/e2e/ds.spec.ts` | test | Task-listed verification file. |
+| `web/src/components/**/*.test.tsx` | test | Task-listed verification file. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. Every component has a Vitest + axe test, and all pass. → `*.test.tsx`
 - AC2. `MoneyInput` paste of `Rp 1.250.000` in IDR → value 125000000. `$12.50` in USD → 1250. → `MoneyInput.test.tsx › paste tolerant`
@@ -68,4 +86,14 @@ Component specs (spec 09 §4). Implement exactly these variants and states:
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

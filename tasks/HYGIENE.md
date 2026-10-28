@@ -342,3 +342,21 @@ Line numbers below are the `Qn (blocking)` and `Self-resolved` records found dur
 ## Audit result
 
 The audit found stale task pins, missing required task sections, oversized active tasks, missing direct dependency edges, security sections to add, one schema/interface contradiction (T-110), and cyclic forward references (T-209/T-210, T-804/T-908, T-808/T-906). These findings are not silently accepted: decisions and each applied resolution are recorded in `tasks/DECISIONS.md` and the affected task Questions/Reports. No repository changes had been made when this baseline was read.
+
+## Run 6 remediation addendum
+
+The baseline above records the read-only findings at `milestone/m3-setup-web` (`66177dd`). Run 6 rechecked the cited candidates against the current task files and the canonical specs before changing task contracts. The baseline's `blocked` counts are historical; current task-file statuses have no `blocked` entries.
+
+| Candidate class | Rechecked finding | Resolution / current result |
+|---|---|---|
+| Required sections | Missing template headings were real for the listed todo/draft tasks. | Filled from each task's existing contract; n/a/No triggers where applicable (TD-067). `python3 -I scripts/tasks-lint.py` passes. |
+| Size | T-110, T-112, T-113, T-117 and T-302 exceeded active-task limits. | Split into dependent children and preserved each original AC/test exactly once (TD-063). Existing review-task size candidates T-002, T-102, T-102a, T-104 and T-105 remain human follow-ups. T-107 was split into T-107a/b/c in the prior run (TD-054). |
+| Replaced crates | T-001 stale `phonenumber` and `utoipa-axum` pins were real; historical mentions in T-102a/T-103/T-105 and prose/UI mentions were false positives. | T-001 and the resolved M1 tasks use `rlibphonenumber` 2, `utoipa` 6 and `utoipa-axum` 0.3. `paste` and `atomic-polyfill` are not direct dependencies. The `deny.toml` gate was not changed. |
+| Security triggers | Real SBD-30 candidates received task-specific Security sections; OpenAPI metadata, preset validation and design tokens were confirmed false positives. | Security sections and abuse cases use specs 18/25/22; confirmed false positives say `No triggers.` (TD-066). The task linter passes over the current todo/draft set. |
+| Dependencies | The real missing edges in the baseline table were checked against the actual symbol/API use. | Added real edges; split consumers now name the final child that provides the contract. A rescan found no unresolved dependency candidate. The T-114/T-306a, T-201/T-203, T-204/T-206, T-207/T-208 and T-310/T-314 references remain prose/future use, not reverse dependencies. T-903 already depends on T-302b. |
+| Schema | T-110's `revoked_reason` column was a real conflict with the complete spec 06 §4.2 DDL and ERD §7 map. Other candidates match mapped DDL or the architect-authorized T-106 resolver. | T-110a/b retain the mapped schema and detect reuse from `revoked_at` plus a newer row in `family_id` (TD-068). No column or migration was added. T-209's planner ownership and the T-804/T-908 forward adapter are clarified under TD-069/070. T-808's M9 import mention is a false positive: it adds no reverse dependency and leaves the M8 export format independent. |
+| Prior conflicts | Historical self-resolutions and questions were retained; T-106, T-107 and T-108 have current reports/decisions. | T-106 and T-107 are `review`; T-108 is being completed in the same run. TD-001–TD-070 are mapped in `tasks/DECISIONS.md`; task questions and reports carry the corresponding RATIFY references. |
+
+Current audit checks: `python3 -I scripts/tasks-lint.py` ✅; `python3 -I -m unittest discover -s scripts/tests -p 'test_tasks_lint.py'` ✅ (8/8); `scripts/tasks-index.sh --check` ✅. Current task-file inventory is 141 after adding ten split children beyond the earlier T-107 split; at this audit point: 87 draft, 34 todo, 19 review and 1 in_progress (T-108). `grep -l '^status: blocked' tasks/*/T-*.md` returns no files.
+
+Follow-up before promoting T-908: DST-22 specifies that the broker is rate-limited but does not state a numeric limit in the cited task context. Do not invent one; confirm the value from the canonical spec/task text before implementing the broker's enforcement.

@@ -41,6 +41,27 @@ After login, every role lands in a shell whose navigation is built from the serv
 ### Out
 - Page contents.
 
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `web/e2e/pwa.spec.ts` | test | Task-listed verification file. |
+| `web/src/app/shell/shell.test.tsx` | test | Task-listed verification file. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+- Triggers: T4 (SBD-30).
+- Data classes touched: S3 per ERD-04/ERD-05; do not create a data class outside `spec/29-erd.md` §5.
+- I: S2/S3 disclosure or secret leakage → encrypt/hash as specified, require `read_pii` for sensitive reads, and never log personal data or secret values (SBD-10/21/23, SEC-02/03/21).
+- Abuse-case acceptance criterion: `role switch refetch` must exercise the task's highest-risk forbidden, replay or cross-tenant path and demonstrate rejection without its control (SBD-31/73).
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
+
 ## Acceptance criteria
 - AC1. With `/meta/modules` mocked (msw) to exclude billing, no billing nav appears, and navigating to `/billing/invoices` shows ModuleDisabled with the owner link for owners only. → `shell.test.tsx › module disabled`
 - AC2. A guardian at 390 px width sees a bottom bar of ≤ 5 items, and no sidebar. → `shell.test.tsx › guardian bottom nav`
@@ -61,4 +82,14 @@ After login, every role lands in a shell whose navigation is built from the serv
 
 ## Report
 
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+
 ## Questions
+
+
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

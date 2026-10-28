@@ -2,10 +2,10 @@
 id: T-117
 title: M1 integration — wire real audit and outbox sinks, start background workers, seed CLI, end-to-end API scenario
 milestone: M1
-status: todo
-depends_on: [T-116, T-114, T-116a]
+status: draft
+depends_on: [T-105, T-106, T-107c, T-108, T-109, T-113b, T-114, T-116, T-116a]
 spec_refs: [ARC-04, ARC-05, ARC-07, ARC-09, AUD-04, MOD-04, TST-04, OPS-04, CAN-96]
-estimated_size: S
+estimated_size: M
 ---
 
 ## Goal
@@ -23,38 +23,55 @@ The `ritma serve` binary runs the full M1 stack: tenant resolution, auth, module
 
 ## Scope
 ### In
-- Wiring in `eq-server`, the `seed-dev` CLI command, the readiness checks, and the integration test below.
-
+- Track the M1 integration split and its dependency order only.
 ### Out
-- The SPA (M3).
+- Runtime implementation and integration tests, assigned to T-117a and T-117b.
+
+## Split
+| Part | Owns | Depends on | Status |
+|---|---|---|---|
+| T-117a | Runtime wiring, seed-dev, lifecycle and journey steps 1–6 | T-105, T-106, T-107c, T-108, T-109, T-113b, T-114, T-116, T-116a | draft |
+| T-117b | Journey steps 7–12 and final audit/outbox assertions | T-117a | draft |
+
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `CONTRIBUTING.md` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
 
 ## Acceptance criteria
-- AC1. Scenario `m1_journey` (axum-test against the full router + real DB + the background tasks driven by `drain_once`/`run_due`):
-  1. Seed via the `seed-dev` service.
-  2. The owner logs in.
-  3. The owner reads `/meta/modules` and sees all modules enabled.
-  4. The owner PUTs the identity policy with `password_min_length: 12`.
-  5. The admin logs in.
-  6. The admin creates a guardian with an email and `invite: true`, channel `link`.
-  7. The invite is accepted with an 11-char password → 422 `password_weak`, and with a 12-char one → 200.
-  8. The guardian calls `GET /people` and sees only themselves.
-  9. The owner disables `feedback`.
-  10. The owner reads `/audit/entries` and sees `core.policy.changed`, `identity.person.created`, `identity.invite.accepted` and `core.module.disabled`.
-  11. After `Sealer::run_once`, `/audit/verify` is OK.
-  12. The outbox has `identity.user_invited.v1` dispatched (`dispatched_at` set). → `crates/eq-server/tests/m1_journey.rs::m1_journey`
-- AC2. `ritma serve` starts against a fresh DB and `/readyz` is 200 within 5 s. SIGTERM exits 0 within 10 s. → `serve_lifecycle` (spawns the binary)
+- AC1. The original M1 lifecycle and journey assertions are owned exactly once by T-117a and T-117b.
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-server/tests/m1_journey.rs` | `m1_journey` |
-| `crates/eq-server/tests/lifecycle.rs` | `serve_lifecycle` |
+| n/a | The child tasks own all integration tests. |
 
 ## Definition of done
-- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
-- [ ] All checks pass (`make check` if present, else the Rust checks + guard scripts)
-- [ ] Commit `feat(server): M1 integration and dev seed [T-117]`, signed off
+- [ ] The original journey and lifecycle checks are owned exactly once by the split parts.
+- [ ] The task index reflects the dependency chain.
 
 ## Report
+**Deviations** — RATIFY: TD-063, split M1 integration into bounded runtime/setup and journey/audit parts.
+
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
 
 ## Questions
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** the original journey has 12 ordered assertions plus a lifecycle criterion and exceeds CQ-101 when counted individually → split the first six journey steps plus lifecycle into T-117a and the final six into T-117b, preserving `m1_journey` in T-117b and adding a focused `m1_journey_seed_auth` test in T-117a.
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.

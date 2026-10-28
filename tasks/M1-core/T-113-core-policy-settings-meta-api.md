@@ -2,8 +2,8 @@
 id: T-113
 title: Add CorePolicy, the settings API (policies and modules), meta endpoints and the audit read API
 milestone: M1
-status: todo
-depends_on: [T-112]
+status: draft
+depends_on: [T-104, T-105, T-106, T-109, T-112b]
 spec_refs: [POL-06, POL-07, POL-10, POL-12, MOD-06, MOD-09, API-14, AUD-07, PRD-06, STM-12, STM-13, VAL-23, AUTH-01, AUTH-04]
 estimated_size: M
 ---
@@ -71,36 +71,56 @@ pub struct PrivacyPolicy { pub deletion_sla_business_days: u16 /*1..=30, 14*/, p
 
 ## Scope
 ### In
-- CorePolicy + `CoreModule` (manifest and policy wiring), the settings and meta handlers in `eq-api` (core routes aren't module-gated), and the audit read handlers in `eq-audit`.
-- `core/countries.json` (embedded): ISO 3166 alpha-2 → `{locale, currency, timezone}` for at least ID, SG, MY, PH, TH, VN, US, GB, AU, DE, NL, JP. Used by setup (M3); expose `eq_core::countries::lookup`.
-
+- Track the split task contract and dependency order only.
 ### Out
-- Setup endpoints (M3). Policy structs of other modules.
+- All implementation and tests, which are assigned to the child parts below.
+
+## Split
+| Part | Owns | Depends on | Status |
+|---|---|---|---|
+| T-113a | Core policy and versioned settings API; AC 1, 2, 3, 4, 9 | T-102, T-104, T-105, T-106, T-109, T-112b | draft |
+| T-113b | Module metadata, RBAC registry and audit read API; AC 5, 6, 7, 8, 10 | T-113a | draft |
+
+## Files
+| Path | Action | Purpose |
+|---|---|---|
+| `tasks/M1-core/T-113a-*.md` | create or modify | Path named in this task's contract. |
+| `tasks/M1-core/T-113b-*.md` | create or modify | Path named in this task's contract. |
+
+## Interfaces
+Use only the exact domain signatures, DTOs, SQL DDL, endpoints and wire values stated in this task's Context and Scope. Do not add a public contract.
+
+## Business rules
+Apply only the policy keys, defaults, ranges and state transitions stated in this task's inline contract. If a value is absent, do not infer one.
+
+## Security
+No triggers. The task changes only its listed domain, presentation or static configuration behavior.
+
+## Implementation notes
+Follow the ordered behavior already stated in Context, Scope and Acceptance criteria; keep the task's listed test names unchanged.
 
 ## Acceptance criteria
-- AC1. Preview with an invalid document returns `valid:false` and pointer errors, and nothing is written. → `api_settings::preview_no_write`
-- AC2. PUT with a correct If-Match creates v2 and an audit `core.policy.changed` with before/after. A stale If-Match → 409. → `put_policy_versioned`
-- AC3. A future `effective_from` shows up as `pending_future` while `version` stays the current one. → `pending_future_shown`
-- AC4. An admin calling PUT → 403 `forbidden {perm: core.policy.write}`. → `admin_cannot_write_policy`
-- AC5. `PUT /settings/modules` with `[billing]` only → 422 `module_dependency`. With `[enrollment, billing]` → 200 and both enabled. → `toggle_modules_api`
-- AC6. `/meta/modules` as a guardian lists nav items they may access only. → `meta_nav_filtered`
-- AC7. `/meta/app` with no tenant → `setup_required: true` and no `tenant`. → `meta_app_unprovisioned`
-- AC8. An admin can't see `security` entries with the default AuditPolicy, and the owner can. → `api_audit::admin_category_scope`
-- AC9. Changing currency when the `CurrencyLockCheck` test double says locked → 422 `policy_violation` rule `core.currency.locked`. → `currency_lock`
-- AC10. The `PermissionDef`s registered by every compiled module equal the spec 25 §6 matrix fixture. → `rbac_matrix_matches_spec`
+- AC1. Every original acceptance criterion and test is assigned exactly once to a child part in the Split table.
 
 ## Tests to write
 | File | Test names |
 |---|---|
-| `crates/eq-api/tests/api_settings.rs` | AC1–AC7, AC9 |
-| `crates/eq-api/tests/rbac_matrix.rs` | `rbac_matrix_matches_spec` (AC10, fixture `tests/fixtures/rbac_matrix.csv`) |
-| `crates/eq-audit/tests/api_audit.rs` | `admin_category_scope`, `export_is_audited`, `verify_owner_only` |
+| n/a | Child parts own all implementation tests. |
 
 ## Definition of done
-- [ ] Code quality and architecture: `spec/16-code-quality.md` §12 and `spec/17-clean-architecture.md` followed (decisions in `domain/`, own tables only, no new `#[allow]`); `check-layers.sh` and `check-web-boundaries.sh` pass once T-006 has created them
-- [ ] Rust checks pass; `make api` regenerated; TST-09 i18n keys for core/identity/audit policy paths are listed in the Report (the SPA catalog is added in M3)
-- [ ] Commit `feat(core): settings, meta and audit read APIs [T-113]`, signed off
+- [ ] Every original criterion and test name is assigned once to a dependent child.
+- [ ] The task index reflects the child dependency chain.
 
 ## Report
+**Deviations** — RATIFY: TD-063, split this CQ-101-sized scope into dependent implementation parts while retaining this file as the contract parent.
+
+**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
+**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
 
 ## Questions
+- **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** the original task exceeds CQ-101 limits → split its acceptance criteria and named tests across the listed dependent parts, preserving every original test name exactly once.
+- **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
+- **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+
+## Review
+n/a — pending review after implementation.
