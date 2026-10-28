@@ -3,7 +3,7 @@ id: T-113
 title: Add CorePolicy, the settings API (policies and modules), meta endpoints and the audit read API
 milestone: M1
 status: todo
-depends_on: [T-104, T-105, T-106, T-109, T-112b]
+depends_on: [T-104, T-105, T-106, T-109h, T-112b]
 spec_refs: [POL-06, POL-07, POL-10, POL-12, MOD-06, MOD-09, API-14, AUD-07, PRD-06, STM-12, STM-13, VAL-23, AUTH-01, AUTH-04]
 estimated_size: M
 ---

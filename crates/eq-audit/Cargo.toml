@@ -8,6 +8,8 @@ repository.workspace = true
 [dependencies]
 anyhow.workspace = true
 eq-core.workspace = true
+eq-audit-derive.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 utoipa-axum.workspace = true
 

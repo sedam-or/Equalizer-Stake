@@ -1317,9 +1317,23 @@ name = "eq-audit"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "eq-audit-derive",
  "eq-core",
+ "serde",
  "serde_json",
  "utoipa-axum",
+]
+
+[[package]]
+name = "eq-audit-derive"
+version = "0.1.0"
+dependencies = [
+ "eq-audit",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn 2.0.119",
 ]
 
 [[package]]

@@ -75,8 +75,11 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-068 | T-110 | `tasks/M1-core/T-110-identity-login-refresh.md` | Keep the spec 06/ERD refresh-session schema; detect reuse through `revoked_at` and a newer row in the same `family_id` rather than adding `revoked_reason`. |
 | TD-069 | T-209, T-210 | `tasks/M2-scheduling/T-209-series.md` | Make T-209 the provider of the reusable materialisation core; T-210 extends it with jobs, cycle caps and closure behavior. |
 | TD-070 | T-804, T-908 | `tasks/M8-desktop/T-804-secure-tunnel.md` | Keep a mockable broker-client seam in M8 and make the M9 broker service depend on and implement that contract. |
+| TD-071 | T-109 | `tasks/M1-core/T-109-audit.md` | Add `reason` to recursive AUD-05 redaction because ERD-05 requires free-text keys that may describe a minor to be anonymized. |
+| TD-072 | T-109 | `tasks/M1-core/T-109-audit.md` | Use the `audit.checkpoints.at DEFAULT now()` from spec 06 §4.11, which is absent from the abbreviated task sketch. |
+| TD-073 | T-109 | `tasks/M1-core/T-109-audit.md` | Supply the existing `PolicyStore` to audit jobs through an optional `JobCtx` dependency because `audit.retention` must use it and T-108's shipped context does not carry it. |
 
-**Total mapped self-resolutions:** 70.
+**Total mapped self-resolutions:** 73.
 
 ## Detailed entries added in run 6
 
@@ -308,4 +311,58 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** T-804 owns the mockable client boundary; T-908 depends on T-804 and implements the broker service. Endpoint and rate-limit details remain governed by DST-22 and the T-908 contract when that task is promoted.
 - **Why:** CA-10 requires a mockable adapter for external I/O, and stacked milestone order requires M9 to follow M8.
 - **Changed:** T-804/T-908 Reports and Questions; T-908 dependency metadata; no new wire path or business limit was selected.
+- **Ratify:** Yes.
+
+### TD-071 — Include the ERD-05 `reason` key in audit anonymization
+
+- **Question:** T-109's explicit AUD-05 key list omits `reason`, while ERD-05 requires `reason` values to be included in AUD-05 anonymization.
+- **Options:** Follow only the narrower task list; or include the additional key required by the schema classification.
+- **Decision:** Recursively redact `reason` in addition to the listed keys.
+- **Why:** ERD-05 is normative for open free text that may describe a minor and explicitly points to AUD-05.
+- **Changed:** T-109 and the recursive audit JSON redactor.
+- **Ratify:** Yes.
+
+### TD-072 — Preserve the checkpoint timestamp default
+
+- **Question:** T-109's abbreviated checkpoint DDL omits a default for `at`, while spec 06 §4.11 defines `DEFAULT now()`.
+- **Options:** Use the abbreviated sketch; or match the mapped spec DDL.
+- **Decision:** Use the spec default `now()`.
+- **Why:** The schema map requires migrations to match spec 06; the row is mapped to T-109 in ERD §7.
+- **Changed:** T-109 migration and task Report.
+- **Ratify:** Yes.
+
+### TD-073 — Inject PolicyStore into job context
+
+- **Question:** T-109's `audit.retention` must read policy through `PolicyStore`, but the shipped T-108 `JobCtx` carries only tenant, pool, clock and time.
+- **Options:** Read `policies` directly in the audit module; construct a separate store inside each job; or let the shared runner supply its existing `PolicyStore` through an optional job-context field.
+- **Decision:** Add an optional shared `PolicyStore` to `JobCtx` via a builder on `JobRunner`; audit retention requires the supplied store, while existing jobs and callers remain unchanged.
+- **Why:** The task explicitly requires the core policy service, and the additive context path preserves module ownership without direct cross-module SQL or per-job listener construction.
+- **Changed:** `crates/eq-core/src/jobs.rs`, T-109 task contract and audit job implementation.
+- **Ratify:** Yes.
+
+### TD-074 — Keep the first-party audit derive license exception package-scoped
+
+- **Question:** `cargo deny` rejects the workspace-inherited `AGPL-3.0-only` license for the Ritma-owned `eq-audit-derive` crate unless that package is explicitly recognized.
+- **Options:** Change the workspace-wide allowed-license policy; or add the exact first-party package to the existing license exception list without changing advisory or ban policy.
+- **Decision:** Retain the package-scoped `eq-audit-derive` exception in `deny.toml`; the crate inherits `AGPL-3.0-only` from the workspace and repository license.
+- **Why:** OSS-03 permits the repository's own AGPL-licensed crates. The workspace package license and repository `LICENSE` agree. TD-010 is already assigned to T-005, so this decision uses the next available ID rather than duplicating it.
+- **Changed:** `deny.toml`, `Cargo.toml`, `crates/eq-audit-derive/Cargo.toml`, `tasks/M1-core/T-109-audit.md`, `tasks/M1-core/T-109a-auditable-derive.md`, and this register. The architect's `deny.toml` exception was committed in `f49eb66`.
+- **Ratify:** Yes.
+
+### TD-075 — Split the oversized audit task
+
+- **Question:** The complete T-109 implementation measured 2,102 changed lines, above CQ-101's approximately 400-line review guide.
+- **Options:** Keep one oversized implementation task; or split its scope into a dependent sequence while preserving each original acceptance criterion and test name exactly once.
+- **Decision:** Split implementation into T-109a through T-109h by code ownership, then keep T-109 as the final aggregate verification task.
+- **Why:** CQ-101 requires oversized work to be split before implementation; the sequence preserves the parent contract and lets each implementation part be reviewed independently.
+- **Changed:** T-109 parent and part task files, consumer dependency references, `tasks/INDEX.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-076 — Replace the stale SBD-21 reference
+
+- **Question:** T-109a cites SBD-21, but the current `spec/18-security-by-design.md` defines no SBD-21 rule.
+- **Options:** Keep an invalid citation; or retain the AUD-02 redaction contract and cite the current SBD controls that govern data classification, triggers, abuse-case tests and review.
+- **Decision:** Remove SBD-21 from T-109a and cite SBD-10, SBD-30, SBD-73 and SBD-81 while preserving AUD-02's exact behavior.
+- **Why:** Current spec 18 defines the applicable classification, trigger, abuse-case and security-review rules; AUD-02 itself defines which marked fields are redacted or skipped.
+- **Changed:** `tasks/M1-core/T-109a-auditable-derive.md` and this register; implementation behavior is unchanged.
 - **Ratify:** Yes.

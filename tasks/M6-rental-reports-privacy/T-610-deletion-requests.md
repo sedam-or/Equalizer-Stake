@@ -3,7 +3,7 @@ id: T-610
 title: Add deletion requests (right to erasure) with SLA, open-invoice block, verification and the erase job
 milestone: M6
 status: todo
-depends_on: [T-109, T-609]
+depends_on: [T-109b, T-609]
 spec_refs: [AUD-11, AUD-12, AUD-05]
 estimated_size: M
 ---

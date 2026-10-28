@@ -65,6 +65,9 @@ insta = { version = "1", features = ["json", "yaml"] }
 testcontainers = "0.28"
 axum-test = "17"
 serde_jcs = "0.1"
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
 rlibphonenumber = "2"
 nutype = { version = "0.8", features = ["serde"] }
 unicode-normalization = "0.1"
@@ -74,6 +77,7 @@ iso_currency = "0.7.1"
 
 eq-core = { path = "crates/eq-core" }
 eq-audit = { path = "crates/eq-audit" }
+eq-audit-derive = { path = "crates/eq-audit-derive" }
 eq-identity = { path = "crates/eq-identity" }
 eq-scheduling = { path = "crates/eq-scheduling" }
 eq-enrollment = { path = "crates/eq-enrollment" }
