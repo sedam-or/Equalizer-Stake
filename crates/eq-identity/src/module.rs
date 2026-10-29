@@ -122,7 +122,9 @@ impl Module for IdentityModule {
     }
 
     fn routes(&self) -> OpenApiRouter<AppState> {
-        OpenApiRouter::new().routes(utoipa_axum::routes!(crate::api_auth::login))
+        OpenApiRouter::new()
+            .routes(utoipa_axum::routes!(crate::api_auth::login))
+            .routes(utoipa_axum::routes!(crate::api_auth::switch_role))
     }
 
     fn event_handlers(&self) -> Vec<Box<dyn EventHandler>> {
@@ -358,6 +360,12 @@ mod tests {
     fn assert_empty_surfaces(module: &IdentityModule) {
         let (_, routes_openapi) = module.routes().split_for_parts();
         assert!(routes_openapi.paths.paths.contains_key("/api/v1/auth/login"));
+        assert!(
+            routes_openapi
+                .paths
+                .paths
+                .contains_key("/api/v1/auth/switch-role")
+        );
         assert!(module.event_handlers().is_empty());
         assert!(module.jobs().is_empty());
         assert!(module.cron().is_empty());

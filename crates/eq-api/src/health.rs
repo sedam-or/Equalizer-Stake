@@ -53,6 +53,7 @@ struct ReadyResponse {
 
 /// API-14, OPS-06: process liveness and database readiness routes.
 pub(super) fn router(state: AppState, module_routes: Router<AppState>) -> Router {
+    let csrf_origin = state.config.public_url.origin().ascii_serialization();
     let tenant_resolver = state.tenant_resolver.clone();
     let health_state = HealthState {
         app: state,
@@ -70,6 +71,10 @@ pub(super) fn router(state: AppState, module_routes: Router<AppState>) -> Router
         .layer(middleware::from_fn_with_state(
             tenant_resolver,
             crate::tenant::tenant_guard,
+        ))
+        .layer(middleware::from_fn_with_state(
+            csrf_origin,
+            eq_identity::api_auth::role_switch_csrf_guard,
         ))
         .layer(RequestBodyLimitLayer::new(BODY_LIMIT_BYTES))
         .layer(middleware::from_fn(security_headers_stub))

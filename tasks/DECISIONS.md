@@ -832,3 +832,12 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** CQ-101 calls for larger work to be split first, and the task order preserves all original acceptance criteria and test names without changing any business, schema or security rule.
 - **Changed:** the T-110a4b aggregate, three new child task files, this decision register and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
+
+### TD-128 — Check role-switch CSRF before tenant resolution
+
+- **Question:** The API-wide `tenant_guard` resolves the request tenant before the role-switch handler can validate CSRF, which can query PostgreSQL on an invalid cross-site request.
+- **Options:** Keep the handler-only CSRF check and allow tenant lookup first; or add a path-specific CSRF/Origin guard outside the tenant resolver.
+- **Decision:** Add `role_switch_csrf_guard` in Identity and install it in `health::router` outside `tenant_guard`, while retaining the handler check as defense in depth.
+- **Why:** T-110a4a2, IDN-05 and `spec/25` §3.3 require invalid CSRF/Origin to fail before database access; `health::router` is the composition point that orders the middleware.
+- **Changed:** `crates/eq-identity/src/api_auth.rs`, `crates/eq-api/src/health.rs`, T-110a4a2, T-110a4b, this register and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
