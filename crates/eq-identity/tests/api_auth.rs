@@ -32,10 +32,18 @@ use sqlx::{PgPool, Row};
 use tower::ServiceExt;
 use uuid::Uuid;
 
-const TASK_DATABASE: &str = "ritma_test_T-110a4";
 const EMAIL: &str = "teacher@example.test";
 const CORRECT_PASSWORD: &str = "test-secret-correct-password";
 const WRONG_PASSWORD: &str = "test-secret-incorrect-password";
+
+fn task_database(config: &Config) -> &str {
+    config
+        .database_url
+        .expose_secret()
+        .rsplit('/')
+        .next()
+        .unwrap_or_default()
+}
 
 struct AlwaysEnabled;
 
@@ -90,20 +98,35 @@ async fn fixture() -> Result<Fixture> {
 }
 
 async fn fixture_for_role(role: Role, seed_pii_ciphertext: bool) -> Result<Fixture> {
+    fixture_for_role_and_admin(role, seed_pii_ciphertext, false).await
+}
+
+async fn fixture_for_role_and_admin(
+    role: Role,
+    seed_pii_ciphertext: bool,
+    admin_present: bool,
+) -> Result<Fixture> {
     let config = Arc::new(Config::from_env().context("load T-110a4 test configuration")?);
+    let task_database = task_database(config.as_ref());
     ensure!(
-        config.database_url.expose_secret().rsplit('/').next() == Some(TASK_DATABASE),
-        "T-110a4 tests require the disposable task database"
+        task_database.starts_with("ritma_test_"),
+        "identity tests require the disposable task database"
     );
     ensure!(
-        config.database_owner_url.expose_secret().rsplit('/').next() == Some(TASK_DATABASE),
-        "T-110a4 owner connection must target the disposable task database"
+        config.database_owner_url.expose_secret().rsplit('/').next() == Some(task_database),
+        "identity test owner connection must target the disposable task database"
     );
     let (app_pool, owner_pool) = connect_task_database(config.as_ref()).await?;
     let clock = Arc::new(SystemClock);
     let state = AppState::new(app_pool.clone(), Arc::clone(&config), clock.clone());
-    let (tenant, person, policy) =
-        seed_login_fixture(&owner_pool, config.as_ref(), role, seed_pii_ciphertext).await?;
+    let (tenant, person, policy) = seed_login_fixture(
+        &owner_pool,
+        config.as_ref(),
+        role,
+        seed_pii_ciphertext,
+        admin_present,
+    )
+    .await?;
 
     let modules = Arc::new(ModuleRegistry::new(vec![
         Arc::new(CoreModule) as Arc<dyn Module>,
@@ -145,19 +168,19 @@ async fn connect_task_database(config: &Config) -> Result<(PgPool, PgPool)> {
         .max_connections(8)
         .connect(config.database_url.expose_secret())
         .await
-        .map_err(|_| anyhow::anyhow!("connect to T-110a4 application database"))?;
+        .map_err(|_| anyhow::anyhow!("connect to identity application test database"))?;
     let owner_pool = PgPoolOptions::new()
         .max_connections(2)
         .connect(config.database_owner_url.expose_secret())
         .await
-        .map_err(|_| anyhow::anyhow!("connect to T-110a4 database owner"))?;
+        .map_err(|_| anyhow::anyhow!("connect to identity test database owner"))?;
     let role = sqlx::query(
         "SELECT current_database() AS database, current_user AS username, rolsuper, rolbypassrls \
          FROM pg_roles WHERE rolname = current_user",
     )
     .fetch_one(&app_pool)
     .await?;
-    ensure!(role.try_get::<String, _>("database")? == TASK_DATABASE);
+    ensure!(role.try_get::<String, _>("database")? == task_database(config));
     ensure!(role.try_get::<String, _>("username")? == "eq_app");
     ensure!(!role.try_get::<bool, _>("rolsuper")? && !role.try_get::<bool, _>("rolbypassrls")?);
     Ok((app_pool, owner_pool))
@@ -168,6 +191,7 @@ async fn seed_login_fixture(
     config: &Config,
     role: Role,
     seed_pii_ciphertext: bool,
+    admin_present: bool,
 ) -> Result<(TenantId, PersonId, IdentityPolicy)> {
     let tenant = TenantId(Uuid::now_v7());
     let person = PersonId(Uuid::now_v7());
@@ -198,6 +222,15 @@ async fn seed_login_fixture(
     .bind(email_bidx.as_slice())
     .execute(owner_pool)
     .await?;
+    if admin_present && role != Role::Admin {
+        sqlx::query(
+            "INSERT INTO public.memberships (tenant_id, person_id, role, status) VALUES ($1, $2, 'admin', 'active')",
+        )
+        .bind(tenant.0)
+        .bind(person.0)
+        .execute(owner_pool)
+        .await?;
+    }
     sqlx::query(
         "INSERT INTO public.memberships (tenant_id, person_id, role, status) VALUES ($1, $2, $3, 'active')",
     )
@@ -308,6 +341,34 @@ async fn login_omits_pii_without_permission() -> Result<()> {
         !permissions
             .iter()
             .any(|permission| permission == "identity.people.read_pii")
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn owner_gets_admin_perms_without_admin() -> Result<()> {
+    let owner_without_admin = fixture_for_role_and_admin(Role::Owner, false, false).await?;
+    let (status, _headers, body) = owner_without_admin.post(EMAIL, CORRECT_PASSWORD).await?;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["person"]["active_role"], "owner");
+    assert!(
+        body["person"]["permissions"]
+            .as_array()
+            .context("owner permission set is an array")?
+            .iter()
+            .any(|permission| permission == "identity.people.write")
+    );
+
+    let owner_with_admin = fixture_for_role_and_admin(Role::Owner, false, true).await?;
+    let (status, _headers, body) = owner_with_admin.post(EMAIL, CORRECT_PASSWORD).await?;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["person"]["active_role"], "owner");
+    assert!(
+        !body["person"]["permissions"]
+            .as_array()
+            .context("owner permission set is an array")?
+            .iter()
+            .any(|permission| permission == "identity.people.write")
     );
     Ok(())
 }

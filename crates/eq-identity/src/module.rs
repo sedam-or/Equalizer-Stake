@@ -1,5 +1,6 @@
 //! Identity module manifest and policy integration (MOD-01, POL-01/06/07/10).
 
+use eq_core::actor::ActorRole;
 use eq_core::app_state::AppState;
 use eq_core::error::{AppError, FieldError, NOT_ALLOWED};
 use eq_core::jobs::{CronSpec, JobHandler};
@@ -37,6 +38,12 @@ const LOCKOUT_FIELDS: [(&str, u32); 4] = [
     ("lock_minutes", 3),
     ("notify_admins", 4),
 ]; // technical: keep nested lockout settings in declaration order
+
+static IDENTITY_WRITE_ROLES: &[ActorRole] = &[ActorRole::Admin];
+static IDENTITY_PERMISSIONS: [PermissionDef; 1] = [PermissionDef {
+    key: "identity.people.write",
+    roles: IDENTITY_WRITE_ROLES,
+}];
 
 static MANIFEST: ModuleManifest = ModuleManifest {
     id: ModuleId::Identity,
@@ -133,7 +140,7 @@ impl Module for IdentityModule {
     fn register_ports(&self, _ports: &mut PortRegistry) {}
 
     fn permissions(&self) -> &'static [PermissionDef] {
-        &[]
+        &IDENTITY_PERMISSIONS
     }
 
     fn nav(&self) -> &'static [NavItem] {
@@ -218,6 +225,7 @@ fn set_role_map_bounds(schema: &mut Value) {
 mod tests {
     use super::{IdentityModule, LOCKOUT_FIELDS, POLICY_SCHEMA_FIELDS, ROLE_FIELDS, identity_policy_schema};
     use crate::policy::{IdentityPolicy, TotpPolicy};
+    use eq_core::actor::ActorRole;
     use eq_core::module::{Module, ModuleId};
     use eq_core::policy::PolicyDoc;
     use serde_json::{Value, json};
@@ -349,11 +357,13 @@ mod tests {
 
     fn assert_empty_surfaces(module: &IdentityModule) {
         let (_, routes_openapi) = module.routes().split_for_parts();
-        assert!(routes_openapi.paths.paths.is_empty());
+        assert!(routes_openapi.paths.paths.contains_key("/api/v1/auth/login"));
         assert!(module.event_handlers().is_empty());
         assert!(module.jobs().is_empty());
         assert!(module.cron().is_empty());
-        assert!(module.permissions().is_empty());
+        assert_eq!(module.permissions().len(), 1);
+        assert_eq!(module.permissions()[0].key, "identity.people.write");
+        assert_eq!(module.permissions()[0].roles, &[ActorRole::Admin]);
         assert!(module.nav().is_empty());
     }
 

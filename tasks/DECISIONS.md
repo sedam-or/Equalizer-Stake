@@ -790,3 +790,11 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** `scripts/tasks-index.sh` fixes `LC_ALL=C` and compares IDs bytewise; uppercase suffixes sort before the lowercase aggregate. This keeps the DAG guard unchanged and avoids renumbering T-110a4b and T-110a5.
 - **Changed:** the aggregate and split task files, the dependent T-110a5 task contract, and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
+
+### TD-123 — Keep the Identity surface test aligned with the shipped login endpoint
+- **Question:** `defaults_schema_and_summary_match_contract` still asserts that Identity has no routes, but T-110a4 has shipped the spec-defined login route.
+- **Options:** Keep the stale empty-route assertion and leave the named test failing; or assert the exact `POST /api/v1/auth/login` path while preserving the remaining empty-surface checks.
+- **Decision:** Assert that the manifest exposes `/api/v1/auth/login`.
+- **Why:** `spec/modules/identity.md` §2 and shipped T-110a4 define this route; replacing only the obsolete assertion keeps the named test and changes no business or security behavior.
+- **Changed:** `crates/eq-identity/src/module.rs`, `tasks/M1-core/T-110a4B-identity-permissions.md`, and this register.
+- **Ratify:** Yes.
