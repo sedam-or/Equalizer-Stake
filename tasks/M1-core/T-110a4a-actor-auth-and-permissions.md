@@ -2,7 +2,7 @@
 id: T-110a4a
 title: Verify Actor authentication and permission composition
 milestone: M1
-status: draft
+status: review
 depends_on: [T-110a4C]
 spec_refs: [IDN-03, IDN-10, IDN-11, AUTH-01, AUTH-05, SBD-01, SBD-40, SBD-42, SBD-53, CAN-30]
 estimated_size: S
@@ -74,32 +74,59 @@ This task exceeded CQ-101's approximately 400-line review guide. Keep the origin
 | T-110a4C | `crates/eq-identity/src/api_auth.rs` and `crates/eq-identity/tests/api_auth.rs` | `bearer_actor_rejects_cross_tenant_token`, `bearer_actor_rejects_inactive_role`, `bearer_actor_rejects_stale_password_version`, `bearer_token_debug_redacts_credentials`, `malformed_bearer_header_rejected` |
 
 ## Definition of done
-- [ ] T-110a4A/B/C are all review; each named check is green or explicitly Not run under the disk rules.
-- [ ] Combined auth tests pass on a fresh `ritma_test_T-110a4a` database in the existing PostgreSQL 16 container, and that database is dropped afterward.
-- [ ] Manual HTTP checks cover a valid bearer, invalid/cross-tenant bearer, and the owner permission snapshot.
-- [ ] No schema change, unregistered permission, new error code, or cross-module SQL was introduced.
-- [ ] Report includes Workflow steps 0–12, exact checks, and resource before/after data.
-- [ ] Signed aggregate commit `test(identity): verify Actor authentication and permissions [T-110a4a]` pushed to `dev`.
+- [x] T-110a4A/B/C are all review; each named check is green or explicitly Not run under the disk rules.
+- [x] Combined auth tests pass on a fresh `ritma_test_T-110a4a` database in the existing PostgreSQL 16 container, and that database is dropped afterward.
+- [x] Manual HTTP checks cover a valid bearer, invalid/cross-tenant bearer, and the owner permission snapshot.
+- [x] No schema change, unregistered permission, new error code, or cross-module SQL was introduced.
+- [x] Report includes Workflow steps 0–12, exact checks, and resource before/after data.
+- [x] Signed aggregate commit `test(identity): verify Actor authentication and permissions [T-110a4a]` pushed to `dev`.
 
 ## Report
-**Plan** — (1) Read all child Reports and shipped code → verify the split preserves the original contract. (2) Run the combined identity API tests on a new task-named database inside the existing PostgreSQL 16 container → verify AC1–AC3. (3) Send real requests for valid, malformed and cross-tenant bearer credentials → verify fail-closed transport behavior. (4) Re-run Rust, task, SQLx, security and guard checks → record each result and the resource snapshot.
-**Assumptions** — The child tasks preserve the original ACs and named tests. Cache intervals and permission grants are fixed by the cited specs.
-**Test plan** — AC1: missing Actor extension is rejected while MaybeActor is optional → the A tests. AC2: Admin gets the defined write permission and owner fallback is conditional → the B tests. AC3: invalid or stale bearer credentials never insert an Actor → the C tests. Edges: empty/malformed header, absent credential row, expired token, disabled module and active/inactive membership. Errors: existing unauthenticated/forbidden codes only.
-
-**Summary** — Pending aggregate verification after T-110a4A/B/C.
-**Spec read** — spec/modules/identity.md §3, spec/25-auth-and-access-control.md §§3.1/4.6, and the referenced IDN/AUTH/SBD/CAN sections in the child tasks.
-**Files** — Task reports and code are owned by the three split parts; this task verifies their combined behavior and updates its report/index.
-**Acceptance criteria → tests** — Pending aggregate run; see the ownership table above.
-**Checks run** — Pending aggregate run; each unavailable check will be marked Not run with its reason.
-**Manual checks** — Pending valid/invalid bearer and permission HTTP checks.
-**Debug log** — None.
-**Performance** — n/a; no query or hot path is added by the aggregate.
-**Security** — Auth and permission controls are reviewed in each split task; aggregate SBD-81 check remains pending.
-**Deviations** — RATIFY TD-118, TD-121 and TD-122.
-**Dependencies affected** — T-110a4b and T-110a5 consume this aggregate Actor/permission contract.
-**Rollback plan** — Revert the signed aggregate commit; no database schema changes exist.
-**Follow-ups** — Human ratification of TD-118, TD-121 and TD-122; review exact cache invalidation ownership with T-110b.
-**Workflow steps 0–12** — Pending aggregate completion.
+**Plan** —
+1. Read the A/B/C Reports, decisions and shipped code → verify the split covers the original Actor/auth contract.
+2. Run the named extractor, permission and bearer tests together → verify AC1–AC3.
+3. Run the auth API suite against a fresh task-named database in the existing PostgreSQL 16 container → verify the HTTP acceptance paths and owner permission snapshot.
+4. Run formatting, workspace Clippy, task checks, guards, ERD and a secret scan → verify the aggregate against the quality and security gates.
+**Assumptions** — The split parts preserve the original acceptance criteria. Cache intervals and permission grants are fixed by the cited specs; this aggregate introduces no new behavior.
+**Test plan** —
+- AC1, Given no verified Actor extension or a missing grant, When the required extractor or permission check runs, Then it returns the registered error; the optional extractor returns `None` without an extension → `actor_requires_authenticated_extension`, `actor_requires_registered_permission`, `maybe_actor_is_optional`.
+- AC2, Given the Identity module registry and owner/admin membership state, When permission behavior is checked, Then the exact Admin grant is registered and the owner fallback is conditional → `defaults_schema_and_summary_match_contract`, `owner_gets_admin_perms_without_admin`.
+- AC3, Given valid, malformed, cross-tenant, stale-version or inactive-role bearer credentials, When the protected route is requested, Then only the valid token inserts Actor and the invalid cases return 401 → C bearer tests.
+- Edges: missing Authorization passes public login; absent credential row, expiry, invalid signature, malformed transport and inactive role fail closed; owner fallback is absent when an active admin exists.
+- Error cases reuse `unauthenticated` and `forbidden`; no new code is introduced. Abuse cases are the A/B/C negative and redaction tests.
+**Summary** — The combined Actor, permission and bearer contract passes its named unit and API tests. A current same-tenant token produces a verified Actor, while malformed, cross-tenant, stale and inactive credentials fail closed; the existing owner fallback remains conditional.
+**Workflow steps 0–12** — 0: confirmed `dev`, fetched origin/index, and preserved the existing unrelated audit/Python WIP; promoted this aggregate after its dependency T-110a4C was `review`, then set it `in_progress`. 1: read the full task and cited contracts. 2: read all three child Reports, shipped code and deviations/follow-ups. 3: n/a, backend-only. 4: recorded the Plan and Given/When/Then test plan above before verification. 5: n/a, no source changes; all implementation remains in the child tasks. 6: sent real localhost HTTP requests through the production bearer middleware in the task test; the owner snapshot test exercised the login route. 7: all task-specific tests passed on the first run; no debug retries were needed. 8: reviewed the combined implementation against the original parent contract and cited architecture/security rules. 9: n/a; this verification adds no query or hot path. 10: completed the aggregate SBD-81 check below. 11: ran the aggregate Rust, task, guard and resource checks below. 12: completed this Report, set status to review, regenerated the index; one signed commit and push follow.
+**Spec read** — `spec/modules/identity.md` §§1–3; `spec/25-auth-and-access-control.md` §§1–4.6 and §6; `spec/23-contracts-and-canonical-forms.md` CAN-30; `spec/26-containers-and-caching.md` CACHE-14; `spec/18-security-by-design.md` §§5 and 8 (SBD-81); `spec/16-code-quality.md` §§9 and 12; `spec/17-clean-architecture.md` §§1, 4 and 7; `spec/19-error-handling.md` §§2 and 10. The child Reports also record their spec excerpts.
+**Files** — Modified `tasks/M1-core/T-110a4a-actor-auth-and-permissions.md` and generated `tasks/INDEX.md`; no application source, migration or API contract changed.
+**Acceptance criteria → tests**
+| AC | Test | Result |
+|---|---|---|
+| AC1 | `actor_requires_authenticated_extension`, `actor_requires_registered_permission`, `maybe_actor_is_optional` | Passed, 3/3. |
+| AC2 | `defaults_schema_and_summary_match_contract`, `owner_gets_admin_perms_without_admin` | Passed, 1 manifest test plus owner fallback in the 10-test API suite. |
+| AC3 | `bearer_actor_accepts_current_token`, `bearer_actor_rejects_cross_tenant_token`, `bearer_actor_rejects_inactive_role`, `bearer_actor_rejects_stale_password_version`, `bearer_actor_rejects_malformed_transport`, parser/redaction tests | Passed; valid token reached the Actor handler, invalid credentials returned 401 `unauthenticated`. |
+**Checks run** —
+- ✅ `CARGO_TARGET_DIR="$HOME/.cache/ritma/target" SQLX_OFFLINE=true cargo fmt --all --check`.
+- ✅ `CARGO_TARGET_DIR="$HOME/.cache/ritma/target" SQLX_OFFLINE=true cargo clippy --locked --offline --workspace --all-targets -- -D warnings`.
+- ✅ `CARGO_TARGET_DIR="$HOME/.cache/ritma/target" SQLX_OFFLINE=true cargo test --locked --offline -p eq-core auth::tests -- --test-threads=1` (3 passed).
+- ✅ `CARGO_TARGET_DIR="$HOME/.cache/ritma/target" SQLX_OFFLINE=true cargo test --locked --offline -p eq-identity defaults_schema_and_summary_match_contract -- --test-threads=1` (1 passed).
+- ✅ `CARGO_TARGET_DIR="$HOME/.cache/ritma/target" SQLX_OFFLINE=true cargo test --locked --offline -p eq-identity api_auth::tests:: -- --test-threads=1` (5 passed).
+- ✅ `CARGO_TARGET_DIR="$HOME/.cache/ritma/target" SQLX_OFFLINE=true cargo test --locked --offline -p eq-identity --test api_auth -- --test-threads=1` (10 passed, 0 failed) on fresh `ritma_test_T-110a4a` in reused PostgreSQL 16.15 container `ritma-db-1`; migrations were applied and the database was dropped.
+- ✅ `cargo deny check` (advisories, bans, licenses and sources passed; existing duplicate-base64 warning only).
+- ✅ `scripts/tasks-index.sh --check`; ✅ `python3 -I scripts/tasks-lint.py`; ✅ `python3 -I -B scripts/tests/test_tasks_lint.py` (8 passed).
+- ✅ `scripts/check-deps.sh && scripts/check-literals.sh && scripts/check-web-boundaries.sh && scripts/check-layers.sh && python3 -I -B scripts/erd.py --check && python3 -I -B scripts/erd.py --migrations`.
+- ✅ `git diff --check`.
+- Not run: `cargo test --workspace`; the suite uses `TestDb::new()`/testcontainers and would create per-invocation PostgreSQL containers, prohibited by the disk rule. The aggregate's named A/B/C tests were run against the existing fixed container instead.
+- Not run: web checks; `web/` was not touched. Not run: `make api`/SQLx regeneration; this aggregate changes neither API code nor queries. Not run: `make dev`/`make e2e`; the named reqwest test sends actual local HTTP requests and this is not the milestone integration task. Not run: hosted CI; requires GitHub Actions.
+- ✅ `gitleaks protect --staged --redact` (no leaks found).
+**Manual checks** — The task-scoped reqwest suite sent HTTP requests over localhost TCP through the production bearer middleware. A valid current token reached the protected test handler (200 with the expected permission); malformed, cross-tenant, inactive-role and stale-version tokens returned 401 `unauthenticated`. The owner-without-admin API test verified the login permission snapshot against the fresh task database; the owner-with-admin variant omitted the Admin grant.
+**Debug log** — None; all named tests and checks passed on the first run. Full workspace runtime tests were not run for the explicit testcontainer restriction above.
+**Performance** — n/a; this aggregate adds no runtime code or query.
+**Security** — Triggers T1/T3/T8. SBD-81 aggregate review: the ModuleGate precedes the bearer middleware; tenant comes from resolved context and must match JWT `tid`; Actor is inserted only after signature, expiry, credential-version and active-membership checks; the Identity permission is the spec-defined Admin grant with the conditional IDN-11 owner fallback; secrets use redacted storage; invalid auth uses existing 401/403 codes; SQL remains bound and module-owned. Abuse tests cover absent identity/grant, owner-with-admin, malformed transport, cross-tenant, stale version, inactive role and token redaction. No new schema, grant, error code, secret or SQL behavior was added.
+**Deviations** — RATIFY inherited from the child parts: TD-118 (register the already-specified Identity write permission), TD-121 (use `SecretString` and redacted Debug), TD-122 (uppercase child suffix ordering), TD-123 (assert the shipped login route rather than the stale empty-route assertion), and TD-124 (use CACHE-14 auth-cache keys). The owning child tasks and `tasks/DECISIONS.md` contain the full decisions.
+**Dependencies affected** — T-110a4b and T-110a5 consume the verified Actor/permission contract.
+**Rollback plan** — Revert the signed aggregate commit; it changes no database schema or application code.
+**Follow-ups** — Ratify TD-118/121/122/123/124. T-111 must invalidate the password-version cache after password changes/resets; T-110b must preserve its own IDN-03 token-invalidation requirements. No follow-up changes were made here.
+**Resource and disk hygiene** — Before: fixed Cargo target `11G`; `df -h .` showed 58G available; Docker usage: Images 20 / 15.5GB (2.073GB reclaimable), Containers 17 / 10.48MB, Volumes 443 / 74.55GB (68.81GB reclaimable), Build Cache 0. After: target `11G`, 58G available, and the same Docker counts/sizes; container/image inventories were unchanged. Reused `ritma-db-1` and its existing volume. Created `ritma_test_T-110a4a` once from `template0`, applied migrations, ran the combined tests and dropped the DB; query confirmed it is absent. No image, container, volume or Cargo target directory was created or removed.
 
 ## Questions
 - **Self-resolved (implementer, run 8, needs architect ratification; TD-118):** the parent task says not to add permission keys/grants, while its AC requires `identity.people.write` and the IdentityModule currently declares none → register only the already-specified key with its exact admin grant and rely on the mapped IDN-11 owner exception, because `spec/modules/identity.md` §3 and `spec/25` §6 define both; no permission is invented.
@@ -107,4 +134,4 @@ This task exceeded CQ-101's approximately 400-line review guide. Keep the origin
 - **Self-resolved (implementer, run 9, needs architect ratification; TD-122):** the original lowercase aggregate ID must sort after new subtasks under the task-index DAG guard → preserve `T-110a4a` and use uppercase-suffix `T-110a4A/B/C`, which sort before lowercase `a` with the script's fixed C byte order; this avoids renumbering the existing role-switch dependency and leaves the guard unchanged.
 
 ## Review
-n/a — pending implementation.
+n/a — awaiting maintainer review.
