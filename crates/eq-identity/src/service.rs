@@ -788,7 +788,7 @@ mod tests {
 
     fn test_field_ctx() -> FieldCtx {
         FieldCtx {
-            country: celes::Country::from_alpha2("ID").expect("known test country"),
+            country: Some(celes::Country::from_alpha2("ID").expect("known test country")),
             tenant_currency: eq_core::money::Currency::IDR,
             tenant_locale: eq_core::policy::types::Locale::Id,
             today: chrono::NaiveDate::from_ymd_opt(FIXED_TEST_YEAR, 1, 1).expect("valid test date"),

@@ -118,8 +118,8 @@ pub trait FieldKind: Sized {
 /// V5 context values consumed by field kinds (VAL-20/21).
 #[derive(Debug, Clone, Copy)]
 pub struct FieldCtx {
-    /// Tenant country used for national phone parsing.
-    pub country: celes::Country,
+    /// Optional tenant country required only for national phone parsing.
+    pub country: Option<celes::Country>,
     /// Tenant currency used by money and currency fields.
     pub tenant_currency: crate::money::Currency,
     /// Tenant default locale used by internationalised text.

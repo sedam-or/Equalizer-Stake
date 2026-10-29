@@ -115,7 +115,7 @@ impl Module for IdentityModule {
     }
 
     fn routes(&self) -> OpenApiRouter<AppState> {
-        OpenApiRouter::new()
+        OpenApiRouter::new().routes(utoipa_axum::routes!(crate::api_auth::login))
     }
 
     fn event_handlers(&self) -> Vec<Box<dyn EventHandler>> {

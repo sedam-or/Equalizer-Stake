@@ -28,12 +28,17 @@ pub mod tenant;
 
 /// API-14, OPS-06: builds the process health and readiness routes.
 pub fn router(state: AppState) -> axum::Router {
-    let registry = modules::registry();
+    let registry = std::sync::Arc::new(modules::registry());
     let manifests = registry.manifests();
-    let enabled = std::sync::Arc::new(eq_core::module::gate::EnabledModulesCache::new(
+    let enabled: std::sync::Arc<dyn eq_core::module::gate::EnabledModuleSet> = std::sync::Arc::new(
+        eq_core::module::gate::EnabledModulesCache::new(state.pool.clone(), &manifests),
+    );
+    let login_runtime = std::sync::Arc::new(eq_identity::api_auth::LoginHttpState::new(
         state.pool.clone(),
-        &manifests,
+        std::sync::Arc::clone(&state.clock),
+        std::sync::Arc::clone(&registry),
+        std::sync::Arc::clone(&enabled),
     ));
-    let module_routes = modules::routes(&registry, enabled);
+    let module_routes = modules::routes(&registry, enabled, login_runtime);
     health::router(state, module_routes)
 }

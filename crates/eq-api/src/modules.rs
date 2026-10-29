@@ -4,7 +4,8 @@ use std::sync::Arc;
 
 use eq_core::app_state::AppState;
 use eq_core::module::gate::{EnabledModuleSet, ModuleGate};
-use eq_core::module::{Module, ModuleRegistry};
+use eq_core::module::{Module, ModuleId, ModuleRegistry};
+use eq_identity::api_auth::LoginHttpState;
 use utoipa_axum::router::OpenApiRouter;
 
 /// MOD-04: returns compiled modules in the canonical `ModuleId` order.
@@ -40,11 +41,18 @@ pub fn registry() -> ModuleRegistry {
 pub(super) fn routes(
     registry: &ModuleRegistry,
     enabled: Arc<dyn EnabledModuleSet>,
+    login_runtime: Arc<LoginHttpState>,
 ) -> axum::Router<AppState> {
     let mut routes = OpenApiRouter::<AppState>::new();
     for module in &registry.modules {
         let gate = ModuleGate::new(module.manifest().id, Arc::clone(&enabled));
-        routes = routes.merge(module.routes().layer(gate));
+        let module_routes = module.routes().layer(gate);
+        let module_routes = if module.manifest().id == ModuleId::Identity {
+            module_routes.layer(axum::Extension(Arc::clone(&login_runtime)))
+        } else {
+            module_routes
+        };
+        routes = routes.merge(module_routes);
     }
     let (routes, _openapi) = routes.split_for_parts();
     routes

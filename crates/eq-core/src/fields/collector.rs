@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn optional_empty_line_is_null_but_invalid_characters_are_reported() {
         let context = FieldCtx {
-            country: celes::Country::from_alpha2("ID").expect("known test country"),
+            country: Some(celes::Country::from_alpha2("ID").expect("known test country")),
             tenant_currency: Currency::IDR,
             tenant_locale: Locale::Id,
             today: chrono::NaiveDate::from_ymd_opt(2026, 1, 1).expect("valid test date"),

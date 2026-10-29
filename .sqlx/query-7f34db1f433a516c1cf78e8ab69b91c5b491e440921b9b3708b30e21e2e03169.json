@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT display_name, email_enc, phone_enc, locale FROM public.persons WHERE tenant_id = $1 AND id = $2 AND deleted_at IS NULL",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "display_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "display_name"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "email_enc",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "email_enc"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "phone_enc",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "phone_enc"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "locale",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "locale"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "7f34db1f433a516c1cf78e8ab69b91c5b491e440921b9b3708b30e21e2e03169"
+}

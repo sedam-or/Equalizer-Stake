@@ -707,3 +707,36 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** CA-30/31 and ERD-02 prohibit identity SQL joining core tables; spec 06 §4.9 and ERD-04 exclude `anonymous` from persisted audit roles, while `system` is mapped; STM-23 supplies the failure action; VAL-03 requires caller context for field parsing, so fabricating a default would invent validation policy.
 - **Changed:** `crates/eq-core/src/auth.rs`, `crates/eq-core/src/auth/directory.rs`, `crates/eq-core/src/app_state.rs`, `crates/eq-identity/src/service.rs`, and this task's Report.
 - **Ratify:** Yes.
+
+### TD-113 — Represent absent country context for context-independent login fields
+- **Question:** T-110a3's caller-supplied `FieldCtx` requires a country, but the HTTP tenant context does not provide one and the login fields are Email and Password, which do not consume it.
+- **Options:** (a) invent a country default for login; or (b) make the country context optional and have only country-dependent fields reject its absence.
+- **Decision:** Make `FieldCtx.country` optional, have `Phone::parse` return its existing format validation error when country is absent, and construct login context from the resolved tenant's currency/locale and its timezone-local date with no password minimum.
+- **Why:** VAL-20/21 define context as data consumed by a field kind; Email ignores it and Password only consumes the policy minimum, which IDN-06 does not apply on login. This preserves canonical validation without a fabricated tenant-country value or any change to phone behavior when country is supplied.
+- **Changed:** `crates/eq-core/src/fields/mod.rs`, `crates/eq-core/src/fields/kinds.rs`, existing `FieldCtx` construction sites, `crates/eq-identity/src/api_auth.rs`, this task and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-114 — Inject shared login runtime dependencies at API composition
+- **Question:** T-110a3's `LoginService` requires the shared `PolicyStore`, while the shipped `AppState` carries no policy store and API router initialization is synchronous.
+- **Options:** (a) create a new policy store/listener per login request or bypass the service; or (b) initialize the store once in the API composition root, make router construction async, and inject a shared login runtime containing the compiled module registry and enabled-module service.
+- **Decision:** Use (b), with the current `AuditModule` and `OutboxEventSink`; until T-301 supplies the embedded preset loader, a missing persisted policy fails closed instead of silently applying an unverified preset/default patch. The initial eager async-router construction is superseded by TD-116 so health routes remain available when PostgreSQL is down.
+- **Why:** IDN-06 and T-110a3 require the existing `PolicyStore` boundary, POL-04 requires its bounded cache/listener, and CA-30/31 keep composition outside module-owned table access. The fallback does not add or select a policy value.
+- **Changed:** `crates/eq-api/src/lib.rs`, `crates/eq-api/src/modules.rs`, `crates/eq-server/src/main.rs`, `crates/eq-testkit/src/api.rs`, existing API test callers, `crates/eq-identity/src/api_auth.rs`, this task and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-116 — Lazily initialize the shared login policy store
+
+- **Question:** `PolicyStore::new` needs an async PostgreSQL listener, but eagerly creating it while building the API router prevents `/healthz` and `/readyz` from starting when the database is unavailable.
+- **Options:** (a) make router construction async and fail server startup if the policy listener cannot connect; or (b) inject one shared `OnceCell` runtime at composition and initialize its policy store on the first login request.
+- **Decision:** Use (b); after first initialization, all login requests share the same `PolicyStore`, cache and listener. Router construction stays synchronous.
+- **Why:** POL-04 requires a shared bounded cache and listener, while OPS-06 requires health/readiness routes to remain usable during a database outage. Lazy initialization preserves both without changing login policy behavior.
+- **Changed:** `crates/eq-identity/src/api_auth.rs`, `crates/eq-api/src/lib.rs`, `crates/eq-api/src/modules.rs`, this task and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-115 — Complete the login `PersonMe` contract without adding permission grants
+- **Question:** The login response must contain the spec's full `PersonMe.permissions` snapshot, while T-110a5 owns shared Actor extraction and role switching.
+- **Options:** (a) emit a placeholder/empty profile until T-110a5; or (b) compute only the login response snapshot from the already-compiled, enabled module registry and read the person's profile through the core-owned directory port.
+- **Decision:** Use (b); apply active-role grants and the IDN-11 owner-without-admin rule exactly, expose S2 email/phone only when the resulting set contains the existing `identity.people.read_pii`, and let T-110a5 reuse the same permission calculation for Actor extraction. Add no permission key or role grant.
+- **Why:** `spec/modules/identity.md` §2 fixes the `PersonMe` wire contract, IDN-10/11 fix the derivation, and CA-30/ERD-02 require core-owned person reads through a port. SBD-10/ERD-04 prohibit returning PII without `read_pii`.
+- **Changed:** `crates/eq-core/src/auth/directory.rs`, `crates/eq-api/src/modules.rs`, `crates/eq-identity/src/api_auth.rs`, `crates/eq-identity/src/module.rs`, this task and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.

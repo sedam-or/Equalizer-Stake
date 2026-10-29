@@ -430,7 +430,9 @@ impl FieldKind for Phone {
         if input.chars().any(|ch| ch.is_ascii_alphabetic()) {
             return Err(one(FieldIssue::bound(INVALID_FORMAT, "format", "phone")));
         }
-        let region = phone_region_for_country(ctx.country)
+        let region = ctx
+            .country
+            .and_then(phone_region_for_country)
             .ok_or_else(|| one(FieldIssue::bound(INVALID_FORMAT, "format", "phone")))?;
         let parsed = rlibphonenumber::PHONE_NUMBER_UTIL
             .parse(&input, Some(region))
@@ -1556,6 +1558,21 @@ mod tests {
     }
 
     #[test]
+    fn phone_requires_country_context() {
+        let context = FieldCtx {
+            country: None,
+            ..test_context()
+        };
+        let issues = Phone::parse("0812-3456-7890".to_owned(), &context)
+            .expect_err("national phone parsing requires a country");
+        assert_eq!(issues[0].code, INVALID_FORMAT);
+
+        let email =
+            Email::parse("Budi@Example.COM".to_owned(), &context).expect("email ignores country context");
+        assert_eq!(email.as_ref(), "budi@example.com");
+    }
+
+    #[test]
     fn identifier_whitespace_is_invalid_format() {
         let context = test_context();
         let key = Key::parse("a b".to_owned(), &context)
@@ -1617,7 +1634,7 @@ mod tests {
 
     fn test_context() -> FieldCtx {
         FieldCtx {
-            country: celes::Country::from_alpha2("ID").expect("known test country"),
+            country: Some(celes::Country::from_alpha2("ID").expect("known test country")),
             tenant_currency: Currency::IDR,
             tenant_locale: Locale::Id,
             today: NaiveDate::from_ymd_opt(2026, 1, 1).expect("valid test date"),

@@ -1,12 +1,14 @@
 //! Core-owned person and membership lookup for Identity (CA-30, ERD-02).
 
-use crate::crypto::{Keys, bidx_email};
+use crate::crypto::{Aad, Keyring, Keys, bidx_email};
 use crate::db::Tx;
 use crate::error::AppError;
 use crate::fields::Email;
 use crate::ids::PersonId;
 use crate::model::Role;
+use crate::policy::types::Locale;
 use async_trait::async_trait;
+use secrecy::SecretString;
 use sqlx::FromRow;
 use std::fmt;
 use std::sync::Arc;
@@ -17,6 +19,26 @@ use uuid::Uuid;
 pub struct LoginIdentity {
     person_id: PersonId,
     roles: Vec<Role>,
+}
+
+/// SBD-10/ERD-01: core-owned profile facts returned only to the authenticated person.
+pub struct LoginProfile {
+    pub display_name: String,
+    pub email: Option<SecretString>,
+    pub phone: Option<SecretString>,
+    pub locale: Option<Locale>,
+}
+
+impl fmt::Debug for LoginProfile {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("LoginProfile")
+            .field("display_name", &"[REDACTED]")
+            .field("email", &"[REDACTED]")
+            .field("phone", &"[REDACTED]")
+            .field("locale", &self.locale)
+            .finish()
+    }
 }
 
 impl LoginIdentity {
@@ -36,6 +58,19 @@ impl LoginIdentity {
 pub trait CoreIdentityDirectory: Send + Sync {
     /// IDN-01/SEC-04: resolves an active person and roles by canonical email in the caller tenant.
     async fn by_email(&self, tx: &mut Tx, email: &Email) -> Result<Option<LoginIdentity>, AppError>;
+
+    /// IDN-10/11: checks whether the tenant has any active admin membership.
+    async fn has_active_admin(&self, tx: &mut Tx, tenant: crate::ids::TenantId) -> Result<bool, AppError>;
+
+    /// ERD-02/SBD-10: reads the caller's core-owned profile and decrypts PII only when authorized.
+    async fn login_profile(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        include_pii: bool,
+        keyring: &Keyring,
+    ) -> Result<Option<LoginProfile>, AppError>;
 }
 
 /// SEC-04: PostgreSQL adapter for the core-owned identity directory port.
@@ -100,6 +135,111 @@ impl CoreIdentityDirectory for PgIdentityDirectory {
         let roles = rows.into_iter().map(|row| row.role).collect();
         Ok(Some(LoginIdentity { person_id, roles }))
     }
+
+    async fn has_active_admin(&self, tx: &mut Tx, tenant: crate::ids::TenantId) -> Result<bool, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let row = sqlx::query!(
+            "SELECT EXISTS (SELECT 1 FROM public.memberships \
+             WHERE tenant_id = $1 AND role = 'admin' AND status = 'active') AS \"has_admin!\"",
+            tenant.0
+        )
+        .fetch_one(tx.conn())
+        .await?;
+        Ok(row.has_admin)
+    }
+
+    async fn login_profile(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        include_pii: bool,
+        keyring: &Keyring,
+    ) -> Result<Option<LoginProfile>, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let row = sqlx::query!(
+            "SELECT display_name, email_enc, phone_enc, locale \
+             FROM public.persons \
+             WHERE tenant_id = $1 AND id = $2 AND deleted_at IS NULL",
+            tenant.0,
+            person.0
+        )
+        .fetch_optional(tx.conn())
+        .await?;
+        let Some(row) = row else {
+            return Ok(None);
+        };
+
+        let email = if include_pii {
+            match row.email_enc {
+                Some(ciphertext) => {
+                    Some(decrypt_person_field(keyring, tx, tenant, person, "email_enc", &ciphertext).await?)
+                }
+                None => None,
+            }
+        } else {
+            None
+        };
+        let phone = if include_pii {
+            match row.phone_enc {
+                Some(ciphertext) => {
+                    Some(decrypt_person_field(keyring, tx, tenant, person, "phone_enc", &ciphertext).await?)
+                }
+                None => None,
+            }
+        } else {
+            None
+        };
+        let locale = row
+            .locale
+            .map(|value| match value.as_str() {
+                "en" => Ok(Locale::En),
+                "id" => Ok(Locale::Id),
+                _ => Err(AppError::Internal(anyhow::anyhow!("person locale is invalid"))),
+            })
+            .transpose()?;
+
+        Ok(Some(LoginProfile {
+            display_name: row.display_name,
+            email,
+            phone,
+            locale,
+        }))
+    }
+}
+
+async fn decrypt_person_field(
+    keyring: &Keyring,
+    tx: &mut Tx,
+    tenant: crate::ids::TenantId,
+    person: PersonId,
+    column: &'static str,
+    ciphertext: &[u8],
+) -> Result<SecretString, AppError> {
+    let plaintext = keyring
+        .decrypt_field(
+            tx,
+            &Aad {
+                tenant,
+                table: "persons",
+                column,
+                row_id: person.0,
+            },
+            ciphertext,
+        )
+        .await
+        .map_err(|error| AppError::Internal(anyhow::anyhow!("person PII decryption failed: {error}")))?;
+    let value = std::str::from_utf8(&plaintext)
+        .map_err(|_| AppError::Internal(anyhow::anyhow!("person PII is not valid UTF-8")))?;
+    Ok(SecretString::from(value.to_owned()))
 }
 
 #[cfg(test)]
@@ -126,7 +266,7 @@ mod tests {
 
     fn test_field_ctx() -> FieldCtx {
         FieldCtx {
-            country: celes::Country::from_alpha2("ID").expect("known test country"),
+            country: Some(celes::Country::from_alpha2("ID").expect("known test country")),
             tenant_currency: Currency::IDR,
             tenant_locale: Locale::Id,
             today: chrono::NaiveDate::from_ymd_opt(2026, 1, 1).expect("valid test date"),
