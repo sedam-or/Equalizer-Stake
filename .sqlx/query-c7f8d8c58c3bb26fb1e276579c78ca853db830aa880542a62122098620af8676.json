@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COALESCE(FLOOR(EXTRACT(EPOCH FROM password_changed_at))::bigint, 0) AS \"version!\" FROM public.credentials WHERE tenant_id = $1 AND person_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "c7f8d8c58c3bb26fb1e276579c78ca853db830aa880542a62122098620af8676"
+}

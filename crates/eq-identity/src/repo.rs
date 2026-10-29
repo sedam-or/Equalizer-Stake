@@ -120,6 +120,23 @@ pub(crate) async fn reset_failures(tx: &mut Tx, tenant: TenantId, person: Person
     Ok(())
 }
 
+/// IDN-03: reads the password-change epoch used to invalidate stale access tokens.
+pub(crate) async fn password_version(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+) -> Result<Option<i64>, AppError> {
+    let row = sqlx::query!(
+        "SELECT COALESCE(FLOOR(EXTRACT(EPOCH FROM password_changed_at))::bigint, 0) AS \"version!\" \
+         FROM public.credentials WHERE tenant_id = $1 AND person_id = $2",
+        tenant.0,
+        person.0
+    )
+    .fetch_optional(tx.conn())
+    .await?;
+    Ok(row.map(|credentials| credentials.version))
+}
+
 /// IDN-04: stores only the SHA-256 digest of the opaque refresh token.
 #[expect(
     clippy::too_many_arguments,

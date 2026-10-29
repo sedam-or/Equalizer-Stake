@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT EXISTS (SELECT 1 FROM public.memberships WHERE tenant_id = $1 AND person_id = $2 AND role = $3 AND status = 'active') AS \"is_active!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "is_active!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "71a5f758bd90b9d563e4c0bacf3ce9d7bafdb0d0d5652507799c3af38b6438f0"
+}

@@ -46,7 +46,11 @@ pub(super) fn routes(
     let mut routes = OpenApiRouter::<AppState>::new();
     for module in &registry.modules {
         let gate = ModuleGate::new(module.manifest().id, Arc::clone(&enabled));
-        let module_routes = module.routes().layer(gate);
+        let actor_auth = axum::middleware::from_fn_with_state(
+            Arc::clone(&login_runtime),
+            eq_identity::api_auth::actor_auth_middleware,
+        );
+        let module_routes = module.routes().layer(actor_auth).layer(gate);
         let module_routes = if module.manifest().id == ModuleId::Identity {
             module_routes.layer(axum::Extension(Arc::clone(&login_runtime)))
         } else {

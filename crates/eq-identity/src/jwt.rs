@@ -240,6 +240,20 @@ pub fn validate_access_token(
     expected_password_version: i64,
     clock: &dyn Clock,
 ) -> Result<AccessClaims, JwtError> {
+    let claims = verify_access_token(token, keys, expected_tenant, clock)?;
+    if claims.ver != expected_password_version {
+        return Err(JwtError::VersionMismatch);
+    }
+    Ok(claims)
+}
+
+/// IDN-03/AUTH-05: verifies token signature, expiry and resolved tenant before claims are used.
+pub fn verify_access_token(
+    token: &str,
+    keys: &Keys,
+    expected_tenant: TenantId,
+    clock: &dyn Clock,
+) -> Result<AccessClaims, JwtError> {
     let secret = keys.jwt.expose_secret();
     let mut validation = Validation::new(Algorithm::HS256);
     validation.validate_exp = false;
@@ -261,9 +275,6 @@ pub fn validate_access_token(
     }
     if claims.tid != expected_tenant {
         return Err(JwtError::WrongTenant);
-    }
-    if claims.ver != expected_password_version {
-        return Err(JwtError::VersionMismatch);
     }
     Ok(AccessClaims {
         sub: claims.sub,

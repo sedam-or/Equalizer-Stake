@@ -62,6 +62,15 @@ pub trait CoreIdentityDirectory: Send + Sync {
     /// IDN-10/11: checks whether the tenant has any active admin membership.
     async fn has_active_admin(&self, tx: &mut Tx, tenant: crate::ids::TenantId) -> Result<bool, AppError>;
 
+    /// IDN-03/09: checks whether this tenant role is still an active membership.
+    async fn has_active_role(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<bool, AppError>;
+
     /// ERD-02/SBD-10: reads the caller's core-owned profile and decrypts PII only when authorized.
     async fn login_profile(
         &self,
@@ -150,6 +159,37 @@ impl CoreIdentityDirectory for PgIdentityDirectory {
         .fetch_one(tx.conn())
         .await?;
         Ok(row.has_admin)
+    }
+
+    async fn has_active_role(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<bool, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let role = match role {
+            Role::Owner => "owner",
+            Role::Admin => "admin",
+            Role::Instructor => "instructor",
+            Role::Guardian => "guardian",
+            Role::Student => "student",
+        };
+        let row = sqlx::query!(
+            "SELECT EXISTS (SELECT 1 FROM public.memberships \
+             WHERE tenant_id = $1 AND person_id = $2 AND role = $3 AND status = 'active') AS \"is_active!\"",
+            tenant.0,
+            person.0,
+            role
+        )
+        .fetch_one(tx.conn())
+        .await?;
+        Ok(row.is_active)
     }
 
     async fn login_profile(

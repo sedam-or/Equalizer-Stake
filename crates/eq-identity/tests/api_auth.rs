@@ -1,4 +1,5 @@
 use std::fmt;
+use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -70,13 +71,25 @@ struct Fixture {
 
 impl Fixture {
     async fn post(&self, email: &str, password: &str) -> Result<(StatusCode, axum::http::HeaderMap, Value)> {
-        let request = Request::builder()
+        self.post_with_token(email, password, None).await
+    }
+
+    async fn post_with_token(
+        &self,
+        email: &str,
+        password: &str,
+        token: Option<&str>,
+    ) -> Result<(StatusCode, axum::http::HeaderMap, Value)> {
+        let mut builder = Request::builder()
             .method("POST")
             .uri("/api/v1/auth/login")
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                json!({"email": email, "password": password}).to_string(),
-            ))?;
+            .header(CONTENT_TYPE, "application/json");
+        if let Some(token) = token {
+            builder = builder.header(axum::http::header::AUTHORIZATION, format!("Bearer {token}"));
+        }
+        let request = builder.body(Body::from(
+            json!({"email": email, "password": password}).to_string(),
+        ))?;
         let response = self
             .router
             .clone()
@@ -91,6 +104,46 @@ impl Fixture {
         let body = serde_json::from_slice(&body).context("decode login response JSON")?;
         Ok((status, headers, body))
     }
+
+    async fn get_protected_actor(&self, token: &str) -> Result<(StatusCode, Value)> {
+        self.get_protected_actor_with_authorization(&format!("Bearer {token}"))
+            .await
+    }
+
+    async fn get_protected_actor_with_authorization(
+        &self,
+        authorization: &str,
+    ) -> Result<(StatusCode, Value)> {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
+        let address = listener.local_addr()?;
+        let router = self.router.clone();
+        let server = tokio::spawn(async move {
+            axum::serve(
+                listener,
+                router.into_make_service_with_connect_info::<SocketAddr>(),
+            )
+            .await
+        });
+        let client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()?;
+        let response = client
+            .get(format!("http://{address}/__test/actor"))
+            .header(axum::http::header::AUTHORIZATION, authorization)
+            .send()
+            .await;
+        server.abort();
+        let _ = server.await;
+        let response = response?;
+        let status = response.status();
+        let body = response.bytes().await.context("read protected Actor response")?;
+        let body = serde_json::from_slice(&body).context("decode protected Actor response JSON")?;
+        Ok((status, body))
+    }
+}
+
+async fn protected_actor(actor: eq_core::auth::Actor) -> axum::Json<Value> {
+    axum::Json(json!({"has_write": actor.has("identity.people.write")}))
 }
 
 async fn fixture() -> Result<Fixture> {
@@ -138,12 +191,18 @@ async fn fixture_for_role_and_admin(
         clock,
         Arc::clone(&modules),
         Arc::clone(&enabled),
+        Arc::clone(&state.auth),
+        state.tenant_resolver.clone(),
     ));
-    let routes = IdentityModule
-        .routes()
+    let (routes, _openapi) = IdentityModule.routes().split_for_parts();
+    let routes = routes
+        .route("/__test/actor", axum::routing::get(protected_actor))
+        .layer(axum::middleware::from_fn_with_state(
+            Arc::clone(&runtime),
+            eq_identity::api_auth::actor_auth_middleware,
+        ))
         .layer(ModuleGate::new(ModuleId::Identity, enabled))
         .layer(axum::Extension(runtime));
-    let (routes, _openapi) = routes.split_for_parts();
     let tenant_ctx = TenantCtx::Resolved(Arc::new(eq_core::tenant::TenantInfo {
         id: tenant,
         slug: format!("auth-{}", tenant.0.simple()),
@@ -204,7 +263,6 @@ async fn seed_login_fixture(
     .bind(slug)
     .execute(owner_pool)
     .await?;
-
     let field_ctx = field_ctx()?;
     let email = Email::parse(EMAIL.to_owned(), &field_ctx)
         .map_err(|_| anyhow::anyhow!("fixed test email is valid"))?;
@@ -370,6 +428,92 @@ async fn owner_gets_admin_perms_without_admin() -> Result<()> {
             .iter()
             .any(|permission| permission == "identity.people.write")
     );
+    Ok(())
+}
+
+#[tokio::test]
+async fn bearer_actor_rejects_cross_tenant_token() -> Result<()> {
+    let source = fixture().await?;
+    let (status, _headers, body) = source.post(EMAIL, CORRECT_PASSWORD).await?;
+    assert_eq!(status, StatusCode::OK);
+    let token = body["access_token"]
+        .as_str()
+        .context("login returns an access token")?;
+
+    let target = fixture().await?;
+    let (status, body) = target.get_protected_actor(token).await?;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(body["code"], "unauthenticated");
+    Ok(())
+}
+
+#[tokio::test]
+async fn bearer_actor_accepts_current_token() -> Result<()> {
+    let fixture = fixture().await?;
+    let (status, _headers, body) = fixture.post(EMAIL, CORRECT_PASSWORD).await?;
+    assert_eq!(status, StatusCode::OK);
+    let token = body["access_token"]
+        .as_str()
+        .context("login returns an access token")?;
+
+    let (status, body) = fixture.get_protected_actor(token).await?;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["has_write"], true);
+    Ok(())
+}
+
+#[tokio::test]
+async fn bearer_actor_rejects_malformed_transport() -> Result<()> {
+    let fixture = fixture().await?;
+    let (status, body) = fixture
+        .get_protected_actor_with_authorization("Bearer  test-secret-invalid-token")
+        .await?;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(body["code"], "unauthenticated");
+    Ok(())
+}
+
+#[tokio::test]
+async fn bearer_actor_rejects_inactive_role() -> Result<()> {
+    let fixture = fixture().await?;
+    let (status, _headers, body) = fixture.post(EMAIL, CORRECT_PASSWORD).await?;
+    assert_eq!(status, StatusCode::OK);
+    let token = body["access_token"]
+        .as_str()
+        .context("login returns an access token")?;
+    sqlx::query(
+        "UPDATE public.memberships SET status = 'deactivated' WHERE tenant_id = $1 AND person_id = $2 AND role = 'admin'",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.person.0)
+    .execute(&fixture.owner_pool)
+    .await?;
+
+    let (status, body) = fixture.get_protected_actor(token).await?;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(body["code"], "unauthenticated");
+    Ok(())
+}
+
+#[tokio::test]
+async fn bearer_actor_rejects_stale_password_version() -> Result<()> {
+    let fixture = fixture().await?;
+    let (status, _headers, body) = fixture.post(EMAIL, CORRECT_PASSWORD).await?;
+    assert_eq!(status, StatusCode::OK);
+    let token = body["access_token"]
+        .as_str()
+        .context("login returns an access token")?;
+    sqlx::query(
+        "UPDATE public.credentials SET password_changed_at = now() WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.person.0)
+    .execute(&fixture.owner_pool)
+    .await?;
+
+    let (status, body) = fixture.get_protected_actor(token).await?;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(body["code"], "unauthenticated");
     Ok(())
 }
 

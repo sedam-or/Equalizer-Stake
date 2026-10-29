@@ -38,6 +38,8 @@ pub fn router(state: AppState) -> axum::Router {
         std::sync::Arc::clone(&state.clock),
         std::sync::Arc::clone(&registry),
         std::sync::Arc::clone(&enabled),
+        std::sync::Arc::clone(&state.auth),
+        state.tenant_resolver.clone(),
     ));
     let module_routes = modules::routes(&registry, enabled, login_runtime);
     health::router(state, module_routes)

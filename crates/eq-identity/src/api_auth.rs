@@ -3,21 +3,24 @@
 use std::collections::BTreeSet;
 use std::fmt;
 use std::sync::Arc;
+use std::time::Duration;
 
 use crate::errors::codes;
 use axum::Json;
-use axum::extract::{Extension, State};
-use axum::http::header::{CACHE_CONTROL, SET_COOKIE, USER_AGENT};
+use axum::extract::{Extension, Request, State};
+use axum::http::header::{AUTHORIZATION, CACHE_CONTROL, SET_COOKIE, USER_AGENT};
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
+use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use chrono_tz::Tz;
-use eq_core::actor::ActorRole;
+use eq_core::actor::{ActorCtx, ActorRole};
 use eq_core::app_state::AppState;
+use eq_core::auth::{Actor, AuthState};
 use eq_core::clock::Clock;
 use eq_core::db::{Tx, begin};
 use eq_core::error::AppError;
 use eq_core::fields::{FieldCtx, FieldKind, Password, PasswordInput};
-use eq_core::ids::TenantId;
+use eq_core::ids::{PersonId, TenantId};
 use eq_core::model::Role;
 use eq_core::module::gate::EnabledModuleSet;
 use eq_core::module::{ModuleRegistry, PermissionDef};
@@ -25,19 +28,24 @@ use eq_core::outbox::OutboxEventSink;
 use eq_core::policy::types::Locale;
 use eq_core::policy::{PolicyStore, PresetPatchSource, PresetSourceError};
 use eq_core::ports::sinks::{AuditSink, EventSink};
-use secrecy::ExposeSecret;
+use eq_core::tenant::{TenantCtx, TenantResolver, client_ip};
+use moka::future::Cache;
+use secrecy::{ExposeSecret, SecretString};
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::Value;
 use sqlx::PgPool;
 use tokio::sync::OnceCell;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 use crate::policy::IdentityPolicy;
 use crate::service::{LoginRequest, LoginService, LoginSuccess};
 
 const ACCESS_TOKEN_TTL_SECONDS: u64 = 600; // IDN-03: technical access-token lifetime.
 const SECONDS_PER_DAY: u64 = 86_400; // technical: convert the policy's absolute session days to cookie Max-Age.
+const PERMISSION_CACHE_TTL: Duration = Duration::from_secs(30); // technical: IDN-11 permission cache bound.
+const PASSWORD_VERSION_CACHE_TTL: Duration = Duration::from_secs(60); // technical: IDN-03 credential-version cache bound.
 
 /// IDN-06/POL-04: shared lazy policy runtime used by login routes.
 pub struct LoginHttpState {
@@ -45,7 +53,11 @@ pub struct LoginHttpState {
     clock: Arc<dyn Clock>,
     modules: Arc<ModuleRegistry>,
     enabled: Arc<dyn EnabledModuleSet>,
+    auth: Arc<AuthState>,
+    tenant_resolver: TenantResolver,
     policy_store: OnceCell<PolicyStore>,
+    permissions: Cache<(TenantId, PersonId, &'static str), Arc<BTreeSet<String>>>,
+    password_versions: Cache<(TenantId, PersonId), i64>,
 }
 
 impl LoginHttpState {
@@ -55,13 +67,19 @@ impl LoginHttpState {
         clock: Arc<dyn Clock>,
         modules: Arc<ModuleRegistry>,
         enabled: Arc<dyn EnabledModuleSet>,
+        auth: Arc<AuthState>,
+        tenant_resolver: TenantResolver,
     ) -> Self {
         Self {
             pool,
             clock,
             modules,
             enabled,
+            auth,
+            tenant_resolver,
             policy_store: OnceCell::new(),
+            permissions: Cache::builder().time_to_live(PERMISSION_CACHE_TTL).build(),
+            password_versions: Cache::builder().time_to_live(PASSWORD_VERSION_CACHE_TTL).build(),
         }
     }
 
@@ -86,10 +104,21 @@ impl LoginHttpState {
 
     pub(crate) async fn permissions(
         &self,
+        tx: &mut Tx,
         tenant: TenantId,
+        person: PersonId,
         role: Role,
-        owner_without_admin: bool,
     ) -> Result<BTreeSet<String>, AppError> {
+        let cache_key = (tenant, person, role_name(role));
+        if let Some(permissions) = self.permissions.get(&cache_key).await {
+            return Ok(permissions.as_ref().clone());
+        }
+
+        let owner_without_admin = if role == Role::Owner {
+            !self.auth.directory().has_active_admin(tx, tenant).await?
+        } else {
+            false
+        };
         let actor_role = actor_role(role);
         let mut permissions = BTreeSet::new();
         for module in self.modules.modules() {
@@ -102,7 +131,92 @@ impl LoginHttpState {
                 }
             }
         }
+        self.permissions
+            .insert(cache_key, Arc::new(permissions.clone()))
+            .await;
         Ok(permissions)
+    }
+
+    /// IDN-03: invalidates the cached password version after a password change.
+    pub async fn invalidate_password_version(&self, tenant: TenantId, person: PersonId) {
+        self.password_versions.invalidate(&(tenant, person)).await;
+    }
+
+    async fn authenticate_access_token(
+        &self,
+        tenant: TenantId,
+        token: &str,
+        request_actor: ActorCtx,
+    ) -> Result<Actor, AppError> {
+        let claims = crate::jwt::verify_access_token(token, self.auth.keys(), tenant, self.clock.as_ref())
+            .map_err(|_| AppError::Unauthenticated {
+                code: &eq_core::error::codes::UNAUTHENTICATED,
+            })?;
+        let actor_ctx = ActorCtx {
+            person_id: Some(claims.sub()),
+            role: actor_role(claims.role()),
+            ip: request_actor.ip,
+            request_id: request_actor.request_id,
+        };
+        let mut tx = begin(&self.pool, tenant, &actor_ctx).await?;
+        let result = self.authenticated_actor(&mut tx, tenant, claims, actor_ctx).await;
+        match result {
+            Ok(actor) => {
+                tx.commit().await?;
+                Ok(actor)
+            }
+            Err(error) => {
+                tx.rollback().await?;
+                Err(error)
+            }
+        }
+    }
+
+    async fn authenticated_actor(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        claims: crate::jwt::AccessClaims,
+        actor_ctx: ActorCtx,
+    ) -> Result<Actor, AppError> {
+        if !self
+            .auth
+            .directory()
+            .has_active_role(tx, tenant, claims.sub(), claims.role())
+            .await?
+        {
+            return Err(AppError::Unauthenticated {
+                code: &eq_core::error::codes::UNAUTHENTICATED,
+            });
+        }
+
+        let version_key = (tenant, claims.sub());
+        let password_version = if let Some(version) = self.password_versions.get(&version_key).await {
+            version
+        } else {
+            let version = crate::repo::password_version(tx, tenant, claims.sub())
+                .await?
+                .ok_or(AppError::Unauthenticated {
+                    code: &eq_core::error::codes::UNAUTHENTICATED,
+                })?;
+            self.password_versions.insert(version_key, version).await;
+            version
+        };
+        if password_version != claims.ver() {
+            return Err(AppError::Unauthenticated {
+                code: &eq_core::error::codes::UNAUTHENTICATED,
+            });
+        }
+
+        let permissions = self.permissions(tx, tenant, claims.sub(), claims.role()).await?;
+        Ok(Actor::from_verified_token(
+            claims.sub(),
+            tenant,
+            claims.role(),
+            claims.sid(),
+            permissions,
+            actor_ctx,
+        ))
     }
 }
 
@@ -117,6 +231,52 @@ impl fmt::Debug for LoginHttpState {
             .field("policy_store", &self.policy_store.get().is_some())
             .finish()
     }
+}
+
+/// IDN-03/AUTH-05: inserts an Actor only after bearer token and active membership checks.
+pub async fn actor_auth_middleware(
+    State(runtime): State<Arc<LoginHttpState>>,
+    request: Request,
+    next: Next,
+) -> Response {
+    let (mut parts, body) = request.into_parts();
+    let Some(token) = parts.headers.get(AUTHORIZATION).and_then(parse_bearer_token) else {
+        if parts.headers.contains_key(AUTHORIZATION) {
+            return unauthenticated_response();
+        }
+        return next.run(Request::from_parts(parts, body)).await;
+    };
+    let Some(TenantCtx::Resolved(tenant)) = parts.extensions.get::<TenantCtx>() else {
+        return unauthenticated_response();
+    };
+    let request_actor = ActorCtx::anonymous(
+        client_ip(&parts, runtime.tenant_resolver.trusted_proxies()),
+        parts.extensions.get::<Uuid>().copied(),
+    );
+    let actor = match runtime
+        .authenticate_access_token(tenant.id, token.expose_secret(), request_actor)
+        .await
+    {
+        Ok(actor) => actor,
+        Err(error) => return error.into_response(),
+    };
+    parts.extensions.insert(actor);
+    next.run(Request::from_parts(parts, body)).await
+}
+
+fn parse_bearer_token(value: &HeaderValue) -> Option<SecretString> {
+    let token = value.to_str().ok()?.strip_prefix("Bearer ")?;
+    if token.is_empty() || token.bytes().any(|byte| byte.is_ascii_whitespace()) {
+        return None;
+    }
+    Some(SecretString::from(String::from(token)))
+}
+
+fn unauthenticated_response() -> Response {
+    AppError::Unauthenticated {
+        code: &eq_core::error::codes::UNAUTHENTICATED,
+    }
+    .into_response()
 }
 
 struct UnavailablePresetPatches;
@@ -154,14 +314,14 @@ impl fmt::Debug for LoginBody {
 
 #[derive(ToSchema)]
 #[schema(value_type = String)]
-struct TotpCode(secrecy::SecretString);
+struct TotpCode(SecretString);
 
 impl<'de> Deserialize<'de> for TotpCode {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        String::deserialize(deserializer).map(|value| Self(secrecy::SecretString::from(value)))
+        String::deserialize(deserializer).map(|value| Self(SecretString::from(value)))
     }
 }
 
@@ -175,7 +335,7 @@ impl fmt::Debug for TotpCode {
 #[derive(Serialize, ToSchema)]
 pub struct PersonMe {
     #[schema(value_type = String, format = Uuid)]
-    pub id: eq_core::ids::PersonId,
+    pub id: PersonId,
     pub display_name: String,
     pub email: Option<String>,
     pub phone: Option<String>,
@@ -236,7 +396,7 @@ impl fmt::Debug for PersonMe {
 #[derive(Serialize, ToSchema)]
 pub struct LinkedStudent {
     #[schema(value_type = String, format = Uuid)]
-    pub id: eq_core::ids::PersonId,
+    pub id: PersonId,
     pub display_name: String,
 }
 
@@ -392,13 +552,8 @@ async fn login_success_response(
     policies: &PolicyStore,
     success: &LoginSuccess,
 ) -> Result<Response, AppError> {
-    let owner_without_admin = if success.active_role() == Role::Owner {
-        !state.auth.directory().has_active_admin(tx, tenant).await?
-    } else {
-        false
-    };
     let permissions = runtime
-        .permissions(tenant, success.active_role(), owner_without_admin)
+        .permissions(tx, tenant, success.person(), success.active_role())
         .await?;
     let include_pii = permissions.contains("identity.people.read_pii");
     let profile = state
@@ -461,6 +616,16 @@ fn actor_role(role: Role) -> ActorRole {
     }
 }
 
+fn role_name(role: Role) -> &'static str {
+    match role {
+        Role::Owner => "owner",
+        Role::Admin => "admin",
+        Role::Instructor => "instructor",
+        Role::Guardian => "guardian",
+        Role::Student => "student",
+    }
+}
+
 fn has_role_grant(permission: &PermissionDef, role: ActorRole, owner_without_admin: bool) -> bool {
     permission.roles.contains(&role)
         || (owner_without_admin && role == ActorRole::Owner && permission.roles.contains(&ActorRole::Admin))
@@ -468,7 +633,7 @@ fn has_role_grant(permission: &PermissionDef, role: ActorRole, owner_without_adm
 
 #[cfg(test)]
 mod tests {
-    use super::{LoginBody, has_role_grant, refresh_cookie};
+    use super::{LoginBody, has_role_grant, parse_bearer_token, refresh_cookie};
     use eq_core::actor::ActorRole;
     use eq_core::module::PermissionDef;
     use serde_json::json;
@@ -511,5 +676,27 @@ mod tests {
         assert!(!formatted.contains("test-secret-person"));
         assert!(!formatted.contains("test-secret-password"));
         assert!(!formatted.contains("123456"));
+    }
+
+    #[test]
+    fn bearer_token_debug_redacts_credentials() {
+        let header = axum::http::HeaderValue::from_static("Bearer test-secret-access-token");
+        let Some(token) = parse_bearer_token(&header) else {
+            panic!("canonical bearer token parses");
+        };
+        assert!(!format!("{token:?}").contains("test-secret-access-token"));
+    }
+
+    #[test]
+    fn malformed_bearer_header_rejected() {
+        for value in [
+            "bearer test-secret-access-token",
+            "Bearer ",
+            "Bearer  test-secret-access-token",
+            "Bearer test-secret-access-token trailing",
+        ] {
+            let header = axum::http::HeaderValue::from_static(value);
+            assert!(parse_bearer_token(&header).is_none());
+        }
     }
 }

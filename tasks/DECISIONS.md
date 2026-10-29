@@ -798,3 +798,12 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** `spec/modules/identity.md` §2 and shipped T-110a4 define this route; replacing only the obsolete assertion keeps the named test and changes no business or security behavior.
 - **Changed:** `crates/eq-identity/src/module.rs`, `tasks/M1-core/T-110a4B-identity-permissions.md`, and this register.
 - **Ratify:** Yes.
+
+### TD-124 — Use CACHE-14 auth cache keys
+
+- **Question:** T-110a4C specifies 30/60-second auth caches but does not repeat the cache key shapes.
+- **Options:** Key permissions by tenant and role only; or use the exact CACHE-14 keys for both auth caches.
+- **Decision:** Keep credential versions keyed by `(tenant, person)` and permission sets keyed by `(tenant, person, role)`.
+- **Why:** `spec/26-containers-and-caching.md` §6.1 (CACHE-14) defines those keys and their 60/30-second TTLs.
+- **Changed:** `crates/eq-identity/src/api_auth.rs`, this task, and this register.
+- **Ratify:** Yes.
