@@ -1,0 +1,101 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT password_hash, password_changed_at, totp_secret_enc, totp_enabled, failed_count, failed_window_start, locked_until FROM public.credentials WHERE tenant_id = $1 AND person_id = $2 FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "password_hash",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "credentials",
+            "name": "password_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "password_changed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "credentials",
+            "name": "password_changed_at"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "totp_secret_enc",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "credentials",
+            "name": "totp_secret_enc"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "totp_enabled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "credentials",
+            "name": "totp_enabled"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "failed_count",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "credentials",
+            "name": "failed_count"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "failed_window_start",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "credentials",
+            "name": "failed_window_start"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "locked_until",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "credentials",
+            "name": "locked_until"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "ba73f93ab8d4b94e6f9380464d2d2cbcdd7aaa0b7243414e96b713ca169b5293"
+}

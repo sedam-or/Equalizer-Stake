@@ -1,7 +1,7 @@
 //! Tenant-serialized audit-chain sealing and verification (AUD-04/06).
 
-use crate::repo::{self, SealRow, VerifyRow};
-use chrono::{SecondsFormat, Utc};
+use crate::repo::{self, VerifyRow};
+use chrono::SecondsFormat;
 use eq_core::db::{self, Tx};
 use eq_core::error::AppError;
 use eq_core::ids::TenantId;

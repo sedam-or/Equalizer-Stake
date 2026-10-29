@@ -680,3 +680,30 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The task explicitly classifies this value as common and requires the existing `common_rejected` test; a narrow supplement is stricter than the source snapshot and adds no composition rule.
 - **Changed:** `crates/eq-identity/data/common-passwords.txt`, `tasks/M1-core/T-110a2-password-and-jwt-primitives.md` and this register.
 - **Ratify:** Yes.
+
+### TD-110 — Resume T-110a3 under the delegated check policy
+
+- **Question:** T-110a3 was blocked because a fixed Cargo target and disposable PostgreSQL fixture were treated as unavailable under a prior resource rule, while the current run delegates technical decisions and says unavailable checks are `Not run` rather than grounds to block.
+- **Options:** Keep T-110a3 blocked pending another permission change; or resume it, provision the task-required fresh PostgreSQL 16 fixture, and report only genuinely unavailable checks as `Not run`.
+- **Decision:** Resume T-110a3 and attempt the implementation, generated SQLx metadata, and named tests with the current toolchain and a fresh PostgreSQL 16 fixture.
+- **Why:** Current run TD-004 requires continuation when checks cannot run, and the task requires generated metadata and database-backed tests. This decision does not change business rules, security controls, schema, or `cargo deny` policy.
+- **Changed:** `tasks/M1-core/T-110a3-login-service-and-lockout.md`, `tasks/INDEX.md`, and `RUN_LOG.md`.
+- **Ratify:** Yes.
+
+### TD-111 — Use the spec-mapped minimal TOTP verifier features
+
+- **Question:** The task names `totp-rs` and fixes RFC 6238 step/skew behavior, but the dependency map does not pin a release or feature set.
+- **Options:** Use the crate's default features, including URI/migration helpers; or pin the current 6.x API with only `std` and `zeroize` for verification of the encrypted raw secret.
+- **Decision:** Use `totp-rs` 6.x with default features disabled and `std` plus `zeroize` enabled; do not enable QR/URI or migration features in this service task.
+- **Why:** OSS-24 maps TOTP to `totp-rs`; this task only verifies secrets, while the selected features provide RFC verification and zeroization. The dependency graph will be checked by unchanged `cargo deny` rules.
+- **Changed:** workspace and identity manifests, `Cargo.lock`, and `crates/eq-identity/src/service.rs`.
+- **Ratify:** Yes.
+
+### TD-112 — Keep login identity lookup and anonymous audit attribution within mapped contracts
+
+- **Question:** T-110a3 requires a core-owned directory port injected through shared state, while the shipped audit API rejects `ActorRole::Anonymous`, STM-23 supplies the exact failure action, and `Email::parse` requires a `FieldCtx` that the task does not supply.
+- **Options:** Let identity query core-owned tables directly, attempt audit with an unmapped anonymous role, and invent a default field context; or use a core-owned typed directory port/adapter, the mapped `system` audit role without actor id, STM-23's action name, and the caller's existing `FieldCtx`.
+- **Decision:** Inject a `CoreIdentityDirectory` port implemented by the core PostgreSQL adapter through redacted `AuthState`; use `ActorRole::System` with no actor id for login audit records while preserving request IP/id, retain known people only as audit entities, use `security.login.failed` per STM-23, and pass the caller's `FieldCtx` into `Email::parse`.
+- **Why:** CA-30/31 and ERD-02 prohibit identity SQL joining core tables; spec 06 §4.9 and ERD-04 exclude `anonymous` from persisted audit roles, while `system` is mapped; STM-23 supplies the failure action; VAL-03 requires caller context for field parsing, so fabricating a default would invent validation policy.
+- **Changed:** `crates/eq-core/src/auth.rs`, `crates/eq-core/src/auth/directory.rs`, `crates/eq-core/src/app_state.rs`, `crates/eq-identity/src/service.rs`, and this task's Report.
+- **Ratify:** Yes.

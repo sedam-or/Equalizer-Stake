@@ -57,10 +57,6 @@ impl fmt::Debug for TestTemplate {
 
 impl TestDb {
     /// TST-20: creates a database cloned from the migrated per-process template.
-    #[expect(
-        clippy::panic,
-        reason = "TestDb::new has a fixed task signature and must fail test setup without exposing credential-bearing driver errors"
-    )]
     pub async fn new() -> Self {
         let template = test_template().await;
         match create_database(template).await {
@@ -70,10 +66,6 @@ impl TestDb {
     }
 }
 
-#[expect(
-    clippy::panic,
-    reason = "the OnceCell initializer is test infrastructure; its fixed interface must fail setup while redacting database errors"
-)]
 async fn test_template() -> &'static TestTemplate {
     match TEMPLATE.get_or_init(initialize_template).await {
         Ok(template) => template,

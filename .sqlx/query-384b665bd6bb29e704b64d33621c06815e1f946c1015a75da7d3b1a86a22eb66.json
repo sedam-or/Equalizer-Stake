@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.tenants (id, slug, name, country, preset_id, preset_version) VALUES ($1, $2, 'Test School', 'ID', 'test', 1)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "384b665bd6bb29e704b64d33621c06815e1f946c1015a75da7d3b1a86a22eb66"
+}

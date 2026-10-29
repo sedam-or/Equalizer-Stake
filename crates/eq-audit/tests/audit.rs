@@ -238,15 +238,7 @@ async fn anonymize_keeps_chain_valid() -> Result<()> {
         .await?;
     tx.commit().await?;
 
-    let row = sqlx::query_as::<
-        _,
-        (
-            serde_json::Value,
-            serde_json::Value,
-            Option<String>,
-            Option<Vec<u8>>,
-        ),
-    >(
+    let row = sqlx::query_as::<_, (Value, Value, Option<String>, Option<Vec<u8>>)>(
         "SELECT \"before\", \"after\", ip::text, redaction_proof \
          FROM audit.entries WHERE tenant_id = $1 AND seq = $2",
     )
@@ -410,7 +402,7 @@ async fn concurrent_writer_and_sealer_preserve_sequence_order() -> Result<()> {
             }
             tokio::time::sleep(SEALER_ACTIVITY_POLL_INTERVAL).await;
         }
-        Ok::<(), sqlx::Error>(())
+        Ok::<(), Error>(())
     })
     .await??;
 
@@ -428,7 +420,7 @@ async fn concurrent_writer_and_sealer_preserve_sequence_order() -> Result<()> {
 #[tokio::test]
 async fn audit_functions_reject_cross_tenant_arguments() -> Result<()> {
     let db = TestDb::new().await;
-    let tenant = tenant(&db).await?;
+    let tenant_id = tenant(&db).await?;
     let other_tenant = tenant(&db).await?;
     let statements = [
         "SELECT audit.seal($1, '[]'::jsonb)",
@@ -438,7 +430,7 @@ async fn audit_functions_reject_cross_tenant_arguments() -> Result<()> {
 
     for statement in statements {
         let actor = ActorCtx::system("audit-test");
-        let mut tx = db::begin(&db.app_pool, tenant, &actor).await?;
+        let mut tx = db::begin(&db.app_pool, tenant_id, &actor).await?;
         let result = sqlx::query(statement)
             .bind(other_tenant.0)
             .execute(tx.conn())
@@ -489,26 +481,7 @@ async fn audit_retention_job_uses_policy_store() -> Result<()> {
     Sealer::new(db.app_pool.clone()).seal_tenant(tenant).await?;
 
     let policy_store = policy_store(&db).await?;
-    let actor = ActorCtx::system("audit-test");
-    let policy = AuditPolicy::new(5, 1, vec![Category::Operational])
-        .map_err(|_| anyhow::anyhow!("test audit policy is valid"))?;
-    let mut policy_tx = db::begin(&db.app_pool, tenant, &actor).await?;
-    policy_store
-        .put(&mut policy_tx, tenant, policy, now.clone(), &actor, None)
-        .await?;
-    policy_tx.commit().await?;
-
-    let ctx = JobCtx {
-        tenant: Some(Arc::new(tenant_info(tenant))),
-        pool: db.app_pool.clone(),
-        clock: Arc::new(SystemClock),
-        now,
-        policy_store: Some(policy_store),
-    };
-    AuditRetentionJob
-        .run(&ctx, &Value::Null)
-        .await
-        .map_err(anyhow::Error::new)?;
+    run_retention_job(&db, tenant, now, policy_store).await?;
 
     let retained = sqlx::query(
         "SELECT \"after\", ip::text AS ip, redaction_proof \
@@ -553,6 +526,34 @@ async fn audit_retention_job_uses_policy_store() -> Result<()> {
         .await?;
     assert_eq!(report.first_mismatch, None);
     Ok(())
+}
+
+async fn run_retention_job(
+    db: &TestDb,
+    tenant: TenantId,
+    now: DateTime<Utc>,
+    policy_store: Arc<PolicyStore>,
+) -> Result<()> {
+    let actor = ActorCtx::system("audit-test");
+    let policy = AuditPolicy::new(5, 1, vec![Category::Operational])
+        .map_err(|_| anyhow::anyhow!("test audit policy is valid"))?;
+    let mut policy_tx = db::begin(&db.app_pool, tenant, &actor).await?;
+    policy_store
+        .put(&mut policy_tx, tenant, policy, now, &actor, None)
+        .await?;
+    policy_tx.commit().await?;
+
+    let ctx = JobCtx {
+        tenant: Some(Arc::new(tenant_info(tenant))),
+        pool: db.app_pool.clone(),
+        clock: Arc::new(SystemClock),
+        now,
+        policy_store: Some(policy_store),
+    };
+    AuditRetentionJob
+        .run(&ctx, &Value::Null)
+        .await
+        .map_err(anyhow::Error::new)
 }
 
 #[tokio::test]
@@ -610,7 +611,7 @@ impl PresetPatchSource for NoPresetPatches {
         &self,
         _preset_id: &str,
         _preset_version: i32,
-        _module: eq_core::module::ModuleId,
+        _module: ModuleId,
     ) -> std::result::Result<Option<Value>, PresetSourceError> {
         Ok(None)
     }
@@ -618,7 +619,9 @@ impl PresetPatchSource for NoPresetPatches {
 
 async fn policy_store(db: &TestDb) -> Result<Arc<PolicyStore>> {
     let sinks = ModuleSinkDoubles::default();
-    let modules = Arc::new(ModuleRegistry::new(Vec::new()));
+    let modules = Arc::new(ModuleRegistry::new(vec![
+        Arc::new(AuditModule) as Arc<dyn eq_core::module::Module>
+    ]));
     let store = PolicyStore::new(
         db.app_pool.clone(),
         modules,
@@ -645,8 +648,8 @@ fn tenant_info(tenant: TenantId) -> TenantInfo {
 async fn record_entry(
     db: &TestDb,
     tenant: TenantId,
-    before: Option<serde_json::Value>,
-    after: Option<serde_json::Value>,
+    before: Option<Value>,
+    after: Option<Value>,
     ip: Option<IpAddr>,
 ) -> Result<i64> {
     let request_id = Uuid::now_v7();

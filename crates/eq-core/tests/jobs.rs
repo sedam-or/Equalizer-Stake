@@ -25,6 +25,10 @@ use uuid::Uuid;
 
 #[path = "../../eq-testkit/src/db.rs"]
 #[expect(
+    clippy::panic,
+    reason = "the shared database fixture reports only redacted setup failures"
+)]
+#[expect(
     dead_code,
     reason = "the shared test fixture exposes credential-bearing URLs for suites that build extra pools"
 )]

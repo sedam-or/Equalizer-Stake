@@ -3,10 +3,10 @@
 use eq_core::app_state::AppState;
 use eq_core::error::{AppError, FieldError, NOT_ALLOWED};
 use eq_core::jobs::{CronSpec, JobHandler};
-use eq_core::module::{Module, ModuleId, ModuleManifest, NavItem, PermissionDef, PortRegistry, SummaryLine};
+use eq_core::module::{Module, ModuleId, ModuleManifest, NavItem, PermissionDef, SummaryLine};
 use eq_core::outbox::EventHandler;
 use eq_core::policy::{Group, PolicyDoc, XUi, validate_document};
-use schemars::JsonSchema;
+use eq_core::ports::PortRegistry;
 use serde_json::{Map, Value, json};
 use utoipa_axum::router::OpenApiRouter;
 
@@ -217,8 +217,9 @@ fn set_role_map_bounds(schema: &mut Value) {
 #[cfg(test)]
 mod tests {
     use super::{IdentityModule, LOCKOUT_FIELDS, POLICY_SCHEMA_FIELDS, ROLE_FIELDS, identity_policy_schema};
-    use crate::policy::{IdentityPolicy, PolicyDoc, TotpPolicy};
+    use crate::policy::{IdentityPolicy, TotpPolicy};
     use eq_core::module::{Module, ModuleId};
+    use eq_core::policy::PolicyDoc;
     use serde_json::{Value, json};
 
     #[test]
@@ -280,9 +281,24 @@ mod tests {
         assert_bounds(&schema["properties"]["invite_expires_days"], 1, 30);
         assert_bounds(&schema["properties"]["reset_token_ttl_minutes"], 10, 1440);
         assert_bounds(&schema["properties"]["reset_max_per_hour"], 1, 10);
+        let totp_values = referenced_schema(&schema, "totp")["oneOf"]
+            .as_array()
+            .map(|variants| {
+                variants
+                    .iter()
+                    .map(|variant| variant["const"].clone())
+                    .collect::<Vec<_>>()
+            });
         assert_eq!(
-            schema["properties"]["totp"]["enum"],
-            json!(["off", "optional_for_staff", "required_for_owner_admin"])
+            totp_values,
+            Some(vec![
+                json!("off"),
+                json!("optional_for_staff"),
+                json!("required_for_owner_admin"),
+            ]),
+            "TOTP schema reference: {}; resolved definition: {}",
+            schema["properties"]["totp"],
+            referenced_schema(&schema, "totp")
         );
 
         let role_definition = referenced_schema(&schema, "idle_timeout_minutes");

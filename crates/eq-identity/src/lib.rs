@@ -5,5 +5,7 @@ pub mod jwt;
 pub mod module;
 pub mod password;
 pub mod policy;
+pub mod repo;
+pub mod service;
 
 pub use module::IdentityModule;

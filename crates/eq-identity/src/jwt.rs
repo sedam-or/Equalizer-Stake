@@ -26,6 +26,19 @@ pub struct AccessTokenSubject {
     password_version: i64,
 }
 
+impl fmt::Debug for AccessTokenSubject {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("AccessTokenSubject")
+            .field("person_id", &"[REDACTED]")
+            .field("tenant_id", &"[REDACTED]")
+            .field("role", &self.role)
+            .field("session_id", &"[REDACTED]")
+            .field("password_version", &self.password_version)
+            .finish()
+    }
+}
+
 impl AccessTokenSubject {
     /// IDN-03/CQ-23: creates a subject from the identity module's typed values.
     pub const fn new(
@@ -92,6 +105,21 @@ pub struct AccessClaims {
     iat: u64,
     exp: u64,
     ver: i64,
+}
+
+impl fmt::Debug for AccessClaims {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("AccessClaims")
+            .field("sub", &"[REDACTED]")
+            .field("tid", &"[REDACTED]")
+            .field("role", &self.role)
+            .field("sid", &"[REDACTED]")
+            .field("iat", &self.iat)
+            .field("exp", &self.exp)
+            .field("ver", &self.ver)
+            .finish()
+    }
 }
 
 impl AccessClaims {
@@ -295,8 +323,7 @@ mod tests {
         let issued_clock = FixedClock::at(2026, 1, 2, 3, 4, 5);
         let seconds_after_issue = i64::try_from(ACCESS_TOKEN_TTL_SECONDS + ACCESS_TOKEN_LEEWAY_SECONDS)
             .expect("small technical token interval fits i64");
-        let validation_clock =
-            FixedClock(issued_clock.0.clone() + chrono::Duration::seconds(seconds_after_issue));
+        let validation_clock = FixedClock(issued_clock.0 + chrono::Duration::seconds(seconds_after_issue));
         let keys = test_keys();
         let subject = test_subject(10);
         let token = issue_access_token(&keys, &issued_clock, subject).expect("token issues");
@@ -376,11 +403,24 @@ mod tests {
     fn key_and_token_debug_are_redacted() {
         let clock = FixedClock::at(2026, 1, 2, 3, 4, 5);
         let keys = test_keys();
-        let token = issue_access_token(&keys, &clock, test_subject(0)).expect("token issues");
+        let subject = test_subject(0);
+        let token = issue_access_token(&keys, &clock, subject).expect("token issues");
         let jwt_key_debug = format!("{:?}", keys.jwt.expose_secret());
 
         assert!(!format!("{keys:?}").contains(&jwt_key_debug));
         assert!(!format!("{token:?}").contains(token.expose_secret()));
+        assert!(!format!("{subject:?}").contains(&subject.person_id().0.to_string()));
+
+        let claims = validate_access_token(
+            token.expose_secret(),
+            &keys,
+            subject.tenant_id(),
+            subject.password_version(),
+            &clock,
+        )
+        .expect("issued claims validate");
+        assert!(!format!("{claims:?}").contains(&claims.sub().0.to_string()));
+        assert!(!format!("{claims:?}").contains(&claims.tid().0.to_string()));
     }
 
     fn test_keys() -> Keys {

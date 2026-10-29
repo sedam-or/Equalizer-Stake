@@ -50,8 +50,8 @@ pub(super) async fn record(tx: &mut Tx, event: AuditEvent<'_>) -> Result<(), App
         entity_type,
         entity_id,
         category,
-        before as Option<Json<serde_json::Value>>,
-        after as Option<Json<serde_json::Value>>,
+        before as Option<Json<Value>>,
+        after as Option<Json<Value>>,
         ip,
         request_id
     )
@@ -145,7 +145,7 @@ pub(super) async fn unsealed_entries(tx: &mut Tx, tenant: TenantId) -> Result<Ve
 pub(super) async fn has_sealed_after(tx: &mut Tx, tenant: TenantId, seq: i64) -> Result<bool, AppError> {
     let sealed_after = sqlx::query_scalar!(
         "SELECT EXISTS(SELECT 1 FROM audit.entries WHERE tenant_id = $1 AND seq > $2 AND hash IS NOT NULL) \
-         OR EXISTS(SELECT 1 FROM audit.checkpoints WHERE tenant_id = $1 AND seq > $2) AS sealed_after",
+         OR EXISTS(SELECT 1 FROM audit.checkpoints WHERE tenant_id = $1 AND seq > $2) AS \"sealed_after!\"",
         tenant.0,
         seq
     )
@@ -159,7 +159,7 @@ pub(super) async fn persist_seals(
     tenant: TenantId,
     updates: Vec<Value>,
 ) -> Result<(), AppError> {
-    let payload = Json(Value::Array(updates));
+    let payload = Value::Array(updates);
     sqlx::query!("SELECT audit.seal($1, $2)", tenant.0, payload)
         .execute(tx.conn())
         .await?;

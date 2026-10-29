@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT token_hash, active_role, idle_expires_at, absolute_expires_at FROM public.refresh_sessions WHERE tenant_id = $1 AND person_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "token_hash",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "token_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "active_role",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "active_role"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "idle_expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "idle_expires_at"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "absolute_expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "absolute_expires_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f3502869dbc13b3a8b865d8753624fefa5cd71cea083b48811a405ecdc54c88d"
+}

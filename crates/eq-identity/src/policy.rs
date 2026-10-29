@@ -336,6 +336,17 @@ fn field_error(pointer: &str, code: &str) -> FieldError {
     }
 }
 
+impl Default for Lockout {
+    fn default() -> Self {
+        Self {
+            max_failed: 5,
+            window_minutes: 15,
+            lock_minutes: 15,
+            notify_admins: true,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{IdentityPolicy, Lockout, RoleMap, TotpPolicy};
@@ -507,16 +518,5 @@ mod tests {
             parent = &mut parent[*segment];
         }
         parent[*last] = value;
-    }
-}
-
-impl Default for Lockout {
-    fn default() -> Self {
-        Self {
-            max_failed: 5,
-            window_minutes: 15,
-            lock_minutes: 15,
-            notify_admins: true,
-        }
     }
 }

@@ -8,6 +8,8 @@ repository.workspace = true
 [dependencies]
 anyhow.workspace = true
 argon2.workspace = true
+base64.workspace = true
+chrono.workspace = true
 eq-audit.workspace = true
 eq-core.workspace = true
 jsonwebtoken.workspace = true
@@ -17,7 +19,10 @@ secrecy.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sha2.workspace = true
+sqlx.workspace = true
 thiserror.workspace = true
+totp-rs.workspace = true
 uuid.workspace = true
 utoipa-axum.workspace = true
 zeroize.workspace = true
@@ -25,6 +30,9 @@ zeroize.workspace = true
 [dev-dependencies]
 celes.workspace = true
 chrono.workspace = true
+eq-testkit.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
 
 [lints]
 workspace = true

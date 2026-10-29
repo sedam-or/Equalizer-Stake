@@ -21,6 +21,10 @@ use tokio::task::JoinSet;
 use uuid::Uuid;
 
 #[path = "../../eq-testkit/src/db.rs"]
+#[expect(
+    clippy::panic,
+    reason = "the shared database fixture reports only redacted setup failures"
+)]
 mod shared_test_db;
 use shared_test_db::TestDb;
 

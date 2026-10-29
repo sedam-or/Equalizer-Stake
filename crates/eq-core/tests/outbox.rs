@@ -27,6 +27,10 @@ use uuid::Uuid;
     reason = "the shared TestDb helper exposes URLs for suites that construct extra pools"
 )]
 #[path = "../../eq-testkit/src/db.rs"]
+#[expect(
+    clippy::panic,
+    reason = "the shared database fixture reports only redacted setup failures"
+)]
 mod shared_test_db;
 
 use shared_test_db::TestDb;

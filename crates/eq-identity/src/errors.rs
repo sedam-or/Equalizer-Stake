@@ -6,6 +6,20 @@ use eq_core::error::ErrorCodeDef;
 pub mod codes {
     use super::ErrorCodeDef;
 
+    /// IDN-06/ERR-21: generic login failure that does not disclose whether an account exists.
+    pub static INVALID_CREDENTIALS: ErrorCodeDef = ErrorCodeDef {
+        code: "invalid_credentials",
+        status: 401,
+        title: "Invalid credentials",
+    };
+
+    /// IDN-12/ERR-21: an enrolled account needs a valid TOTP code to finish authentication.
+    pub static TOTP_REQUIRED: ErrorCodeDef = ErrorCodeDef {
+        code: "totp_required",
+        status: 401,
+        title: "TOTP required",
+    };
+
     /// IDN-02: new password is shorter than policy or in the common-password corpus.
     pub static PASSWORD_WEAK: ErrorCodeDef = ErrorCodeDef {
         code: "password_weak",
@@ -14,5 +28,5 @@ pub mod codes {
     };
 
     /// Registered application codes owned by Identity.
-    pub const CODES: &[&ErrorCodeDef] = &[&PASSWORD_WEAK];
+    pub const CODES: &[&ErrorCodeDef] = &[&INVALID_CREDENTIALS, &TOTP_REQUIRED, &PASSWORD_WEAK];
 }

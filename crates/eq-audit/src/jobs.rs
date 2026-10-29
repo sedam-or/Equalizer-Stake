@@ -1,7 +1,7 @@
 //! Tenant-scoped audit maintenance jobs (AUD-04..07, ARC-09).
 
-use crate::AuditPolicy;
 use crate::Sealer;
+use crate::policy::AuditPolicy;
 use crate::repo;
 use anyhow::anyhow;
 use chrono::{Months, TimeDelta};

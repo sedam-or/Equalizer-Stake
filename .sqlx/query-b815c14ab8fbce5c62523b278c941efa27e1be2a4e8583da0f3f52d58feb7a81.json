@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.refresh_sessions (id, tenant_id, person_id, family_id, token_hash, active_role, idle_expires_at, absolute_expires_at, user_agent, ip) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::text::inet)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Bytea",
+        "Text",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b815c14ab8fbce5c62523b278c941efa27e1be2a4e8583da0f3f52d58feb7a81"
+}

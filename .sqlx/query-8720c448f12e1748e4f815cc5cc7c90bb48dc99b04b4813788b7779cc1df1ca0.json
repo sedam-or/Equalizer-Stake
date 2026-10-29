@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.credentials SET failed_count = 0, failed_window_start = NULL, locked_until = NULL WHERE tenant_id = $1 AND person_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8720c448f12e1748e4f815cc5cc7c90bb48dc99b04b4813788b7779cc1df1ca0"
+}

@@ -1,0 +1,171 @@
+//! Identity-owned credential and refresh-session persistence (IDN-06/ERD-04).
+
+use crate::password::PasswordHash;
+use chrono::{DateTime, Utc};
+use eq_core::db::Tx;
+use eq_core::error::AppError;
+use eq_core::ids::{PersonId, TenantId};
+use eq_core::model::Role;
+use secrecy::SecretBox;
+use std::net::IpAddr;
+use uuid::Uuid;
+use zeroize::Zeroizing;
+
+/// SBD-50: credential data is intentionally not formatted or cloned.
+pub(crate) struct Credentials {
+    pub(crate) password_hash: Option<PasswordHash>,
+    pub(crate) password_changed_at: Option<DateTime<Utc>>,
+    pub(crate) totp_secret_enc: Option<SecretBox<Zeroizing<Vec<u8>>>>,
+    pub(crate) totp_enabled: bool,
+    pub(crate) failed_count: i32,
+    pub(crate) failed_window_start: Option<DateTime<Utc>>,
+    pub(crate) locked_until: Option<DateTime<Utc>>,
+}
+
+impl std::fmt::Debug for Credentials {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("Credentials")
+            .field("password_hash", &"[REDACTED]")
+            .field("password_changed_at", &self.password_changed_at)
+            .field("totp_secret_enc", &"[REDACTED]")
+            .field("totp_enabled", &self.totp_enabled)
+            .field("failed_count", &self.failed_count)
+            .field("failed_window_start", &self.failed_window_start)
+            .field("locked_until", &self.locked_until)
+            .finish()
+    }
+}
+
+/// STM-23: obtains and locks the tenant credential row before checking a password.
+pub(crate) async fn credentials_for_update(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+) -> Result<Option<Credentials>, AppError> {
+    let row = sqlx::query!(
+        "SELECT password_hash, password_changed_at, totp_secret_enc, totp_enabled, failed_count, failed_window_start, locked_until \
+         FROM public.credentials WHERE tenant_id = $1 AND person_id = $2 FOR UPDATE",
+        tenant.0,
+        person.0
+    )
+    .fetch_optional(tx.conn())
+    .await?;
+
+    row.map(|row| {
+        Ok(Credentials {
+            password_hash: row
+                .password_hash
+                .map(PasswordHash::try_from)
+                .transpose()
+                .map_err(|error| {
+                    AppError::Internal(anyhow::anyhow!("stored password hash is invalid: {error}"))
+                })?,
+            password_changed_at: row.password_changed_at,
+            totp_secret_enc: row
+                .totp_secret_enc
+                .map(|ciphertext| SecretBox::new(Box::new(Zeroizing::new(ciphertext)))),
+            totp_enabled: row.totp_enabled,
+            failed_count: row.failed_count,
+            failed_window_start: row.failed_window_start,
+            locked_until: row.locked_until,
+        })
+    })
+    .transpose()
+}
+
+/// STM-23: persists the counter and optional lock transition in the caller transaction.
+pub(crate) async fn set_failures(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    failed_count: i32,
+    failed_window_start: DateTime<Utc>,
+    locked_until: Option<DateTime<Utc>>,
+) -> Result<(), AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.credentials SET failed_count = $3, failed_window_start = $4, locked_until = $5 \
+         WHERE tenant_id = $1 AND person_id = $2",
+        tenant.0,
+        person.0,
+        failed_count,
+        failed_window_start,
+        locked_until
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() != 1 {
+        return Err(AppError::Internal(anyhow::anyhow!(
+            "locked identity credential row disappeared"
+        )));
+    }
+    Ok(())
+}
+
+/// STM-23: clears counters after a successful password and required TOTP check.
+pub(crate) async fn reset_failures(tx: &mut Tx, tenant: TenantId, person: PersonId) -> Result<(), AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.credentials SET failed_count = 0, failed_window_start = NULL, locked_until = NULL \
+         WHERE tenant_id = $1 AND person_id = $2",
+        tenant.0,
+        person.0
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() != 1 {
+        return Err(AppError::Internal(anyhow::anyhow!(
+            "locked identity credential row disappeared"
+        )));
+    }
+    Ok(())
+}
+
+/// IDN-04: stores only the SHA-256 digest of the opaque refresh token.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "these columns are the complete mapped refresh_sessions insert contract"
+)]
+pub(crate) async fn create_refresh_session(
+    tx: &mut Tx,
+    id: Uuid,
+    tenant: TenantId,
+    person: PersonId,
+    family_id: Uuid,
+    token_hash: Vec<u8>,
+    active_role: Role,
+    idle_expires_at: DateTime<Utc>,
+    absolute_expires_at: DateTime<Utc>,
+    user_agent: Option<&str>,
+    ip: Option<IpAddr>,
+) -> Result<(), AppError> {
+    let role = role_name(active_role);
+    let ip = ip.map(|address| address.to_string());
+    sqlx::query!(
+        "INSERT INTO public.refresh_sessions \
+         (id, tenant_id, person_id, family_id, token_hash, active_role, idle_expires_at, absolute_expires_at, user_agent, ip) \
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::text::inet)",
+        id,
+        tenant.0,
+        person.0,
+        family_id,
+        token_hash,
+        role,
+        idle_expires_at,
+        absolute_expires_at,
+        user_agent,
+        ip
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(())
+}
+
+fn role_name(role: Role) -> &'static str {
+    match role {
+        Role::Owner => "owner",
+        Role::Admin => "admin",
+        Role::Instructor => "instructor",
+        Role::Guardian => "guardian",
+        Role::Student => "student",
+    }
+}
