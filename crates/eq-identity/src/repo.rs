@@ -55,6 +55,8 @@ impl RefreshSessionIdentity {
 pub(crate) struct RefreshSession {
     id: Uuid,
     person_id: PersonId,
+    family_id: Uuid,
+    created_at: DateTime<Utc>,
     active_role: Role,
     idle_expires_at: DateTime<Utc>,
     absolute_expires_at: DateTime<Utc>,
@@ -68,6 +70,14 @@ impl RefreshSession {
 
     pub(crate) const fn person_id(&self) -> PersonId {
         self.person_id
+    }
+
+    pub(crate) const fn family_id(&self) -> Uuid {
+        self.family_id
+    }
+
+    pub(crate) const fn created_at(&self) -> DateTime<Utc> {
+        self.created_at
     }
 
     pub(crate) const fn active_role(&self) -> Role {
@@ -238,7 +248,7 @@ pub(crate) async fn refresh_session_for_update(
     token_hash: &[u8],
 ) -> Result<Option<RefreshSession>, AppError> {
     let row = sqlx::query!(
-        "SELECT id, person_id, active_role AS \"active_role: Role\", idle_expires_at, \
+        "SELECT id, person_id, family_id, created_at, active_role AS \"active_role: Role\", idle_expires_at, \
                 absolute_expires_at, revoked_at \
          FROM public.refresh_sessions \
          WHERE tenant_id = $1 AND token_hash = $2 FOR UPDATE",
@@ -250,11 +260,82 @@ pub(crate) async fn refresh_session_for_update(
     Ok(row.map(|row| RefreshSession {
         id: row.id,
         person_id: PersonId(row.person_id),
+        family_id: row.family_id,
+        created_at: row.created_at,
         active_role: row.active_role,
         idle_expires_at: row.idle_expires_at,
         absolute_expires_at: row.absolute_expires_at,
         revoked_at: row.revoked_at,
     }))
+}
+
+/// IDN-04/STM-22: detects whether a revoked row has a successor in its family.
+pub(crate) async fn refresh_family_has_successor(
+    tx: &mut Tx,
+    tenant: TenantId,
+    family_id: Uuid,
+    created_at: DateTime<Utc>,
+) -> Result<bool, AppError> {
+    let row = sqlx::query!(
+        "SELECT EXISTS (SELECT 1 FROM public.refresh_sessions \
+         WHERE tenant_id = $1 AND family_id = $2 AND created_at > $3) AS \"exists!\"",
+        tenant.0,
+        family_id,
+        created_at
+    )
+    .fetch_one(tx.conn())
+    .await?;
+    Ok(row.exists)
+}
+
+/// IDN-04/STM-22: marks the predecessor revoked when its successor is inserted.
+pub(crate) async fn revoke_refresh_session(
+    tx: &mut Tx,
+    tenant: TenantId,
+    session_id: Uuid,
+    token_hash: &[u8],
+    now: DateTime<Utc>,
+) -> Result<(), AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.refresh_sessions SET revoked_at = $4, last_used_at = $4 \
+         WHERE tenant_id = $1 AND id = $2 AND token_hash = $3 AND revoked_at IS NULL",
+        tenant.0,
+        session_id,
+        token_hash,
+        now
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() != 1 {
+        return Err(AppError::Internal(anyhow::anyhow!(
+            "active refresh session disappeared during rotation"
+        )));
+    }
+    Ok(())
+}
+
+/// IDN-04/STM-22: revokes every row in a replayed refresh-token family.
+pub(crate) async fn revoke_refresh_family(
+    tx: &mut Tx,
+    tenant: TenantId,
+    family_id: Uuid,
+    now: DateTime<Utc>,
+) -> Result<(), AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.refresh_sessions SET revoked_at = COALESCE(revoked_at, $3) \
+         WHERE tenant_id = $1 AND family_id = $2",
+        tenant.0,
+        family_id,
+        now
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() == 0 {
+        return Err(AppError::Internal(anyhow::anyhow!(
+            "refresh-token family disappeared during reuse handling"
+        )));
+    }
+    Ok(())
 }
 
 /// IDN-09: changes only the active role on the already-locked refresh-session row.

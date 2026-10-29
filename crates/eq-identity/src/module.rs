@@ -124,6 +124,7 @@ impl Module for IdentityModule {
     fn routes(&self) -> OpenApiRouter<AppState> {
         OpenApiRouter::new()
             .routes(utoipa_axum::routes!(crate::api_auth::login))
+            .routes(utoipa_axum::routes!(crate::api_auth::refresh))
             .routes(utoipa_axum::routes!(crate::api_auth::switch_role))
     }
 
@@ -360,6 +361,7 @@ mod tests {
     fn assert_empty_surfaces(module: &IdentityModule) {
         let (_, routes_openapi) = module.routes().split_for_parts();
         assert!(routes_openapi.paths.paths.contains_key("/api/v1/auth/login"));
+        assert!(routes_openapi.paths.paths.contains_key("/api/v1/auth/refresh"));
         assert!(
             routes_openapi
                 .paths

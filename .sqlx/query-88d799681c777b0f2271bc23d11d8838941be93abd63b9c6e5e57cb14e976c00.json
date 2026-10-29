@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.refresh_sessions SET revoked_at = $4, last_used_at = $4 WHERE tenant_id = $1 AND id = $2 AND token_hash = $3 AND revoked_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bytea",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "88d799681c777b0f2271bc23d11d8838941be93abd63b9c6e5e57cb14e976c00"
+}

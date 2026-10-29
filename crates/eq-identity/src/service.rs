@@ -326,6 +326,177 @@ impl<'a> LoginService<'a> {
     }
 }
 
+/// IDN-04: dependencies for rotating one cookie-authenticated refresh session.
+pub(crate) struct RefreshService<'a> {
+    directory: &'a dyn CoreIdentityDirectory,
+    keys: &'a Keys,
+    clock: &'a dyn Clock,
+}
+
+impl fmt::Debug for RefreshService<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RefreshService")
+            .field("directory", &"[core identity port]")
+            .field("keys", &"[REDACTED]")
+            .field("clock", &self.clock)
+            .finish()
+    }
+}
+
+impl<'a> RefreshService<'a> {
+    /// IDN-04/STM-22: builds a refresh service from the core identity port and process auth state.
+    pub(crate) const fn new(
+        directory: &'a dyn CoreIdentityDirectory,
+        keys: &'a Keys,
+        clock: &'a dyn Clock,
+    ) -> Self {
+        Self {
+            directory,
+            keys,
+            clock,
+        }
+    }
+
+    /// IDN-04/STM-22: rotates a session or atomically revokes and audits a replayed family.
+    pub(crate) async fn refresh(
+        &self,
+        tx: &mut Tx,
+        request: RefreshRequest<'_>,
+    ) -> Result<RefreshOutcome, AppError> {
+        let Some(session) = repo::refresh_session_for_update(tx, request.tenant, request.token_hash).await?
+        else {
+            return Ok(RefreshOutcome::Expired);
+        };
+        if session.person_id() != request.person {
+            return Ok(RefreshOutcome::Expired);
+        }
+
+        let now = self.clock.now();
+        if let Some(outcome) = revoked_refresh_outcome(tx, &request, &session, now).await? {
+            return Ok(outcome);
+        }
+        if refresh_session_expired(&session, now) {
+            return Ok(RefreshOutcome::Expired);
+        }
+
+        let roles = self
+            .active_membership_roles(tx, request.tenant, session.person_id())
+            .await?;
+        if !roles.contains(&session.active_role()) {
+            return Ok(RefreshOutcome::Expired);
+        }
+        let Some(password_version) = repo::password_version(tx, request.tenant, session.person_id()).await?
+        else {
+            return Ok(RefreshOutcome::Expired);
+        };
+
+        let new_token = new_refresh_token()?;
+        let new_session_id = Uuid::now_v7();
+        let idle_timeout = idle_timeout_for_role(request.policy, session.active_role());
+        let idle_expires_at = now
+            .checked_add_signed(Duration::minutes(i64::from(idle_timeout)))
+            .ok_or_else(|| {
+                AppError::Internal(anyhow::anyhow!("refresh idle expiry is outside timestamp range"))
+            })?;
+        let access_token = issue_access_token(
+            self.keys,
+            self.clock,
+            AccessTokenSubject::new(
+                session.person_id(),
+                request.tenant,
+                session.active_role(),
+                new_session_id,
+                password_version,
+            ),
+        )
+        .map_err(|error| AppError::Internal(anyhow::anyhow!("access token issuance failed: {error}")))?;
+
+        repo::revoke_refresh_session(tx, request.tenant, session.id(), request.token_hash, now).await?;
+        repo::create_refresh_session(
+            tx,
+            new_session_id,
+            request.tenant,
+            session.person_id(),
+            session.family_id(),
+            new_token.digest,
+            session.active_role(),
+            idle_expires_at,
+            session.absolute_expires_at(),
+            request.user_agent,
+            request.actor.ip,
+        )
+        .await?;
+
+        Ok(RefreshOutcome::Success(RefreshSuccess {
+            person: session.person_id(),
+            roles,
+            active_role: session.active_role(),
+            access_token,
+            refresh_token: new_token.token,
+            absolute_expires_at: session.absolute_expires_at(),
+        }))
+    }
+
+    async fn active_membership_roles(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        person: PersonId,
+    ) -> Result<Vec<Role>, AppError> {
+        let mut roles = Vec::with_capacity(5);
+        for role in [
+            Role::Owner,
+            Role::Admin,
+            Role::Instructor,
+            Role::Guardian,
+            Role::Student,
+        ] {
+            if self.directory.has_active_role(tx, tenant, person, role).await? {
+                roles.push(role);
+            }
+        }
+        Ok(roles)
+    }
+}
+
+fn idle_timeout_for_role(policy: &IdentityPolicy, role: Role) -> u16 {
+    let timeouts = policy.idle_timeout_minutes();
+    match role {
+        Role::Owner => timeouts.owner,
+        Role::Admin => timeouts.admin,
+        Role::Instructor => timeouts.instructor,
+        Role::Guardian => timeouts.guardian,
+        Role::Student => timeouts.student,
+    }
+}
+
+async fn audit_refresh_reuse(
+    tx: &mut Tx,
+    session: &repo::RefreshSession,
+    request_actor: &ActorCtx,
+) -> Result<(), AppError> {
+    let actor = ActorCtx {
+        person_id: Some(session.person_id()),
+        role: actor_role_for_audit(session.active_role()),
+        ip: request_actor.ip,
+        request_id: request_actor.request_id,
+    };
+    record(
+        tx,
+        AuditEvent {
+            action: "security.refresh_reuse",
+            category: Category::Security,
+            entity_type: "refresh_session",
+            entity_id: Some(session.id()),
+            before: None,
+            after: None,
+            actor: &actor,
+        },
+    )
+    .await
+}
+
 /// IDN-05/09: dependencies for switching one cookie-authenticated session's active role.
 pub(crate) struct RoleSwitchService<'a> {
     directory: &'a dyn CoreIdentityDirectory,
@@ -461,6 +632,79 @@ pub(crate) struct RoleSwitchRequest<'a> {
     token_hash: &'a [u8],
     target_role: Role,
     actor: &'a ActorCtx,
+}
+
+/// IDN-04: boundary values for one cookie-authenticated refresh request.
+pub(crate) struct RefreshRequest<'a> {
+    tenant: TenantId,
+    person: PersonId,
+    token_hash: &'a [u8],
+    policy: &'a IdentityPolicy,
+    actor: &'a ActorCtx,
+    user_agent: Option<&'a str>,
+}
+
+impl<'a> RefreshRequest<'a> {
+    pub(crate) const fn new(
+        tenant: TenantId,
+        person: PersonId,
+        token_hash: &'a [u8],
+        policy: &'a IdentityPolicy,
+        actor: &'a ActorCtx,
+        user_agent: Option<&'a str>,
+    ) -> Self {
+        Self {
+            tenant,
+            person,
+            token_hash,
+            policy,
+            actor,
+            user_agent,
+        }
+    }
+}
+
+impl fmt::Debug for RefreshRequest<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RefreshRequest")
+            .field("tenant", &"[REDACTED]")
+            .field("person", &"[REDACTED]")
+            .field("token_hash", &"[REDACTED]")
+            .field("policy", &"[tenant identity policy]")
+            .field("actor", &"[REDACTED]")
+            .field("user_agent", &"[REDACTED]")
+            .finish()
+    }
+}
+
+fn refresh_session_expired(session: &repo::RefreshSession, now: DateTime<Utc>) -> bool {
+    session.idle_expires_at() <= now || session.absolute_expires_at() <= now
+}
+
+async fn revoked_refresh_outcome(
+    tx: &mut Tx,
+    request: &RefreshRequest<'_>,
+    session: &repo::RefreshSession,
+    now: DateTime<Utc>,
+) -> Result<Option<RefreshOutcome>, AppError> {
+    if session.revoked_at().is_none() {
+        return Ok(None);
+    }
+    if repo::refresh_family_has_successor(tx, request.tenant, session.family_id(), session.created_at())
+        .await?
+    {
+        repo::revoke_refresh_family(tx, request.tenant, session.family_id(), now).await?;
+        audit_refresh_reuse(tx, session, request.actor).await?;
+        return Ok(Some(RefreshOutcome::Reused));
+    }
+    Ok(Some(RefreshOutcome::Expired))
+}
+
+pub(crate) enum RefreshOutcome {
+    Success(RefreshSuccess),
+    Reused,
+    Expired,
 }
 
 impl<'a> RoleSwitchRequest<'a> {
@@ -645,6 +889,56 @@ impl RefreshToken {
     /// IDN-04/SBD-50: returns the wire token to the HTTP cookie boundary.
     pub fn expose_secret(&self) -> &str {
         self.0.expose_secret()
+    }
+}
+
+/// IDN-03/04: a successful refresh with a rotated cookie and the original absolute expiry.
+pub(crate) struct RefreshSuccess {
+    person: PersonId,
+    roles: Vec<Role>,
+    active_role: Role,
+    access_token: AccessToken,
+    refresh_token: RefreshToken,
+    absolute_expires_at: DateTime<Utc>,
+}
+
+impl RefreshSuccess {
+    pub(crate) const fn person(&self) -> PersonId {
+        self.person
+    }
+
+    pub(crate) fn roles(&self) -> &[Role] {
+        &self.roles
+    }
+
+    pub(crate) const fn active_role(&self) -> Role {
+        self.active_role
+    }
+
+    pub(crate) const fn access_token(&self) -> &AccessToken {
+        &self.access_token
+    }
+
+    pub(crate) const fn refresh_token(&self) -> &RefreshToken {
+        &self.refresh_token
+    }
+
+    pub(crate) const fn absolute_expires_at(&self) -> DateTime<Utc> {
+        self.absolute_expires_at
+    }
+}
+
+impl fmt::Debug for RefreshSuccess {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RefreshSuccess")
+            .field("person", &"[REDACTED]")
+            .field("roles", &self.roles)
+            .field("active_role", &self.active_role)
+            .field("access_token", &"[REDACTED]")
+            .field("refresh_token", &"[REDACTED]")
+            .field("absolute_expires_at", &self.absolute_expires_at)
+            .finish()
     }
 }
 
@@ -872,8 +1166,11 @@ async fn audit_account_locked(
 
 #[cfg(test)]
 mod tests {
-    use super::{LoginRequest, LoginService, RoleSwitchRequest, audit_actor, totp_verify};
+    use super::{
+        LoginRequest, LoginService, RefreshSuccess, RefreshToken, RoleSwitchRequest, audit_actor, totp_verify,
+    };
     use crate::IdentityModule;
+    use crate::jwt::{AccessTokenSubject, issue_access_token};
     use crate::password::hash_password;
     use anyhow::Result;
     use chrono::{DateTime, Duration, TimeZone, Utc};
@@ -923,6 +1220,39 @@ mod tests {
         assert!(!debug.contains(&person.0.to_string()));
         assert!(!debug.contains(&tenant.0.to_string()));
         assert!(!debug.contains(&format!("{token_hash:?}")));
+    }
+
+    #[test]
+    fn refresh_success_debug_redacts_secrets() {
+        let person = PersonId(Uuid::nil());
+        let tenant = TenantId(Uuid::nil());
+        let session_id = Uuid::nil();
+        let clock = TestClock(
+            Utc.with_ymd_and_hms(FIXED_TEST_YEAR, 1, 2, 3, 4, 5)
+                .single()
+                .expect("fixed test timestamp is valid"),
+        );
+        let keys = Keys::derive(MASTER, None);
+        let access_token = issue_access_token(
+            &keys,
+            &clock,
+            AccessTokenSubject::new(person, tenant, Role::Admin, session_id, 0),
+        )
+        .expect("test access token issues");
+        let refresh_token = RefreshToken(secrecy::SecretString::from("test-secret-refresh-token"));
+        let success = RefreshSuccess {
+            person,
+            roles: vec![Role::Admin],
+            active_role: Role::Admin,
+            access_token,
+            refresh_token,
+            absolute_expires_at: clock.now() + Duration::days(1),
+        };
+        let access_secret = success.access_token.expose_secret().to_owned();
+        let debug = format!("{success:?}");
+
+        assert!(!debug.contains(&access_secret));
+        assert!(!debug.contains("test-secret-refresh-token"));
     }
 
     #[derive(Clone, Debug)]

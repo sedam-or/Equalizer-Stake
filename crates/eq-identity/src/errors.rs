@@ -13,6 +13,13 @@ pub mod codes {
         title: "Invalid credentials",
     };
 
+    /// IDN-04/STM-22: an unavailable, expired, revoked or replayed refresh session needs a new login.
+    pub static SESSION_EXPIRED: ErrorCodeDef = ErrorCodeDef {
+        code: "session_expired",
+        status: 401,
+        title: "Session expired",
+    };
+
     /// IDN-12/ERR-21: an enrolled account needs a valid TOTP code to finish authentication.
     pub static TOTP_REQUIRED: ErrorCodeDef = ErrorCodeDef {
         code: "totp_required",
@@ -28,5 +35,10 @@ pub mod codes {
     };
 
     /// Registered application codes owned by Identity.
-    pub const CODES: &[&ErrorCodeDef] = &[&INVALID_CREDENTIALS, &TOTP_REQUIRED, &PASSWORD_WEAK];
+    pub const CODES: &[&ErrorCodeDef] = &[
+        &INVALID_CREDENTIALS,
+        &SESSION_EXPIRED,
+        &TOTP_REQUIRED,
+        &PASSWORD_WEAK,
+    ];
 }

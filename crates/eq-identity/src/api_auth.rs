@@ -41,8 +41,8 @@ use uuid::Uuid;
 
 use crate::policy::IdentityPolicy;
 use crate::service::{
-    LoginRequest, LoginService, LoginSuccess, RoleSwitchRequest, RoleSwitchService, RoleSwitchSuccess,
-    refresh_token_digest,
+    LoginRequest, LoginService, LoginSuccess, RefreshOutcome, RefreshRequest, RefreshService, RefreshSuccess,
+    RoleSwitchRequest, RoleSwitchService, RoleSwitchSuccess, refresh_token_digest,
 };
 
 const ACCESS_TOKEN_TTL_SECONDS: u64 = 600; // IDN-03: technical access-token lifetime.
@@ -636,14 +636,115 @@ pub(crate) async fn switch_role(
     Ok(response)
 }
 
-/// IDN-05/ARC-04: rejects cross-site role-switch requests before the API tenant resolver can query PostgreSQL.
+/// IDN-04/05: rotates a cookie-authenticated refresh session and returns a new access token.
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/refresh",
+    responses(
+        (status = 200, description = "Refresh succeeded", body = LoginResponseSchema),
+        (status = 401, description = "Refresh session is missing, invalid, expired or replayed"),
+        (status = 403, description = "CSRF check failed")
+    ),
+    security(("refreshCookie" = [])),
+    tag = "identity"
+)]
+pub(crate) async fn refresh(
+    State(state): State<AppState>,
+    Extension(runtime): Extension<Arc<LoginHttpState>>,
+    eq_core::tenant::RequireTenant(tenant): eq_core::tenant::RequireTenant,
+    eq_core::tenant::RequestActor(request_actor): eq_core::tenant::RequestActor,
+    headers: HeaderMap,
+) -> Result<Response, AppError> {
+    let expected_origin = state.config.public_url.origin().ascii_serialization();
+    if !valid_csrf(&headers, &expected_origin) {
+        return Err(forbidden_request("CSRF validation failed"));
+    }
+    let refresh_token = parse_refresh_cookie(&headers).ok_or_else(session_expired_request)?;
+    let token_hash = refresh_token_digest(&refresh_token).ok_or_else(session_expired_request)?;
+
+    let identity = lookup_refresh_identity(&state, tenant.id, &request_actor, &token_hash).await?;
+    let actor = ActorCtx {
+        person_id: Some(identity.person_id()),
+        role: actor_role(identity.active_role()),
+        ip: request_actor.ip,
+        request_id: request_actor.request_id,
+    };
+    let mut tx = begin(&state.pool, tenant.id, &actor).await?;
+    let policies = match runtime.policy_store().await {
+        Ok(policies) => policies,
+        Err(error) => {
+            tx.rollback().await?;
+            return Err(error);
+        }
+    };
+    let policy = match policies.current::<IdentityPolicy>(&mut tx, tenant.id).await {
+        Ok(policy) => policy,
+        Err(error) => {
+            tx.rollback().await?;
+            return Err(error);
+        }
+    };
+    let user_agent = headers
+        .get(USER_AGENT)
+        .and_then(|value| value.to_str().ok())
+        .map(str::to_owned);
+    let service = RefreshService::new(state.auth.directory(), state.auth.keys(), state.clock.as_ref());
+    let outcome = match service
+        .refresh(
+            &mut tx,
+            RefreshRequest::new(
+                tenant.id,
+                identity.person_id(),
+                &token_hash,
+                &policy.doc,
+                &actor,
+                user_agent.as_deref(),
+            ),
+        )
+        .await
+    {
+        Ok(outcome) => outcome,
+        Err(error) => {
+            tx.rollback().await?;
+            return Err(error);
+        }
+    };
+    match outcome {
+        RefreshOutcome::Success(success) => {
+            let response =
+                match refresh_success_response(&state, &runtime, tenant.id, &mut tx, &success).await {
+                    Ok(response) => response,
+                    Err(error) => {
+                        tx.rollback().await?;
+                        return Err(error);
+                    }
+                };
+            tx.commit().await?;
+            Ok(response)
+        }
+        RefreshOutcome::Reused => {
+            tx.commit().await?;
+            Err(session_expired_request())
+        }
+        RefreshOutcome::Expired => {
+            tx.rollback().await?;
+            Err(session_expired_request())
+        }
+    }
+}
+
+/// IDN-05/ARC-04: rejects cross-site cookie-auth requests before tenant resolution can query PostgreSQL.
 pub async fn role_switch_csrf_guard(
     State(expected_origin): State<String>,
     request: Request,
     next: Next,
 ) -> Response {
+    let cookie_auth_path = matches!(
+        request.uri().path(),
+        "/api/v1/auth/switch-role" | "/api/v1/auth/refresh"
+    );
     if request.method() == Method::POST
-        && request.uri().path() == "/api/v1/auth/switch-role"
+        && cookie_auth_path
         && !valid_csrf(request.headers(), &expected_origin)
     {
         return forbidden_request("CSRF validation failed").into_response();
@@ -658,41 +759,130 @@ async fn role_switch_success_response(
     tx: &mut Tx,
     success: &RoleSwitchSuccess,
 ) -> Result<Response, AppError> {
-    let permissions = runtime
-        .permissions(tx, tenant, success.person(), success.active_role())
-        .await?;
+    authenticated_response(AuthenticatedResponse {
+        state,
+        runtime,
+        tenant,
+        tx,
+        person_id: success.person(),
+        roles: success.roles(),
+        active_role: success.active_role(),
+        access_token: success.access_token(),
+        needs_totp: None,
+    })
+    .await
+}
+
+async fn refresh_success_response(
+    state: &AppState,
+    runtime: &LoginHttpState,
+    tenant: TenantId,
+    tx: &mut Tx,
+    success: &RefreshSuccess,
+) -> Result<Response, AppError> {
+    let remaining = success
+        .absolute_expires_at()
+        .signed_duration_since(state.clock.now())
+        .num_seconds()
+        .max(0);
+    let max_age = u64::try_from(remaining).map_err(|error| AppError::Internal(anyhow::Error::new(error)))?;
+    let secure = !(state.config.public_url.scheme() == "http"
+        && state.config.public_url.host_str() == Some("localhost"));
+    let cookie = refresh_cookie(success.refresh_token().expose_secret(), max_age, secure);
+    let cookie =
+        HeaderValue::from_str(&cookie).map_err(|error| AppError::Internal(anyhow::Error::new(error)))?;
+    let mut response = authenticated_response(AuthenticatedResponse {
+        state,
+        runtime,
+        tenant,
+        tx,
+        person_id: success.person(),
+        roles: success.roles(),
+        active_role: success.active_role(),
+        access_token: success.access_token(),
+        needs_totp: None,
+    })
+    .await?;
+    response.headers_mut().append(SET_COOKIE, cookie);
+    Ok(response)
+}
+
+struct AuthenticatedResponse<'a> {
+    state: &'a AppState,
+    runtime: &'a LoginHttpState,
+    tenant: TenantId,
+    tx: &'a mut Tx,
+    person_id: PersonId,
+    roles: &'a [Role],
+    active_role: Role,
+    access_token: &'a crate::jwt::AccessToken,
+    needs_totp: Option<bool>,
+}
+
+async fn authenticated_response(input: AuthenticatedResponse<'_>) -> Result<Response, AppError> {
+    let AuthenticatedResponse {
+        state,
+        runtime,
+        tenant,
+        tx,
+        person_id,
+        roles,
+        active_role,
+        access_token,
+        needs_totp,
+    } = input;
+    let permissions = runtime.permissions(tx, tenant, person_id, active_role).await?;
     let include_pii = permissions.contains("identity.people.read_pii");
     let profile = state
         .auth
         .directory()
-        .login_profile(tx, tenant, success.person(), include_pii, state.auth.keyring())
+        .login_profile(tx, tenant, person_id, include_pii, state.auth.keyring())
         .await?
         .ok_or(AppError::NotFound { entity: "person" })?;
     let person = PersonMe {
-        id: success.person(),
+        id: person_id,
         display_name: profile.display_name,
         email: profile.email.map(|value| value.expose_secret().to_owned()),
         phone: profile.phone.map(|value| value.expose_secret().to_owned()),
         locale: profile.locale,
         avatar_url: None,
-        roles: success.roles().to_vec(),
-        active_role: success.active_role(),
+        roles: roles.to_vec(),
+        active_role,
         permissions: permissions.into_iter().collect(),
         linked_students: None,
     };
     let response_body = LoginResponse {
-        access_token: success.access_token(),
+        access_token,
         expires_in: ACCESS_TOKEN_TTL_SECONDS,
         person,
-        roles: success.roles().to_vec(),
-        active_role: success.active_role(),
-        needs_totp: None,
+        roles: roles.to_vec(),
+        active_role,
+        needs_totp,
     };
     let mut response = (StatusCode::OK, Json(response_body)).into_response();
     response
         .headers_mut()
         .insert(CACHE_CONTROL, HeaderValue::from_static("no-store"));
     Ok(response)
+}
+
+async fn lookup_refresh_identity(
+    state: &AppState,
+    tenant: TenantId,
+    request_actor: &ActorCtx,
+    token_hash: &[u8],
+) -> Result<crate::repo::RefreshSessionIdentity, AppError> {
+    let mut tx = begin(&state.pool, tenant, request_actor).await?;
+    match crate::repo::refresh_session_identity(&mut tx, tenant, token_hash).await? {
+        Some(identity) => {
+            tx.commit().await?;
+            Ok(identity)
+        }
+        None => {
+            tx.rollback().await?;
+            Err(session_expired_request())
+        }
+    }
 }
 
 fn valid_csrf(headers: &HeaderMap, expected_origin: &str) -> bool {
@@ -739,6 +929,12 @@ fn parse_refresh_cookie(headers: &HeaderMap) -> Option<SecretString> {
 fn unauthenticated_request() -> AppError {
     AppError::Unauthenticated {
         code: &eq_core::error::codes::UNAUTHENTICATED,
+    }
+}
+
+fn session_expired_request() -> AppError {
+    AppError::Unauthenticated {
+        code: &codes::SESSION_EXPIRED,
     }
 }
 
@@ -968,22 +1164,32 @@ mod tests {
                 "/api/v1/auth/switch-role",
                 axum::routing::post(|| async { StatusCode::NO_CONTENT }),
             )
+            .route(
+                "/api/v1/auth/refresh",
+                axum::routing::post(|| async { StatusCode::NO_CONTENT }),
+            )
             .layer(axum::middleware::from_fn(tenant_resolution_marker))
             .layer(axum::middleware::from_fn_with_state(
                 String::from("https://example.test"),
                 super::role_switch_csrf_guard,
             ));
-        let request = axum::http::Request::builder()
-            .method(Method::POST)
-            .uri("/api/v1/auth/switch-role")
-            .header(axum::http::header::ORIGIN, "https://attacker.example")
-            .header("x-eq-csrf", "1")
-            .body(axum::body::Body::empty())
-            .expect("fixed test request is valid");
-        let response = router.oneshot(request).await.expect("router accepts request");
+        for path in ["/api/v1/auth/switch-role", "/api/v1/auth/refresh"] {
+            let request = axum::http::Request::builder()
+                .method(Method::POST)
+                .uri(path)
+                .header(axum::http::header::ORIGIN, "https://attacker.example")
+                .header("x-eq-csrf", "1")
+                .body(axum::body::Body::empty())
+                .expect("fixed test request is valid");
+            let response = router
+                .clone()
+                .oneshot(request)
+                .await
+                .expect("router accepts request");
 
-        assert_eq!(response.status(), StatusCode::FORBIDDEN);
-        assert!(!response.headers().contains_key("x-test-tenant-resolved"));
+            assert_eq!(response.status(), StatusCode::FORBIDDEN);
+            assert!(!response.headers().contains_key("x-test-tenant-resolved"));
+        }
     }
 
     #[test]

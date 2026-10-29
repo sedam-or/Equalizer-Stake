@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, person_id, active_role AS \"active_role: Role\", idle_expires_at, absolute_expires_at, revoked_at FROM public.refresh_sessions WHERE tenant_id = $1 AND token_hash = $2 FOR UPDATE",
+  "query": "SELECT id, person_id, family_id, created_at, active_role AS \"active_role: Role\", idle_expires_at, absolute_expires_at, revoked_at FROM public.refresh_sessions WHERE tenant_id = $1 AND token_hash = $2 FOR UPDATE",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,28 @@
       },
       {
         "ordinal": 2,
+        "name": "family_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "family_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
         "name": "active_role: Role",
         "type_info": "Text",
         "origin": {
@@ -37,7 +59,7 @@
         }
       },
       {
-        "ordinal": 3,
+        "ordinal": 5,
         "name": "idle_expires_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -48,7 +70,7 @@
         }
       },
       {
-        "ordinal": 4,
+        "ordinal": 6,
         "name": "absolute_expires_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -59,7 +81,7 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 7,
         "name": "revoked_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -82,8 +104,10 @@
       false,
       false,
       false,
+      false,
+      false,
       true
     ]
   },
-  "hash": "8f1d9979bf3e8338c6221b43b38e008fecaa1c9b3bae8b19b3391a5b646b330f"
+  "hash": "122ced82915c1ead3e985d15e66c7e48852d65805f09e0a144f5b25829f1e87b"
 }

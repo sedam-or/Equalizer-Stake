@@ -64,6 +64,7 @@ impl EnabledModuleSet for AlwaysEnabled {
 struct Fixture {
     owner_pool: PgPool,
     router: axum::Router,
+    runtime: Arc<LoginHttpState>,
     tenant: TenantId,
     person: PersonId,
     policy: IdentityPolicy,
@@ -185,6 +186,46 @@ impl Fixture {
         Ok((status, headers, body))
     }
 
+    async fn post_refresh_http(
+        &self,
+        cookie: Option<&str>,
+        csrf: Option<&str>,
+        origin: Option<&str>,
+    ) -> Result<(StatusCode, axum::http::HeaderMap, Value)> {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
+        let address = listener.local_addr()?;
+        let router = self.router.clone();
+        let server = tokio::spawn(async move {
+            axum::serve(
+                listener,
+                router.into_make_service_with_connect_info::<SocketAddr>(),
+            )
+            .await
+        });
+        let client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()?;
+        let mut request = client.post(format!("http://{address}/api/v1/auth/refresh"));
+        if let Some(cookie) = cookie {
+            request = request.header(axum::http::header::COOKIE, cookie);
+        }
+        if let Some(csrf) = csrf {
+            request = request.header("x-eq-csrf", csrf);
+        }
+        if let Some(origin) = origin {
+            request = request.header(axum::http::header::ORIGIN, origin);
+        }
+        let response = request.send().await;
+        server.abort();
+        let _ = server.await;
+        let response = response?;
+        let status = response.status();
+        let headers = response.headers().clone();
+        let body = response.bytes().await.context("read refresh response")?;
+        let body = serde_json::from_slice(&body).context("decode refresh response JSON")?;
+        Ok((status, headers, body))
+    }
+
     async fn login_cookie(&self) -> Result<(String, Value)> {
         let (status, headers, body) = self.post(EMAIL, CORRECT_PASSWORD).await?;
         ensure!(status == StatusCode::OK, "test login must succeed");
@@ -214,6 +255,23 @@ impl Fixture {
             row.try_get("token_hash")?,
             row.try_get("active_role")?,
         ))
+    }
+
+    async fn refresh_family_snapshot(
+        &self,
+        family_id: Uuid,
+    ) -> Result<Vec<Option<chrono::DateTime<chrono::Utc>>>> {
+        let rows = sqlx::query(
+            "SELECT revoked_at FROM public.refresh_sessions \
+             WHERE tenant_id = $1 AND family_id = $2 ORDER BY created_at, id",
+        )
+        .bind(self.tenant.0)
+        .bind(family_id)
+        .fetch_all(&self.owner_pool)
+        .await?;
+        rows.into_iter()
+            .map(|row| row.try_get("revoked_at").context("read refresh revocation state"))
+            .collect()
     }
 }
 
@@ -281,7 +339,7 @@ async fn fixture_for_role_and_admin(
             eq_identity::api_auth::actor_auth_middleware,
         ))
         .layer(ModuleGate::new(ModuleId::Identity, enabled))
-        .layer(axum::Extension(runtime));
+        .layer(axum::Extension(Arc::clone(&runtime)));
     let tenant_ctx = TenantCtx::Resolved(Arc::new(eq_core::tenant::TenantInfo {
         id: tenant,
         slug: format!("auth-{}", tenant.0.simple()),
@@ -295,6 +353,7 @@ async fn fixture_for_role_and_admin(
     Ok(Fixture {
         owner_pool,
         router,
+        runtime,
         tenant,
         person,
         policy,
@@ -544,6 +603,99 @@ async fn switch_role_requires_csrf() -> Result<()> {
     .fetch_one(&fixture.owner_pool)
     .await?;
     assert_eq!(audit, 0);
+    Ok(())
+}
+
+#[tokio::test]
+async fn refresh_reuse_revokes_family() -> Result<()> {
+    let fixture = fixture().await?;
+    let (r1_cookie, _) = fixture.login_cookie().await?;
+    let (_, family_id, _, _) = fixture.refresh_session_snapshot().await?;
+
+    let (rotated_status, rotated_headers, rotated_body) = fixture
+        .post_refresh_http(Some(&r1_cookie), Some("1"), Some(&fixture.public_origin))
+        .await?;
+    assert_eq!(rotated_status, StatusCode::OK);
+    assert!(rotated_body["access_token"].as_str().is_some());
+    let r2_cookie = rotated_headers
+        .get(SET_COOKIE)
+        .context("refresh response must set the rotated eq_rt cookie")?
+        .to_str()?
+        .split(';')
+        .next()
+        .context("rotated refresh cookie must have a name and value")?
+        .to_owned();
+    assert_ne!(r1_cookie, r2_cookie);
+
+    let (reuse_status, _reuse_headers, reuse_body) = fixture
+        .post_refresh_http(Some(&r1_cookie), Some("1"), Some(&fixture.public_origin))
+        .await?;
+    assert_eq!(reuse_status, StatusCode::UNAUTHORIZED);
+    assert_eq!(reuse_body["code"], "session_expired");
+    assert_eq!(fixture.refresh_family_snapshot(family_id).await?.len(), 2);
+    assert!(
+        fixture
+            .refresh_family_snapshot(family_id)
+            .await?
+            .iter()
+            .all(Option::is_some)
+    );
+
+    let (successor_status, _successor_headers, successor_body) = fixture
+        .post_refresh_http(Some(&r2_cookie), Some("1"), Some(&fixture.public_origin))
+        .await?;
+    assert_eq!(successor_status, StatusCode::UNAUTHORIZED);
+    assert_eq!(successor_body["code"], "session_expired");
+
+    let audit = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND action = 'security.refresh_reuse'",
+    )
+    .bind(fixture.tenant.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit, 1);
+    Ok(())
+}
+
+#[tokio::test]
+async fn refresh_requires_csrf() -> Result<()> {
+    let fixture = fixture().await?;
+    let (cookie, _) = fixture.login_cookie().await?;
+    let before = fixture.refresh_session_snapshot().await?;
+
+    let (status, _headers, body) = fixture.post_refresh_http(Some(&cookie), None, None).await?;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(body["code"], "forbidden");
+    assert_eq!(before, fixture.refresh_session_snapshot().await?);
+    Ok(())
+}
+
+#[tokio::test]
+async fn password_change_invalidates_access() -> Result<()> {
+    let fixture = fixture().await?;
+    let (status, _headers, body) = fixture.post(EMAIL, CORRECT_PASSWORD).await?;
+    assert_eq!(status, StatusCode::OK);
+    let token = body["access_token"]
+        .as_str()
+        .context("login returns an access token")?;
+
+    let (before_status, _before_body) = fixture.get_protected_actor(token).await?;
+    assert_eq!(before_status, StatusCode::OK);
+    sqlx::query(
+        "UPDATE public.credentials SET password_changed_at = now() WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.person.0)
+    .execute(&fixture.owner_pool)
+    .await?;
+    fixture
+        .runtime
+        .invalidate_password_version(fixture.tenant, fixture.person)
+        .await;
+
+    let (after_status, after_body) = fixture.get_protected_actor(token).await?;
+    assert_eq!(after_status, StatusCode::UNAUTHORIZED);
+    assert_eq!(after_body["code"], "unauthenticated");
     Ok(())
 }
 

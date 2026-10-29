@@ -861,3 +861,27 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The current disk-hygiene instruction explicitly requires reuse of those fixed resources and permits one task-named database while forbidding additional containers, images, volumes and target directories.
 - **Changed:** `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md`, this decision register and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
+
+### TD-131 — Require Origin on refresh requests
+- **Question:** T-110b says Origin must match only when present, while the cookie-authenticated refresh contract requires both the CSRF header and configured Origin.
+- **Options:** Permit a missing Origin if `X-EQ-CSRF: 1` is present; or require the exact Origin and CSRF header.
+- **Decision:** Require `X-EQ-CSRF: 1` and an Origin equal to `RITMA_PUBLIC_URL`'s origin before refresh handling.
+- **Why:** `spec/25` §3.3 defines both controls for cookie-authenticated routes. This is the stricter spec reading and matches TD-119/TD-128.
+- **Changed:** T-110b and `crates/eq-identity/src/api_auth.rs`.
+- **Ratify:** Yes.
+
+### TD-132 — Correct T-110b's implementation file list
+- **Question:** T-110b lists only its API test and `migrations/0007_identity.sql`, but its in-scope refresh route requires implementation changes and T-110a already shipped that migration.
+- **Options:** Leave the file list stale and implement the route outside its declared Files; or list the existing Identity HTTP, service, repository, module and error-registry files, with no migration edit.
+- **Decision:** Update T-110b's Files table to name the implementation files and omit the already-shipped migration.
+- **Why:** The route and behavior are explicitly in Scope, the migration is present from T-110a, and the mapped DDL already contains the required columns (spec 06 §4.2; ERD §7).
+- **Changed:** T-110b Files table.
+- **Ratify:** Yes.
+
+### TD-133 — Use the specified refresh success response
+- **Question:** T-110b specifies refresh and rotation behavior but omits the successful response body shape.
+- **Options:** Invent a new refresh DTO; or use the existing Identity endpoint contract.
+- **Decision:** Return the same response shape as login, with a new access token and rotated `eq_rt` cookie.
+- **Why:** `spec/modules/identity.md` §2 explicitly defines `POST /auth/refresh` as returning the login response; no new public contract is needed.
+- **Changed:** T-110b Interfaces and `crates/eq-identity/src/api_auth.rs`.
+- **Ratify:** Yes.
