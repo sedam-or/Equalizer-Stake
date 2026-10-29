@@ -740,3 +740,53 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** `spec/modules/identity.md` §2 fixes the `PersonMe` wire contract, IDN-10/11 fix the derivation, and CA-30/ERD-02 require core-owned person reads through a port. SBD-10/ERD-04 prohibit returning PII without `read_pii`.
 - **Changed:** `crates/eq-core/src/auth/directory.rs`, `crates/eq-api/src/modules.rs`, `crates/eq-identity/src/api_auth.rs`, `crates/eq-identity/src/module.rs`, this task and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
+
+### TD-117 — Split Actor authentication and cookie role switching
+- **Question:** T-110a5 combines verified Actor extraction, permission caching, and a cookie-authenticated role-switch endpoint, which together are larger than CQ-101's approximately 400-line review guide.
+- **Options:** Keep both concerns in one task and exceed the review-size guide; or split Actor/permission work and role switching into two ordered child tasks, then retain T-110a5 as the aggregate verification task.
+- **Decision:** Create T-110a4a for verified Actor authentication and permission derivation, T-110a4b for role switching/CSRF, and keep T-110a5 as a draft aggregate until both are reviewed.
+- **Why:** CQ-101 directs larger concerns to be split before implementation, while preserving each original acceptance criterion and named test once.
+- **Changed:** T-110a5, the two child task files, and generated task index.
+- **Ratify:** Yes.
+
+### TD-118 — Register the already-specified identity write permission
+- **Question:** T-110a5 AC2 requires `identity.people.write`, but the task says not to add permission keys/grants and the shipped `IdentityModule` currently declares none.
+- **Options:** Leave the permission unregistered and make the acceptance criterion impossible; or register the existing spec key with its exact Admin grant and use IDN-11's owner fallback only when no active admin exists.
+- **Decision:** Register only the already-specified `identity.people.write` definition and its existing Admin grant; do not add any other permission.
+- **Why:** `spec/modules/identity.md` §3 and `spec/25` §6 already define the key and grant, and IDN-11 defines the conditional owner behavior. This adds no business permission or role grant beyond the spec.
+- **Changed:** `crates/eq-identity/src/module.rs`, T-110a4a and this decision register.
+- **Ratify:** Yes.
+
+### TD-119 — Require Origin on role-switch requests
+- **Question:** T-110a5's Security section said to match Origin only "where supplied", but cookie endpoints require a configured-origin match.
+- **Options:** Accept requests without Origin if their CSRF header matches; or reject missing/mismatched Origin along with a missing/invalid CSRF header.
+- **Decision:** Require `Origin` to equal `RITMA_PUBLIC_URL`'s origin and require `X-EQ-CSRF: 1`.
+- **Why:** `spec/25` §3.3 and `spec/23` CAN-34 define both controls; the stricter spec rule is mechanical and doesn't weaken security.
+- **Changed:** T-110a5 and T-110a4b.
+- **Ratify:** Yes.
+
+### TD-120 — Keep split-task dependencies in index order
+- **Question:** The task-index validator rejects a task that depends on a higher-sorting task ID, so T-110a5 cannot depend on child IDs T-110a5a/T-110a5b.
+- **Options:** Weaken or change the task-index DAG validation; or assign the children the free lower IDs immediately after their T-110a4 dependency.
+- **Decision:** Use T-110a4a for Actor authentication/permissions and T-110a4b for role switching, with T-110a5 as the aggregate task.
+- **Why:** `scripts/tasks-index.sh --check` is a required guard and task ordering compares IDs; choosing the available ordered suffixes preserves the dependency DAG without changing implementation scope.
+- **Changed:** T-110a4a, T-110a4b, T-110a5 and generated task index.
+- **Ratify:** Yes.
+
+### TD-121 — Keep extracted bearer tokens in secret-safe storage
+
+- **Question:** The Identity middleware receives the access token as header text, but using a plain `String` beyond parsing would retain authentication material without the secret wrapper required by SBD-50.
+- **Options:** Keep the parsed token as an ordinary string until verification; or wrap it immediately in `SecretString` and verify only through its explicit exposure API.
+- **Decision:** Return `SecretString` from the canonical Bearer parser, expose it only for the JWT verifier call, and test that formatting the wrapper omits a fake token.
+- **Why:** SBD-50 requires secret values to use secrecy types and redact Debug output; this preserves CAN-30's exact wire header without retaining a plain token string.
+- **Changed:** `crates/eq-identity/src/api_auth.rs`, `tasks/M1-core/T-110a4a-actor-auth-and-permissions.md`, and this decision register.
+- **Ratify:** Yes.
+
+### TD-122 — Keep split Actor task dependencies in index order
+
+- **Question:** T-110a4a exceeded CQ-101 and must become an aggregate depending on smaller ordered subtasks, but every dependency ID must sort lower than its dependent.
+- **Options:** Rename the existing lowercase aggregate and repoint its downstream tasks; or preserve it and use uppercase-suffix child IDs that sort before it.
+- **Decision:** Preserve T-110a4a as the draft aggregate and create T-110a4A, T-110a4B and T-110a4C, ordered A → B → C → aggregate.
+- **Why:** `scripts/tasks-index.sh` fixes `LC_ALL=C` and compares IDs bytewise; uppercase suffixes sort before the lowercase aggregate. This keeps the DAG guard unchanged and avoids renumbering T-110a4b and T-110a5.
+- **Changed:** the aggregate and split task files, the dependent T-110a5 task contract, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
