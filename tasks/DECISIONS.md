@@ -95,8 +95,10 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-098 | T-110a1 | `tasks/M1-core/T-110a1-identity-schema-and-policy.md` | The policy value and module implementation combined with the mapped schema would exceed CQ-101's review guide → keep T-110a1 to DDL/RoleMap, then split policy values and module integration into ordered tasks. |
 | TD-099 | T-110a1 | `tasks/M1-core/T-110a1-identity-schema-and-policy.md` | T-110a1 lists SBD-30 trigger T1 although its scope adds no endpoint → remove T1 and retain T3/T4 for S3 columns and tenant RLS. |
 | TD-100 | T-110a1 | `tasks/M1-core/T-110a1-identity-schema-and-policy.md` | The parent split/index included T-110a3–T-110a5 while their task files were not named by T-110a1 → include the successor contracts so the generated index and task files are committed atomically. |
+| TD-129 | T-110a | `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md` | The original DoD requires a `feat(identity)` commit while the post-split Scope owns aggregate verification only → use a signed `docs(identity): report login aggregate [T-110a]` commit because the task changes only its report, decision register and generated index. |
+| TD-130 | T-110a | `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md` | The Report says the disk rule prohibits all caches and databases, but the current policy permits reuse of the fixed Cargo target and existing PostgreSQL container → use those fixed resources and one disposable `ritma_test_T-110a` database, dropping the database after checks. |
 
-**Total mapped self-resolutions:** 90.
+**Total mapped self-resolutions:** 92.
 
 ## Detailed entries added in run 6
 
@@ -840,4 +842,22 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Add `role_switch_csrf_guard` in Identity and install it in `health::router` outside `tenant_guard`, while retaining the handler check as defense in depth.
 - **Why:** T-110a4a2, IDN-05 and `spec/25` §3.3 require invalid CSRF/Origin to fail before database access; `health::router` is the composition point that orders the middleware.
 - **Changed:** `crates/eq-identity/src/api_auth.rs`, `crates/eq-api/src/health.rs`, T-110a4a2, T-110a4b, this register and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-129 — Use a documentation commit for aggregate-only T-110a
+
+- **Question:** The original DoD asks for a `feat(identity)` implementation commit, while the split parent Scope now says to verify the completed parts and report their results only.
+- **Options:** Keep the feature commit type despite no product-code change; or use a documentation commit that matches the aggregate-only Scope.
+- **Decision:** Use `docs(identity): report login aggregate [T-110a]`.
+- **Why:** The parent Scope expressly excludes reimplementation and owns only final verification; the signed commit changes the report, this decision register and the generated index.
+- **Changed:** `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md`, this decision register and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-130 — Reuse fixed build and database resources for T-110a verification
+
+- **Question:** The old T-110a Report says the disk rule prohibits creating any Cargo target cache, database or container, while the current user policy allows the fixed shared target and one task database inside the existing PostgreSQL container.
+- **Options:** Leave all database-backed ACs Not run; or reuse `$HOME/.cache/ritma/target` and `ritma-db-1`, create one `ritma_test_T-110a` database, then drop it.
+- **Decision:** Use the existing target and container, create only `ritma_test_T-110a` for the aggregate checks, and drop it after the tests.
+- **Why:** The current disk-hygiene instruction explicitly requires reuse of those fixed resources and permits one task-named database while forbidding additional containers, images, volumes and target directories.
+- **Changed:** `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md`, this decision register and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
