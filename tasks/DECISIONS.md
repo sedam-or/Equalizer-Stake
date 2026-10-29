@@ -644,3 +644,39 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** POL-06 and the task Scope/AC require the existing policy contract to be exposed, and this choice adds no migration, field or business value.
 - **Changed:** `tasks/M1-core/T-110a1c-identity-policy-module.md` and this register.
 - **Ratify:** Yes.
+
+### TD-106 — Match password/JWT security triggers to scope
+
+- **Question:** T-110a2 lists T1/T3 although it adds no endpoint and implements S3 authentication material.
+- **Options:** Keep the broader trigger list; or apply the SBD-30 trigger definitions to the actual scope.
+- **Decision:** Mark T3 and T4 only.
+- **Why:** SBD-30 assigns T3 to S2/S3 fields and T4 to authentication, sessions, tokens and crypto; T1 is for endpoint changes.
+- **Changed:** `tasks/M1-core/T-110a2-password-and-jwt-primitives.md` and this register.
+- **Ratify:** Yes.
+
+### TD-107 — Register `password_weak` as an Identity application code
+
+- **Question:** T-110a2 requires a registered `password_weak` validation error, but ERR-31's shared field-code set is closed and excludes this code; the task's Files table omits the module error registry.
+- **Options:** Add `password_weak` to the shared field-error set; or register it as the Identity-owned 422 application code named in the identity endpoint contract.
+- **Decision:** Create the Identity `ErrorCodeDef` in `crates/eq-identity/src/errors.rs` and keep `password_weak` out of the shared ERR-31 field-code set.
+- **Why:** ERR-21 requires owning crates to register their application codes, ERR-31 keeps the shared field codes closed, and the identity endpoint contract names `password_weak` as a 422 response.
+- **Changed:** `tasks/M1-core/T-110a2-password-and-jwt-primitives.md`, `crates/eq-identity/src/errors.rs`, `crates/eq-identity/src/lib.rs` and this register.
+- **Ratify:** Yes.
+
+### TD-108 — Keep access tokens and password hashes in redacted wrappers
+
+- **Question:** T-110a2 does not define the return types for issued access tokens or stored password hashes, both of which carry credential material.
+- **Options:** Return plain strings; or wrap the values in secrecy-backed types with a redacted Debug implementation.
+- **Decision:** Use private secrecy-backed wrappers with handwritten redacting Debug and no Clone/Serialize/plain Debug derives.
+- **Why:** SBD-50 requires secret-bearing values to use secrecy types and forbids Clone, Serialize and derived/plain Debug.
+- **Changed:** `tasks/M1-core/T-110a2-password-and-jwt-primitives.md`, `crates/eq-identity/src/password.rs`, `crates/eq-identity/src/jwt.rs` and this register.
+- **Ratify:** Yes.
+
+### TD-109 — Preserve AC1's common-password rejection
+
+- **Question:** T-110a2 AC1 requires `password123` to be rejected at policy minimum 10, but the selected SecLists 10k source snapshot does not contain that entry.
+- **Options:** Ignore the named AC and accept the password because it is absent from the source; or preserve the upstream list and add the one AC-named password as a supplement.
+- **Decision:** Add `password123` as the only documented supplement in the bundled list.
+- **Why:** The task explicitly classifies this value as common and requires the existing `common_rejected` test; a narrow supplement is stricter than the source snapshot and adds no composition rule.
+- **Changed:** `crates/eq-identity/data/common-passwords.txt`, `tasks/M1-core/T-110a2-password-and-jwt-primitives.md` and this register.
+- **Ratify:** Yes.
