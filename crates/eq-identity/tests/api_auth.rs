@@ -67,6 +67,7 @@ struct Fixture {
     tenant: TenantId,
     person: PersonId,
     policy: IdentityPolicy,
+    public_origin: String,
 }
 
 impl Fixture {
@@ -140,10 +141,87 @@ impl Fixture {
         let body = serde_json::from_slice(&body).context("decode protected Actor response JSON")?;
         Ok((status, body))
     }
+
+    async fn post_switch_role_http(
+        &self,
+        cookie: Option<&str>,
+        csrf: Option<&str>,
+        origin: Option<&str>,
+        role: &str,
+    ) -> Result<(StatusCode, axum::http::HeaderMap, Value)> {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
+        let address = listener.local_addr()?;
+        let router = self.router.clone();
+        let server = tokio::spawn(async move {
+            axum::serve(
+                listener,
+                router.into_make_service_with_connect_info::<SocketAddr>(),
+            )
+            .await
+        });
+        let client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()?;
+        let mut request = client
+            .post(format!("http://{address}/api/v1/auth/switch-role"))
+            .json(&json!({"role": role}));
+        if let Some(cookie) = cookie {
+            request = request.header(axum::http::header::COOKIE, cookie);
+        }
+        if let Some(csrf) = csrf {
+            request = request.header("x-eq-csrf", csrf);
+        }
+        if let Some(origin) = origin {
+            request = request.header(axum::http::header::ORIGIN, origin);
+        }
+        let response = request.send().await;
+        server.abort();
+        let _ = server.await;
+        let response = response?;
+        let status = response.status();
+        let headers = response.headers().clone();
+        let body = response.bytes().await.context("read role-switch response")?;
+        let body = serde_json::from_slice(&body).context("decode role-switch response JSON")?;
+        Ok((status, headers, body))
+    }
+
+    async fn login_cookie(&self) -> Result<(String, Value)> {
+        let (status, headers, body) = self.post(EMAIL, CORRECT_PASSWORD).await?;
+        ensure!(status == StatusCode::OK, "test login must succeed");
+        let set_cookie = headers
+            .get(SET_COOKIE)
+            .context("login response must set eq_rt")?
+            .to_str()?;
+        let cookie = set_cookie
+            .split(';')
+            .next()
+            .context("refresh cookie must have a name and value")?;
+        Ok((cookie.to_owned(), body))
+    }
+
+    async fn refresh_session_snapshot(&self) -> Result<(Uuid, Uuid, Vec<u8>, String)> {
+        let row = sqlx::query(
+            "SELECT id, family_id, token_hash, active_role FROM public.refresh_sessions \
+             WHERE tenant_id = $1 AND person_id = $2",
+        )
+        .bind(self.tenant.0)
+        .bind(self.person.0)
+        .fetch_one(&self.owner_pool)
+        .await?;
+        Ok((
+            row.try_get("id")?,
+            row.try_get("family_id")?,
+            row.try_get("token_hash")?,
+            row.try_get("active_role")?,
+        ))
+    }
 }
 
 async fn protected_actor(actor: eq_core::auth::Actor) -> axum::Json<Value> {
-    axum::Json(json!({"has_write": actor.has("identity.people.write")}))
+    axum::Json(json!({
+        "active_role": actor.role(),
+        "has_write": actor.has("identity.people.write")
+    }))
 }
 
 async fn fixture() -> Result<Fixture> {
@@ -160,6 +238,7 @@ async fn fixture_for_role_and_admin(
     admin_present: bool,
 ) -> Result<Fixture> {
     let config = Arc::new(Config::from_env().context("load T-110a4 test configuration")?);
+    let public_origin = config.public_url.origin().ascii_serialization();
     let task_database = task_database(config.as_ref());
     ensure!(
         task_database.starts_with("ritma_test_"),
@@ -219,6 +298,7 @@ async fn fixture_for_role_and_admin(
         tenant,
         person,
         policy,
+        public_origin,
     })
 }
 
@@ -380,6 +460,205 @@ async fn login_success() -> Result<()> {
     .fetch_one(&fixture.owner_pool)
     .await?;
     assert_eq!(audit, 1);
+    Ok(())
+}
+
+#[tokio::test]
+async fn switch_role() -> Result<()> {
+    let fixture = fixture_for_role_and_admin(Role::Guardian, false, true).await?;
+    let (cookie, login_body) = fixture.login_cookie().await?;
+    assert_eq!(login_body["active_role"], "admin");
+
+    let (missing_status, _missing_headers, missing_body) = fixture
+        .post_switch_role_http(None, Some("1"), Some(&fixture.public_origin), "guardian")
+        .await?;
+    assert_eq!(missing_status, StatusCode::UNAUTHORIZED);
+    assert_eq!(missing_body["code"], "unauthenticated");
+
+    let (malformed_status, _malformed_headers, malformed_body) = fixture
+        .post_switch_role_http(
+            Some("eq_rt=test-secret-invalid-cookie"),
+            Some("1"),
+            Some(&fixture.public_origin),
+            "guardian",
+        )
+        .await?;
+    assert_eq!(malformed_status, StatusCode::UNAUTHORIZED);
+    assert_eq!(malformed_body["code"], "unauthenticated");
+
+    let (status, headers, body) = fixture
+        .post_switch_role_http(Some(&cookie), Some("1"), Some(&fixture.public_origin), "guardian")
+        .await?;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["active_role"], "guardian");
+    assert_eq!(body["person"]["active_role"], "guardian");
+    assert_eq!(body["person"]["roles"], json!(["admin", "guardian"]));
+    assert_eq!(body["roles"], json!(["admin", "guardian"]));
+    assert_ne!(body["access_token"], login_body["access_token"]);
+    assert!(!headers.contains_key(SET_COOKIE));
+    let permissions = body["person"]["permissions"]
+        .as_array()
+        .context("role-switch response must contain guardian permissions")?;
+    assert!(
+        !permissions
+            .iter()
+            .any(|permission| permission == "identity.people.write")
+    );
+
+    let access_token = body["access_token"]
+        .as_str()
+        .context("role-switch response must contain an access token")?;
+    let (actor_status, actor_body) = fixture.get_protected_actor(access_token).await?;
+    assert_eq!(actor_status, StatusCode::OK);
+    assert_eq!(actor_body["active_role"], "guardian");
+    assert_eq!(actor_body["has_write"], false);
+    Ok(())
+}
+
+#[tokio::test]
+async fn switch_role_requires_csrf() -> Result<()> {
+    let fixture = fixture_for_role_and_admin(Role::Guardian, false, true).await?;
+    let (cookie, _) = fixture.login_cookie().await?;
+    let before = fixture.refresh_session_snapshot().await?;
+    let invalid_headers = [
+        (None, Some(fixture.public_origin.as_str())),
+        (Some("0"), Some(fixture.public_origin.as_str())),
+        (Some("1"), None),
+        (Some("1"), Some("https://attacker.example")),
+    ];
+
+    for (csrf, origin) in invalid_headers {
+        let (status, _headers, body) = fixture
+            .post_switch_role_http(Some(&cookie), csrf, origin, "guardian")
+            .await?;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        assert_eq!(body["code"], "forbidden");
+    }
+
+    let after = fixture.refresh_session_snapshot().await?;
+    assert_eq!(before, after);
+    let audit = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND action = 'security.role_switched'",
+    )
+    .bind(fixture.tenant.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit, 0);
+    Ok(())
+}
+
+#[tokio::test]
+async fn switch_role_rejects_inactive_role() -> Result<()> {
+    let fixture = fixture().await?;
+    let (cookie, _) = fixture.login_cookie().await?;
+    let before = fixture.refresh_session_snapshot().await?;
+
+    let (status, _headers, body) = fixture
+        .post_switch_role_http(Some(&cookie), Some("1"), Some(&fixture.public_origin), "guardian")
+        .await?;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(body["code"], "forbidden");
+    assert_eq!(before, fixture.refresh_session_snapshot().await?);
+
+    let audit = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND action = 'security.role_switched'",
+    )
+    .bind(fixture.tenant.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit, 0);
+    Ok(())
+}
+
+#[tokio::test]
+async fn switch_role_rejects_expired_session() -> Result<()> {
+    let fixture = fixture_for_role_and_admin(Role::Guardian, false, true).await?;
+    let (cookie, _) = fixture.login_cookie().await?;
+    let before = fixture.refresh_session_snapshot().await?;
+    sqlx::query(
+        "UPDATE public.refresh_sessions SET idle_expires_at = clock_timestamp() - interval '1 second' \
+         WHERE tenant_id = $1 AND id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(before.0)
+    .execute(&fixture.owner_pool)
+    .await?;
+
+    let (status, _headers, body) = fixture
+        .post_switch_role_http(Some(&cookie), Some("1"), Some(&fixture.public_origin), "guardian")
+        .await?;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(body["code"], "unauthenticated");
+    assert_eq!(before, fixture.refresh_session_snapshot().await?);
+
+    let audit = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND action = 'security.role_switched'",
+    )
+    .bind(fixture.tenant.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit, 0);
+    Ok(())
+}
+
+#[tokio::test]
+async fn switch_role_rejects_revoked_session() -> Result<()> {
+    let fixture = fixture_for_role_and_admin(Role::Guardian, false, true).await?;
+    let (cookie, _) = fixture.login_cookie().await?;
+    let before = fixture.refresh_session_snapshot().await?;
+    sqlx::query(
+        "UPDATE public.refresh_sessions SET revoked_at = clock_timestamp() \
+         WHERE tenant_id = $1 AND id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(before.0)
+    .execute(&fixture.owner_pool)
+    .await?;
+
+    let (status, _headers, body) = fixture
+        .post_switch_role_http(Some(&cookie), Some("1"), Some(&fixture.public_origin), "guardian")
+        .await?;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert_eq!(body["code"], "unauthenticated");
+    assert_eq!(before, fixture.refresh_session_snapshot().await?);
+
+    let audit = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND action = 'security.role_switched'",
+    )
+    .bind(fixture.tenant.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit, 0);
+    Ok(())
+}
+
+#[tokio::test]
+async fn switch_role_keeps_refresh_family() -> Result<()> {
+    let fixture = fixture_for_role_and_admin(Role::Guardian, false, true).await?;
+    let (cookie, _) = fixture.login_cookie().await?;
+    let before = fixture.refresh_session_snapshot().await?;
+
+    let (status, headers, body) = fixture
+        .post_switch_role_http(Some(&cookie), Some("1"), Some(&fixture.public_origin), "guardian")
+        .await?;
+    assert_eq!(status, StatusCode::OK);
+    assert!(!headers.contains_key(SET_COOKIE));
+    let after = fixture.refresh_session_snapshot().await?;
+    assert_eq!(before.0, after.0);
+    assert_eq!(before.1, after.1);
+    assert_eq!(before.2, after.2);
+    assert_eq!(after.3, "guardian");
+
+    let audit = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND entity_id = $2 \
+         AND action = 'security.role_switched' AND category = 'security'",
+    )
+    .bind(fixture.tenant.0)
+    .bind(before.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit, 1);
+    assert_eq!(body["active_role"], "guardian");
     Ok(())
 }
 
