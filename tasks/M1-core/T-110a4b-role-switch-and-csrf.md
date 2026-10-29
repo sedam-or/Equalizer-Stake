@@ -2,8 +2,8 @@
 id: T-110a4b
 title: Add cookie role switching and CSRF checks
 milestone: M1
-status: todo
-depends_on: [T-110a4a]
+status: draft
+depends_on: [T-110a4a3]
 spec_refs: [IDN-05, IDN-09, IDN-10, AUTH-03, CAN-30, CAN-34, STM-22, SBD-40, SBD-53]
 estimated_size: M
 ---
@@ -26,10 +26,11 @@ IDN-09 allows switching only to an active membership role and requires the new t
 ## Files
 | Path | Action | Purpose |
 |---|---|---|
+| `crates/eq-identity/src/module.rs` | modify | Register the role-switch route in the Identity module and retain its route-surface assertion. |
 | `crates/eq-identity/src/api_auth.rs`, `crates/eq-identity/src/service.rs`, `crates/eq-identity/src/repo.rs`, `crates/eq-identity/src/jwt.rs` | modify | Cookie auth, role-switch transaction/repository, token issue and response. |
 | `crates/eq-identity/tests/api_auth.rs` | modify | Role-switch, CSRF and inactive-role acceptance/abuse tests. |
 | `.sqlx/` | modify | Generated metadata for changed SQL macros. |
-| `tasks/M1-core/T-110a4b-role-switch-and-csrf.md`, `tasks/M1-core/T-110a5-actor-permissions-and-role-switch.md`, `tasks/DECISIONS.md`, `tasks/INDEX.md` | modify/generate | Task report, aggregate status and recorded decisions. |
+| `tasks/M1-core/T-110a4b-role-switch-and-csrf.md`, `tasks/DECISIONS.md`, `tasks/INDEX.md` | modify/generate | Aggregate report, split decision and generated status index. |
 
 ## Interfaces
 - `POST /api/v1/auth/switch-role` accepts a JSON object containing exactly the canonical `Role` and returns the existing login-response body shape.
@@ -72,15 +73,26 @@ IDN-09 allows switching only to an active membership role and requires the new t
 - [ ] `cargo fmt --all --check`, focused Clippy, task lint/index and required guard scripts pass.
 - [ ] No new schema, permission grant, event or error code; audit is transaction-bound.
 - [ ] Report includes Workflow steps 0–12, resource snapshots, and exact database/test pass count.
-- [ ] Signed commit `feat(identity): add role switching endpoint [T-110a4b]` pushed to `dev`.
+- [ ] Signed task-report commit `docs(identity): report role-switch aggregate [T-110a4b]` pushed to `dev` after all split parts are reviewed.
+
+## Split
+The implementation diff exceeded CQ-101's approximately 400-line review guide. It is split into three ordered parts so each commit has one small responsibility:
+
+1. `T-110a4a1` owns the refresh-session repository and role-switch service transaction.
+2. `T-110a4a2` owns cookie parsing, CSRF/Origin checks, the HTTP handler, and route registration.
+3. `T-110a4a3` owns the four named localhost HTTP integration tests.
+
+This aggregate remains `draft` until all three parts reach `review`; then it can be promoted and its report will summarize the combined acceptance results.
 
 ## Report
-**Plan** — (1) Validate CSRF header and Origin before reading cookie/session data → verify missing, wrong and cross-origin requests fail. (2) Add cookie digest/session lock and active-role validation in the Identity service/repository → verify invalid role does not mutate state. (3) Update the existing session role, audit in the same transaction and issue new token → verify refresh family is unchanged. (4) Return login response shape and exercise the endpoint over real HTTP on a fresh task database → verify `switch_role` and abuse cases. (5) Run focused Rust, SQLx, guard and secret checks.
-**Assumptions** — The caller's refresh cookie remains the same credential after role change; the endpoint returns the same response body contract as login. Existing `unauthenticated` and `forbidden` codes cover the required errors.
-**Test plan** — AC1: admin+guardian session switches to guardian; access token and permission list shrink and family id/token hash remain constant → `switch_role`, `switch_role_keeps_refresh_family`. AC2: CSRF missing/wrong and Origin missing/mismatched → `switch_role_requires_csrf`. AC3: inactive role attempt returns forbidden without state change → `switch_role_rejects_inactive_role`. Edge cases: malformed cookie, expired/revoked session, malformed/unknown role. No schema or event is added.
+**Plan** — (1) Add the route and request type in `api_auth.rs`, validate `X-EQ-CSRF` and the configured Origin before cookie or database work → verify all CSRF failures return `forbidden`. (2) Parse the single canonical `eq_rt` token into a redacted `SecretString` and hash its decoded 32 bytes → verify malformed, missing and unknown cookies return `unauthenticated` without exposing the token. (3) Use a tenant-scoped read to resolve the session person, then begin the actor-scoped mutation transaction and lock/revalidate that same session → verify expiry, revocation and active membership fail closed. (4) Update only `active_role`, issue a role-bound access token, and record `security.role_switched` with `eq_audit::record` in the same transaction → verify the same row, family and token digest remain. (5) Build the existing login response shape and exercise success and rejection paths over localhost HTTP against a fresh named PostgreSQL database → verify the exact test cases. (6) Run focused Rust, SQLx, task, guard and secret checks; inspect diff and report resource snapshots.
+**Assumptions** — The preliminary session lookup is read-only and only supplies the person id needed to begin the final transaction with the correct audit actor; the final transaction locks and revalidates the session before any write. The existing `unauthenticated` and `forbidden` codes cover the specified failures. The already-shipped `has_active_role` identity port will be used to enumerate the five spec-defined roles in IDN-09 order for the response, avoiding cross-module SQL or a new port.
+**Test plan** — AC1: given active admin and guardian memberships, when the existing cookie switches to guardian, then response token/permissions and `active_role` are guardian-only while row id, family id and token hash remain constant → `switch_role`, `switch_role_keeps_refresh_family`. AC2: given a missing/wrong header or absent/mismatched Origin, when switching is requested, then it returns 403 `forbidden` before database mutation → `switch_role_requires_csrf`. AC3: given an inactive/nonmember target role, when switching is requested, then it returns 403 and leaves session state unchanged → `switch_role_rejects_inactive_role`. Edge/error cases: missing, duplicate, malformed or unknown cookie; expired/revoked session; malformed or unknown role; permission snapshot remains limited to the selected role. No schema, permission, event or error-code addition.
 
 ## Questions
-None.
+- **Self-resolved (implementer, run 10, needs architect ratification; TD-125):** the task requires a new Identity HTTP route but omits `crates/eq-identity/src/module.rs` from `## Files` → add that route registry file because the handler would otherwise be unreachable; registering the requested route is required by the task's Scope and does not broaden it.
+- **Self-resolved (implementer, run 10, needs architect ratification; TD-126):** SBD-40 generically requires `actor.require(perm)` for non-public handlers, but no self-role-switch permission is specified and this endpoint has cookie authentication before an Actor exists → authorize with a valid refresh session and the requested active membership, because IDN-05/IDN-09 and `spec/25` §4.4 define those controls and adding an unrelated permission would change the contract.
+- **Self-resolved (implementer, run 11, needs architect ratification; TD-127):** the role-switch implementation exceeded CQ-101's approximately 400-line review guide → split it into ordered service/persistence, HTTP boundary, and HTTP-test tasks while preserving the original aggregate contract and all four named tests.
 
 ## Review
-n/a — pending implementation.
+Pending the three split parts listed under `## Split`; this aggregate is intentionally draft until their Reports are complete.

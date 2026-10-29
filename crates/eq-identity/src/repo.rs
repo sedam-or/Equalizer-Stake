@@ -37,6 +37,80 @@ impl std::fmt::Debug for Credentials {
     }
 }
 
+pub(crate) struct RefreshSessionIdentity {
+    person_id: PersonId,
+    active_role: Role,
+}
+
+impl RefreshSessionIdentity {
+    pub(crate) const fn person_id(&self) -> PersonId {
+        self.person_id
+    }
+
+    pub(crate) const fn active_role(&self) -> Role {
+        self.active_role
+    }
+}
+
+pub(crate) struct RefreshSession {
+    id: Uuid,
+    person_id: PersonId,
+    active_role: Role,
+    idle_expires_at: DateTime<Utc>,
+    absolute_expires_at: DateTime<Utc>,
+    revoked_at: Option<DateTime<Utc>>,
+}
+
+impl RefreshSession {
+    pub(crate) const fn id(&self) -> Uuid {
+        self.id
+    }
+
+    pub(crate) const fn person_id(&self) -> PersonId {
+        self.person_id
+    }
+
+    pub(crate) const fn active_role(&self) -> Role {
+        self.active_role
+    }
+
+    pub(crate) const fn idle_expires_at(&self) -> DateTime<Utc> {
+        self.idle_expires_at
+    }
+
+    pub(crate) const fn absolute_expires_at(&self) -> DateTime<Utc> {
+        self.absolute_expires_at
+    }
+
+    pub(crate) const fn revoked_at(&self) -> Option<DateTime<Utc>> {
+        self.revoked_at
+    }
+}
+
+impl std::fmt::Debug for RefreshSessionIdentity {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("RefreshSessionIdentity")
+            .field("person_id", &"[REDACTED]")
+            .field("active_role", &self.active_role)
+            .finish()
+    }
+}
+
+impl std::fmt::Debug for RefreshSession {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("RefreshSession")
+            .field("id", &"[REDACTED]")
+            .field("person_id", &"[REDACTED]")
+            .field("active_role", &self.active_role)
+            .field("idle_expires_at", &self.idle_expires_at)
+            .field("absolute_expires_at", &self.absolute_expires_at)
+            .field("revoked_at", &self.revoked_at)
+            .finish()
+    }
+}
+
 /// STM-23: obtains and locks the tenant credential row before checking a password.
 pub(crate) async fn credentials_for_update(
     tx: &mut Tx,
@@ -135,6 +209,79 @@ pub(crate) async fn password_version(
     .fetch_optional(tx.conn())
     .await?;
     Ok(row.map(|credentials| credentials.version))
+}
+
+/// IDN-04/ERD-04: resolves the person behind a canonical refresh digest before actor-scoped work.
+pub(crate) async fn refresh_session_identity(
+    tx: &mut Tx,
+    tenant: TenantId,
+    token_hash: &[u8],
+) -> Result<Option<RefreshSessionIdentity>, AppError> {
+    let row = sqlx::query!(
+        "SELECT person_id, active_role AS \"active_role: Role\" \
+         FROM public.refresh_sessions WHERE tenant_id = $1 AND token_hash = $2",
+        tenant.0,
+        token_hash
+    )
+    .fetch_optional(tx.conn())
+    .await?;
+    Ok(row.map(|row| RefreshSessionIdentity {
+        person_id: PersonId(row.person_id),
+        active_role: row.active_role,
+    }))
+}
+
+/// STM-22: locks the matching refresh-session row before role validation or mutation.
+pub(crate) async fn refresh_session_for_update(
+    tx: &mut Tx,
+    tenant: TenantId,
+    token_hash: &[u8],
+) -> Result<Option<RefreshSession>, AppError> {
+    let row = sqlx::query!(
+        "SELECT id, person_id, active_role AS \"active_role: Role\", idle_expires_at, \
+                absolute_expires_at, revoked_at \
+         FROM public.refresh_sessions \
+         WHERE tenant_id = $1 AND token_hash = $2 FOR UPDATE",
+        tenant.0,
+        token_hash
+    )
+    .fetch_optional(tx.conn())
+    .await?;
+    Ok(row.map(|row| RefreshSession {
+        id: row.id,
+        person_id: PersonId(row.person_id),
+        active_role: row.active_role,
+        idle_expires_at: row.idle_expires_at,
+        absolute_expires_at: row.absolute_expires_at,
+        revoked_at: row.revoked_at,
+    }))
+}
+
+/// IDN-09: changes only the active role on the already-locked refresh-session row.
+pub(crate) async fn set_refresh_session_role(
+    tx: &mut Tx,
+    tenant: TenantId,
+    session_id: Uuid,
+    token_hash: &[u8],
+    active_role: Role,
+) -> Result<(), AppError> {
+    let role = role_name(active_role);
+    let result = sqlx::query!(
+        "UPDATE public.refresh_sessions SET active_role = $4 \
+         WHERE tenant_id = $1 AND id = $2 AND token_hash = $3",
+        tenant.0,
+        session_id,
+        token_hash,
+        role
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() != 1 {
+        return Err(AppError::Internal(anyhow::anyhow!(
+            "locked refresh session disappeared before role switch"
+        )));
+    }
+    Ok(())
 }
 
 /// IDN-04: stores only the SHA-256 digest of the opaque refresh token.

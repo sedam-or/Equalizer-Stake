@@ -326,6 +326,262 @@ impl<'a> LoginService<'a> {
     }
 }
 
+/// IDN-05/09: dependencies for switching one cookie-authenticated session's active role.
+pub(crate) struct RoleSwitchService<'a> {
+    directory: &'a dyn CoreIdentityDirectory,
+    keys: &'a Keys,
+    clock: &'a dyn Clock,
+}
+
+impl fmt::Debug for RoleSwitchService<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RoleSwitchService")
+            .field("directory", &"[core identity port]")
+            .field("keys", &"[REDACTED]")
+            .field("clock", &self.clock)
+            .finish()
+    }
+}
+
+impl<'a> RoleSwitchService<'a> {
+    /// IDN-05/09: builds a role-switch service from the core membership port and process auth state.
+    pub(crate) const fn new(
+        directory: &'a dyn CoreIdentityDirectory,
+        keys: &'a Keys,
+        clock: &'a dyn Clock,
+    ) -> Self {
+        Self {
+            directory,
+            keys,
+            clock,
+        }
+    }
+
+    /// IDN-09/STM-22: changes only the active role on the locked refresh session.
+    pub(crate) async fn switch_role(
+        &self,
+        tx: &mut Tx,
+        request: RoleSwitchRequest<'_>,
+    ) -> Result<RoleSwitchSuccess, AppError> {
+        let session = repo::refresh_session_for_update(tx, request.tenant, request.token_hash)
+            .await?
+            .ok_or_else(unauthenticated)?;
+        if session.person_id() != request.person {
+            return Err(unauthenticated());
+        }
+
+        let now = self.clock.now();
+        if session.revoked_at().is_some()
+            || session.idle_expires_at() <= now
+            || session.absolute_expires_at() <= now
+        {
+            return Err(unauthenticated());
+        }
+
+        let roles = self
+            .active_membership_roles(tx, request.tenant, session.person_id())
+            .await?;
+        if !roles.contains(&request.target_role) {
+            return Err(forbidden_role());
+        }
+
+        let password_version = repo::password_version(tx, request.tenant, session.person_id())
+            .await?
+            .ok_or_else(unauthenticated)?;
+        let access_token = issue_access_token(
+            self.keys,
+            self.clock,
+            AccessTokenSubject::new(
+                session.person_id(),
+                request.tenant,
+                request.target_role,
+                session.id(),
+                password_version,
+            ),
+        )
+        .map_err(|error| AppError::Internal(anyhow::anyhow!("access token issuance failed: {error}")))?;
+
+        repo::set_refresh_session_role(
+            tx,
+            request.tenant,
+            session.id(),
+            request.token_hash,
+            request.target_role,
+        )
+        .await?;
+
+        audit_role_switch(tx, &session, request.target_role, request.actor).await?;
+
+        Ok(RoleSwitchSuccess {
+            person: session.person_id(),
+            roles,
+            active_role: request.target_role,
+            access_token,
+        })
+    }
+
+    async fn active_membership_roles(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        person: PersonId,
+    ) -> Result<Vec<Role>, AppError> {
+        let mut roles = Vec::with_capacity(5);
+        for role in [
+            Role::Owner,
+            Role::Admin,
+            Role::Instructor,
+            Role::Guardian,
+            Role::Student,
+        ] {
+            if self.directory.has_active_role(tx, tenant, person, role).await? {
+                roles.push(role);
+            }
+        }
+        Ok(roles)
+    }
+}
+
+/// SBD-50: parsed refresh credentials are used only through a canonical digest.
+pub(crate) fn refresh_token_digest(token: &SecretString) -> Option<Vec<u8>> {
+    let encoded = token.expose_secret();
+    let raw = URL_SAFE_NO_PAD.decode(encoded).ok()?;
+    if raw.len() != 32 || URL_SAFE_NO_PAD.encode(&raw) != encoded {
+        return None;
+    }
+    let raw = Zeroizing::new(raw);
+    Some(Sha256::digest(raw.as_slice()).to_vec())
+}
+
+/// IDN-09: boundary values for one role-switch request; the token hash is redacted.
+pub(crate) struct RoleSwitchRequest<'a> {
+    tenant: TenantId,
+    person: PersonId,
+    token_hash: &'a [u8],
+    target_role: Role,
+    actor: &'a ActorCtx,
+}
+
+impl<'a> RoleSwitchRequest<'a> {
+    pub(crate) const fn new(
+        tenant: TenantId,
+        person: PersonId,
+        token_hash: &'a [u8],
+        target_role: Role,
+        actor: &'a ActorCtx,
+    ) -> Self {
+        Self {
+            tenant,
+            person,
+            token_hash,
+            target_role,
+            actor,
+        }
+    }
+}
+
+impl fmt::Debug for RoleSwitchRequest<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RoleSwitchRequest")
+            .field("tenant", &"[REDACTED]")
+            .field("person", &"[REDACTED]")
+            .field("token_hash", &"[REDACTED]")
+            .field("target_role", &self.target_role)
+            .field("actor", &"[REDACTED]")
+            .finish()
+    }
+}
+
+/// IDN-03/09: safe response data after a successful role switch.
+pub(crate) struct RoleSwitchSuccess {
+    person: PersonId,
+    roles: Vec<Role>,
+    active_role: Role,
+    access_token: AccessToken,
+}
+
+impl RoleSwitchSuccess {
+    pub(crate) const fn person(&self) -> PersonId {
+        self.person
+    }
+
+    pub(crate) fn roles(&self) -> &[Role] {
+        &self.roles
+    }
+
+    pub(crate) const fn active_role(&self) -> Role {
+        self.active_role
+    }
+
+    pub(crate) const fn access_token(&self) -> &AccessToken {
+        &self.access_token
+    }
+}
+
+impl fmt::Debug for RoleSwitchSuccess {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RoleSwitchSuccess")
+            .field("person", &"[REDACTED]")
+            .field("roles", &self.roles)
+            .field("active_role", &self.active_role)
+            .field("access_token", &"[REDACTED]")
+            .finish()
+    }
+}
+
+fn unauthenticated() -> AppError {
+    AppError::Unauthenticated {
+        code: &eq_core::error::codes::UNAUTHENTICATED,
+    }
+}
+
+fn forbidden_role() -> AppError {
+    AppError::ForbiddenRule {
+        code: &eq_core::error::codes::FORBIDDEN,
+        detail: String::from("The selected role is not an active membership"),
+    }
+}
+
+fn actor_role_for_audit(role: Role) -> ActorRole {
+    match role {
+        Role::Owner => ActorRole::Owner,
+        Role::Admin => ActorRole::Admin,
+        Role::Instructor => ActorRole::Instructor,
+        Role::Guardian => ActorRole::Guardian,
+        Role::Student => ActorRole::Student,
+    }
+}
+
+async fn audit_role_switch(
+    tx: &mut Tx,
+    session: &repo::RefreshSession,
+    target_role: Role,
+    request_actor: &ActorCtx,
+) -> Result<(), AppError> {
+    let actor = ActorCtx {
+        person_id: Some(session.person_id()),
+        role: actor_role_for_audit(session.active_role()),
+        ip: request_actor.ip,
+        request_id: request_actor.request_id,
+    };
+    record(
+        tx,
+        AuditEvent {
+            action: "security.role_switched",
+            category: Category::Security,
+            entity_type: "refresh_session",
+            entity_id: Some(session.id()),
+            before: Some(serde_json::json!({ "active_role": session.active_role() })),
+            after: Some(serde_json::json!({ "active_role": target_role })),
+            actor: &actor,
+        },
+    )
+    .await
+}
+
 /// IDN-01/03/06/12: request values passed from the tenant-aware HTTP boundary.
 pub struct LoginRequest<'a> {
     tenant: TenantId,
@@ -616,7 +872,7 @@ async fn audit_account_locked(
 
 #[cfg(test)]
 mod tests {
-    use super::{LoginRequest, LoginService, audit_actor, totp_verify};
+    use super::{LoginRequest, LoginService, RoleSwitchRequest, audit_actor, totp_verify};
     use crate::IdentityModule;
     use crate::password::hash_password;
     use anyhow::Result;
@@ -647,6 +903,27 @@ mod tests {
     const WRONG_PASSWORD: &str = "test-secret-incorrect-password";
     // technical: deterministic calendar fixture for service tests.
     const FIXED_TEST_YEAR: i32 = 2026;
+
+    #[test]
+    fn role_switch_request_debug_redacts_sensitive_values() {
+        let person = PersonId(Uuid::nil());
+        let tenant = TenantId(Uuid::nil());
+        let actor = ActorCtx {
+            person_id: Some(person),
+            role: ActorRole::Admin,
+            ip: None,
+            request_id: Some(Uuid::nil()),
+        };
+        let token_hash = [0xA5; 32];
+        let request = RoleSwitchRequest::new(tenant, person, &token_hash, Role::Guardian, &actor);
+
+        let debug = format!("{request:?}");
+
+        assert!(debug.contains("token_hash: \"[REDACTED]\""));
+        assert!(!debug.contains(&person.0.to_string()));
+        assert!(!debug.contains(&tenant.0.to_string()));
+        assert!(!debug.contains(&format!("{token_hash:?}")));
+    }
 
     #[derive(Clone, Debug)]
     struct TestClock(DateTime<Utc>);

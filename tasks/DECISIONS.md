@@ -807,3 +807,28 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** `spec/26-containers-and-caching.md` §6.1 (CACHE-14) defines those keys and their 60/30-second TTLs.
 - **Changed:** `crates/eq-identity/src/api_auth.rs`, this task, and this register.
 - **Ratify:** Yes.
+
+### TD-125 — Register the role-switch route in the Identity module
+- **Question:** T-110a4b requires a new HTTP handler but its `## Files` table omits the Identity module route registry.
+- **Options:** Add the handler without registering it, leaving the endpoint unreachable; or include the module route registry as a task file.
+- **Decision:** Modify `crates/eq-identity/src/module.rs` to register `POST /api/v1/auth/switch-role` and keep the module surface test aligned.
+- **Why:** The task's Scope requires a working HTTP route, and this is the existing module composition point. The file-list omission is mechanical and the added file is limited to exposing the requested handler.
+- **Changed:** `crates/eq-identity/src/module.rs`, T-110a4b, and generated `tasks/INDEX.md` if needed.
+- **Ratify:** Yes.
+
+### TD-126 — Use the specified session controls for cookie role switching
+- **Question:** SBD-40 says every non-public handler calls `actor.require(perm)`, but the cookie role-switch endpoint has no Actor before refresh-cookie authentication and no self-switch permission is specified.
+- **Options:** Require an unrelated registered permission, which would prevent ordinary active roles from switching; or enforce the refresh-session authentication, exact CSRF/Origin checks and active target membership defined for this endpoint.
+- **Decision:** Use a valid, unexpired refresh session plus an active target membership as the authorization controls for role switching; do not add an `actor.require` permission or grant.
+- **Why:** IDN-05/IDN-09 and `spec/25` §4.4 define the cookie session, CSRF/Origin, and active-membership checks for this operation. No role-switch permission exists, and T-110a4b explicitly excludes new grants.
+- **Changed:** `crates/eq-identity/src/api_auth.rs`, `crates/eq-identity/src/service.rs`, T-110a4b, and generated `tasks/INDEX.md` if needed.
+- **Ratify:** Yes.
+
+### TD-127 — Split role switching to stay within CQ-101
+
+- **Question:** The T-110a4b implementation was approximately 900 changed lines, above CQ-101's approximately 400-line review guide.
+- **Options:** Keep the service, HTTP boundary and acceptance tests in one task; or split them into ordered persistence/service, HTTP/CSRF and HTTP-test parts while preserving the original aggregate contract.
+- **Decision:** Split into T-110a4a1, T-110a4a2 and T-110a4a3; keep T-110a4b as a draft aggregate until all three are reviewed.
+- **Why:** CQ-101 calls for larger work to be split first, and the task order preserves all original acceptance criteria and test names without changing any business, schema or security rule.
+- **Changed:** the T-110a4b aggregate, three new child task files, this decision register and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.

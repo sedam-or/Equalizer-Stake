@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.refresh_sessions SET active_role = $4 WHERE tenant_id = $1 AND id = $2 AND token_hash = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bytea",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "571af9c7821a9b4423b52fb42f47d6950517b05ff1709e1e6f30c7f18a783434"
+}
