@@ -617,3 +617,30 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** Spec 04 §6.2 includes invite expiry and TOTP; spec 25 assigns TOTP the IDN-12 contract.
 - **Changed:** `tasks/M1-core/T-110a1b-validated-identity-policy-model.md` and this register.
 - **Ratify:** Yes.
+
+### TD-103 — Match identity module security triggers to scope
+
+- **Question:** T-110a1c lists T1/T3 although it adds no endpoint and exposes only S1 policy settings.
+- **Options:** Keep the broader trigger list; or apply the SBD-30 definitions to the actual module-policy scope.
+- **Decision:** Mark T4 only because identity authentication policy changes.
+- **Why:** SBD-30 defines T1 for endpoints, T3 for S2/S3 data and T4 for authentication.
+- **Changed:** `tasks/M1-core/T-110a1c-identity-policy-module.md` and this register.
+- **Ratify:** Yes.
+
+### TD-104 — Record the identity module policy spec references
+
+- **Question:** T-110a1c includes invite-expiry and TOTP settings but omits IDN-05 and IDN-12 from `spec_refs`.
+- **Options:** Keep those references implicit; or include the IDs defining the fields and variants used by the task.
+- **Decision:** Add IDN-05 and IDN-12 to `spec_refs`.
+- **Why:** Spec 04 §6.2 defines the policy fields and spec 25 assigns TOTP IDN-12.
+- **Changed:** `tasks/M1-core/T-110a1c-identity-policy-module.md` and this register.
+- **Ratify:** Yes.
+
+### TD-105 — Clarify policy-schema DoD boundary
+
+- **Question:** The task DoD says no schema is added, while the Goal and AC1 require exposing `IdentityModule::policy_schema`.
+- **Options:** Treat the DoD literally and omit the required policy schema; or interpret it as no new persisted schema or policy fields, while generating schema for existing values.
+- **Decision:** Clarify the DoD to prohibit new persisted schema objects and policy fields; retain the required JSON Schema for the existing `IdentityPolicy` values.
+- **Why:** POL-06 and the task Scope/AC require the existing policy contract to be exposed, and this choice adds no migration, field or business value.
+- **Changed:** `tasks/M1-core/T-110a1c-identity-policy-module.md` and this register.
+- **Ratify:** Yes.
