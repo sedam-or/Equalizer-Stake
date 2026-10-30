@@ -82,3 +82,6 @@ pub mod codes {
         &EMAIL_TAKEN,
     ];
 }
+
+/// ERR-21: application error codes owned by Identity.
+pub use codes::CODES;

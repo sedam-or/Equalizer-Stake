@@ -42,8 +42,11 @@ lint:
 	scripts/check-layers.sh
 
 api:
-	@echo 'OpenAPI generation is added by T-114.'
-	@false
+	SQLX_OFFLINE=true cargo run --locked -q -p eq-server -- openapi > web/openapi.json
+	pnpm -C web install --frozen-lockfile
+	pnpm -C web exec biome format --write openapi.json
+	mkdir -p web/src/api
+	pnpm -C web run gen:api
 
 e2e:
 	@set -Eeuo pipefail; \

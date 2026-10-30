@@ -39,6 +39,29 @@ pub fn registry() -> ModuleRegistry {
     registry
 }
 
+/// MOD-04: builds the same compiled route set used by the runtime for OpenAPI generation.
+pub fn openapi_router() -> OpenApiRouter<AppState> {
+    registry()
+        .modules()
+        .iter()
+        .fold(OpenApiRouter::new(), |routes, module| {
+            routes.merge(composed_module_routes(module.as_ref()))
+        })
+        .merge(crate::meta::public_routes())
+}
+
+fn composed_module_routes(module: &dyn Module) -> OpenApiRouter<AppState> {
+    if module.manifest().id == ModuleId::Core {
+        module
+            .routes()
+            .merge(crate::settings::routes())
+            .merge(crate::settings::module_routes())
+            .merge(crate::meta::module_routes())
+    } else {
+        module.routes()
+    }
+}
+
 /// MOD-04/05: wraps every compiled module route in its tenant-scoped runtime gate.
 pub(super) fn routes(
     registry: Arc<ModuleRegistry>,
@@ -65,19 +88,16 @@ pub(super) fn routes(
             Arc::clone(&login_runtime),
             eq_identity::api_auth::actor_auth_middleware,
         );
+        let module_routes = composed_module_routes(module.as_ref());
         let module_routes = if module.manifest().id == ModuleId::Core {
-            module
-                .routes()
-                .merge(crate::settings::routes())
-                .merge(crate::settings::module_routes())
-                .merge(crate::meta::module_routes())
+            module_routes
                 .layer(axum::Extension((
                     Arc::clone(&login_runtime),
                     Arc::clone(&currency_lock),
                 )))
                 .layer(axum::Extension(metadata.clone()))
         } else {
-            module.routes()
+            module_routes
         }
         .layer(actor_auth)
         .layer(gate);

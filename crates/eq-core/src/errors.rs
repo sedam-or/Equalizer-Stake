@@ -30,6 +30,9 @@ pub const FIELD_ERROR_CODES: &[&str] = &[
     UNKNOWN_REFERENCE,
 ];
 
+/// ERR-21: application error codes owned by Core.
+pub use crate::error::codes::CODES;
+
 #[cfg(test)]
 mod tests {
     use super::FIELD_ERROR_CODES;

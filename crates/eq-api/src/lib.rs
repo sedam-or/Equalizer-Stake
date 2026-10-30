@@ -24,6 +24,7 @@ mod health;
 pub mod meta;
 pub mod middleware;
 pub mod modules;
+pub mod openapi;
 pub mod settings;
 mod spa;
 pub mod tenant;

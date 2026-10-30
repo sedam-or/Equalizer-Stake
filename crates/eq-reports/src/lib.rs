@@ -1,5 +1,7 @@
 //! Owner dashboards and school reports for Ritma (spec/02 §2).
 
+pub mod errors;
+
 use eq_audit as _;
 use eq_core as _;
 use eq_core::actor::ActorRole;

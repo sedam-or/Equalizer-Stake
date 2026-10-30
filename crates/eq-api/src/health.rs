@@ -6,7 +6,6 @@ use axum::body::Body;
 use axum::extract::State;
 use axum::http::{Request, Response, StatusCode};
 use axum::middleware::{self, Next};
-use axum::routing::get;
 use axum::{Router, response::IntoResponse};
 use serde::Serialize;
 use sqlx::migrate::Migrator;
@@ -18,6 +17,7 @@ use tower_http::compression::CompressionLayer;
 use tower_http::limit::RequestBodyLimitLayer;
 use tower_http::trace::TraceLayer;
 use tracing::Span;
+use utoipa_axum::router::OpenApiRouter;
 use uuid::Uuid;
 
 const BODY_LIMIT_BYTES: usize = 1024 * 1024; // technical: ARC-04 default request body cap
@@ -27,7 +27,7 @@ const MIGRATION_CACHE_TTL: Duration = Duration::from_secs(10); // technical: tas
 const MIGRATOR: Migrator = sqlx::migrate!("../../migrations");
 
 #[derive(Clone)]
-struct HealthState {
+pub(super) struct HealthState {
     app: AppState,
     migration_cache: Arc<Mutex<Option<CachedMigrationState>>>,
 }
@@ -38,13 +38,13 @@ struct CachedMigrationState {
     pending: bool,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, utoipa::ToSchema)]
 struct HealthResponse {
     status: &'static str,
     version: &'static str,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, utoipa::ToSchema)]
 struct ReadyResponse {
     status: &'static str,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -61,9 +61,8 @@ pub(super) fn router(state: AppState, module_routes: Router<AppState>) -> Router
     };
 
     let module_routes = module_routes.with_state(health_state.app.clone());
-    let router = Router::new()
-        .route("/healthz", get(healthz))
-        .route("/readyz", get(readyz))
+    let (health_routes, _openapi) = openapi_routes().split_for_parts();
+    let router = health_routes
         .merge(module_routes)
         .fallback(crate::spa::fallback)
         .with_state(health_state)
@@ -118,6 +117,19 @@ pub(super) fn router(state: AppState, module_routes: Router<AppState>) -> Router
     request_id::apply(router)
 }
 
+/// API-14/OPS-06: same liveness and readiness route declarations used by the runtime router.
+pub(super) fn openapi_routes() -> OpenApiRouter<HealthState> {
+    OpenApiRouter::new()
+        .routes(utoipa_axum::routes!(healthz))
+        .routes(utoipa_axum::routes!(readyz))
+}
+
+#[utoipa::path(
+    get,
+    path = "/healthz",
+    responses((status = 200, description = "Process is alive", body = HealthResponse)),
+    tag = "system"
+)]
 async fn healthz() -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "ok",
@@ -125,6 +137,15 @@ async fn healthz() -> Json<HealthResponse> {
     })
 }
 
+#[utoipa::path(
+    get,
+    path = "/readyz",
+    responses(
+        (status = 200, description = "Database and migrations are ready", body = ReadyResponse),
+        (status = 503, description = "Database or migrations are not ready", body = ReadyResponse)
+    ),
+    tag = "system"
+)]
 async fn readyz(State(state): State<HealthState>) -> impl IntoResponse {
     let db_ping =
         tokio::time::timeout(DB_PING_TIMEOUT, sqlx::query("SELECT 1").execute(&state.app.pool)).await;

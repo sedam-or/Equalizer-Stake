@@ -2,6 +2,7 @@
 
 extern crate self as eq_audit;
 
+pub mod errors;
 pub use eq_audit_derive::Auditable;
 use eq_core as _;
 mod http;

@@ -1451,3 +1451,39 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The implementer may not alter sibling task contracts or drop listed behavior; the large diff is review feedback, not authorization to weaken the contract.
 - **Changed:** T-113b's Report and Questions; this decision register.
 - **Ratify:** Yes; the maintainer should decide whether a follow-up split or refactor is needed before merge.
+
+### TD-194 — Add the implementation paths omitted from T-114's Files table
+
+- **Question:** T-114 Scope requires an OpenAPI builder, shared route assembly, CLI output, per-crate error registries, a Make target and a pinned web generator, while its Files table initially listed only tests and generated contract files.
+- **Options:** (a) leave the specified behavior unimplemented because its source paths were omitted; (b) list only the direct source and configuration paths required by the existing Scope and acceptance criteria.
+- **Decision:** Use option (b). Update T-114's Files table with the OpenAPI builder, router composition, CLI, error registries, Make target, package lockfile, generator outputs and contract-job path.
+- **Why:** The missing paths are mechanical drift between the task's Scope and Files; this implements no behavior beyond the existing OpenAPI contract.
+- **Changed:** T-114 Files, Report and Questions; `tasks/DECISIONS.md`; generated `tasks/INDEX.md`; the listed T-114 implementation files.
+- **Ratify:** Yes.
+
+### TD-195 — Expose each compiled crate's ERR-21 registry
+
+- **Question:** ERR-21 requires `eq-api` to merge every compiled crate's `errors::CODES`, but current Core and Identity registries use different public paths and other compiled module crates have no registry.
+- **Options:** (a) aggregate only the two existing registries; (b) expose the existing registries under the specified path and give crates with no registered errors an empty registry.
+- **Decision:** Use option (b). Do not add error codes; expose only code definitions that already exist, with empty slices for modules that currently own none.
+- **Why:** This follows the exact ERR-21 aggregation interface without inventing or duplicating stable error codes.
+- **Changed:** T-114 Files, Report and Questions; `tasks/DECISIONS.md`; generated `tasks/INDEX.md`; per-crate `errors.rs` and `lib.rs` exports.
+- **Ratify:** Yes.
+
+### TD-196 — Complete the shared Problem contract from ERR-30
+
+- **Question:** T-114's abbreviated Problem fields omit ERR-30's `missing` extension, and current route operations declare success responses without a shared problem response.
+- **Options:** (a) reproduce only the abbreviated fields and leave errors absent from the contract; (b) include every ERR-30 field and publish one common default `application/problem+json` response per operation.
+- **Decision:** Use option (b). Keep the documented extension values optional and use the task's common `Problem` schema without inventing a route-specific error code or status.
+- **Why:** ERR-30 is normative and names the complete Problem shape; the shared default documents possible handler errors while preserving the existing route contract.
+- **Changed:** T-114 Files, Report and Questions; `tasks/DECISIONS.md`; generated `tasks/INDEX.md`; OpenAPI builder and tests.
+- **Ratify:** Yes.
+
+### TD-197 — Preserve T-114's required contract above the review-size guide
+
+- **Question:** T-114's required OpenAPI builder, per-crate error registries, tests, generated schema and task records exceed CQ-101's approximate 400 changed-line review guide (929 changed lines, excluding the generated OpenAPI/TypeScript outputs and lockfile).
+- **Options:** (a) omit required contract behavior or edit other task contracts to split it; (b) complete T-114's assigned scope and surface the size for maintainer review.
+- **Decision:** Use option (b). Keep the acceptance criteria intact and report the measured change size.
+- **Why:** This task is the only task authorized to provide the OpenAPI contract, and sibling task files are outside its scope. The review-size guide does not authorize weakening the contract.
+- **Changed:** T-114 Questions and Report; `tasks/DECISIONS.md`; generated `tasks/INDEX.md`.
+- **Ratify:** Yes; the maintainer should decide whether a follow-up split or refactor is needed before merge.

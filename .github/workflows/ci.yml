@@ -199,6 +199,7 @@ jobs:
         run: |
           cargo run --locked -q -p eq-server -- openapi > web/openapi.json
           pnpm -C web install --frozen-lockfile
+          pnpm -C web exec biome format --write openapi.json
           pnpm -C web run gen:api
           git diff --exit-code -- web/openapi.json web/src/api
       - name: Property-based API fuzzing (TST-18)

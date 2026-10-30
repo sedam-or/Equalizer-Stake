@@ -89,6 +89,11 @@ async fn run(cli: Cli) -> Result<ExitCode> {
             let config = Config::from_env().context("load Ritma configuration")?;
             Ok(healthcheck(config.listen).await)
         }
+        Command::Openapi => {
+            let document = eq_api::openapi::build();
+            print_stdout(&eq_api::openapi::pretty_json(&document)?)?;
+            Ok(ExitCode::SUCCESS)
+        }
         command => {
             let name = command.name();
             print_stdout(&format!("{name} is not implemented yet"))?;
