@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT person_id AS \"person_id!: Uuid\" FROM public.memberships WHERE tenant_id = $1 AND role = 'owner' AND status = 'active' ORDER BY person_id FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "person_id!: Uuid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "memberships",
+            "name": "person_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "05ee6ad1826420d7478bb051cc0395f43c33553d1c8f55685f386104bc2bebcb"
+}

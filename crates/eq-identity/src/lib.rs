@@ -3,12 +3,15 @@
 pub mod api_auth;
 pub mod api_invites;
 pub mod api_me;
+pub mod api_people;
 pub mod api_reset;
+mod domain;
 pub mod errors;
 pub mod invites;
 pub mod jwt;
 pub mod module;
 pub mod password;
+pub mod people;
 pub mod policy;
 pub mod repo;
 pub mod service;

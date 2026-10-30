@@ -132,6 +132,41 @@ pub async fn begin(pool: &PgPool, tenant: TenantId, actor: &ActorCtx) -> Result<
     })
 }
 
+/// FLW-02/SEC-05: starts a tenant-scoped read-only transaction for list and detail requests.
+pub async fn begin_read_only(
+    pool: &PgPool,
+    tenant: TenantId,
+    actor: &ActorCtx,
+) -> Result<Tx, crate::error::AppError> {
+    let mut transaction = pool.begin().await?;
+    sqlx::query!("SET TRANSACTION READ ONLY")
+        .execute(&mut *transaction)
+        .await?;
+    let tenant_id = tenant.0.to_string();
+    let actor_id = if actor.role == ActorRole::System {
+        String::new()
+    } else {
+        actor
+            .person_id
+            .map(|person_id| person_id.0.to_string())
+            .unwrap_or_default()
+    };
+    sqlx::query!(
+        "SELECT set_config('app.tenant_id', $1, true) AS tenant_id, \
+                set_config('app.actor_id', $2, true) AS actor_id",
+        tenant_id,
+        actor_id
+    )
+    .fetch_one(&mut *transaction)
+    .await?;
+
+    Ok(Tx {
+        transaction,
+        tenant,
+        actor: actor.clone(),
+    })
+}
+
 /// SEC-05: starts a tenant transaction with a personless system actor.
 pub async fn begin_system(pool: &PgPool, tenant: TenantId) -> Result<Tx, crate::error::AppError> {
     begin(pool, tenant, &ActorCtx::system("system")).await

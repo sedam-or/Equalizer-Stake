@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.person_links (tenant_id, guardian_id, student_id, is_primary) VALUES ($1, $2, $3, true)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "28aaab24f8f867176ff4fd6f9c4ace33e4fac4ead7d0525ea6bedf63f367b2e0"
+}

@@ -1183,3 +1183,57 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** Both child contracts are present, their dependency chain is explicit, their dependencies are `review`, and the generated task index lists them as `todo`; no implementation scope changes.
 - **Changed:** `tasks/M1-core/T-112-people-and-rbac.md`, this register, and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
+
+### TD-166 — Add implementation paths omitted from T-112a Files
+
+- **Question:** T-112a listed only `crates/eq-identity/tests/api_people.rs`, but AC1–AC5 require mounted people routes, Actor-derived SQL scope, role and guardian-link transitions, stable error codes, and transactional audit records.
+- **Options:** (a) keep the Files list literal and leave the named acceptance tests without implementation; (b) add the smallest paths already owned by Identity's shipped route/service structure and Core's existing directory port for Core-owned tables.
+- **Decision:** Use option (b), adding `api_people.rs`, `people.rs`, the module exports/route registration, the Core-owned CoreIdentityDirectory port/adapter and Identity's stable error registry, the assigned integration test, and generated SQLx metadata only for the listed ACs.
+- **Why:** The endpoint paths, permissions, scope rules, state constraints and error values are already explicit in T-112a and its cited specs. The shipped Core directory port is the cross-module boundary, and ERD-02 assigns persons, memberships and person_links to Core. This repairs a mechanically incomplete Files list without adding a new contract or schema.
+- **Changed:** `tasks/M1-core/T-112a-people-scopes,-role-changes-and-guardian-links.md`, `tasks/DECISIONS.md`, generated `tasks/INDEX.md`, and the task-owned Identity route/service/registry and Core directory-port paths listed in T-112a.
+- **Ratify:** Yes.
+
+### TD-167 — Do not invent outbox events for people role and guardian-link changes
+
+- **Question:** The repository state-change guideline calls for an outbox event, but STM-20 and STM-27 specify audit effects for role and guardian-link transitions without defining corresponding event names or payloads.
+- **Options:** (a) invent Identity outbox event contracts in this task; (b) write the specified audit records transactionally and defer outbox emission until an event contract is defined.
+- **Decision:** Use option (b). This task emits the named audit actions and does not emit an outbox event.
+- **Why:** Event names and payloads are cross-module contracts. STM-20/27 define the audit outcomes but no event contract, so inventing one would exceed the task and the project's event rules.
+- **Changed:** `crates/eq-identity/src/people.rs`, `tasks/M1-core/T-112a-people-scopes,-role-changes-and-guardian-links.md`, and this register.
+- **Ratify:** Yes.
+
+### TD-168 — Use a tenant-scoped read-only transaction for people reads
+
+- **Question:** FLW-02 requires list/detail reads to use a tenant-scoped read-only transaction, but Core exposed only the general `db::begin` helper and T-112a's Files omitted `db.rs`.
+- **Options:** (a) use the read-write helper for GET requests; (b) add the smallest Core read-only begin helper and use it only for the people list/detail endpoints.
+- **Decision:** Use option (b), setting PostgreSQL transaction mode to read-only before installing the tenant and actor context; add a test that verifies the transaction mode.
+- **Why:** The stricter FLW-02 behavior applies to both assigned read endpoints and prevents accidental writes without changing their API or schema.
+- **Changed:** `crates/eq-core/src/db.rs`, `crates/eq-identity/src/api_people.rs`, `crates/eq-identity/tests/api_people.rs`, this task's Files/Tests/Questions/Report, and generated SQLx metadata.
+- **Ratify:** Yes.
+
+### TD-169 — Disclose T-112a review-size overage
+
+- **Question:** Completing the five assigned HTTP acceptance criteria requires 1,612 additions and 13 deletions in non-generated files because the original T-112a Files list omitted its route, service, domain, Core port/adapter, and test implementation paths. CQ-101 recommends splitting work above about 400 changed lines.
+- **Options:** (a) move implementation out of this already-started task and change sibling task ownership; (b) keep the current AC/test ownership intact, disclose the measured size, and have the architect adjust future task breakdowns before implementation.
+- **Decision:** Use option (b); do not move code into another task during this task's one-commit completion.
+- **Why:** The task's ACs and exact test names remain together, and moving files now would change another task's scope. The overage is a review concern, not a reason to leave the assigned task unfinished.
+- **Changed:** `tasks/M1-core/T-112a-people-scopes,-role-changes-and-guardian-links.md`, `tasks/DECISIONS.md`, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes; review whether the original task split and missing Files entries should be corrected for future work.
+
+### TD-170 — Defer client error translations until the web i18n task
+
+- **Question:** T-112a adds the stable `last_owner` and `primary_exists` API codes, while ERR-22 requires `errors.<code>` keys in English and Indonesian; the current web tree has no locale catalog, and T-306 owns its introduction and explicitly lists both keys.
+- **Options:** (a) introduce the web locale structure and i18n behavior in this API task; (b) keep the API-owned codes and problem-body tests here and add their two locale keys when T-306 creates the catalog.
+- **Decision:** Use option (b); do not add a parallel, temporary translation system.
+- **Why:** The web tree currently has no locale catalog, and T-306's contract explicitly owns `errors.last_owner` and `errors.primary_exists` in both locales. This is a sequencing choice, not a change to either error code.
+- **Changed:** `tasks/M1-core/T-112a-people-scopes,-role-changes-and-guardian-links.md`, `tasks/DECISIONS.md`, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes; confirm that the T-306 translation keys close the ERR-22 follow-up.
+
+### TD-171 — Move people invariants into the pure domain layer
+
+- **Question:** T-112a's initial service implementation evaluated the last-owner and required guardian/student-role rules in application code, while CA-02/CA-23 require invariant decisions in pure domain functions.
+- **Options:** (a) leave those decisions in the service recipe; (b) add the smallest Identity domain functions and unit tests, with the service gathering database facts and mapping typed domain errors to AppError.
+- **Decision:** Use option (b); keep role scope/permission orchestration in the application layer and move only the owner-removal and guardian-link invariants into domain/people.rs.
+- **Why:** This follows the functional-core rule without moving SQL or authorization into the domain, adding a schema change, or changing the API contract.
+- **Changed:** crates/eq-identity/src/domain.rs, crates/eq-identity/src/domain/people.rs, crates/eq-identity/src/lib.rs, crates/eq-identity/src/people.rs, this task, this register, and generated tasks/INDEX.md.
+- **Ratify:** Yes.

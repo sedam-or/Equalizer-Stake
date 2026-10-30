@@ -48,6 +48,20 @@ pub mod codes {
         title: "Invite expired",
     };
 
+    /// STM-20: removing the final active tenant owner is rejected.
+    pub static LAST_OWNER: ErrorCodeDef = ErrorCodeDef {
+        code: "last_owner",
+        status: 409,
+        title: "The last owner cannot be removed",
+    };
+
+    /// STM-27: a student may have only one primary guardian.
+    pub static PRIMARY_EXISTS: ErrorCodeDef = ErrorCodeDef {
+        code: "primary_exists",
+        status: 409,
+        title: "A primary guardian already exists",
+    };
+
     /// Registered application codes owned by Identity.
     pub const CODES: &[&ErrorCodeDef] = &[
         &INVALID_CREDENTIALS,
@@ -56,5 +70,7 @@ pub mod codes {
         &PASSWORD_WEAK,
         &TOKEN_INVALID,
         &INVITE_EXPIRED,
+        &LAST_OWNER,
+        &PRIMARY_EXISTS,
     ];
 }

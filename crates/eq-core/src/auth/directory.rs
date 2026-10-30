@@ -11,6 +11,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use secrecy::SecretString;
 use sqlx::FromRow;
+use std::collections::HashMap;
 use std::fmt;
 use std::num::NonZeroI32;
 use std::sync::Arc;
@@ -49,6 +50,41 @@ impl fmt::Debug for LoginProfile {
 pub struct LinkedStudentProfile {
     pub person_id: PersonId,
     pub display_name: String,
+}
+
+/// IDN-10/ERD-02: the row scope Identity asks Core to enforce in SQL.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PeopleScope {
+    /// Owner or admin may list all visible people in the resolved tenant.
+    All,
+    /// Guardians may see themselves and linked students.
+    Guardian,
+    /// Students and pre-scheduling instructors may see only themselves.
+    SelfOnly,
+}
+
+/// IDN-10/ERD-02: S1 people summary returned only after Core applies tenant and row scope.
+pub struct DirectoryPersonSummary {
+    /// Core-owned person identifier.
+    pub person_id: PersonId,
+    /// S1 display name, never formatted by Debug.
+    pub display_name: String,
+    /// Active roles returned for this tenant.
+    pub roles: Vec<Role>,
+    /// Core-owned optimistic version.
+    pub version: i32,
+}
+
+impl fmt::Debug for DirectoryPersonSummary {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("DirectoryPersonSummary")
+            .field("person_id", &"[REDACTED]")
+            .field("display_name", &"[REDACTED]")
+            .field("roles", &self.roles)
+            .field("version", &self.version)
+            .finish()
+    }
 }
 
 impl fmt::Debug for LinkedStudentProfile {
@@ -198,6 +234,53 @@ pub trait CoreIdentityDirectory: Send + Sync {
         update: LoginProfileUpdate,
         keyring: &Keyring,
     ) -> Result<Option<i32>, AppError>;
+
+    /// IDN-10/AUTH-04: returns only active people rows within the supplied SQL scope.
+    async fn people_in_scope(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        actor: PersonId,
+        scope: PeopleScope,
+        role: Option<Role>,
+        only_person: Option<PersonId>,
+    ) -> Result<Vec<DirectoryPersonSummary>, AppError>;
+
+    /// STM-20: locks active owner rows before the last-owner invariant is evaluated.
+    async fn lock_active_owners(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+    ) -> Result<Vec<PersonId>, AppError>;
+
+    /// STM-20: creates or reactivates a role membership for a person in the same tenant.
+    async fn activate_membership(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<bool, AppError>;
+
+    /// STM-20: deactivates an active or invited membership without deleting history.
+    async fn deactivate_membership(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<bool, AppError>;
+
+    /// STM-27: creates or updates a guardian link; false means the primary-guardian index rejected it.
+    async fn create_guardian_link(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        guardian: PersonId,
+        student: PersonId,
+        relationship: Option<String>,
+        is_primary: bool,
+    ) -> Result<bool, AppError>;
 }
 
 /// SEC-04: PostgreSQL adapter for the core-owned identity directory port.
@@ -604,6 +687,197 @@ impl CoreIdentityDirectory for PgIdentityDirectory {
         .fetch_optional(tx.conn())
         .await?;
         Ok(row.map(|value| value.version))
+    }
+
+    async fn people_in_scope(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        actor: PersonId,
+        scope: PeopleScope,
+        role: Option<Role>,
+        only_person: Option<PersonId>,
+    ) -> Result<Vec<DirectoryPersonSummary>, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let scope = match scope {
+            PeopleScope::All => "all",
+            PeopleScope::Guardian => "guardian",
+            PeopleScope::SelfOnly => "self",
+        };
+        let role = role.map(role_name);
+        let only_person = only_person.map(|person| person.0);
+        let rows = sqlx::query_as!(
+            DirectoryPersonRow,
+            r#"SELECT DISTINCT p.id AS "id!: Uuid", p.display_name, p.version, m.role AS "role!: Role"
+               FROM public.persons AS p
+               JOIN public.memberships AS m
+                 ON m.tenant_id = p.tenant_id AND m.person_id = p.id
+               WHERE p.tenant_id = $1
+                 AND p.deleted_at IS NULL
+                 AND m.status = 'active'
+                 AND ($2::text = 'all' OR p.id = $3 OR
+                      ($2::text = 'guardian' AND EXISTS (
+                        SELECT 1 FROM public.person_links AS l
+                        WHERE l.tenant_id = $1 AND l.guardian_id = $3 AND l.student_id = p.id
+                      )))
+                 AND ($4::text IS NULL OR m.role = $4)
+                 AND ($5::uuid IS NULL OR p.id = $5)
+               ORDER BY p.display_name, p.id, m.role"#,
+            tenant.0,
+            scope,
+            actor.0,
+            role,
+            only_person
+        )
+        .fetch_all(tx.conn())
+        .await?;
+
+        let mut people = Vec::<DirectoryPersonSummary>::new();
+        let mut positions = HashMap::<Uuid, usize>::new();
+        for row in rows {
+            if let Some(position) = positions.get(&row.id).copied() {
+                people[position].roles.push(row.role);
+            } else {
+                positions.insert(row.id, people.len());
+                people.push(DirectoryPersonSummary {
+                    person_id: PersonId(row.id),
+                    display_name: row.display_name,
+                    roles: vec![row.role],
+                    version: row.version,
+                });
+            }
+        }
+        Ok(people)
+    }
+
+    async fn lock_active_owners(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+    ) -> Result<Vec<PersonId>, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let rows = sqlx::query!(
+            "SELECT person_id AS \"person_id!: Uuid\" FROM public.memberships \
+             WHERE tenant_id = $1 AND role = 'owner' AND status = 'active' \
+             ORDER BY person_id FOR UPDATE",
+            tenant.0
+        )
+        .fetch_all(tx.conn())
+        .await?;
+        Ok(rows.into_iter().map(|row| PersonId(row.person_id)).collect())
+    }
+
+    async fn activate_membership(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<bool, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let row = sqlx::query!(
+            "INSERT INTO public.memberships (tenant_id, person_id, role, status) \
+             SELECT $1, p.id, $3, 'active' FROM public.persons AS p \
+             WHERE p.tenant_id = $1 AND p.id = $2 AND p.deleted_at IS NULL \
+             ON CONFLICT (tenant_id, person_id, role) DO UPDATE SET status = 'active' \
+             RETURNING person_id",
+            tenant.0,
+            person.0,
+            role as Role
+        )
+        .fetch_optional(tx.conn())
+        .await?;
+        Ok(row.is_some())
+    }
+
+    async fn deactivate_membership(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<bool, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let changed = sqlx::query!(
+            "UPDATE public.memberships SET status = 'deactivated' \
+             WHERE tenant_id = $1 AND person_id = $2 AND role = $3 \
+               AND status IN ('active', 'invited')",
+            tenant.0,
+            person.0,
+            role as Role
+        )
+        .execute(tx.conn())
+        .await?;
+        Ok(changed.rows_affected() == 1)
+    }
+
+    async fn create_guardian_link(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        guardian: PersonId,
+        student: PersonId,
+        relationship: Option<String>,
+        is_primary: bool,
+    ) -> Result<bool, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let result = sqlx::query!(
+            "INSERT INTO public.person_links (tenant_id, guardian_id, student_id, relationship, is_primary) \
+             VALUES ($1, $2, $3, $4, $5) \
+             ON CONFLICT (tenant_id, guardian_id, student_id) DO UPDATE \
+               SET relationship = EXCLUDED.relationship, is_primary = EXCLUDED.is_primary",
+            tenant.0,
+            guardian.0,
+            student.0,
+            relationship,
+            is_primary
+        )
+        .execute(tx.conn())
+        .await;
+        match result {
+            Ok(_) => Ok(true),
+            Err(sqlx::Error::Database(error)) if error.constraint() == Some("person_links_one_primary") => {
+                Ok(false)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+}
+
+struct DirectoryPersonRow {
+    id: Uuid,
+    display_name: String,
+    version: i32,
+    role: Role,
+}
+
+fn role_name(role: Role) -> &'static str {
+    match role {
+        Role::Owner => "owner",
+        Role::Admin => "admin",
+        Role::Instructor => "instructor",
+        Role::Guardian => "guardian",
+        Role::Student => "student",
     }
 }
 

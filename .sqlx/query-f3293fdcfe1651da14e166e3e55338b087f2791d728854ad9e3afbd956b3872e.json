@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.memberships (tenant_id, person_id, role, status) SELECT $1, p.id, $3, 'active' FROM public.persons AS p WHERE p.tenant_id = $1 AND p.id = $2 AND p.deleted_at IS NULL ON CONFLICT (tenant_id, person_id, role) DO UPDATE SET status = 'active' RETURNING person_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "person_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "memberships",
+            "name": "person_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "f3293fdcfe1651da14e166e3e55338b087f2791d728854ad9e3afbd956b3872e"
+}
