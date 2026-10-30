@@ -128,6 +128,8 @@ impl Module for IdentityModule {
             .routes(utoipa_axum::routes!(crate::api_auth::switch_role))
             .routes(utoipa_axum::routes!(crate::api_invites::preview))
             .routes(utoipa_axum::routes!(crate::api_invites::accept))
+            .routes(utoipa_axum::routes!(crate::api_reset::forgot))
+            .routes(utoipa_axum::routes!(crate::api_reset::reset))
     }
 
     fn event_handlers(&self) -> Vec<Box<dyn EventHandler>> {

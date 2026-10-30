@@ -34,6 +34,13 @@ pub mod codes {
         title: "Password does not meet the password policy",
     };
 
+    /// IDN-08/VAL-21: an unknown, malformed, expired or consumed reset token is invalid.
+    pub static TOKEN_INVALID: ErrorCodeDef = ErrorCodeDef {
+        code: "token_invalid",
+        status: 400,
+        title: "Invalid token",
+    };
+
     /// IDN-07/STM-21/ERR-21: an invite is expired or has already been consumed.
     pub static INVITE_EXPIRED: ErrorCodeDef = ErrorCodeDef {
         code: "invite_expired",
@@ -47,6 +54,7 @@ pub mod codes {
         &SESSION_EXPIRED,
         &TOTP_REQUIRED,
         &PASSWORD_WEAK,
+        &TOKEN_INVALID,
         &INVITE_EXPIRED,
     ];
 }

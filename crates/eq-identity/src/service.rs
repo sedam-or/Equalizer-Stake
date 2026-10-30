@@ -3,7 +3,8 @@
 use crate::errors::codes;
 use crate::jwt::{AccessToken, AccessTokenSubject, issue_access_token};
 use crate::password::{
-    PasswordError, PasswordHash, create_dummy_password_hash, verify_dummy_password, verify_password,
+    PasswordError, PasswordHash, create_dummy_password_hash, hash_password, validate_new_password,
+    verify_dummy_password, verify_password,
 };
 use crate::policy::{IdentityPolicy, TotpPolicy};
 use crate::repo;
@@ -15,26 +16,31 @@ use eq_core::actor::{ActorCtx, ActorRole};
 use eq_core::auth::{CoreIdentityDirectory, LoginIdentity};
 use eq_core::clock::Clock;
 use eq_core::crypto::{Aad, CryptoError, Keyring, Keys};
-use eq_core::db::Tx;
+use eq_core::db::{Tx, begin};
 use eq_core::error::AppError;
-use eq_core::fields::{Email, FieldCtx, FieldKind, Password};
+use eq_core::fields::{Email, FieldCtx, FieldKind, Password, PasswordInput};
 use eq_core::ids::{PersonId, TenantId};
 use eq_core::model::Role;
 use eq_core::outbox::{DomainEvent, emit};
 use eq_core::policy::PolicyStore;
 use rand::RngCore;
 use rand::rngs::OsRng;
-use secrecy::{ExposeSecret, SecretString};
+use secrecy::{ExposeSecret, SecretBox, SecretString};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
+use sqlx::PgPool;
 use std::fmt;
 use std::net::IpAddr;
 use std::sync::OnceLock;
+use subtle::ConstantTimeEq;
 use totp_rs::{Algorithm, Builder, Totp};
 use uuid::Uuid;
 use zeroize::Zeroizing;
 
 static DUMMY_PASSWORD_HASH: OnceLock<Result<PasswordHash, PasswordError>> = OnceLock::new();
+
+const RESET_TOKEN_BYTES: usize = 32; // technical: SBD-49 requires at least 128 random bits; reset uses 256.
+const RESET_TOKEN_ENCODED_BYTES: usize = 43; // technical: canonical unpadded base64url length for 32 bytes.
 
 /// IDN-06/CA-30: login dependencies, with core identity lookup injected through its port.
 pub struct LoginService<'a> {
@@ -126,7 +132,7 @@ impl<'a> LoginService<'a> {
                 code: &codes::TOTP_REQUIRED,
             });
         }
-        let password_hash = crate::password::hash_password(password).map_err(|error| {
+        let password_hash = hash_password(password).map_err(|error| {
             AppError::Internal(anyhow::anyhow!("invite password hashing failed: {error}"))
         })?;
         repo::set_invited_password(tx, tenant, identity.person_id(), &password_hash, now).await?;
@@ -383,6 +389,361 @@ impl<'a> LoginService<'a> {
             audit_login_failure(tx, request, Some(person)).await?;
         }
         Err(invalid_credentials())
+    }
+}
+
+/// SBD-49/50: validated opaque password-reset capability held only as a secret string.
+pub(crate) struct ResetToken(SecretString);
+
+/// Error returned when a reset token is not the canonical 32-byte base64url form.
+#[derive(Debug)]
+pub(crate) struct InvalidResetToken;
+
+impl TryFrom<String> for ResetToken {
+    type Error = InvalidResetToken;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() != RESET_TOKEN_ENCODED_BYTES {
+            return Err(InvalidResetToken);
+        }
+        let decoded = Zeroizing::new(URL_SAFE_NO_PAD.decode(&value).map_err(|_| InvalidResetToken)?);
+        if decoded.len() != RESET_TOKEN_BYTES || URL_SAFE_NO_PAD.encode(decoded.as_slice()) != value {
+            return Err(InvalidResetToken);
+        }
+        Ok(Self(SecretString::from(value)))
+    }
+}
+
+impl fmt::Debug for ResetToken {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("ResetToken([REDACTED])")
+    }
+}
+
+impl ResetToken {
+    fn generate() -> Result<Self, AppError> {
+        let mut bytes = Zeroizing::new([0_u8; RESET_TOKEN_BYTES]);
+        OsRng
+            .try_fill_bytes(&mut *bytes)
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("password reset token generation failed")))?;
+        let encoded = URL_SAFE_NO_PAD.encode(bytes.as_ref());
+        Self::try_from(encoded)
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("generated reset token is not canonical")))
+    }
+
+    fn digest(&self) -> SecretBox<Zeroizing<Vec<u8>>> {
+        SecretBox::new(Box::new(Zeroizing::new(
+            Sha256::digest(self.0.expose_secret().as_bytes()).to_vec(),
+        )))
+    }
+}
+
+/// IDN-08/STM-24: password-reset transaction recipes over the Core directory and identity repository.
+pub(crate) struct PasswordResetService<'a> {
+    pool: &'a PgPool,
+    directory: &'a dyn CoreIdentityDirectory,
+    policies: &'a PolicyStore,
+    clock: &'a dyn Clock,
+}
+
+impl fmt::Debug for PasswordResetService<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PasswordResetService")
+            .field("pool", &"[tenant database pool]")
+            .field("directory", &"[core identity port]")
+            .field("policies", &"[tenant policy store]")
+            .field("clock", &self.clock)
+            .finish()
+    }
+}
+
+impl<'a> PasswordResetService<'a> {
+    /// IDN-08: constructs the reset flow with the tenant pool, Core identity lookup and policy store.
+    pub(crate) const fn new(
+        pool: &'a PgPool,
+        directory: &'a dyn CoreIdentityDirectory,
+        policies: &'a PolicyStore,
+        clock: &'a dyn Clock,
+    ) -> Self {
+        Self {
+            pool,
+            directory,
+            policies,
+            clock,
+        }
+    }
+
+    /// IDN-08/AUTH-06: always performs dummy password verification and returns no account-existence result.
+    pub(crate) async fn forgot(
+        &self,
+        tenant: TenantId,
+        email: &str,
+        field_ctx: &FieldCtx,
+    ) -> Result<(), AppError> {
+        verify_forgot_dummy_work(field_ctx).await?;
+        let actor = ActorCtx::system("password_reset");
+        let mut tx = begin(self.pool, tenant, &actor).await?;
+        let result = self.forgot_in_tx(&mut tx, tenant, email, field_ctx).await;
+        match result {
+            Ok(()) => tx.commit().await.map_err(AppError::from),
+            Err(error) => {
+                tx.rollback().await?;
+                Err(error)
+            }
+        }
+    }
+
+    async fn forgot_in_tx(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        email: &str,
+        field_ctx: &FieldCtx,
+    ) -> Result<(), AppError> {
+        let policy = self.policies.current::<IdentityPolicy>(tx, tenant).await?.doc;
+        let Ok(email) = Email::parse(email.to_owned(), field_ctx) else {
+            return Ok(());
+        };
+        let Some(identity) = self.directory.by_email(tx, &email).await? else {
+            return Ok(());
+        };
+
+        let now = self.clock.now();
+        let window_start = now.checked_sub_signed(Duration::hours(1)).ok_or_else(|| {
+            AppError::Internal(anyhow::anyhow!(
+                "password reset window is outside timestamp range"
+            ))
+        })?;
+        let reset_count =
+            repo::count_password_resets_since(tx, tenant, identity.person_id(), window_start).await?;
+        if reset_count >= i64::from(policy.reset_max_per_hour()) {
+            return Ok(());
+        }
+
+        let token = ResetToken::generate()?;
+        let token_hash = token.digest();
+        let expires_at = now
+            .checked_add_signed(Duration::minutes(i64::from(policy.reset_token_ttl_minutes())))
+            .ok_or_else(|| {
+                AppError::Internal(anyhow::anyhow!(
+                    "password reset expiry is outside timestamp range"
+                ))
+            })?;
+        let token_id = Uuid::now_v7();
+        repo::insert_password_reset(
+            tx,
+            token_id,
+            tenant,
+            identity.person_id(),
+            token_hash.expose_secret().as_slice(),
+            expires_at,
+        )
+        .await?;
+        emit(
+            tx,
+            tenant,
+            &PasswordResetRequestedEvent {
+                person_id: identity.person_id(),
+                token_id,
+            },
+        )
+        .await?;
+        Ok(())
+    }
+
+    /// IDN-08/STM-24: validates and consumes one reset token, updating password and sessions atomically.
+    pub(crate) async fn reset(
+        &self,
+        tenant: TenantId,
+        token: ResetToken,
+        password_input: PasswordInput,
+        field_ctx: &FieldCtx,
+    ) -> Result<PersonId, AppError> {
+        let password = self
+            .validate_reset_preflight(tenant, &token, password_input, field_ctx)
+            .await?;
+        let (password, password_hash) = tokio::task::spawn_blocking(move || {
+            let password_hash = hash_password(&password);
+            (password, password_hash)
+        })
+        .await
+        .map_err(|_| AppError::Internal(anyhow::anyhow!("password reset hashing task failed")))?;
+        let password_hash = password_hash.map_err(map_password_error)?;
+        self.reset_transaction(tenant, &token, &password, &password_hash)
+            .await
+    }
+
+    async fn validate_reset_preflight(
+        &self,
+        tenant: TenantId,
+        token: &ResetToken,
+        password_input: PasswordInput,
+        field_ctx: &FieldCtx,
+    ) -> Result<Password, AppError> {
+        let actor = ActorCtx::system("password_reset");
+        let mut preflight = begin(self.pool, tenant, &actor).await?;
+        let preflight_result = async {
+            let policy = self
+                .policies
+                .current::<IdentityPolicy>(&mut preflight, tenant)
+                .await?
+                .doc;
+            let mut password_ctx = *field_ctx;
+            password_ctx.password_min_length = Some(usize::from(policy.password_min_length()));
+            let password = Password::parse(password_input, &password_ctx).map_err(|_| password_weak())?;
+            validate_new_password(&password, &policy).map_err(map_password_error)?;
+            let token_hash = token.digest();
+            let record = repo::password_reset_for_update(
+                &mut preflight,
+                tenant,
+                token_hash.expose_secret().as_slice(),
+            )
+            .await?;
+            validate_reset_record(record.as_ref(), &token_hash, self.clock.now())?;
+            Ok::<Password, AppError>(password)
+        }
+        .await;
+        match preflight_result {
+            Ok(password) => {
+                preflight.rollback().await?;
+                Ok(password)
+            }
+            Err(error) => {
+                preflight.rollback().await?;
+                Err(error)
+            }
+        }
+    }
+
+    async fn reset_transaction(
+        &self,
+        tenant: TenantId,
+        token: &ResetToken,
+        password: &Password,
+        password_hash: &PasswordHash,
+    ) -> Result<PersonId, AppError> {
+        let actor = ActorCtx::system("password_reset");
+        let mut tx = begin(self.pool, tenant, &actor).await?;
+        match self
+            .apply_reset_in_tx(&mut tx, tenant, token, password, password_hash, &actor)
+            .await
+        {
+            Ok(person) => {
+                tx.commit().await?;
+                Ok(person)
+            }
+            Err(error) => {
+                tx.rollback().await?;
+                Err(error)
+            }
+        }
+    }
+
+    async fn apply_reset_in_tx(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        token: &ResetToken,
+        password: &Password,
+        password_hash: &PasswordHash,
+        actor: &ActorCtx,
+    ) -> Result<PersonId, AppError> {
+        let policy = self.policies.current::<IdentityPolicy>(tx, tenant).await?.doc;
+        validate_new_password(password, &policy).map_err(map_password_error)?;
+        let now = self.clock.now();
+        let token_hash = token.digest();
+        let candidate =
+            repo::password_reset_for_update(tx, tenant, token_hash.expose_secret().as_slice()).await?;
+        let reset_record = validate_reset_record(candidate.as_ref(), &token_hash, now)?;
+        if !repo::mark_password_reset_used(tx, tenant, reset_record.id, now).await? {
+            return Err(token_invalid());
+        }
+        repo::set_password_after_reset(tx, tenant, reset_record.person, password_hash, now).await?;
+        repo::revoke_person_refresh_sessions(tx, tenant, reset_record.person, now).await?;
+        record(
+            tx,
+            AuditEvent {
+                action: "security.password.reset",
+                category: Category::Security,
+                entity_type: "credential",
+                entity_id: Some(reset_record.person.0),
+                before: None,
+                after: None,
+                actor,
+            },
+        )
+        .await?;
+        Ok(reset_record.person)
+    }
+}
+
+async fn verify_forgot_dummy_work(field_ctx: &FieldCtx) -> Result<(), AppError> {
+    let input = serde_json::from_str::<PasswordInput>(r#""ritma-reset-dummy-work""#)
+        .map_err(|_| AppError::Internal(anyhow::anyhow!("dummy reset input is invalid")))?;
+    let mut dummy_ctx = *field_ctx;
+    dummy_ctx.password_min_length = None;
+    let password = Password::parse(input, &dummy_ctx)
+        .map_err(|_| AppError::Internal(anyhow::anyhow!("dummy reset input is invalid")))?;
+    tokio::task::spawn_blocking(move || verify_dummy(&password))
+        .await
+        .map_err(|_| AppError::Internal(anyhow::anyhow!("dummy reset verification task failed")))??;
+    Ok(())
+}
+
+fn validate_reset_record<'a>(
+    record: Option<&'a repo::PasswordResetRecord>,
+    token_hash: &SecretBox<Zeroizing<Vec<u8>>>,
+    now: DateTime<Utc>,
+) -> Result<&'a repo::PasswordResetRecord, AppError> {
+    let Some(record) = record else {
+        return Err(token_invalid());
+    };
+    if !bool::from(record.token_hash().ct_eq(token_hash.expose_secret().as_slice()))
+        || record.used_at.is_some()
+        || record.expires_at <= now
+    {
+        return Err(token_invalid());
+    }
+    Ok(record)
+}
+
+fn password_weak() -> AppError {
+    AppError::Unprocessable {
+        code: &codes::PASSWORD_WEAK,
+        detail: String::from("password does not meet the current identity policy"),
+        extra: serde_json::Map::new(),
+    }
+}
+
+fn token_invalid() -> AppError {
+    AppError::BadRequest {
+        code: &codes::TOKEN_INVALID,
+        detail: String::from("reset token is invalid"),
+    }
+}
+
+fn map_password_error(error: PasswordError) -> AppError {
+    match error {
+        PasswordError::Weak => password_weak(),
+        PasswordError::Parameters
+        | PasswordError::Operation
+        | PasswordError::InvalidStoredHash
+        | PasswordError::Random => AppError::Internal(anyhow::anyhow!("password reset hashing failed")),
+    }
+}
+
+#[derive(Serialize)]
+struct PasswordResetRequestedEvent {
+    person_id: PersonId,
+    token_id: Uuid,
+}
+
+impl DomainEvent for PasswordResetRequestedEvent {
+    const TYPE: &'static str = "identity.password_reset_requested.v1";
+
+    fn aggregate_id(&self) -> Option<Uuid> {
+        Some(self.person_id.0)
     }
 }
 
@@ -1238,12 +1599,15 @@ async fn audit_account_locked(
 #[cfg(test)]
 mod tests {
     use super::{
-        LoginRequest, LoginService, RefreshSuccess, RefreshToken, RoleSwitchRequest, audit_actor, totp_verify,
+        LoginRequest, LoginService, RefreshSuccess, RefreshToken, ResetToken, RoleSwitchRequest, audit_actor,
+        totp_verify,
     };
     use crate::IdentityModule;
     use crate::jwt::{AccessTokenSubject, issue_access_token};
     use crate::password::hash_password;
     use anyhow::Result;
+    use base64::Engine;
+    use base64::engine::general_purpose::URL_SAFE_NO_PAD;
     use chrono::{DateTime, Duration, TimeZone, Utc};
     use eq_core::actor::{ActorCtx, ActorRole};
     use eq_core::auth::PgIdentityDirectory;
@@ -1257,6 +1621,7 @@ mod tests {
     use eq_core::module::{CoreModule, Module, ModuleId, ModuleRegistry};
     use eq_core::policy::{PolicyStore, PresetPatchSource, PresetSourceError};
     use serde_json::Value;
+    use sha2::{Digest, Sha256};
     use std::net::IpAddr;
     use std::sync::Arc;
     use totp_rs::{Algorithm, Builder, Totp};
@@ -1271,6 +1636,16 @@ mod tests {
     const WRONG_PASSWORD: &str = "test-secret-incorrect-password";
     // technical: deterministic calendar fixture for service tests.
     const FIXED_TEST_YEAR: i32 = 2026;
+
+    #[test]
+    fn reset_token_debug_redacts_fake_secret() {
+        let raw_token = URL_SAFE_NO_PAD.encode(Sha256::digest(b"test-secret-reset-debug"));
+        let token = ResetToken::try_from(raw_token.clone()).expect("fake reset token is canonical");
+        let debug = format!("{token:?}");
+
+        assert!(!debug.contains(&raw_token));
+        assert_eq!(debug, "ResetToken([REDACTED])");
+    }
 
     #[test]
     fn role_switch_request_debug_redacts_sensitive_values() {

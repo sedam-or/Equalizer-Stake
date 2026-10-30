@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.refresh_sessions SET revoked_at = COALESCE(revoked_at, $3) WHERE tenant_id = $1 AND person_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "967495a33811830caa6411bd970b96dfd2085683ccc127df19bab0a106cc145d"
+}

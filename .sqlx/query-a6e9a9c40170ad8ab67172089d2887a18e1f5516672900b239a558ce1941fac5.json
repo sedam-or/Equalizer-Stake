@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.password_resets SET used_at = $3 WHERE tenant_id = $1 AND id = $2 AND used_at IS NULL AND expires_at > $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a6e9a9c40170ad8ab67172089d2887a18e1f5516672900b239a558ce1941fac5"
+}

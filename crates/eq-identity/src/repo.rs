@@ -11,6 +11,8 @@ use std::net::IpAddr;
 use uuid::Uuid;
 use zeroize::Zeroizing;
 
+const PASSWORD_VERSION_STEP_SECONDS: f64 = 1.0; // technical: IDN-03 encodes password versions as whole epoch seconds.
+
 /// SBD-50: credential data is intentionally not formatted or cloned.
 pub(crate) struct Credentials {
     pub(crate) password_hash: Option<PasswordHash>,
@@ -47,6 +49,34 @@ impl std::fmt::Debug for InviteRecord {
 }
 
 impl InviteRecord {
+    pub(crate) fn token_hash(&self) -> &[u8] {
+        self.token_hash.expose_secret().as_slice()
+    }
+}
+
+/// SBD-50: a reset record carries a secret digest and is never serialized or cloned.
+pub(crate) struct PasswordResetRecord {
+    pub(crate) id: Uuid,
+    pub(crate) person: PersonId,
+    pub(crate) token_hash: SecretBox<Zeroizing<Vec<u8>>>,
+    pub(crate) expires_at: DateTime<Utc>,
+    pub(crate) used_at: Option<DateTime<Utc>>,
+}
+
+impl std::fmt::Debug for PasswordResetRecord {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("PasswordResetRecord")
+            .field("id", &self.id)
+            .field("person", &self.person)
+            .field("token_hash", &"[REDACTED]")
+            .field("expires_at", &self.expires_at)
+            .field("used_at", &self.used_at)
+            .finish()
+    }
+}
+
+impl PasswordResetRecord {
     pub(crate) fn token_hash(&self) -> &[u8] {
         self.token_hash.expose_secret().as_slice()
     }
@@ -249,6 +279,137 @@ pub(crate) async fn password_version(
     .fetch_optional(tx.conn())
     .await?;
     Ok(row.map(|credentials| credentials.version))
+}
+
+/// IDN-08/STM-24: counts a tenant person's reset requests inside the policy window.
+pub(crate) async fn count_password_resets_since(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    since: DateTime<Utc>,
+) -> Result<i64, AppError> {
+    let row = sqlx::query!(
+        "SELECT COUNT(*)::bigint AS \"count!\" FROM public.password_resets \
+         WHERE tenant_id = $1 AND person_id = $2 AND created_at >= $3",
+        tenant.0,
+        person.0,
+        since
+    )
+    .fetch_one(tx.conn())
+    .await?;
+    Ok(row.count)
+}
+
+/// IDN-08/STM-24: inserts the hash-only reset capability in the caller's tenant transaction.
+pub(crate) async fn insert_password_reset(
+    tx: &mut Tx,
+    id: Uuid,
+    tenant: TenantId,
+    person: PersonId,
+    token_hash: &[u8],
+    expires_at: DateTime<Utc>,
+) -> Result<(), AppError> {
+    sqlx::query!(
+        "INSERT INTO public.password_resets (id, tenant_id, person_id, token_hash, expires_at) \
+         VALUES ($1, $2, $3, $4, $5)",
+        id,
+        tenant.0,
+        person.0,
+        token_hash,
+        expires_at
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(())
+}
+
+/// IDN-08/STM-24: locks a token candidate so its one-use transition can be revalidated atomically.
+pub(crate) async fn password_reset_for_update(
+    tx: &mut Tx,
+    tenant: TenantId,
+    token_hash: &[u8],
+) -> Result<Option<PasswordResetRecord>, AppError> {
+    let row = sqlx::query!(
+        "SELECT id, person_id, token_hash, expires_at, used_at FROM public.password_resets \
+         WHERE tenant_id = $1 AND token_hash = $2 FOR UPDATE",
+        tenant.0,
+        token_hash
+    )
+    .fetch_optional(tx.conn())
+    .await?;
+    Ok(row.map(|row| PasswordResetRecord {
+        id: row.id,
+        person: PersonId(row.person_id),
+        token_hash: SecretBox::new(Box::new(Zeroizing::new(row.token_hash))),
+        expires_at: row.expires_at,
+        used_at: row.used_at,
+    }))
+}
+
+/// IDN-08/STM-24: marks one still-valid reset capability consumed in the caller's transaction.
+pub(crate) async fn mark_password_reset_used(
+    tx: &mut Tx,
+    tenant: TenantId,
+    id: Uuid,
+    now: DateTime<Utc>,
+) -> Result<bool, AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.password_resets SET used_at = $3 \
+         WHERE tenant_id = $1 AND id = $2 AND used_at IS NULL AND expires_at > $3",
+        tenant.0,
+        id,
+        now
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(result.rows_affected() == 1)
+}
+
+/// IDN-08/STM-24: stores the new password and advances its whole-second version for the reset person.
+pub(crate) async fn set_password_after_reset(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    password_hash: &PasswordHash,
+    now: DateTime<Utc>,
+) -> Result<(), AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.credentials SET password_hash = $3, \
+         password_changed_at = GREATEST($4, date_trunc('second', password_changed_at) + make_interval(secs => $5)) \
+         WHERE tenant_id = $1 AND person_id = $2",
+        tenant.0,
+        person.0,
+        password_hash.expose_secret(),
+        now,
+        PASSWORD_VERSION_STEP_SECONDS
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() != 1 {
+        return Err(AppError::Internal(anyhow::anyhow!(
+            "reset identity credential row disappeared"
+        )));
+    }
+    Ok(())
+}
+
+/// IDN-08/STM-24: revokes every refresh session after the password-reset transition.
+pub(crate) async fn revoke_person_refresh_sessions(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    now: DateTime<Utc>,
+) -> Result<(), AppError> {
+    sqlx::query!(
+        "UPDATE public.refresh_sessions SET revoked_at = COALESCE(revoked_at, $3) \
+         WHERE tenant_id = $1 AND person_id = $2",
+        tenant.0,
+        person.0,
+        now
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(())
 }
 
 /// IDN-04/ERD-04: resolves the person behind a canonical refresh digest before actor-scoped work.

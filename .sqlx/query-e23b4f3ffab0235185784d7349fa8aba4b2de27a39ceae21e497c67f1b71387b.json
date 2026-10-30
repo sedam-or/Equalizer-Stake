@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.credentials (tenant_id, person_id, password_hash, password_changed_at, failed_count) VALUES ($1, $2, $3, $4, 0)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e23b4f3ffab0235185784d7349fa8aba4b2de27a39ceae21e497c67f1b71387b"
+}
