@@ -2,7 +2,7 @@
 id: T-112
 title: Add the people API with scoped queries, role management, guardian–student links and deactivation
 milestone: M1
-status: todo
+status: review
 depends_on: [T-102a, T-110b, T-111]
 spec_refs: [IDN-10, IDN-11, IDN-13, SEC-03, SEC-04, AUD-01, API-05, API-06, API-07, PRD-02, STM-20, STM-26, STM-27, VAL-25, VAL-51, AUTH-04]
 estimated_size: M
@@ -60,8 +60,8 @@ Admins manage people, roles and guardian links. Every list or detail read is sco
 ## Split
 | Part | Owns | Depends on | Status |
 |---|---|---|---|
-| T-112a | People scopes, role changes and guardian links; AC 1, 2, 3, 4, 5 | T-111, T-102a | draft |
-| T-112b | PII audit, normalized email, deactivation and pagination; AC 6, 7, 8, 9 | T-112a | draft |
+| T-112a | People scopes, role changes and guardian links; AC 1, 2, 3, 4, 5 | T-111, T-102a | todo |
+| T-112b | PII audit, normalized email, deactivation and pagination; AC 6, 7, 8, 9 | T-112a | todo |
 
 ## Files
 | Path | Action | Purpose |
@@ -90,19 +90,56 @@ Follow the ordered behavior already stated in Context, Scope and Acceptance crit
 | n/a | Child parts own all implementation tests. |
 
 ## Definition of done
-- [ ] Every original criterion and test name is assigned once to a dependent child.
-- [ ] The task index reflects the child dependency chain.
+- [x] Every original criterion and test name is assigned once to a dependent child.
+- [x] The task index reflects the child dependency chain.
 
 ## Report
-**Deviations** — RATIFY: TD-063, split this CQ-101-sized scope into dependent implementation parts while retaining this file as the contract parent.
+**Plan** — 1. Compare this parent’s nine criteria with T-112a/T-112b scopes and test tables → verify each criterion and test name has exactly one owner. 2. Verify the child task frontmatter and dependency chain against the split table and generated index → align the parent’s stale status labels and record TD-165. 3. Check the task index/linter and inspect only this task’s documentation diff → confirm no implementation, schema, API or security contract was changed.
 
-**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
-**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+**Assumptions** — T-112 is the contract parent and contributes only one aggregate acceptance criterion; the implementation and test work belongs to T-112a and T-112b. Task frontmatter is the authoritative status source, with `tasks/INDEX.md` generated from it. The parent has no runtime behavior, migration, API artifact or UI change.
+
+**Test plan** — AC1: Given the original T-112 context has criteria AC1–AC9 and named implementation tests, when the child scopes and test tables are compared, then AC1–AC5 belong only to T-112a and AC6–AC9 belong only to T-112b, with every test name assigned exactly once. Edge cases: ensure the five T-112a acceptance tests and five T-112b tests (including the role-matrix abuse test) are listed once and that the child dependency is ordered. Error/abuse cases: the parent adds no runtime path; the child-owned tests retain coverage for scope denial, last-owner protection, admin-role denial, unique primary guardian, PII audit, normalized email, deactivation revocation and pagination. Dependency check: T-112a depends on T-111/T-102a and T-112b depends on T-112a.
+
+**Summary** — T-112 remains a tracking parent and assigns all nine original criteria and their named tests across the two dependent child tasks. Their frontmatter and index status are `todo`, and their dependency chain is T-112a after T-111/T-102a, then T-112b after T-112a. No endpoint, code, schema or test implementation changed.
+
+**Spec read** — The parent’s inlined IDN-10/11/13, AUD-01, API-05/06/07, STM-20/26/27, VAL-25/51 and AUTH-04 contracts; `spec/16-code-quality.md` §12; `spec/17-clean-architecture.md` §§1, 4; `spec/18-security-by-design.md` §§4–5; `spec/19-error-handling.md` §10; `spec/25-auth-and-access-control.md` §§1, 7. The task’s implementation details remain delegated to its child parts.
+
+**Files** — Modified `tasks/M1-core/T-112-people-and-rbac.md` to align split status labels and complete this Report; modified `tasks/DECISIONS.md` to record TD-165; regenerated `tasks/INDEX.md`. T-112a and T-112b files were read but not changed.
+
+**Acceptance criteria** —
+
+| AC | Evidence | Result |
+|---|---|---|
+| AC1. Every original criterion and test is assigned exactly once to a dependent child | T-112a owns AC1–AC5 and lists `guardian_scope`, `student_cannot_see_others`, `last_owner_protected`, `admin_cannot_grant_admin`, `one_primary_guardian_api`; T-112b owns AC6–AC9 and lists `pii_read_audited_once_per_day`, `email_taken_normalized`, `deactivate_revokes_sessions`, `cursor_pagination`, `people_endpoints_role_matrix` | Pass: nine criteria and ten unique child test names have one owner each |
+| Supporting check: the index reflects the child dependency chain | T-112a frontmatter depends on T-111/T-102a; T-112b frontmatter depends on T-112a | Pass: generated index matches these dependencies |
+
+**Checks run** — `scripts/tasks-index.sh --check` and `python3 -I scripts/tasks-lint.py` pass. Manual contract comparison confirms the two child test-name lists are disjoint and cover their allocated AC ranges. `git diff --check` passes. Not run: Cargo tests, SQL tests/migrations, OpenAPI generation, web checks and E2E, because this aggregate only tracks the split and changes no runtime files. A read-only PostgreSQL catalog query confirmed the existing task database list; no test database was created. No migration changed, so `scripts/erd.py --migrations` is not applicable.
+
+**Manual checks** — n/a; no runtime behavior is owned by T-112.
+
+**Debug log** — The parent Split table listed both child tasks as `draft`, but their task frontmatter and generated index list them as `todo`. Following the task-frontmatter source of truth, the parent table was updated to `todo` and TD-165 was recorded. No child task status was changed.
+
+**Performance** — n/a; no runtime code or query changed.
+
+**Security** — No security control or runtime contract changed in this tracking task. The two implementation children retain their security sections for scoped queries, role checks, S2/S3 PII, and the named abuse-case tests.
+
+**Deviations** — RATIFY TD-063 records the historical CQ-101 split; TD-066 and TD-067 are historical template/security-section corrections. RATIFY TD-165 aligns the parent’s split table with child task frontmatter and the generated index. No behavior, permission, role grant, error code, schema or event is added.
+
+**Dependencies affected** — T-112a remains dependent on T-111 and T-102a; T-112b remains dependent on T-112a. T-113 continues to depend on T-112b.
+
+**Rollback plan** — Revert the single signed T-112 documentation commit. No runtime, database or schema state is changed.
+
+**Follow-ups** — Implement T-112a next; after it reaches `review`, proceed to T-112b. Architect ratification of the historical TD-063/066/067 and current TD-165 remains outstanding.
+
+**Workflow steps 0–12** — 0: resumed on `dev` at `27accbb`; confirmed `dev` equals `origin/dev`, no tracked changes, preserved unrelated untracked WIP, confirmed T-112 is the lowest eligible task and its dependencies are `review`, then claimed it and regenerated the index; 1: read the full parent and child task contracts and cited specifications; 2: read T-102a, T-110b and T-111 Reports, their Deviations/Follow-ups and shipped field/auth code; 3: n/a (no UI); 4: recorded this plan and AC/test ownership check before editing the split status; 5: no implementation was in scope; 6: n/a (no runtime behavior); 7: no failures; 8: reviewed the task/decision/index diff; 9: n/a; 10: confirmed the parent adds no security behavior and preserves child security contracts; 11: ran index/lint/diff checks; 12: set the parent to `review`, regenerated and checked the index, staged only T-112-owned files, committed one signed commit and pushed only `dev`.
+
+**Disk and resource accounting** — Before T-112, `du -sh "$HOME/.cache/ritma/target"` reported `8.5G`; `docker system df` reported Images 7/7/10.96GB/0B reclaimable, Containers 9/9/10.49MB/0B, Local Volumes 6/6/5.032GB/0B, Build Cache 0/0/0B. After T-112, the target remained `8.5G` and Docker reported the same counts, sizes and reclaimable amounts. Existing `ritma-db-1` remained running; only pre-existing database `ritma_test_T-110a4b` was present. This task created or removed no Docker container, image, volume or database. No Cargo command ran, and the fixed target directory was not modified. Protected kinevo*, infrastructure*, eqs* and equalizer-stake_* resources and all pre-existing untracked WIP were left untouched.
 
 ## Questions
 - **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** the original task exceeds CQ-101 limits → split its acceptance criteria and named tests across the listed dependent parts, preserving every original test name exactly once.
 - **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
 - **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+- **Self-resolved (implementer, run 23, needs architect ratification; TD-165):** the split table labels T-112a/T-112b `draft` while their frontmatter and generated index show `todo` → update the parent labels to the authoritative current status because both children are ready with the dependency chain verified.
 
 ## Review
-n/a — pending review after implementation.
+Pending maintainer review.

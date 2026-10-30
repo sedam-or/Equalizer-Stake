@@ -1174,3 +1174,12 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The target explicitly says OpenAPI generation is added by T-114, and fabricating generated contracts here would exceed T-111's aggregate-only Scope and Files.
 - **Changed:** `tasks/M1-core/T-111-invites-reset-me-totp.md`, this register, and generated `tasks/INDEX.md`.
 - **Ratify:** Yes.
+
+### TD-165 — Align T-112 split status labels with task frontmatter
+
+- **Question:** The T-112 split table labels T-112a and T-112b as `draft`, while each child's frontmatter and the generated index mark it `todo`.
+- **Options:** (a) revert the eligible child tasks to `draft`; (b) update the parent table to show their current `todo` status.
+- **Decision:** Use option (b) and keep the split table aligned with the authoritative task frontmatter.
+- **Why:** Both child contracts are present, their dependency chain is explicit, their dependencies are `review`, and the generated task index lists them as `todo`; no implementation scope changes.
+- **Changed:** `tasks/M1-core/T-112-people-and-rbac.md`, this register, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
