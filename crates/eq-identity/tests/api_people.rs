@@ -14,11 +14,13 @@ use eq_core::model::{Role, TenantStatus};
 use eq_core::module::gate::{EnabledModuleSet, ModuleGate};
 use eq_core::module::{CoreModule, Module, ModuleId, ModuleRegistry};
 use eq_core::money::Currency;
+use eq_core::policy::PolicyDoc;
 use eq_core::policy::types::Locale;
 use eq_core::tenant::TenantCtx;
 use eq_identity::api_auth::LoginHttpState;
 use eq_identity::jwt::{AccessToken, AccessTokenSubject, issue_access_token};
 use eq_identity::module::IdentityModule;
+use eq_identity::policy::IdentityPolicy;
 use reqwest::Client;
 use secrecy::ExposeSecret;
 use serde_json::{Value, json};
@@ -51,8 +53,8 @@ impl Fixture {
     )]
     async fn new() -> Result<Self> {
         let config = Arc::new(Config::from_env().context("load T-112a task database configuration")?);
-        ensure!(database_name(config.database_url.expose_secret()) == "ritma_test_T-112a");
-        ensure!(database_name(config.database_owner_url.expose_secret()) == "ritma_test_T-112a");
+        ensure!(database_name(config.database_url.expose_secret()) == "ritma_test_T-112b");
+        ensure!(database_name(config.database_owner_url.expose_secret()) == "ritma_test_T-112b");
         let app_pool = PgPoolOptions::new()
             .max_connections(6)
             .connect(config.database_url.expose_secret())
@@ -220,7 +222,7 @@ async fn verify_app_pool(pool: &PgPool) -> Result<()> {
     )
     .fetch_one(pool)
     .await?;
-    ensure!(role.try_get::<String, _>("database")? == "ritma_test_T-112a");
+    ensure!(role.try_get::<String, _>("database")? == "ritma_test_T-112b");
     ensure!(role.try_get::<String, _>("username")? == "eq_app");
     ensure!(!role.try_get::<bool, _>("rolsuper")? && !role.try_get::<bool, _>("rolbypassrls")?);
     Ok(())
@@ -423,5 +425,262 @@ async fn read_routes_use_read_only_transactions() -> Result<()> {
         .await?;
     assert_eq!(row.read_only, "on");
     tx.rollback().await?;
+    Ok(())
+}
+
+#[tokio::test]
+async fn pii_read_audited_once_per_day() -> Result<()> {
+    let fixture = Fixture::new().await?;
+    let (created, created_body) = fixture
+        .request(
+            reqwest::Method::POST,
+            "/api/v1/people",
+            fixture.admin,
+            Role::Admin,
+            Some(json!({
+                "display_name": "test-secret-pii-subject",
+                "email": "test-secret-pii@example.test",
+                "roles": ["student"],
+                "invite": false
+            })),
+        )
+        .await?;
+    assert_eq!(created, reqwest::StatusCode::CREATED, "{created_body}");
+    let subject = Uuid::parse_str(
+        created_body["id"]
+            .as_str()
+            .context("created person includes an id")?,
+    )?;
+
+    for _ in 0..2 {
+        let (status, body) = fixture
+            .request(
+                reqwest::Method::GET,
+                &format!("/api/v1/people/{subject}"),
+                fixture.admin,
+                Role::Admin,
+                None,
+            )
+            .await?;
+        assert_eq!(status, reqwest::StatusCode::OK, "{body}");
+        assert_eq!(body["email"], "test-secret-pii@example.test");
+    }
+
+    let audit = sqlx::query!(
+        "SELECT count(*)::bigint AS \"count!\", min(category) AS \"category?\" \
+         FROM audit.entries WHERE tenant_id = $1 AND actor_id = $2 AND entity_id = $3 \
+           AND action = 'identity.person.pii_read'",
+        fixture.tenant.0,
+        fixture.admin.0,
+        subject
+    )
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit.count, 1);
+    assert_eq!(audit.category.as_deref(), Some("compliance"));
+    Ok(())
+}
+
+#[tokio::test]
+async fn email_taken_normalized() -> Result<()> {
+    let fixture = Fixture::new().await?;
+    let create = |email: &str| {
+        json!({
+            "display_name": "test-secret-email-person",
+            "email": email,
+            "roles": ["student"],
+            "invite": false
+        })
+    };
+    let (first_status, first_body) = fixture
+        .request(
+            reqwest::Method::POST,
+            "/api/v1/people",
+            fixture.admin,
+            Role::Admin,
+            Some(create(" Test.Secret+normalized@example.test ")),
+        )
+        .await?;
+    assert_eq!(first_status, reqwest::StatusCode::CREATED, "{first_body}");
+
+    let (second_status, second_body) = fixture
+        .request(
+            reqwest::Method::POST,
+            "/api/v1/people",
+            fixture.admin,
+            Role::Admin,
+            Some(create("test.secret+NORMALIZED@EXAMPLE.TEST")),
+        )
+        .await?;
+    assert_eq!(second_status, reqwest::StatusCode::CONFLICT, "{second_body}");
+    assert_eq!(second_body["code"], "email_taken");
+    Ok(())
+}
+
+#[tokio::test]
+async fn deactivate_revokes_sessions() -> Result<()> {
+    use base64::Engine;
+    use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+    use sha2::Digest;
+
+    let fixture = Fixture::new().await?;
+    let policy = IdentityPolicy::default();
+    sqlx::query!(
+        "INSERT INTO public.policies (tenant_id, module_id, version, schema_version, effective_from, document) \
+         VALUES ($1, 'identity', 1, $2, $3, $4)",
+        fixture.tenant.0,
+        i32::try_from(IdentityPolicy::SCHEMA_VERSION)?,
+        fixture.clock.now() - chrono::Duration::days(1),
+        serde_json::to_value(policy)?
+    )
+    .execute(&fixture.owner_pool)
+    .await?;
+    let mut raw_token = [0_u8; 32];
+    raw_token[..16].copy_from_slice(fixture.tenant.0.as_bytes());
+    raw_token[16..].copy_from_slice(fixture.student_two.0.as_bytes());
+    let refresh_token = URL_SAFE_NO_PAD.encode(raw_token);
+    let token_hash = sha2::Sha256::digest(raw_token).to_vec();
+    let now = fixture.clock.now();
+    sqlx::query!(
+        "INSERT INTO public.refresh_sessions \
+         (id, tenant_id, person_id, family_id, token_hash, active_role, created_at, last_used_at, idle_expires_at, absolute_expires_at) \
+         VALUES ($1, $2, $3, $4, $5, 'student', $6, $6, $7, $7)",
+        Uuid::now_v7(),
+        fixture.tenant.0,
+        fixture.student_two.0,
+        Uuid::now_v7(),
+        token_hash,
+        now,
+        now + chrono::Duration::hours(1)
+    )
+    .execute(&fixture.owner_pool)
+    .await?;
+
+    let (status, body) = fixture
+        .request(
+            reqwest::Method::POST,
+            &format!("/api/v1/people/{}/deactivate", fixture.student_two.0),
+            fixture.admin,
+            Role::Admin,
+            None,
+        )
+        .await?;
+    assert_eq!(status, reqwest::StatusCode::NO_CONTENT, "{body}");
+
+    let session = sqlx::query!(
+        "SELECT revoked_at IS NOT NULL AS \"revoked!\" FROM public.refresh_sessions \
+         WHERE tenant_id = $1 AND person_id = $2",
+        fixture.tenant.0,
+        fixture.student_two.0
+    )
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert!(session.revoked);
+
+    let response = fixture
+        .client
+        .post(format!("http://{}/api/v1/auth/refresh", fixture.address))
+        .header("cookie", format!("eq_rt={refresh_token}"))
+        .header("x-eq-csrf", "1")
+        .header("origin", "http://localhost:3000")
+        .send()
+        .await?;
+    let refresh_status = response.status();
+    let refresh_body = response.text().await?;
+    assert_eq!(
+        refresh_status,
+        reqwest::StatusCode::UNAUTHORIZED,
+        "{refresh_body}"
+    );
+    Ok(())
+}
+
+async fn seed_students(fixture: &Fixture, extra: usize) -> Result<()> {
+    for index in 0..extra {
+        let person = PersonId(Uuid::now_v7());
+        sqlx::query!(
+            "INSERT INTO public.persons (id, tenant_id, display_name) VALUES ($1, $2, $3)",
+            person.0,
+            fixture.tenant.0,
+            format!("page-student-{index:03}")
+        )
+        .execute(&fixture.owner_pool)
+        .await?;
+        sqlx::query!(
+            "INSERT INTO public.memberships (tenant_id, person_id, role, status) \
+             VALUES ($1, $2, 'student', 'active')",
+            fixture.tenant.0,
+            person.0
+        )
+        .execute(&fixture.owner_pool)
+        .await?;
+    }
+    Ok(())
+}
+
+#[tokio::test]
+async fn cursor_pagination() -> Result<()> {
+    let fixture = Fixture::new().await?;
+    seed_students(&fixture, 117).await?;
+    let mut cursor = None::<String>;
+    let mut page_lengths = Vec::new();
+    let mut ids = BTreeSet::new();
+    for _ in 0..3 {
+        let path = match &cursor {
+            Some(cursor) => format!("/api/v1/people?role=student&limit=50&sort=display_name&cursor={cursor}"),
+            None => String::from("/api/v1/people?role=student&limit=50&sort=display_name"),
+        };
+        let (status, body) = fixture
+            .request(reqwest::Method::GET, &path, fixture.admin, Role::Admin, None)
+            .await?;
+        assert_eq!(status, reqwest::StatusCode::OK, "{body}");
+        let items = body["items"].as_array().context("page includes items")?;
+        page_lengths.push(items.len());
+        for item in items {
+            let id = item["id"].as_str().context("item includes id")?.to_owned();
+            ensure!(ids.insert(id));
+        }
+        cursor = body["next_cursor"].as_str().map(str::to_owned);
+        if page_lengths.len() < 3 {
+            ensure!(cursor.is_some());
+        } else {
+            ensure!(cursor.is_none());
+        }
+    }
+    assert_eq!(page_lengths, [50, 50, 20]);
+    assert_eq!(ids.len(), 120);
+    Ok(())
+}
+
+#[tokio::test]
+async fn people_endpoints_role_matrix() -> Result<()> {
+    let fixture = Fixture::new().await?;
+    let (detail_status, detail_body) = fixture
+        .request(
+            reqwest::Method::GET,
+            &format!("/api/v1/people/{}", fixture.admin.0),
+            fixture.student_one,
+            Role::Student,
+            None,
+        )
+        .await?;
+    assert_eq!(detail_status, reqwest::StatusCode::NOT_FOUND, "{detail_body}");
+    assert_eq!(detail_body["code"], "not_found");
+
+    let (write_status, write_body) = fixture
+        .request(
+            reqwest::Method::POST,
+            "/api/v1/people",
+            fixture.student_one,
+            Role::Student,
+            Some(json!({
+                "display_name": "test-secret-forbidden-create",
+                "roles": ["student"],
+                "invite": false
+            })),
+        )
+        .await?;
+    assert_eq!(write_status, reqwest::StatusCode::FORBIDDEN, "{write_body}");
+    assert_eq!(write_body["perm"], "identity.people.write");
     Ok(())
 }

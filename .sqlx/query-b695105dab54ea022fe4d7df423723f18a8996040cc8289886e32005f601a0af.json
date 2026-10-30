@@ -1,0 +1,72 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT p.id AS \"id!: Uuid\", p.display_name, p.version, p.created_at\n           FROM public.persons AS p\n           WHERE p.tenant_id = $1\n             AND p.deleted_at IS NULL\n             AND ($2::text = 'all' OR p.id = $3 OR\n                  ($2::text = 'guardian' AND EXISTS (\n                    SELECT 1 FROM public.person_links AS l\n                    WHERE l.tenant_id = $1 AND l.guardian_id = $3 AND l.student_id = p.id\n                  )))\n             AND EXISTS (\n               SELECT 1 FROM public.memberships AS m\n               WHERE m.tenant_id = $1 AND m.person_id = p.id AND m.status = 'active'\n                 AND ($4::text IS NULL OR m.role = $4)\n             )\n             AND (\n               $7::uuid IS NULL\n               OR ($8::text = 'display_name' AND\n                   (p.display_name > $5 OR (p.display_name = $5 AND p.id > $7)))\n               OR ($8::text = '-created_at' AND\n                   (p.created_at < $6 OR (p.created_at = $6 AND p.id > $7)))\n             )\n           ORDER BY\n             CASE WHEN $8::text = 'display_name' THEN p.display_name END ASC NULLS LAST,\n             CASE WHEN $8::text = '-created_at' THEN p.created_at END DESC NULLS LAST,\n             p.id ASC\n           LIMIT $9",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!: Uuid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "display_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "display_name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "version"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Uuid",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b695105dab54ea022fe4d7df423723f18a8996040cc8289886e32005f601a0af"
+}

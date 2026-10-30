@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.memberships SET status = 'deactivated' WHERE tenant_id = $1 AND person_id = $2 AND status IN ('active', 'invited') RETURNING role",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "role",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "memberships",
+            "name": "role"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "333755d52f361ef90cfdbf8d69bf149360572190c0ff42ae1c12564e8ed1c55e"
+}

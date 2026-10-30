@@ -1,6 +1,7 @@
 //! Transaction-bound audit insertion (AUD-02, ARC-05).
 
 use crate::Category;
+use chrono::{DateTime, Utc};
 use eq_core::actor::ActorCtx;
 use eq_core::db::Tx;
 use eq_core::error::AppError;
@@ -36,6 +37,17 @@ impl fmt::Debug for AuditEvent<'_> {
 /// AUD-02, ARC-05: inserts the audit entry in the transaction that owns the business mutation.
 pub async fn record(tx: &mut Tx, event: AuditEvent<'_>) -> Result<(), AppError> {
     crate::repo::record(tx, event).await
+}
+
+/// AUD-01: inserts an event only when this actor/entity/action has no record in the supplied UTC window.
+pub async fn record_once_for_actor_entity_window(
+    tx: &mut Tx,
+    event: AuditEvent<'_>,
+    at: DateTime<Utc>,
+    from: DateTime<Utc>,
+    until: DateTime<Utc>,
+) -> Result<bool, AppError> {
+    crate::repo::record_once_for_actor_entity_window(tx, event, at, from, until).await
 }
 
 #[cfg(test)]

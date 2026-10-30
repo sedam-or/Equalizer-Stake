@@ -106,8 +106,13 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-152 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | API-15 requires per-user and per-IP limits, but no shared limiter is wired into the API yet and a route-local limiter would be incomplete → flag shared middleware as a required follow-up; do not mark this control as implemented. |
 | TD-153 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | The profile route updates Core-owned `persons`, but the task does not name its audit action → use `core.person.updated`, following STM-04's `<module>.<entity>.<verb_past>` form and ERD-01's Core ownership. |
 | TD-154 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | T-110f implements five API behaviors in one existing task contract and exceeds CQ-101's approximately 400 non-generated-line guidance → complete the assigned contract in one task commit as instructed, disclose the 2,066-line implementation diff, and request architect review of the task sizing. |
+| TD-173 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | T-112b lists only its integration test although AC6–AC9 require HTTP handlers, Core-owned person/PII/pagination/deactivation operations, audit-owned daily deduplication and SQLx metadata → add only those existing module-boundary paths named in Files, because the task specifies the behavior and `spec/29-erd.md` maps every needed column to existing migrations; add no permission, event or schema object. |
+| TD-174 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | The PII audit window is computed from the injected Clock, while the normal audit insert uses PostgreSQL statement time → record the deduplicated entry at the same injected instant, because AGENTS.md §4.3 requires domain time to come from the injected Clock and this keeps the row inside its tenant-local-day window. |
+| TD-175 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | The task implementation exceeds CQ-101's approximate 400-line review guidance because its original Files list omitted the required route, service, Core port and Audit repository paths → keep the assigned acceptance criteria together, disclose the measured 1,723 Rust source/test additions and 84 deletions, and request architect review of task sizing. |
+| TD-176 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | Person creation and deactivation require transactional audit records, while their task/spec contracts do not define outbox event names or payloads → write the named audit records in the same transaction and do not invent outbox contracts, following the boundary recorded in TD-167. |
+| TD-177 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | The task DoD asks for `make api`, but the repository target is an explicit T-114 placeholder and generated OpenAPI/client paths are outside this task's Files → record the target as unavailable, leave generated artifacts to T-114, and do not fabricate outputs. |
 
-**Total mapped self-resolutions:** 99.
+**Total mapped self-resolutions:** 104.
 
 ## Detailed entries added in run 6
 
@@ -1245,4 +1250,49 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Use option (b); do not alter the test evidence or remove an image outside the allowed cleanup list.
 - **Why:** The report must describe what actually ran, and the explicit resource-cleanup allow-list is narrower than the image list. Future tasks must obey the no-new-image/container boundary.
 - **Changed:** `tasks/M1-core/T-112a-people-scopes,-role-changes-and-guardian-links.md`, this register, and `RUN_LOG.md`.
+- **Ratify:** Yes.
+
+### TD-173 — Add implementation paths omitted from T-112b Files
+
+- **Question:** T-112b lists only its API integration test, while AC6–AC9 require PII detail/audit, normalized-email conflict handling, deactivation/session revocation and cursor pagination.
+- **Options:** (a) keep the Files list literal and leave the named acceptance tests without handlers or module-owned data operations; (b) add only the Identity route/service/error, Core directory, Audit record/repository, integration test and SQLx metadata paths required by the task's existing contract.
+- **Decision:** Use option (b); no migration is added.
+- **Why:** The task already specifies these endpoint behaviors and stable values. `spec/29-erd.md` maps `persons` to T-101's `0002_core_tenancy.sql` and `audit.entries` to T-109's `0006_audit.sql`, and the existing DDL supplies all required columns. Core and Audit retain SQL ownership of their own tables.
+- **Changed:** `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md`, `tasks/DECISIONS.md`, generated `tasks/INDEX.md`, and only the implementation paths listed by T-112b.
+- **Ratify:** Yes.
+
+### TD-174 — Timestamp the deduplicated PII audit with the injected Clock
+
+- **Question:** The PII audit day window is calculated from the injected Clock, but the ordinary Audit insert stores PostgreSQL statement time.
+- **Options:** (a) use database statement time for the deduplicated insert; (b) pass the injected instant into the Audit-owned insert.
+- **Decision:** Use option (b), so the event is stored inside the same tenant-local-day window used for deduplication.
+- **Why:** AGENTS.md §4.3 requires domain time to come from the injected Clock.
+- **Changed:** Audit's task-scoped deduplicated record operation and Identity's PII read orchestration.
+- **Ratify:** Yes.
+
+### TD-175 — Disclose T-112b review-size overage
+
+- **Question:** The task's omitted Files entries left the assigned acceptance criteria without route, service, Core port and Audit repository paths; implementing them exceeds CQ-101's approximate 400-line review guidance.
+- **Options:** (a) split or reassign the already-implemented behavior across other tasks; (b) keep the task's acceptance criteria together, disclose the measured diff and request review of the task sizing.
+- **Decision:** Use option (b); the Rust source/test diff is 1,723 lines added and 84 deleted, excluding generated SQLx metadata.
+- **Why:** Reassigning code now would change task ownership; the size overage is a review concern, not a missing behavior.
+- **Changed:** T-112b's implementation and report only.
+- **Ratify:** Yes; review the task split and omitted Files entries.
+
+### TD-176 — Do not invent person outbox event contracts
+
+- **Question:** Person creation and deactivation are state changes with named transactional audit actions, but the task and cited state-machine contract define no corresponding outbox event names or payloads.
+- **Options:** (a) derive outbox event names from audit action strings; (b) keep the specified audit records transactional and defer event emission until an event contract is defined.
+- **Decision:** Use option (b), following the same cross-module boundary recorded in TD-167.
+- **Why:** Outbox event names and payloads are cross-module contracts and must not be inferred from audit identifiers.
+- **Changed:** T-112b's person creation/deactivation service flow and report; no event contract was added.
+- **Ratify:** Yes.
+
+### TD-177 — Defer API artifact generation to T-114
+
+- **Question:** T-112b's Definition of Done requests `make api`, but the Makefile target exits with an explicit message that OpenAPI generation is added by T-114; generated artifact paths are not listed in T-112b Files.
+- **Options:** (a) implement the generator and generated OpenAPI/client outputs here; (b) report `make api` as unavailable and leave generation to T-114.
+- **Decision:** Use option (b); the command was attempted, returned its placeholder failure, and no generated artifacts were written.
+- **Why:** T-114 owns the generator stack, and fabricating outputs here would exceed this task's Scope and Files. This follows the sequencing decision in TD-164.
+- **Changed:** T-112b's Report and this decision register.
 - **Ratify:** Yes.

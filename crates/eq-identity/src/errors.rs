@@ -62,6 +62,13 @@ pub mod codes {
         title: "A primary guardian already exists",
     };
 
+    /// IDN-10: normalized tenant email blind index already belongs to another person.
+    pub static EMAIL_TAKEN: ErrorCodeDef = ErrorCodeDef {
+        code: "email_taken",
+        status: 409,
+        title: "Email is already used in this tenant",
+    };
+
     /// Registered application codes owned by Identity.
     pub const CODES: &[&ErrorCodeDef] = &[
         &INVALID_CREDENTIALS,
@@ -72,5 +79,6 @@ pub mod codes {
         &INVITE_EXPIRED,
         &LAST_OWNER,
         &PRIMARY_EXISTS,
+        &EMAIL_TAKEN,
     ];
 }

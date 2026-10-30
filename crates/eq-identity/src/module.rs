@@ -173,6 +173,8 @@ impl Module for IdentityModule {
             .routes(utoipa_axum::routes!(crate::api_me::revoke_session))
             .routes(utoipa_axum::routes!(crate::api_people::list_people))
             .routes(utoipa_axum::routes!(crate::api_people::get_person))
+            .routes(utoipa_axum::routes!(crate::api_people::create_person))
+            .routes(utoipa_axum::routes!(crate::api_people::deactivate_person))
             .routes(utoipa_axum::routes!(crate::api_people::grant_role))
             .routes(utoipa_axum::routes!(crate::api_people::remove_role))
             .routes(utoipa_axum::routes!(crate::api_people::create_guardian_link))

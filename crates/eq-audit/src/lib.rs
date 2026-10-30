@@ -10,7 +10,7 @@ pub mod policy;
 mod repo;
 pub use policy::Category;
 pub mod record;
-pub use record::{AuditEvent, record};
+pub use record::{AuditEvent, record, record_once_for_actor_entity_window};
 pub mod sealer;
 pub use jobs::{AuditRetentionJob, AuditVerifyRecentJob};
 pub use module::AuditModule;

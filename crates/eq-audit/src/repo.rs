@@ -61,6 +61,72 @@ pub(super) async fn record(tx: &mut Tx, event: AuditEvent<'_>) -> Result<(), App
     Ok(())
 }
 
+pub(super) async fn record_once_for_actor_entity_window(
+    tx: &mut Tx,
+    event: AuditEvent<'_>,
+    at: DateTime<Utc>,
+    from: DateTime<Utc>,
+    until: DateTime<Utc>,
+) -> Result<bool, AppError> {
+    let context = sqlx::query!(
+        "SELECT NULLIF(pg_catalog.current_setting('app.tenant_id', true), '')::uuid AS tenant_id, NULLIF(pg_catalog.current_setting('app.actor_id', true), '')::uuid AS actor_id"
+    )
+    .fetch_one(tx.conn())
+    .await?;
+
+    if context.actor_id != event.actor.person_id.map(|person_id| person_id.0) {
+        return Err(AppError::Internal(
+            std::io::Error::other("audit actor does not match transaction context").into(),
+        ));
+    }
+    let tenant_id = context.tenant_id.ok_or_else(|| {
+        AppError::Internal(std::io::Error::other("audit tenant is missing from transaction context").into())
+    })?;
+
+    let actor_role = actor_role(event.actor.role)?;
+    // Reuse the tenant audit lock so simultaneous reads cannot race the daily existence check.
+    lock_tenant(tx, TenantId(tenant_id)).await?;
+    let id = Uuid::now_v7();
+    let actor_id = event.actor.person_id.map(|person_id| person_id.0);
+    let action = event.action;
+    let entity_type = event.entity_type;
+    let entity_id = event.entity_id;
+    let category = event.category.as_str();
+    let before = event.before.map(Json);
+    let after = event.after.map(Json);
+    let ip = event.actor.ip.map(|ip| ip.to_string());
+    let request_id = event.actor.request_id;
+
+    let inserted = sqlx::query!(
+        "INSERT INTO audit.entries (id, tenant_id, at, actor_id, actor_role, action, entity_type, entity_id, category, \"before\", \"after\", ip, request_id) \
+         SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::text::inet, $13 \
+         WHERE NOT EXISTS ( \
+           SELECT 1 FROM audit.entries \
+           WHERE tenant_id = $2 AND actor_id IS NOT DISTINCT FROM $4 \
+             AND action = $6 AND entity_type = $7 AND entity_id IS NOT DISTINCT FROM $8 \
+             AND at >= $14 AND at < $15 \
+         )",
+        id,
+        tenant_id,
+        at,
+        actor_id,
+        actor_role,
+        action,
+        entity_type,
+        entity_id,
+        category,
+        before as Option<Json<Value>>,
+        after as Option<Json<Value>>,
+        ip,
+        request_id,
+        from,
+        until
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(inserted.rows_affected() == 1)
+}
+
 pub(super) struct SealRow {
     pub(super) seq: i64,
     pub(super) id: Uuid,

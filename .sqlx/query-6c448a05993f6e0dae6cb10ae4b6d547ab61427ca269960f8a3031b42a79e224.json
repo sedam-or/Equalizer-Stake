@@ -1,0 +1,108 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT p.id AS \"id!: Uuid\", p.display_name, p.version, p.created_at, p.locale,\n                  CASE WHEN $4 THEN p.legal_name_enc END AS legal_name_enc,\n                  CASE WHEN $4 THEN p.email_enc END AS email_enc,\n                  CASE WHEN $4 THEN p.phone_enc END AS phone_enc,\n                  CASE WHEN $4 THEN p.birth_date_enc END AS birth_date_enc\n           FROM public.persons AS p\n           WHERE p.tenant_id = $1 AND p.id = $2 AND p.deleted_at IS NULL\n             AND EXISTS (\n               SELECT 1 FROM public.memberships AS m\n               WHERE m.tenant_id = $1 AND m.person_id = p.id AND m.status = 'active'\n             )\n             AND ($3::text = 'all' OR p.id = $5 OR\n                  ($3::text = 'guardian' AND EXISTS (\n                    SELECT 1 FROM public.person_links AS l\n                    WHERE l.tenant_id = $1 AND l.guardian_id = $5 AND l.student_id = p.id\n                  )))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!: Uuid",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "display_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "display_name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "version"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "locale",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "locale"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "legal_name_enc",
+        "type_info": "Bytea",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "email_enc",
+        "type_info": "Bytea",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 7,
+        "name": "phone_enc",
+        "type_info": "Bytea",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 8,
+        "name": "birth_date_enc",
+        "type_info": "Bytea",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "6c448a05993f6e0dae6cb10ae4b6d547ab61427ca269960f8a3031b42a79e224"
+}
