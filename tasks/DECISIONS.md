@@ -1156,3 +1156,21 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** `password.rs` owns the existing Argon2id configuration; this preserves the PHC format used by T-110g without duplicating security-sensitive settings.
 - **Changed:** `crates/eq-identity/src/password.rs`, `tasks/M1-core/T-110h-recovery-code-login.md`, `tasks/DECISIONS.md`, and generated task index.
 - **Ratify:** Yes.
+
+### TD-163 — Align the T-111 aggregate with IDs-only identity events
+
+- **Question:** T-111's copied context says invite and password-reset events carry raw tokens, while the shipped T-110c/T-110e implementations emit only the spec-defined identifiers.
+- **Options:** (a) add S3 tokens to outbox events; (b) keep the IDs-only events and leave secure Notify token delivery as a follow-up.
+- **Decision:** Use option (b), and update the T-111 aggregate context to match the shipped event contracts.
+- **Why:** CAN-60 and FLW-60 forbid S2/S3 event values; T-110c TD-137 and T-110e TD-143 already implement that stricter contract. No protected token handoff is specified in these task scopes or the schema.
+- **Changed:** `tasks/M1-core/T-111-invites-reset-me-totp.md`, this register, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-164 — Defer aggregate OpenAPI generation to T-114
+
+- **Question:** T-111's inherited Definition of Done asks for `make api`, but the repository Makefile still defines that target as a T-114 placeholder, while this aggregate task owns no API implementation or generated OpenAPI/client files.
+- **Options:** (a) generate or edit API artifacts outside T-111's Files without a working generator; (b) record the check as not run for this aggregate and leave generation to T-114.
+- **Decision:** Use option (b); do not claim `make api` passed, and retain the T-114 follow-up.
+- **Why:** The target explicitly says OpenAPI generation is added by T-114, and fabricating generated contracts here would exceed T-111's aggregate-only Scope and Files.
+- **Changed:** `tasks/M1-core/T-111-invites-reset-me-totp.md`, this register, and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
