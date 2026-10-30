@@ -1237,3 +1237,12 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** This follows the functional-core rule without moving SQL or authorization into the domain, adding a schema change, or changing the API contract.
 - **Changed:** crates/eq-identity/src/domain.rs, crates/eq-identity/src/domain/people.rs, crates/eq-identity/src/lib.rs, crates/eq-identity/src/people.rs, this task, this register, and generated tasks/INDEX.md.
 - **Ratify:** Yes.
+
+### TD-172 — Record the T-112a E2E disk-rule overrun
+
+- **Question:** T-112a's browser E2E was executed through a Playwright Docker runner that pulled an image and started an auto-named temporary container, although the current disk rule prohibits adding Docker images/containers and allows removal only of the fixed ritma:dev image.
+- **Options:** (a) rewrite the historical test record as Not run; (b) retain the truthful 6/6 result, report the resource-rule overrun, retain the Playwright image because the cleanup rule does not authorize deleting it, and reuse the image or mark E2E Not run in future tasks unless a local runner is available.
+- **Decision:** Use option (b); do not alter the test evidence or remove an image outside the allowed cleanup list.
+- **Why:** The report must describe what actually ran, and the explicit resource-cleanup allow-list is narrower than the image list. Future tasks must obey the no-new-image/container boundary.
+- **Changed:** `tasks/M1-core/T-112a-people-scopes,-role-changes-and-guardian-links.md`, this register, and `RUN_LOG.md`.
+- **Ratify:** Yes.
