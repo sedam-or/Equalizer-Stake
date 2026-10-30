@@ -3,6 +3,7 @@
 use crate::auth::AuthState;
 use crate::clock::Clock;
 use crate::config::Config;
+use crate::ports::{CurrencyLockCheck, UnlockedCurrencyLockCheck};
 use crate::tenant::TenantResolver;
 use axum::extract::FromRef;
 use secrecy::ExposeSecret;
@@ -18,6 +19,8 @@ pub struct AppState {
     pub clock: Arc<dyn Clock>,
     pub tenant_resolver: TenantResolver,
     pub auth: Arc<AuthState>,
+    /// POL-12: invoice lock port for Core policy currency changes.
+    pub currency_lock_check: Arc<dyn CurrencyLockCheck>,
 }
 
 impl AppState {
@@ -32,7 +35,14 @@ impl AppState {
             clock,
             tenant_resolver,
             auth,
+            currency_lock_check: Arc::new(UnlockedCurrencyLockCheck),
         }
+    }
+
+    /// POL-12: supplies the Billing-owned currency lock implementation.
+    pub fn with_currency_lock_check(mut self, check: Arc<dyn CurrencyLockCheck>) -> Self {
+        self.currency_lock_check = check;
+        self
     }
 }
 

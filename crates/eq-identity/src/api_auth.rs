@@ -86,7 +86,8 @@ impl LoginHttpState {
         }
     }
 
-    pub(crate) async fn policy_store(&self) -> Result<&PolicyStore, AppError> {
+    /// POL-06: shares the lazy process policy runtime with the Core settings adapter.
+    pub async fn policy_store(&self) -> Result<&PolicyStore, AppError> {
         self.policy_store
             .get_or_try_init(|| async {
                 let presets: Arc<dyn PresetPatchSource> = Arc::new(UnavailablePresetPatches);

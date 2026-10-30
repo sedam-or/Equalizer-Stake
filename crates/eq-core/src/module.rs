@@ -96,6 +96,7 @@ use crate::db::Tx;
 use crate::ids::TenantId;
 use crate::jobs::{CronSpec, JobHandler};
 use crate::outbox::EventHandler;
+use crate::policy::PolicyDoc;
 use crate::ports::PortRegistry;
 use async_trait::async_trait;
 use schemars::JsonSchema;
@@ -321,4 +322,90 @@ pub trait Module: Send + Sync + 'static {
     }
 }
 
-crate::impl_module_stub!(CoreModule, Core, "core", "settings", true, &[], &[]);
+/// MOD-01/POL-06: the always-on tenant Core policy module.
+#[derive(Debug, Default)]
+pub struct CoreModule;
+
+static CORE_MANIFEST: ModuleManifest = ModuleManifest {
+    id: ModuleId::Core,
+    name_key: "module.core.name",
+    description_key: "module.core.description",
+    icon: "settings",
+    always_on: true,
+    requires_all: &[],
+    requires_any: &[],
+    policy_schema_version: crate::policy::CorePolicy::SCHEMA_VERSION,
+};
+
+static CORE_POLICY_READ_ROLES: &[crate::actor::ActorRole] =
+    &[crate::actor::ActorRole::Owner, crate::actor::ActorRole::Admin];
+static CORE_POLICY_WRITE_ROLES: &[crate::actor::ActorRole] = &[crate::actor::ActorRole::Owner];
+static CORE_PERMISSIONS: [PermissionDef; 2] = [
+    PermissionDef {
+        key: "core.policy.read",
+        roles: CORE_POLICY_READ_ROLES,
+    },
+    PermissionDef {
+        key: "core.policy.write",
+        roles: CORE_POLICY_WRITE_ROLES,
+    },
+];
+
+#[async_trait]
+impl Module for CoreModule {
+    fn manifest(&self) -> &'static ModuleManifest {
+        &CORE_MANIFEST
+    }
+
+    fn policy_schema(&self) -> Value {
+        crate::policy::CorePolicy::json_schema()
+    }
+
+    fn default_policy(&self) -> Value {
+        serde_json::to_value(crate::policy::CorePolicy::default()).unwrap_or(Value::Null)
+    }
+
+    fn validate_policy(&self, document: &Value) -> Result<(), Vec<FieldError>> {
+        crate::policy::validate_core_document(document)
+    }
+
+    fn summarize_policy(&self, document: &Value) -> Vec<SummaryLine> {
+        serde_json::from_value::<crate::policy::CorePolicy>(document.clone())
+            .map(|policy| PolicyDoc::summarize(&policy))
+            .unwrap_or_default()
+    }
+
+    fn migrate_policy(&self, from_version: u32, document: Value) -> anyhow::Result<Value> {
+        if from_version == crate::policy::CorePolicy::SCHEMA_VERSION {
+            Ok(document)
+        } else {
+            Err(anyhow::anyhow!("unsupported Core policy schema version"))
+        }
+    }
+
+    fn routes(&self) -> OpenApiRouter<AppState> {
+        OpenApiRouter::new()
+    }
+
+    fn event_handlers(&self) -> Vec<Box<dyn EventHandler>> {
+        Vec::new()
+    }
+
+    fn jobs(&self) -> Vec<Box<dyn JobHandler>> {
+        Vec::new()
+    }
+
+    fn cron(&self) -> Vec<CronSpec> {
+        Vec::new()
+    }
+
+    fn register_ports(&self, _ports: &mut PortRegistry) {}
+
+    fn permissions(&self) -> &'static [PermissionDef] {
+        &CORE_PERMISSIONS
+    }
+
+    fn nav(&self) -> &'static [NavItem] {
+        &[]
+    }
+}

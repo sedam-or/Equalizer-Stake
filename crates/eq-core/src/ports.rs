@@ -7,11 +7,32 @@ use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
 
+use crate::db::Tx;
+use crate::error::AppError;
+use crate::ids::TenantId;
+use async_trait::async_trait;
+
 /// ARC-08: stores implementations by their requested port type.
 #[derive(Default)]
 pub struct PortRegistry {
     entries: HashMap<TypeId, Box<dyn Any + Send + Sync>>,
 }
+
+/// POL-12: asks the owning Billing module whether tenant invoices lock currency changes.
+#[async_trait]
+pub trait CurrencyLockCheck: Send + Sync {
+    /// Returns true when the tenant has an invoice and its currency cannot change.
+    async fn is_locked(&self, _tx: &mut Tx, _tenant: TenantId) -> Result<bool, AppError> {
+        Ok(false)
+    }
+}
+
+/// POL-12: default Core behavior before Billing registers its invoice-aware adapter.
+#[derive(Debug, Default)]
+pub struct UnlockedCurrencyLockCheck;
+
+#[async_trait]
+impl CurrencyLockCheck for UnlockedCurrencyLockCheck {}
 
 impl fmt::Debug for PortRegistry {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {

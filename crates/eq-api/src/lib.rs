@@ -23,6 +23,7 @@ use eq_scheduling as _;
 mod health;
 pub mod middleware;
 pub mod modules;
+pub mod settings;
 mod spa;
 pub mod tenant;
 
@@ -41,6 +42,11 @@ pub fn router(state: AppState) -> axum::Router {
         std::sync::Arc::clone(&state.auth),
         state.tenant_resolver.clone(),
     ));
-    let module_routes = modules::routes(&registry, enabled, login_runtime);
+    let module_routes = modules::routes(
+        &registry,
+        enabled,
+        login_runtime,
+        state.currency_lock_check.clone(),
+    );
     health::router(state, module_routes)
 }

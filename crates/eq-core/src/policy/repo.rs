@@ -8,6 +8,7 @@ use crate::db::Tx;
 use crate::error::AppError;
 use crate::ids::TenantId;
 use crate::module::ModuleId;
+use crate::policy::CorePolicy;
 
 #[derive(Clone, Debug)]
 pub(super) struct PolicyRow {
@@ -92,6 +93,45 @@ pub(super) async fn next_version(tx: &mut Tx, tenant: TenantId, module: ModuleId
     row.max_version
         .checked_add(1)
         .ok_or_else(|| AppError::Internal(anyhow::anyhow!("policy version overflow")))
+}
+
+pub(super) async fn current_version(
+    tx: &mut Tx,
+    tenant: TenantId,
+    module: ModuleId,
+    at: DateTime<Utc>,
+) -> Result<i32, AppError> {
+    Ok(history(tx, tenant, module)
+        .await?
+        .into_iter()
+        .filter(|row| row.effective_from <= at)
+        .max_by(|left, right| {
+            left.effective_from
+                .cmp(&right.effective_from)
+                .then_with(|| left.version.cmp(&right.version))
+        })
+        .map_or(0, |row| row.version))
+}
+
+pub(super) async fn update_tenant_policy_defaults(
+    tx: &mut Tx,
+    tenant: TenantId,
+    policy: &CorePolicy,
+) -> Result<(), AppError> {
+    let locale = match policy.locale {
+        crate::policy::types::Locale::En => "en",
+        crate::policy::types::Locale::Id => "id",
+    };
+    sqlx::query!(
+        "SELECT public.update_tenant_policy_defaults($1, $2, $3, $4) IS NULL AS \"called!\"",
+        tenant.0,
+        locale,
+        policy.currency.code(),
+        policy.timezone.as_str()
+    )
+    .fetch_one(tx.conn())
+    .await?;
+    Ok(())
 }
 
 pub(super) async fn previous_document(

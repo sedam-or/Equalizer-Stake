@@ -1316,3 +1316,48 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** It runs the same task-linter tests without weakening Python's isolated mode; all 8 tests pass.
 - **Changed:** T-113's Report and Questions, and this register.
 - **Ratify:** Yes.
+
+### TD-180 — Add the omitted T-113a implementation paths and scoped tenant writer
+
+- **Question:** T-113a lists only its verification test in Files although it requires Core policy API behavior and tenant locale/currency/timezone updates, `eq_app` has no direct `UPDATE` privilege on `tenants`, and the task omits the canonical `/api/v1` route prefix used in spec/04 §7.
+- **Options:** (a) grant direct tenant-table updates to `eq_app`; (b) preserve table revocation and add a narrow function that checks the transaction tenant before updating only the three task-named denormalized fields.
+- **Decision:** Use option (b), add `public.update_tenant_policy_defaults(uuid,text,char(3),text)` in forward migration `0013_core_tenant_policy_defaults.sql`, pin its `SECURITY DEFINER` search path, require the supplied tenant id to equal `app.tenant_id`, revoke `PUBLIC`, and grant only `EXECUTE` to `eq_app`. Add the implementation paths to T-113a Files before changing them.
+- **Why:** The task explicitly requires the three existing denormalized fields to change in the same transaction; `spec/18` and SEC-05 prohibit broad direct access, while the tenant-context check preserves tenant isolation. Spec/04 §7 supplies the route prefix. No table, column, constraint, business value, permission key or error code is added.
+- **Changed:** `migrations/0013_core_tenant_policy_defaults.sql`, `tasks/M1-core/T-113a-core-policy-and-versioned-settings-api.md`, `tasks/DECISIONS.md`, generated `tasks/INDEX.md`, and the task-owned Core policy, API, auth-runtime, persistence and test paths named in T-113a.
+- **Ratify:** Yes.
+
+### TD-181 — Use D-24's canonical policy effective-time bound
+
+- **Question:** T-113a contains both an older one-minute `effective_from` bound and a canonical-alignment sentence pointing to D-24's five-minute clock-skew allowance.
+- **Options:** (a) keep the one-minute bound; (b) apply the cited canonical five-minute bound.
+- **Decision:** Use `now - 5 minutes` as the earliest accepted `effective_from`.
+- **Why:** Spec/22 D-24 defines the canonical policy clock-skew allowance; applying it is a mechanical resolution and adds no business value.
+- **Changed:** `tasks/M1-core/T-113a-core-policy-and-versioned-settings-api.md` and the task's policy API validation.
+- **Ratify:** Yes.
+
+### TD-182 — Validate bounded Core policy values at their serde boundary
+
+- **Question:** The CorePolicy sketch represents hue and retention ranges as raw `u16`, which permits constructing invalid values and deserializing them without a range invariant.
+- **Options:** (a) retain raw numbers and validate only at the API handler; (b) use private validated wrappers with the same numeric wire representation.
+- **Decision:** Use `BrandHue`, `DeletionSlaBusinessDays`, and `PhotoRetentionDays` wrappers with private fields, validating constructors and checked deserialization.
+- **Why:** CQ-23 and CAN-10 require invalid value types to enforce their invariants at construction and serialization boundaries; the JSON numbers and task defaults/ranges stay unchanged.
+- **Changed:** `tasks/M1-core/T-113a-core-policy-and-versioned-settings-api.md`, `tasks/DECISIONS.md`, and the Core policy type implementation/tests.
+- **Ratify:** Yes.
+
+### TD-183 — Defer settings rate limiting to the shared HTTP layer
+
+- **Question:** T-113a adds authenticated settings endpoints while the shared API-15 limiter is not yet wired; T-115 explicitly owns the cross-cutting `tower_governor` rate-limit layer.
+- **Options:** (a) add handler-local throttling here; (b) leave settings endpoints explicitly outside the API-15 claim and require T-115 to apply the shared layer.
+- **Decision:** Use option (b). Do not add a route-local limiter or claim API-15 is satisfied by T-113a; T-115 must apply the specified per-user and per-IP limits and headers to these endpoints.
+- **Why:** The task contract assigns rate limiting to a shared HTTP layer and T-115 names the exact limits and stack. A partial local limiter would leave behavior inconsistent across endpoints.
+- **Changed:** `tasks/M1-core/T-113a-core-policy-and-versioned-settings-api.md` and this register. No rate limit is weakened or reported as implemented.
+- **Ratify:** Yes; security review must confirm the shared limiter is applied before external exposure.
+
+### TD-184 — Retain the assigned T-113a implementation and tests above CQ-101 size guidance
+
+- **Question:** The assigned T-113a implementation, exact named acceptance tests and task report produce about 1,700 non-generated changed lines, above CQ-101's approximate 400-line review guidance, despite the original contract having been split.
+- **Options:** (a) further split or reassign acceptance criteria and test ownership by editing sibling task contracts; (b) keep this task's assigned scope intact and surface the size for maintainer review.
+- **Decision:** Use option (b). Do not alter sibling task ownership or drop required tests; commit the complete assigned T-113a scope and request reviewer judgment on a follow-up refactor or additional split.
+- **Why:** The current work must retain every assigned acceptance criterion and named test, and the implementer must not edit other task files. This decision records the CQ-101 exception for review; it does not waive the code-quality standard.
+- **Changed:** `tasks/M1-core/T-113a-core-policy-and-versioned-settings-api.md` and this register.
+- **Ratify:** Yes; the maintainer should decide whether to require a follow-up split/refactor.

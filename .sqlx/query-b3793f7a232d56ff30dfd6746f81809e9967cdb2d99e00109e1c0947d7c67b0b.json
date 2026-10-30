@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT public.update_tenant_policy_defaults($1, $2, $3, $4) IS NULL AS \"called!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "called!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bpchar",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "b3793f7a232d56ff30dfd6746f81809e9967cdb2d99e00109e1c0947d7c67b0b"
+}

@@ -1316,7 +1316,9 @@ name = "eq-api"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "axum",
+ "chrono",
  "eq-attendance",
  "eq-audit",
  "eq-billing",
@@ -1329,6 +1331,7 @@ dependencies = [
  "eq-reports",
  "eq-scheduling",
  "mime_guess",
+ "reqwest",
  "rust-embed",
  "secrecy",
  "serde",
@@ -1340,6 +1343,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "url",
+ "utoipa",
  "utoipa-axum",
  "uuid",
 ]

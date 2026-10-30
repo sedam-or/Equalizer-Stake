@@ -1,5 +1,6 @@
 //! Tenant-scoped policy persistence and invalidation (POL-03..08).
 
+use std::fmt;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -14,7 +15,7 @@ use uuid::Uuid;
 use crate::actor::ActorCtx;
 use crate::clock::Clock;
 use crate::db::Tx;
-use crate::error::AppError;
+use crate::error::{AppError, codes};
 use crate::ids::TenantId;
 use crate::module::{ModuleId, ModuleRegistry};
 use crate::policy::repo::{self, NewPolicyRow, PolicyRow};
@@ -30,6 +31,27 @@ struct CacheKey {
     module: ModuleId,
 }
 
+/// POL-03/STM-13: note and expected current version for a conditional policy write.
+pub struct ConditionalPolicyWrite {
+    pub note: Option<String>,
+    pub expected_version: i32,
+}
+
+impl fmt::Debug for ConditionalPolicyWrite {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ConditionalPolicyWrite")
+            .field("note", &self.note.as_ref().map(|_| "[REDACTED]"))
+            .field("expected_version", &self.expected_version)
+            .finish()
+    }
+}
+
+struct PolicyWriteOptions {
+    note: Option<String>,
+    expected_version: Option<i32>,
+}
+
 /// POL-04: tenant-scoped policy reads, versioned writes and NOTIFY invalidation.
 pub struct PolicyStore {
     modules: Arc<ModuleRegistry>,
@@ -40,8 +62,8 @@ pub struct PolicyStore {
     cache: Cache<CacheKey, Vec<PolicyRow>>,
 }
 
-impl std::fmt::Debug for PolicyStore {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for PolicyStore {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("PolicyStore")
             .field("pool", &"[tenant-scoped PostgreSQL pool]")
@@ -106,7 +128,7 @@ impl PolicyStore {
                 "policy tenant does not match transaction context"
             )));
         }
-        let rows = self.history(tx, tenant, P::MODULE).await?;
+        let rows = self.load_history(tx, tenant, P::MODULE).await?;
         let row = rows
             .into_iter()
             .filter(|row| row.effective_from <= at)
@@ -147,6 +169,46 @@ impl PolicyStore {
         self.get::<P>(tx, tenant, self.clock.now()).await
     }
 
+    /// POL-03/05: returns each stored policy version after schema migration and validation.
+    pub async fn history<P: PolicyDoc>(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+    ) -> Result<Vec<Versioned<P>>, AppError> {
+        if !repo::tenant_context_matches(tx, tenant).await? {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "policy tenant does not match transaction context"
+            )));
+        }
+        self.load_history(tx, tenant, P::MODULE)
+            .await?
+            .into_iter()
+            .map(|row| {
+                let document = self.migrate_document(P::MODULE, row.schema_version, row.document)?;
+                Ok(Versioned {
+                    version: row.version,
+                    effective_from: row.effective_from,
+                    doc: validate_document::<P>(document)?,
+                })
+            })
+            .collect()
+    }
+
+    /// POL-06/SEC-05: updates only the existing denormalized Core policy columns in the caller transaction.
+    pub async fn update_core_tenant_defaults(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        policy: &crate::policy::CorePolicy,
+    ) -> Result<(), AppError> {
+        if !repo::tenant_context_matches(tx, tenant).await? {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "policy tenant does not match transaction context"
+            )));
+        }
+        repo::update_tenant_policy_defaults(tx, tenant, policy).await
+    }
+
     /// POL-03: appends a validated policy version with audit, event and NOTIFY in the caller transaction.
     pub async fn put<P: PolicyDoc>(
         &self,
@@ -157,6 +219,53 @@ impl PolicyStore {
         actor: &ActorCtx,
         note: Option<String>,
     ) -> Result<Versioned<P>, AppError> {
+        self.put_with_expected_version(
+            tx,
+            tenant,
+            doc,
+            effective_from,
+            actor,
+            PolicyWriteOptions {
+                note,
+                expected_version: None,
+            },
+        )
+        .await
+    }
+
+    /// POL-03/STM-13: appends a version only when the caller's effective version is current.
+    pub async fn put_if_current<P: PolicyDoc>(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        doc: P,
+        effective_from: DateTime<Utc>,
+        actor: &ActorCtx,
+        write: ConditionalPolicyWrite,
+    ) -> Result<Versioned<P>, AppError> {
+        self.put_with_expected_version(
+            tx,
+            tenant,
+            doc,
+            effective_from,
+            actor,
+            PolicyWriteOptions {
+                note: write.note,
+                expected_version: Some(write.expected_version),
+            },
+        )
+        .await
+    }
+
+    async fn put_with_expected_version<P: PolicyDoc>(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        doc: P,
+        effective_from: DateTime<Utc>,
+        actor: &ActorCtx,
+        options: PolicyWriteOptions,
+    ) -> Result<Versioned<P>, AppError> {
         if !repo::tenant_context_matches(tx, tenant).await? {
             return Err(AppError::Internal(anyhow::anyhow!(
                 "policy tenant does not match transaction context"
@@ -166,6 +275,16 @@ impl PolicyStore {
         let doc = validate_document::<P>(document.clone())?;
         let module = P::MODULE;
         let version = repo::next_version(tx, tenant, module).await?;
+        if let Some(expected) = options.expected_version {
+            let current = repo::current_version(tx, tenant, module, self.clock.now()).await?;
+            if current != expected {
+                return Err(AppError::Conflict {
+                    code: &codes::VERSION_CONFLICT,
+                    detail: "the current policy version changed".to_owned(),
+                    extra: serde_json::Map::new(),
+                });
+            }
+        }
         let previous = repo::previous_document(tx, tenant, module).await?;
         let schema_version =
             i32::try_from(P::SCHEMA_VERSION).map_err(|error| AppError::Internal(error.into()))?;
@@ -178,7 +297,7 @@ impl PolicyStore {
                 schema_version,
                 effective_from,
                 document,
-                note,
+                note: options.note,
                 created_by: actor.person_id.map(|person_id| person_id.0),
             },
         )
@@ -210,7 +329,7 @@ impl PolicyStore {
         })
     }
 
-    async fn history(
+    async fn load_history(
         &self,
         tx: &mut Tx,
         tenant: TenantId,

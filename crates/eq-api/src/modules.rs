@@ -5,6 +5,7 @@ use std::sync::Arc;
 use eq_core::app_state::AppState;
 use eq_core::module::gate::{EnabledModuleSet, ModuleGate};
 use eq_core::module::{Module, ModuleId, ModuleRegistry};
+use eq_core::ports::{CurrencyLockCheck, PortRegistry};
 use eq_identity::api_auth::LoginHttpState;
 use utoipa_axum::router::OpenApiRouter;
 
@@ -42,7 +43,15 @@ pub(super) fn routes(
     registry: &ModuleRegistry,
     enabled: Arc<dyn EnabledModuleSet>,
     login_runtime: Arc<LoginHttpState>,
+    fallback_currency_lock: Arc<dyn CurrencyLockCheck>,
 ) -> axum::Router<AppState> {
+    let mut ports = PortRegistry::default();
+    for module in registry.modules() {
+        module.register_ports(&mut ports);
+    }
+    let currency_lock = ports
+        .get::<dyn CurrencyLockCheck>()
+        .unwrap_or(fallback_currency_lock);
     let mut routes = OpenApiRouter::<AppState>::new();
     for module in &registry.modules {
         let gate = ModuleGate::new(module.manifest().id, Arc::clone(&enabled));
@@ -50,7 +59,19 @@ pub(super) fn routes(
             Arc::clone(&login_runtime),
             eq_identity::api_auth::actor_auth_middleware,
         );
-        let module_routes = module.routes().layer(actor_auth).layer(gate);
+        let module_routes = if module.manifest().id == ModuleId::Core {
+            module
+                .routes()
+                .merge(crate::settings::routes())
+                .layer(axum::Extension((
+                    Arc::clone(&login_runtime),
+                    Arc::clone(&currency_lock),
+                )))
+        } else {
+            module.routes()
+        }
+        .layer(actor_auth)
+        .layer(gate);
         let module_routes = if module.manifest().id == ModuleId::Identity {
             module_routes.layer(axum::Extension(Arc::clone(&login_runtime)))
         } else {
