@@ -169,6 +169,21 @@ impl PolicyStore {
         self.get::<P>(tx, tenant, self.clock.now()).await
     }
 
+    /// POL-05/MOD-09: returns a module's effective persisted policy version in the caller transaction.
+    pub async fn current_version(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        module: ModuleId,
+    ) -> Result<i32, AppError> {
+        if !repo::tenant_context_matches(tx, tenant).await? {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "policy tenant does not match transaction context"
+            )));
+        }
+        repo::current_version(tx, tenant, module, self.clock.now()).await
+    }
+
     /// POL-03/05: returns each stored policy version after schema migration and validation.
     pub async fn history<P: PolicyDoc>(
         &self,

@@ -4,22 +4,25 @@ use axum::Json;
 use axum::extract::{Extension, State};
 use axum::http::{HeaderMap, StatusCode};
 use chrono::{DateTime, Duration, Utc};
+use eq_audit::AuditModule;
 use eq_core::app_state::AppState;
 use eq_core::auth::Actor;
 use eq_core::db::{begin, begin_read_only};
 use eq_core::error::{AppError, FieldError, MUST_BE_GTE, codes};
+use eq_core::module::{ModuleId, service::ModuleService};
+use eq_core::outbox::OutboxEventSink;
 use eq_core::policy::{ConditionalPolicyWrite, CorePolicy, PolicyDoc, validate_document};
 use eq_core::ports::CurrencyLockCheck;
+use eq_core::ports::sinks::{AuditSink, EventSink, PolicyInit};
 use eq_core::tenant::RequireTenant;
 use eq_identity::api_auth::LoginHttpState;
 use serde::Deserialize;
 use serde_json::{Map, Value, json};
+use std::collections::BTreeSet;
+use std::sync::Arc;
 use utoipa_axum::router::OpenApiRouter;
 
-type SettingsExtensions = (
-    std::sync::Arc<LoginHttpState>,
-    std::sync::Arc<dyn CurrencyLockCheck>,
-);
+type SettingsExtensions = (Arc<LoginHttpState>, Arc<dyn CurrencyLockCheck>);
 
 /// POL-06: mounts the assigned Core policy HTTP operations.
 pub fn routes() -> OpenApiRouter<AppState> {
@@ -27,6 +30,104 @@ pub fn routes() -> OpenApiRouter<AppState> {
         .routes(utoipa_axum::routes!(list_policies))
         .routes(utoipa_axum::routes!(preview_core_policy))
         .routes(utoipa_axum::routes!(put_core_policy))
+}
+
+/// MOD-06/09: mounts the module state read and toggle API.
+pub fn module_routes() -> OpenApiRouter<AppState> {
+    OpenApiRouter::new()
+        .routes(utoipa_axum::routes!(get_modules))
+        .routes(utoipa_axum::routes!(put_modules))
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ModuleToggleBody {
+    enabled: Vec<ModuleId>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/v1/settings/modules",
+    responses((status = 200, description = "Compiled and enabled modules", body = Value)),
+    security(("bearer" = [])),
+    tag = "core"
+)]
+async fn get_modules(
+    State(state): State<AppState>,
+    RequireTenant(tenant): RequireTenant,
+    actor: Actor,
+    Extension(metadata): Extension<crate::meta::MetadataState>,
+) -> Result<Json<Value>, AppError> {
+    actor.require("core.modules.read")?;
+    if actor.tenant() != tenant.id {
+        return Err(AppError::NotFound { entity: "tenant" });
+    }
+    let mut tx = begin_read_only(&state.pool, tenant.id, actor.context()).await?;
+    let document = crate::meta::module_document(
+        &metadata.registry,
+        metadata.enabled.as_ref(),
+        metadata.runtime.as_ref(),
+        &mut tx,
+        tenant.id,
+        Some(&actor),
+        None,
+    )
+    .await?;
+    tx.commit().await?;
+    Ok(Json(document))
+}
+
+#[utoipa::path(
+    put,
+    path = "/api/v1/settings/modules",
+    request_body = Value,
+    responses((status = 200, description = "Updated module state", body = Value)),
+    security(("bearer" = [])),
+    tag = "core"
+)]
+async fn put_modules(
+    State(state): State<AppState>,
+    RequireTenant(tenant): RequireTenant,
+    actor: Actor,
+    Extension(metadata): Extension<crate::meta::MetadataState>,
+    Json(body): Json<ModuleToggleBody>,
+) -> Result<Json<Value>, AppError> {
+    actor.require("core.modules.write")?;
+    if actor.tenant() != tenant.id {
+        return Err(AppError::NotFound { entity: "tenant" });
+    }
+    let requested = body.enabled.into_iter().collect::<BTreeSet<_>>();
+    let policy_store = metadata.runtime.shared_policy_store().await?;
+    let policy_init: Arc<dyn PolicyInit> = policy_store;
+    let audit: Arc<dyn AuditSink> = Arc::new(AuditModule);
+    let events: Arc<dyn EventSink> = Arc::new(OutboxEventSink);
+    let service = ModuleService::new(Arc::clone(&metadata.registry), policy_init, audit, events);
+    let mut tx = begin(&state.pool, tenant.id, actor.context()).await?;
+    let plan = match service
+        .set_enabled(&mut tx, tenant.id, actor.context(), &requested)
+        .await
+    {
+        Ok(plan) => plan,
+        Err(error) => {
+            tx.rollback().await?;
+            return Err(error);
+        }
+    };
+    tx.commit().await?;
+
+    let mut read_tx = begin_read_only(&state.pool, tenant.id, actor.context()).await?;
+    let document = crate::meta::module_document(
+        &metadata.registry,
+        metadata.enabled.as_ref(),
+        metadata.runtime.as_ref(),
+        &mut read_tx,
+        tenant.id,
+        Some(&actor),
+        Some(&plan.enabled),
+    )
+    .await?;
+    read_tx.commit().await?;
+    Ok(Json(document))
 }
 
 #[derive(Deserialize)]

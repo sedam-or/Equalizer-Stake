@@ -10,6 +10,108 @@ use serde_json::Value;
 use sqlx::types::Json;
 use uuid::Uuid;
 
+#[derive(Clone, Default)]
+pub(super) struct AuditReadFilters {
+    pub(super) from: Option<DateTime<Utc>>,
+    pub(super) to: Option<DateTime<Utc>>,
+    pub(super) actor_id: Option<Uuid>,
+    pub(super) action_prefix: Option<String>,
+    pub(super) entity_type: Option<String>,
+    pub(super) entity_id: Option<Uuid>,
+    pub(super) category: Option<String>,
+    pub(super) before_seq: Option<i64>,
+}
+
+pub(super) struct AuditReadRow {
+    pub(super) id: Uuid,
+    pub(super) seq: i64,
+    pub(super) at: DateTime<Utc>,
+    pub(super) actor_id: Option<Uuid>,
+    pub(super) actor_role: String,
+    pub(super) action: String,
+    pub(super) entity_type: String,
+    pub(super) entity_id: Option<Uuid>,
+    pub(super) category: String,
+    pub(super) before_json: Option<Value>,
+    pub(super) after_json: Option<Value>,
+    pub(super) ip: Option<String>,
+    pub(super) request_id: Option<Uuid>,
+    pub(super) sealed: bool,
+}
+
+#[expect(
+    clippy::allow_attributes,
+    clippy::allow_attributes_without_reason,
+    reason = "sqlx::query_as! emits internal allow attributes while expanding this checked query"
+)]
+pub(super) async fn list_entries(
+    tx: &mut Tx,
+    tenant: TenantId,
+    filters: &AuditReadFilters,
+    allowed_categories: Option<Vec<String>>,
+    limit: i64,
+) -> Result<Vec<AuditReadRow>, AppError> {
+    Ok(sqlx::query_as!(
+        AuditReadRow,
+        r#"SELECT id, seq, at, actor_id, actor_role, action, entity_type, entity_id, category,
+                  "before" AS before_json, "after" AS after_json, ip::text AS ip, request_id,
+                  (hash IS NOT NULL) AS "sealed!"
+           FROM audit.entries
+           WHERE tenant_id = $1
+             AND ($2::timestamptz IS NULL OR at >= $2)
+             AND ($3::timestamptz IS NULL OR at <= $3)
+             AND ($4::uuid IS NULL OR actor_id = $4)
+             AND ($5::text IS NULL OR left(action, char_length($5)) = $5)
+             AND ($6::text IS NULL OR entity_type = $6)
+             AND ($7::uuid IS NULL OR entity_id = $7)
+             AND ($8::text IS NULL OR category = $8)
+             AND ($9::text[] IS NULL OR category = ANY($9))
+             AND ($10::bigint IS NULL OR seq < $10)
+           ORDER BY seq DESC
+           LIMIT $11"#,
+        tenant.0,
+        filters.from,
+        filters.to,
+        filters.actor_id,
+        filters.action_prefix,
+        filters.entity_type,
+        filters.entity_id,
+        filters.category,
+        allowed_categories.as_deref(),
+        filters.before_seq,
+        limit
+    )
+    .fetch_all(tx.conn())
+    .await?)
+}
+
+#[expect(
+    clippy::allow_attributes,
+    clippy::allow_attributes_without_reason,
+    reason = "sqlx::query_as! emits internal allow attributes while expanding this checked query"
+)]
+pub(super) async fn find_entry(
+    tx: &mut Tx,
+    tenant: TenantId,
+    id: Uuid,
+    allowed_categories: Option<Vec<String>>,
+) -> Result<Option<AuditReadRow>, AppError> {
+    Ok(sqlx::query_as!(
+        AuditReadRow,
+        r#"SELECT id, seq, at, actor_id, actor_role, action, entity_type, entity_id, category,
+                  "before" AS before_json, "after" AS after_json, ip::text AS ip, request_id,
+                  (hash IS NOT NULL) AS "sealed!"
+           FROM audit.entries
+           WHERE tenant_id = $1 AND id = $2
+             AND ($3::text[] IS NULL OR category = ANY($3))"#,
+        tenant.0,
+        id,
+        allowed_categories.as_deref()
+    )
+    .fetch_optional(tx.conn())
+    .await?)
+}
+
 pub(super) async fn record(tx: &mut Tx, event: AuditEvent<'_>) -> Result<(), AppError> {
     let context = sqlx::query!(
         "SELECT NULLIF(pg_catalog.current_setting('app.tenant_id', true), '')::uuid AS tenant_id, NULLIF(pg_catalog.current_setting('app.actor_id', true), '')::uuid AS actor_id"

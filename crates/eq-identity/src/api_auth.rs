@@ -58,7 +58,7 @@ pub struct LoginHttpState {
     enabled: Arc<dyn EnabledModuleSet>,
     auth: Arc<AuthState>,
     tenant_resolver: TenantResolver,
-    policy_store: OnceCell<PolicyStore>,
+    policy_store: OnceCell<Arc<PolicyStore>>,
     permissions: Cache<(TenantId, PersonId, &'static str), Arc<BTreeSet<String>>>,
     password_versions: Cache<(TenantId, PersonId), i64>,
 }
@@ -102,8 +102,19 @@ impl LoginHttpState {
                     Arc::clone(&self.clock),
                 )
                 .await
+                .map(Arc::new)
             })
             .await
+            .map(Arc::as_ref)
+    }
+
+    /// POL-06: returns a shared handle for services that own the policy runtime.
+    pub async fn shared_policy_store(&self) -> Result<Arc<PolicyStore>, AppError> {
+        self.policy_store().await?;
+        self.policy_store
+            .get()
+            .map(Arc::clone)
+            .ok_or_else(|| AppError::Internal(anyhow::anyhow!("policy store initialization was lost")))
     }
 
     pub(crate) async fn permissions(
@@ -288,11 +299,15 @@ struct UnavailablePresetPatches;
 impl PresetPatchSource for UnavailablePresetPatches {
     fn policy_patch(
         &self,
-        _preset_id: &str,
-        _preset_version: i32,
+        preset_id: &str,
+        preset_version: i32,
         _module: eq_core::module::ModuleId,
     ) -> Result<Option<Value>, PresetSourceError> {
-        Err(PresetSourceError)
+        if preset_id == "blank" && preset_version == 1 {
+            Ok(None)
+        } else {
+            Err(PresetSourceError)
+        }
     }
 }
 

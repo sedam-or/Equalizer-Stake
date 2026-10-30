@@ -11,6 +11,18 @@ pub use registry::ModuleRegistry;
 #[macro_export]
 macro_rules! impl_module_stub {
     ($module_type:ident, $id:ident, $id_key:literal, $icon:literal, $always_on:expr, $requires_all:expr, $requires_any:expr) => {
+        $crate::impl_module_stub!(
+            $module_type,
+            $id,
+            $id_key,
+            $icon,
+            $always_on,
+            $requires_all,
+            $requires_any,
+            &[]
+        );
+    };
+    ($module_type:ident, $id:ident, $id_key:literal, $icon:literal, $always_on:expr, $requires_all:expr, $requires_any:expr, $permissions:expr) => {
         #[derive(Debug)]
         pub struct $module_type;
 
@@ -79,7 +91,7 @@ macro_rules! impl_module_stub {
             fn register_ports(&self, _ports: &mut $crate::ports::PortRegistry) {}
 
             fn permissions(&self) -> &'static [$crate::module::PermissionDef] {
-                &[]
+                $permissions
             }
 
             fn nav(&self) -> &'static [$crate::module::NavItem] {
@@ -340,7 +352,10 @@ static CORE_MANIFEST: ModuleManifest = ModuleManifest {
 static CORE_POLICY_READ_ROLES: &[crate::actor::ActorRole] =
     &[crate::actor::ActorRole::Owner, crate::actor::ActorRole::Admin];
 static CORE_POLICY_WRITE_ROLES: &[crate::actor::ActorRole] = &[crate::actor::ActorRole::Owner];
-static CORE_PERMISSIONS: [PermissionDef; 2] = [
+static CORE_MODULE_READ_ROLES: &[crate::actor::ActorRole] =
+    &[crate::actor::ActorRole::Owner, crate::actor::ActorRole::Admin];
+static CORE_MODULE_WRITE_ROLES: &[crate::actor::ActorRole] = &[crate::actor::ActorRole::Owner];
+static CORE_PERMISSIONS: [PermissionDef; 4] = [
     PermissionDef {
         key: "core.policy.read",
         roles: CORE_POLICY_READ_ROLES,
@@ -348,6 +363,14 @@ static CORE_PERMISSIONS: [PermissionDef; 2] = [
     PermissionDef {
         key: "core.policy.write",
         roles: CORE_POLICY_WRITE_ROLES,
+    },
+    PermissionDef {
+        key: "core.modules.read",
+        roles: CORE_MODULE_READ_ROLES,
+    },
+    PermissionDef {
+        key: "core.modules.write",
+        roles: CORE_MODULE_WRITE_ROLES,
     },
 ];
 

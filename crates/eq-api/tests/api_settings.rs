@@ -1,23 +1,20 @@
 use anyhow::{Context, Result, ensure};
 use async_trait::async_trait;
 use chrono::Duration;
-use eq_audit::AuditModule;
 use eq_core::app_state::AppState;
 use eq_core::clock::{Clock, SystemClock};
 use eq_core::config::Config;
 use eq_core::ids::{PersonId, TenantId};
 use eq_core::model::Role;
 use eq_core::model::TenantStatus;
+use eq_core::module::ModuleId;
 use eq_core::module::gate::EnabledModuleSet;
-use eq_core::module::{CoreModule, Module, ModuleId, ModuleRegistry};
 use eq_core::policy::CorePolicy;
 use eq_core::ports::{CurrencyLockCheck, UnlockedCurrencyLockCheck};
 use eq_core::tenant::{TenantCtx, TenantInfo};
 use eq_core::{db::Tx, error::AppError, money::Currency, policy::types::Locale};
 use eq_identity::api_auth::{self, LoginHttpState};
 use eq_identity::jwt::{AccessToken, AccessTokenSubject, issue_access_token};
-use eq_identity::module::IdentityModule;
-use eq_scheduling::SchedulingModule;
 use reqwest::{Client, Method, StatusCode};
 use secrecy::ExposeSecret;
 use serde_json::{Value, json};
@@ -40,45 +37,42 @@ struct Fixture {
     tenant: TenantId,
     owner: PersonId,
     admin: PersonId,
+    guardian: PersonId,
 }
 
 impl Fixture {
     async fn new(currency_lock: bool) -> Result<Self> {
-        let config = Arc::new(Config::from_env().context("load T-113a test configuration")?);
-        ensure!(database_name(config.database_url.expose_secret()) == "ritma_test_T-113a");
-        ensure!(database_name(config.database_owner_url.expose_secret()) == "ritma_test_T-113a");
+        let config = Arc::new(Config::from_env().context("load T-113b test configuration")?);
+        ensure!(database_name(config.database_url.expose_secret()) == "ritma_test_T-113b");
+        ensure!(database_name(config.database_owner_url.expose_secret()) == "ritma_test_T-113b");
 
         let app_pool = PgPoolOptions::new()
             .max_connections(6)
             .connect(config.database_url.expose_secret())
             .await
-            .context("connect to the T-113a application database")?;
+            .context("connect to the T-113b application database")?;
         let owner_pool = PgPoolOptions::new()
             .max_connections(2)
             .connect(config.database_owner_url.expose_secret())
             .await
-            .context("connect to the T-113a database owner")?;
+            .context("connect to the T-113b database owner")?;
         verify_app_pool(&app_pool).await?;
 
         let clock = Arc::new(SystemClock);
         let tenant = TenantId(Uuid::now_v7());
         let owner = PersonId(Uuid::now_v7());
         let admin = PersonId(Uuid::now_v7());
-        seed(&owner_pool, tenant, owner, admin, clock.now()).await?;
+        let guardian = PersonId(Uuid::now_v7());
+        seed(&owner_pool, tenant, owner, admin, guardian, clock.now()).await?;
 
         let state = AppState::new(app_pool.clone(), Arc::clone(&config), clock.clone());
-        let modules = Arc::new(ModuleRegistry::new(vec![
-            Arc::new(CoreModule) as Arc<dyn Module>,
-            Arc::new(IdentityModule),
-            Arc::new(AuditModule),
-            Arc::new(SchedulingModule),
-        ]));
+        let modules = Arc::new(eq_api::modules::registry());
         let enabled: Arc<dyn EnabledModuleSet> = Arc::new(AlwaysEnabled);
         let runtime = Arc::new(LoginHttpState::new(
             app_pool.clone(),
             clock.clone(),
             Arc::clone(&modules),
-            enabled,
+            Arc::clone(&enabled),
             Arc::clone(&state.auth),
             state.tenant_resolver.clone(),
         ));
@@ -87,13 +81,22 @@ impl Fixture {
         } else {
             Arc::new(UnlockedCurrencyLockCheck)
         };
-        let (routes, _openapi) = eq_api::settings::routes().split_for_parts();
-        let routes = routes
+        let metadata = eq_api::meta::MetadataState::new(
+            Arc::clone(&modules),
+            Arc::clone(&enabled),
+            Arc::clone(&runtime),
+        );
+        let protected_routes = eq_api::settings::routes()
+            .merge(eq_api::settings::module_routes())
+            .merge(eq_api::meta::module_routes())
             .layer(axum::Extension((Arc::clone(&runtime), currency_port)))
+            .layer(axum::Extension(metadata.clone()))
             .layer(axum::middleware::from_fn_with_state(
                 Arc::clone(&runtime),
                 api_auth::actor_auth_middleware,
             ));
+        let routes = protected_routes.merge(eq_api::meta::public_routes().layer(axum::Extension(metadata)));
+        let (routes, _openapi) = routes.split_for_parts();
         let tenant_context = TenantCtx::Resolved(Arc::new(TenantInfo {
             id: tenant,
             slug: format!("set-{}", tenant.0.simple()),
@@ -117,6 +120,7 @@ impl Fixture {
             tenant,
             owner,
             admin,
+            guardian,
         })
     }
 
@@ -139,7 +143,8 @@ impl Fixture {
         let person = match role {
             Role::Owner => self.owner,
             Role::Admin => self.admin,
-            Role::Instructor | Role::Guardian | Role::Student => {
+            Role::Guardian => self.guardian,
+            Role::Instructor | Role::Student => {
                 anyhow::bail!("unsupported test role")
             }
         };
@@ -218,7 +223,7 @@ async fn verify_app_pool(pool: &PgPool) -> Result<()> {
     )
     .fetch_one(pool)
     .await?;
-    ensure!(row.try_get::<String, _>("database")? == "ritma_test_T-113a");
+    ensure!(row.try_get::<String, _>("database")? == "ritma_test_T-113b");
     ensure!(row.try_get::<String, _>("username")? == "eq_app");
     ensure!(!row.try_get::<bool, _>("rolsuper")? && !row.try_get::<bool, _>("rolbypassrls")?);
     Ok(())
@@ -229,17 +234,22 @@ async fn seed(
     tenant: TenantId,
     owner: PersonId,
     admin: PersonId,
+    guardian: PersonId,
     now: chrono::DateTime<chrono::Utc>,
 ) -> Result<()> {
     sqlx::query(
         "INSERT INTO public.tenants (id, slug, name, country, preset_id, preset_version) \
-         VALUES ($1, $2, 'Test School', 'ID', 'test', 1)",
+         VALUES ($1, $2, 'Test School', 'ID', 'blank', 1)",
     )
     .bind(tenant.0)
     .bind(format!("set-{}", tenant.0.simple()))
     .execute(owner_pool)
     .await?;
-    for (person, role, name) in [(owner, "owner", "Test Owner"), (admin, "admin", "Test Admin")] {
+    for (person, role, name) in [
+        (owner, "owner", "Test Owner"),
+        (admin, "admin", "Test Admin"),
+        (guardian, "guardian", "Test Guardian"),
+    ] {
         sqlx::query("INSERT INTO public.persons (id, tenant_id, display_name) VALUES ($1, $2, $3)")
             .bind(person.0)
             .bind(tenant.0)
@@ -538,5 +548,107 @@ async fn currency_lock() -> Result<()> {
         .fetch_one(&fixture.owner_pool)
         .await?;
     assert_eq!(tenant.try_get::<String, _>("currency")?, "USD");
+    Ok(())
+}
+
+#[tokio::test]
+async fn toggle_modules_api() -> Result<()> {
+    let fixture = Fixture::new(false).await?;
+    let (dependency_status, dependency_body) = fixture
+        .request(
+            Method::PUT,
+            "/api/v1/settings/modules",
+            Role::Owner,
+            Some(json!({"enabled": ["billing"]})),
+            None,
+        )
+        .await?;
+    assert_eq!(
+        dependency_status,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "{dependency_body}"
+    );
+    assert_eq!(dependency_body["code"], "module_dependency");
+
+    let (status, body) = fixture
+        .request(
+            Method::PUT,
+            "/api/v1/settings/modules",
+            Role::Owner,
+            Some(json!({"enabled": ["enrollment", "billing"]})),
+            None,
+        )
+        .await?;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let modules = body["modules"].as_array().context("module catalog array")?;
+    for module in ["enrollment", "billing"] {
+        assert!(
+            modules
+                .iter()
+                .any(|item| item["id"] == module && item["enabled"] == true)
+        );
+    }
+    Ok(())
+}
+
+#[tokio::test]
+async fn meta_nav_filtered() -> Result<()> {
+    let fixture = Fixture::new(false).await?;
+    let (status, body) = fixture
+        .request(Method::GET, "/api/v1/meta/modules", Role::Guardian, None, None)
+        .await?;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let nav = body["nav"].as_array().context("navigation array")?;
+    let guardian_grants = eq_api::modules::registry()
+        .modules()
+        .iter()
+        .flat_map(|module| module.permissions())
+        .filter(|permission| permission.roles.contains(&eq_core::actor::ActorRole::Guardian))
+        .map(|permission| permission.key)
+        .collect::<std::collections::BTreeSet<_>>();
+    assert!(nav.iter().all(|item| {
+        item["perm"]
+            .as_str()
+            .is_some_and(|permission| guardian_grants.contains(permission))
+    }));
+    Ok(())
+}
+
+#[tokio::test]
+async fn meta_app_unprovisioned() -> Result<()> {
+    let config = Arc::new(Config::from_env().context("load unprovisioned metadata test config")?);
+    let pool = PgPoolOptions::new().connect_lazy(config.database_url.expose_secret())?;
+    let clock: Arc<dyn Clock> = Arc::new(SystemClock);
+    let state = AppState::new(pool.clone(), Arc::clone(&config), Arc::clone(&clock));
+    let modules = Arc::new(eq_api::modules::registry());
+    let enabled: Arc<dyn EnabledModuleSet> = Arc::new(AlwaysEnabled);
+    let runtime = Arc::new(LoginHttpState::new(
+        pool,
+        clock,
+        Arc::clone(&modules),
+        Arc::clone(&enabled),
+        Arc::clone(&state.auth),
+        state.tenant_resolver.clone(),
+    ));
+    let metadata = eq_api::meta::MetadataState::new(modules, enabled, runtime);
+    let (routes, _openapi) = eq_api::meta::public_routes()
+        .layer(axum::Extension(metadata))
+        .split_for_parts();
+    let router = routes
+        .with_state(state)
+        .layer(axum::Extension(TenantCtx::Unprovisioned));
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
+    let address = listener.local_addr()?;
+    let server = tokio::spawn(async move { axum::serve(listener, router).await });
+    let result = Client::new()
+        .get(format!("http://{address}/api/v1/meta/app"))
+        .send()
+        .await?;
+    let status = result.status();
+    let body: Value = result.json().await?;
+    server.abort();
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["setup_required"], true);
+    assert!(body.get("tenant").is_none());
     Ok(())
 }

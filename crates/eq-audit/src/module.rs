@@ -5,7 +5,7 @@ use crate::policy::AuditPolicy;
 use crate::{AuditEvent, Category, record};
 use chrono::DateTime;
 use chrono_tz::Tz;
-use eq_core::actor::ActorCtx;
+use eq_core::actor::{ActorCtx, ActorRole};
 use eq_core::app_state::AppState;
 use eq_core::db::Tx;
 use eq_core::error::{AppError, FieldError, NOT_ALLOWED};
@@ -30,6 +30,19 @@ static MANIFEST: ModuleManifest = ModuleManifest {
     requires_any: &[],
     policy_schema_version: AuditPolicy::SCHEMA_VERSION,
 };
+
+static AUDIT_READ_ROLES: &[ActorRole] = &[ActorRole::Owner, ActorRole::Admin];
+static AUDIT_VERIFY_ROLES: &[ActorRole] = &[ActorRole::Owner];
+static AUDIT_PERMISSIONS: [PermissionDef; 2] = [
+    PermissionDef {
+        key: "audit.read",
+        roles: AUDIT_READ_ROLES,
+    },
+    PermissionDef {
+        key: "audit.verify",
+        roles: AUDIT_VERIFY_ROLES,
+    },
+];
 
 /// AUD-01/MOD-01: audit is available to every tenant and cannot be toggled off.
 #[derive(Debug, Default)]
@@ -80,7 +93,7 @@ impl Module for AuditModule {
     }
 
     fn routes(&self) -> OpenApiRouter<AppState> {
-        OpenApiRouter::new()
+        crate::http::routes()
     }
 
     fn event_handlers(&self) -> Vec<Box<dyn EventHandler>> {
@@ -114,7 +127,7 @@ impl Module for AuditModule {
     }
 
     fn permissions(&self) -> &'static [PermissionDef] {
-        &[]
+        &AUDIT_PERMISSIONS
     }
 
     fn nav(&self) -> &'static [NavItem] {
@@ -227,7 +240,7 @@ fn verify_recent_dedupe(tenant: TenantId, scheduled_at: DateTime<Tz>) -> String 
 
 #[cfg(test)]
 mod tests {
-    use super::AuditModule;
+    use super::{AUDIT_READ_ROLES, AUDIT_VERIFY_ROLES, AuditModule};
     use eq_core::module::{Module, ModuleId};
     use eq_core::ports::{PortRegistry, sinks::AuditSink};
     use serde_json::json;
@@ -263,7 +276,12 @@ mod tests {
             ]
         );
         assert!(module.event_handlers().is_empty());
-        assert!(module.permissions().is_empty());
+        let permissions = module.permissions();
+        assert_eq!(permissions.len(), 2);
+        assert_eq!(permissions[0].key, "audit.read");
+        assert_eq!(permissions[0].roles, AUDIT_READ_ROLES);
+        assert_eq!(permissions[1].key, "audit.verify");
+        assert_eq!(permissions[1].roles, AUDIT_VERIFY_ROLES);
         assert!(module.nav().is_empty());
 
         let default = module.default_policy();

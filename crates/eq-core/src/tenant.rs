@@ -2,6 +2,7 @@
 
 use crate::actor::ActorCtx;
 use crate::config::{Config, Mode};
+use crate::db::begin_read_only;
 use crate::error::AppError;
 use crate::ids::TenantId;
 use crate::model::TenantStatus;
@@ -19,6 +20,8 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 use uuid::Uuid;
+
+mod repo;
 
 const TENANT_CACHE_TTL: Duration = Duration::from_secs(60); // technical: T-104 tenant metadata cache bound
 
@@ -73,6 +76,15 @@ impl TenantResolver {
     /// Returns the validated proxy ranges used by both host and client-IP resolution.
     pub fn trusted_proxies(&self) -> &[IpNet] {
         &self.config.trusted_proxies
+    }
+
+    /// MOD-09: reads the tenant display name under the tenant's read-only RLS context.
+    pub async fn public_name(&self, tenant: TenantId) -> Result<String, AppError> {
+        let actor = ActorCtx::anonymous(None, None);
+        let mut tx = begin_read_only(&self.pool, tenant, &actor).await?;
+        let name = repo::public_name(&mut tx, tenant).await?;
+        tx.commit().await?;
+        Ok(name)
     }
 
     /// ARC-04, SEC-05: resolves the request host without reading the tenant table directly.

@@ -115,6 +115,13 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-179 | T-113 | `tasks/M1-core/T-113-core-policy-settings-meta-api.md` | The attachment's isolated unittest module command cannot import `scripts` because Python `-I` removes the repo from `sys.path` → use `python3 -I -m unittest discover -s scripts/tests -p 'test_tasks_lint.py'`, which runs the same eight task-linter tests without relaxing isolation. |
 | TD-185 | T-109 | `tasks/M1-core/T-109-audit.md` | The shared TestDb fixture can create a template, random databases and a container, while the disk rule permits only the fixed DB/container → use task-local owner/app pools against `ritma_test_T-109`. |
 | TD-186 | T-109 | `tasks/M1-core/T-109-audit.md` | The run asks to reuse TD-010 for the audit derive license, but TD-010 is already assigned to T-005 → preserve the unique ID and rely on the existing exact license decision TD-074. |
+| TD-187 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | The task's implementation ACs and route contracts require module settings, metadata, audit reads and the RBAC fixture, but its Files table lists only test paths → add the minimum code and fixture paths needed by the existing Scope without changing its public contract. |
+| TD-188 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | Audit list/export requires limit and cursor parameters but specifies neither page bounds nor cursor encoding → default to 50 rows, cap lists at 200, stream in chunks of 200, cap filter strings at 128 characters, and use the tenant-local audit sequence keyset cursor; all numeric bounds are technical. |
+| TD-189 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | The contract requires streamed CSV while no direct response-stream utility is listed in the workspace → use `futures-util` only for bounded HTTP response chunks, with the spec-named CSV crate for encoding. |
+| TD-190 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | Public tenant metadata cannot select `public.tenants` as `eq_app`; use the already-shipped `public.resolve_tenant_name` Core resolver inside the tenant-scoped transaction, preserving the Core access boundary. |
+| TD-191 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | The current runtime has no preset loader, while T-113b must test first-time module policy initialization → recognize only spec 05's `blank` v1 preset as an empty policy patch and keep unknown preset ids fail-closed. |
+| TD-192 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | The task DoD requests `make api`, but the target is intentionally a T-114 placeholder and T-114 depends on T-113b → keep API generation in T-114, run and report the placeholder, and don't pull T-114 scope into this task. |
+| TD-193 | T-113b | `tasks/M1-core/T-113b-module-metadata,-rbac-registry-and-audit-read-ap.md` | The implementation exceeds CQ-101's approximate 400 changed-line review guide because its assigned routes, registry grants, fixture and tests are required by the task → preserve all assigned ACs and tests, and flag the scope size for maintainer review rather than editing sibling task contracts. |
 
 **Total mapped self-resolutions:** 108.
 
@@ -1381,3 +1388,66 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** Decision IDs are unique, and TD-074 already captures the OSS-03 license basis. No new license or exception is needed.
 - **Changed:** `tasks/M1-core/T-109-audit.md` and this register.
 - **Ratify:** Yes.
+
+### TD-187 — Add the omitted T-113b implementation paths
+
+- **Question:** T-113b's Scope and acceptance criteria require module toggle settings, public and authenticated metadata, audit reads/export/verification, registered permissions and a spec 25 fixture, but its Files table lists only three test files.
+- **Options:** (a) add only tests and leave the specified endpoints/permissions absent; (b) add the minimum implementation and fixture paths required by the existing task Scope.
+- **Decision:** Use option (b). Update T-113b's Files table and implement only its named acceptance criteria using the task's existing contracts.
+- **Why:** The existing Scope expressly says to implement AC5–8/10; the missing paths are mechanical task-file drift, and this decision does not add a schema or public contract.
+- **Changed:** T-113b's Files, Report and Questions; `tasks/DECISIONS.md`; generated `tasks/INDEX.md`; the implementation paths listed in T-113b.
+- **Ratify:** Yes.
+
+### TD-188 — Bound T-113b audit pagination with technical limits
+
+- **Question:** The audit list/export interface names `limit` and `cursor` but does not specify their bounds or representation.
+- **Options:** (a) leave pagination unimplemented; (b) use a conservative technical page bound and the audit entry sequence as the tenant-local keyset cursor.
+- **Decision:** Use option (b): default page size 50, maximum list size 200, export chunks of 200 rows, a 128-character filter bound and the decimal tenant-local sequence keyset cursor.
+- **Why:** Pagination, parser-work bounds and chunk sizing are technical implementation details; the audit sequence is already the ordered, tenant-local source key, and these limits introduce no business policy.
+- **Changed:** T-113b's Report and Questions; `tasks/DECISIONS.md`; audit read implementation and tests.
+- **Ratify:** Yes.
+
+### TD-189 — Use a direct utility for streamed CSV response chunks
+
+- **Question:** T-113b requires a streamed CSV response, while the workspace currently has no direct stream helper available to `eq-audit`.
+- **Options:** (a) buffer the entire export in memory; (b) add `futures-util` and stream bounded CSV chunks from the task database.
+- **Decision:** Use option (b). The spec-named `csv` crate handles RFC 4180 encoding and `futures-util` only composes the HTTP body stream.
+- **Why:** The task explicitly requires a streamed export; bounded pages avoid holding the complete audit log in memory and make no business or schema change.
+- **Changed:** T-113b's Files, Report and Questions; `tasks/DECISIONS.md`; workspace and `eq-audit` manifests/lockfile; export implementation and tests.
+- **Ratify:** Yes.
+
+### TD-190 — Resolve the public tenant name through the Core port
+
+- **Question:** `eq_app` has no direct `SELECT` grant on `public.tenants`, but the public app metadata response needs the tenant display name.
+- **Options:** (a) grant new table access; (b) call the shipped `public.resolve_tenant_name(uuid)` resolver inside the existing tenant-scoped transaction.
+- **Decision:** Use option (b); the function checks `app.tenant_id` against the requested id and returns only the tenant's public name.
+- **Why:** The resolver was added by T-106/T-113a as the intended Core boundary, and keeps the table grant and tenant-isolation rules unchanged.
+- **Changed:** T-113b's Questions and Report; `crates/eq-core/src/tenant/repo.rs`; `tasks/DECISIONS.md`.
+- **Ratify:** Yes.
+
+### TD-191 — Handle the spec-defined blank preset without a loader
+
+- **Question:** Module enablement initializes the module policy through `PolicyStore`, but the current API runtime uses an unavailable preset source and the repository has no embedded preset loader yet.
+- **Options:** (a) make all unavailable presets silently use generic defaults; (b) recognize only spec 05's `blank` preset version 1, whose policy patch is explicitly empty, and keep unknown presets fail-closed.
+- **Decision:** Use option (b). The module-toggle integration fixture now uses `blank` version 1. Existing nonblank preset identities still return `PresetSourceError` until the preset loader task ships.
+- **Why:** This follows the exact spec-defined `blank` preset contents and avoids discarding policy patches for other presets.
+- **Changed:** T-113b's Files, Report and Questions; `crates/eq-identity/src/api_auth.rs`; the T-113b API test fixture; `tasks/DECISIONS.md`.
+- **Ratify:** Yes.
+
+### TD-192 — Defer OpenAPI generation to its dependent task
+
+- **Question:** T-113b's Definition of done requests `make api`, while the Makefile says that OpenAPI generation is added by T-114 and T-114 depends on T-113b.
+- **Options:** (a) implement T-114's generator and contract files early in T-113b; (b) preserve task scope, run `make api` to verify the placeholder, and defer generation to T-114.
+- **Decision:** Use option (b). The checked `make api` target returns its explicit T-114 placeholder message; this task does not add the generator or generated contract files.
+- **Why:** T-114 owns OpenAPI generation and depends on this task's module routes, so implementing it here would cross the task boundary and make the dependency order circular.
+- **Changed:** T-113b's Definition of done, Questions and Report; this decision register; generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-193 — Preserve T-113b's assigned scope above the review-size guide
+
+- **Question:** The required implementation and tests exceed CQ-101's approximate 400 changed-line review guide.
+- **Options:** (a) edit sibling task contracts or omit pieces to split the work; (b) preserve the assigned acceptance criteria and named tests, and surface the resulting size for maintainer review.
+- **Decision:** Use option (b). Keep all five assigned ACs, the three test files and the minimum implementation paths already named by TD-187.
+- **Why:** The implementer may not alter sibling task contracts or drop listed behavior; the large diff is review feedback, not authorization to weaken the contract.
+- **Changed:** T-113b's Report and Questions; this decision register.
+- **Ratify:** Yes; the maintainer should decide whether a follow-up split or refactor is needed before merge.

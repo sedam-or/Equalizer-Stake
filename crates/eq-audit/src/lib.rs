@@ -4,10 +4,12 @@ extern crate self as eq_audit;
 
 pub use eq_audit_derive::Auditable;
 use eq_core as _;
+mod http;
 pub mod jobs;
 pub mod module;
 pub mod policy;
 mod repo;
+pub use http::AuditPolicyProvider;
 pub use policy::Category;
 pub mod record;
 pub use record::{AuditEvent, record, record_once_for_actor_entity_window};

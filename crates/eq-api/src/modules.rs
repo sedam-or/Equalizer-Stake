@@ -2,6 +2,7 @@
 
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use eq_core::app_state::AppState;
 use eq_core::module::gate::{EnabledModuleSet, ModuleGate};
 use eq_core::module::{Module, ModuleId, ModuleRegistry};
@@ -40,7 +41,7 @@ pub fn registry() -> ModuleRegistry {
 
 /// MOD-04/05: wraps every compiled module route in its tenant-scoped runtime gate.
 pub(super) fn routes(
-    registry: &ModuleRegistry,
+    registry: Arc<ModuleRegistry>,
     enabled: Arc<dyn EnabledModuleSet>,
     login_runtime: Arc<LoginHttpState>,
     fallback_currency_lock: Arc<dyn CurrencyLockCheck>,
@@ -52,6 +53,11 @@ pub(super) fn routes(
     let currency_lock = ports
         .get::<dyn CurrencyLockCheck>()
         .unwrap_or(fallback_currency_lock);
+    let metadata = crate::meta::MetadataState::new(
+        Arc::clone(&registry),
+        Arc::clone(&enabled),
+        Arc::clone(&login_runtime),
+    );
     let mut routes = OpenApiRouter::<AppState>::new();
     for module in &registry.modules {
         let gate = ModuleGate::new(module.manifest().id, Arc::clone(&enabled));
@@ -63,10 +69,13 @@ pub(super) fn routes(
             module
                 .routes()
                 .merge(crate::settings::routes())
+                .merge(crate::settings::module_routes())
+                .merge(crate::meta::module_routes())
                 .layer(axum::Extension((
                     Arc::clone(&login_runtime),
                     Arc::clone(&currency_lock),
                 )))
+                .layer(axum::Extension(metadata.clone()))
         } else {
             module.routes()
         }
@@ -77,8 +86,39 @@ pub(super) fn routes(
         } else {
             module_routes
         };
+        let module_routes = if module.manifest().id == ModuleId::Audit {
+            let policy_provider: Arc<dyn eq_audit::AuditPolicyProvider> =
+                Arc::new(RuntimeAuditPolicyProvider {
+                    runtime: Arc::clone(&login_runtime),
+                });
+            module_routes.layer(axum::Extension(policy_provider))
+        } else {
+            module_routes
+        };
         routes = routes.merge(module_routes);
     }
+    routes = routes.merge(crate::meta::public_routes().layer(axum::Extension(metadata)));
     let (routes, _openapi) = routes.split_for_parts();
     routes
+}
+
+struct RuntimeAuditPolicyProvider {
+    runtime: Arc<LoginHttpState>,
+}
+
+#[async_trait]
+impl eq_audit::AuditPolicyProvider for RuntimeAuditPolicyProvider {
+    async fn admin_categories(
+        &self,
+        tx: &mut eq_core::db::Tx,
+        tenant: eq_core::ids::TenantId,
+    ) -> Result<Vec<eq_audit::Category>, eq_core::error::AppError> {
+        let policy = self
+            .runtime
+            .policy_store()
+            .await?
+            .current::<eq_audit::policy::AuditPolicy>(tx, tenant)
+            .await?;
+        Ok(policy.doc.admin_categories().to_vec())
+    }
 }

@@ -21,6 +21,7 @@ use eq_reports as _;
 use eq_scheduling as _;
 
 mod health;
+pub mod meta;
 pub mod middleware;
 pub mod modules;
 pub mod settings;
@@ -43,7 +44,7 @@ pub fn router(state: AppState) -> axum::Router {
         state.tenant_resolver.clone(),
     ));
     let module_routes = modules::routes(
-        &registry,
+        std::sync::Arc::clone(&registry),
         enabled,
         login_runtime,
         state.currency_lock_check.clone(),
