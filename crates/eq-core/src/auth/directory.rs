@@ -1,16 +1,18 @@
 //! Core-owned person and membership lookup for Identity (CA-30, ERD-02).
 
-use crate::crypto::{Aad, Keyring, Keys, bidx_email};
+use crate::crypto::{Aad, Keyring, Keys, bidx_email, bidx_phone_e164};
 use crate::db::Tx;
 use crate::error::AppError;
-use crate::fields::Email;
+use crate::fields::{DisplayName, Email, Phone};
 use crate::ids::PersonId;
 use crate::model::Role;
 use crate::policy::types::Locale;
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use secrecy::SecretString;
 use sqlx::FromRow;
 use std::fmt;
+use std::num::NonZeroI32;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -27,6 +29,7 @@ pub struct LoginProfile {
     pub email: Option<SecretString>,
     pub phone: Option<SecretString>,
     pub locale: Option<Locale>,
+    pub version: i32,
 }
 
 impl fmt::Debug for LoginProfile {
@@ -37,6 +40,70 @@ impl fmt::Debug for LoginProfile {
             .field("email", &"[REDACTED]")
             .field("phone", &"[REDACTED]")
             .field("locale", &self.locale)
+            .field("version", &self.version)
+            .finish()
+    }
+}
+
+/// S1 summary of a Core-owned student linked to an authenticated guardian.
+pub struct LinkedStudentProfile {
+    pub person_id: PersonId,
+    pub display_name: String,
+}
+
+impl fmt::Debug for LinkedStudentProfile {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("LinkedStudentProfile")
+            .field("person_id", &"[REDACTED]")
+            .field("display_name", &"[REDACTED]")
+            .finish()
+    }
+}
+
+/// API-07: validated profile fields passed to Core's optimistic profile update.
+pub struct LoginProfileUpdate {
+    expected_version: NonZeroI32,
+    display_name: Option<DisplayName>,
+    phone: Option<Option<Phone>>,
+    locale: Option<Option<Locale>>,
+    updated_at: DateTime<Utc>,
+}
+
+impl LoginProfileUpdate {
+    /// API-07/CQ-23: creates an update using only canonical, validated profile values.
+    pub fn new(
+        expected_version: NonZeroI32,
+        display_name: Option<DisplayName>,
+        phone: Option<Option<Phone>>,
+        locale: Option<Option<Locale>>,
+        updated_at: DateTime<Utc>,
+    ) -> Self {
+        Self {
+            expected_version,
+            display_name,
+            phone,
+            locale,
+            updated_at,
+        }
+    }
+}
+
+impl fmt::Debug for LoginProfileUpdate {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("LoginProfileUpdate")
+            .field("display_name", &self.display_name.as_ref().map(|_| "[REDACTED]"))
+            .field(
+                "phone",
+                &self
+                    .phone
+                    .as_ref()
+                    .map(|value| value.as_ref().map(|_| "[REDACTED]")),
+            )
+            .field("locale", &self.locale)
+            .field("expected_version", &self.expected_version)
+            .field("updated_at", &self.updated_at)
             .finish()
     }
 }
@@ -105,6 +172,32 @@ pub trait CoreIdentityDirectory: Send + Sync {
         include_pii: bool,
         keyring: &Keyring,
     ) -> Result<Option<LoginProfile>, AppError>;
+
+    /// IDN-01/CA-30: returns active role memberships for one tenant-scoped person.
+    async fn identity_by_person(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+    ) -> Result<Option<LoginIdentity>, AppError>;
+
+    /// IDN-01/ERD-02: returns only the active guardian's linked student names through Core.
+    async fn linked_students(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        guardian: PersonId,
+    ) -> Result<Vec<LinkedStudentProfile>, AppError>;
+
+    /// API-07/ERD-02: optimistically updates Core-owned self-profile fields; nested options distinguish clear from unchanged.
+    async fn update_login_profile(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        update: LoginProfileUpdate,
+        keyring: &Keyring,
+    ) -> Result<Option<i32>, AppError>;
 }
 
 /// SEC-04: PostgreSQL adapter for the core-owned identity directory port.
@@ -326,7 +419,7 @@ impl CoreIdentityDirectory for PgIdentityDirectory {
             )));
         }
         let row = sqlx::query!(
-            "SELECT display_name, email_enc, phone_enc, locale \
+            "SELECT display_name, email_enc, phone_enc, locale, version \
              FROM public.persons \
              WHERE tenant_id = $1 AND id = $2 AND deleted_at IS NULL",
             tenant.0,
@@ -372,7 +465,145 @@ impl CoreIdentityDirectory for PgIdentityDirectory {
             email,
             phone,
             locale,
+            version: row.version,
         }))
+    }
+
+    async fn identity_by_person(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+    ) -> Result<Option<LoginIdentity>, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let rows = sqlx::query_as!(
+            LoginIdentityRow,
+            r#"SELECT person_id AS "person_id!: Uuid", role AS "role!: Role"
+               FROM public.memberships
+               WHERE tenant_id = $1 AND person_id = $2 AND status = 'active'
+               ORDER BY CASE role
+                 WHEN 'owner' THEN 0
+                 WHEN 'admin' THEN 1
+                 WHEN 'instructor' THEN 2
+                 WHEN 'guardian' THEN 3
+                 WHEN 'student' THEN 4
+               END"#,
+            tenant.0,
+            person.0
+        )
+        .fetch_all(tx.conn())
+        .await?;
+        if rows.is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(LoginIdentity {
+            person_id: person,
+            roles: rows.into_iter().map(|row| row.role).collect(),
+        }))
+    }
+
+    async fn linked_students(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        guardian: PersonId,
+    ) -> Result<Vec<LinkedStudentProfile>, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let rows = sqlx::query!(
+            "SELECT p.id, p.display_name FROM public.person_links AS l \
+             JOIN public.persons AS p ON p.tenant_id = l.tenant_id AND p.id = l.student_id \
+             WHERE l.tenant_id = $1 AND l.guardian_id = $2 AND p.deleted_at IS NULL \
+             ORDER BY p.display_name, p.id",
+            tenant.0,
+            guardian.0
+        )
+        .fetch_all(tx.conn())
+        .await?;
+        Ok(rows
+            .into_iter()
+            .map(|row| LinkedStudentProfile {
+                person_id: PersonId(row.id),
+                display_name: row.display_name,
+            })
+            .collect())
+    }
+
+    async fn update_login_profile(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        update: LoginProfileUpdate,
+        keyring: &Keyring,
+    ) -> Result<Option<i32>, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let (phone_enc, phone_bidx) = match update.phone.as_ref().and_then(Option::as_ref) {
+            Some(value) => {
+                let phone = value.as_str();
+                let bidx = bidx_phone_e164(&self.keys, tenant, phone).map_err(|_| {
+                    AppError::Internal(anyhow::anyhow!("validated profile phone could not be indexed"))
+                })?;
+                let ciphertext = keyring
+                    .encrypt_field(
+                        tx,
+                        &Aad {
+                            tenant,
+                            table: "persons",
+                            column: "phone_enc",
+                            row_id: person.0,
+                        },
+                        phone.as_bytes(),
+                    )
+                    .await
+                    .map_err(|error| {
+                        AppError::Internal(anyhow::anyhow!("profile phone encryption failed: {error}"))
+                    })?;
+                (Some(ciphertext), Some(bidx.to_vec()))
+            }
+            _ => (None, None),
+        };
+        let change_phone = update.phone.is_some();
+        let change_locale = update.locale.is_some();
+        let display_name = update.display_name.map(|value| value.as_ref().to_owned());
+        let locale_value = update.locale.flatten().map(|value| match value {
+            Locale::En => "en",
+            Locale::Id => "id",
+        });
+        let row = sqlx::query!(
+            "UPDATE public.persons SET \
+               display_name = COALESCE($3, display_name), \
+               phone_enc = CASE WHEN $4 THEN $5 ELSE phone_enc END, \
+               phone_bidx = CASE WHEN $4 THEN $6 ELSE phone_bidx END, \
+               locale = CASE WHEN $7 THEN $8 ELSE locale END, \
+               updated_at = $9, version = version + 1 \
+             WHERE tenant_id = $1 AND id = $2 AND version = $10 AND deleted_at IS NULL \
+             RETURNING version",
+            tenant.0,
+            person.0,
+            display_name.as_deref(),
+            change_phone,
+            phone_enc.as_deref(),
+            phone_bidx.as_deref(),
+            change_locale,
+            locale_value,
+            update.updated_at,
+            update.expected_version.get()
+        )
+        .fetch_optional(tx.conn())
+        .await?;
+        Ok(row.map(|value| value.version))
     }
 }
 

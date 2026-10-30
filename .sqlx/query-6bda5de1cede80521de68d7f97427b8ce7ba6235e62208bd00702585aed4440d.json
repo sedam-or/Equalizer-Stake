@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT display_name, email_enc, phone_enc, locale FROM public.persons WHERE tenant_id = $1 AND id = $2 AND deleted_at IS NULL",
+  "query": "SELECT display_name, email_enc, phone_enc, locale, version FROM public.persons WHERE tenant_id = $1 AND id = $2 AND deleted_at IS NULL",
   "describe": {
     "columns": [
       {
@@ -46,6 +46,17 @@
             "name": "locale"
           }
         }
+      },
+      {
+        "ordinal": 4,
+        "name": "version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "version"
+          }
+        }
       }
     ],
     "parameters": {
@@ -58,8 +69,9 @@
       false,
       true,
       true,
-      true
+      true,
+      false
     ]
   },
-  "hash": "7f34db1f433a516c1cf78e8ab69b91c5b491e440921b9b3708b30e21e2e03169"
+  "hash": "6bda5de1cede80521de68d7f97427b8ce7ba6235e62208bd00702585aed4440d"
 }

@@ -82,6 +82,11 @@ pub mod codes {
         status: 428,
         title: "Precondition required",
     };
+    pub static VERSION_CONFLICT: ErrorCodeDef = ErrorCodeDef {
+        code: "version_conflict",
+        status: 409,
+        title: "Version conflict",
+    };
     pub static PAYLOAD_TOO_LARGE: ErrorCodeDef = ErrorCodeDef {
         code: "payload_too_large",
         status: 413,
@@ -124,6 +129,7 @@ pub mod codes {
         &VALIDATION,
         &POLICY_VIOLATION,
         &PRECONDITION_REQUIRED,
+        &VERSION_CONFLICT,
         &PAYLOAD_TOO_LARGE,
         &LOCKED,
         &RATE_LIMITED,

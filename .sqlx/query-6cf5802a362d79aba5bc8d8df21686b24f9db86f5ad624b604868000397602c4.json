@@ -1,0 +1,109 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, active_role AS \"active_role: Role\", created_at, last_used_at, idle_expires_at, absolute_expires_at, user_agent, ip::text AS ip FROM public.refresh_sessions WHERE tenant_id = $1 AND person_id = $2 AND revoked_at IS NULL AND idle_expires_at > $3 AND absolute_expires_at > $3 ORDER BY created_at DESC, id DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "active_role: Role",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "active_role"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "last_used_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "last_used_at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "idle_expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "idle_expires_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "absolute_expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "absolute_expires_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "user_agent",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "refresh_sessions",
+            "name": "user_agent"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "ip",
+        "type_info": "Text",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      null
+    ]
+  },
+  "hash": "6cf5802a362d79aba5bc8d8df21686b24f9db86f5ad624b604868000397602c4"
+}

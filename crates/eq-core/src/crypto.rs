@@ -466,6 +466,13 @@ pub fn bidx_phone(
     Ok((index, normalized))
 }
 
+/// SEC-04/CAN-10: returns a tenant-scoped blind index for an already-canonical E.164 number.
+pub fn bidx_phone_e164(keys: &Keys, tenant: TenantId, phone: &str) -> Result<[u8; 16], CryptoError> {
+    let canonical =
+        crate::fields::Phone::try_from(phone.to_owned()).map_err(|_| CryptoError::InvalidPhone)?;
+    blind_index(keys, tenant, b"phone", canonical.as_str().as_bytes())
+}
+
 fn blind_index(
     keys: &Keys,
     tenant: TenantId,

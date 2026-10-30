@@ -40,10 +40,33 @@ const LOCKOUT_FIELDS: [(&str, u32); 4] = [
 ]; // technical: keep nested lockout settings in declaration order
 
 static IDENTITY_WRITE_ROLES: &[ActorRole] = &[ActorRole::Admin];
-static IDENTITY_PERMISSIONS: [PermissionDef; 1] = [PermissionDef {
-    key: "identity.people.write",
-    roles: IDENTITY_WRITE_ROLES,
-}];
+static IDENTITY_READ_ROLES: &[ActorRole] = &[
+    ActorRole::Owner,
+    ActorRole::Admin,
+    ActorRole::Instructor,
+    ActorRole::Guardian,
+    ActorRole::Student,
+];
+static IDENTITY_READ_PII_ROLES: &[ActorRole] = &[
+    ActorRole::Owner,
+    ActorRole::Admin,
+    ActorRole::Guardian,
+    ActorRole::Student,
+];
+static IDENTITY_PERMISSIONS: [PermissionDef; 3] = [
+    PermissionDef {
+        key: "identity.people.read",
+        roles: IDENTITY_READ_ROLES,
+    },
+    PermissionDef {
+        key: "identity.people.read_pii",
+        roles: IDENTITY_READ_PII_ROLES,
+    },
+    PermissionDef {
+        key: "identity.people.write",
+        roles: IDENTITY_WRITE_ROLES,
+    },
+];
 
 static MANIFEST: ModuleManifest = ModuleManifest {
     id: ModuleId::Identity,
@@ -130,6 +153,11 @@ impl Module for IdentityModule {
             .routes(utoipa_axum::routes!(crate::api_invites::accept))
             .routes(utoipa_axum::routes!(crate::api_reset::forgot))
             .routes(utoipa_axum::routes!(crate::api_reset::reset))
+            .routes(utoipa_axum::routes!(crate::api_me::get_me))
+            .routes(utoipa_axum::routes!(crate::api_me::patch_me))
+            .routes(utoipa_axum::routes!(crate::api_me::change_password))
+            .routes(utoipa_axum::routes!(crate::api_me::list_sessions))
+            .routes(utoipa_axum::routes!(crate::api_me::revoke_session))
     }
 
     fn event_handlers(&self) -> Vec<Box<dyn EventHandler>> {
@@ -372,12 +400,19 @@ mod tests {
                 .paths
                 .contains_key("/api/v1/auth/switch-role")
         );
+        assert!(routes_openapi.paths.paths.contains_key("/api/v1/me"));
+        assert!(routes_openapi.paths.paths.contains_key("/api/v1/me/password"));
+        assert!(routes_openapi.paths.paths.contains_key("/api/v1/me/sessions"));
         assert!(module.event_handlers().is_empty());
         assert!(module.jobs().is_empty());
         assert!(module.cron().is_empty());
-        assert_eq!(module.permissions().len(), 1);
-        assert_eq!(module.permissions()[0].key, "identity.people.write");
-        assert_eq!(module.permissions()[0].roles, &[ActorRole::Admin]);
+        assert_eq!(module.permissions().len(), 3);
+        assert_eq!(module.permissions()[0].key, "identity.people.read");
+        assert_eq!(module.permissions()[0].roles.len(), 5);
+        assert_eq!(module.permissions()[1].key, "identity.people.read_pii");
+        assert_eq!(module.permissions()[1].roles.len(), 4);
+        assert_eq!(module.permissions()[2].key, "identity.people.write");
+        assert_eq!(module.permissions()[2].roles, &[ActorRole::Admin]);
         assert!(module.nav().is_empty());
     }
 

@@ -1,0 +1,37 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.persons SET display_name = COALESCE($3, display_name), phone_enc = CASE WHEN $4 THEN $5 ELSE phone_enc END, phone_bidx = CASE WHEN $4 THEN $6 ELSE phone_bidx END, locale = CASE WHEN $7 THEN $8 ELSE locale END, updated_at = $9, version = version + 1 WHERE tenant_id = $1 AND id = $2 AND version = $10 AND deleted_at IS NULL RETURNING version",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "persons",
+            "name": "version"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Bytea",
+        "Bytea",
+        "Bool",
+        "Text",
+        "Timestamptz",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "604eac785bc4998747f8916cc92d92b6ac0a5d502414d7c3b3082b16e8051415"
+}

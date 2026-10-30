@@ -97,8 +97,17 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-100 | T-110a1 | `tasks/M1-core/T-110a1-identity-schema-and-policy.md` | The parent split/index included T-110a3–T-110a5 while their task files were not named by T-110a1 → include the successor contracts so the generated index and task files are committed atomically. |
 | TD-129 | T-110a | `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md` | The original DoD requires a `feat(identity)` commit while the post-split Scope owns aggregate verification only → use a signed `docs(identity): report login aggregate [T-110a]` commit because the task changes only its report, decision register and generated index. |
 | TD-130 | T-110a | `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md` | The Report says the disk rule prohibits all caches and databases, but the current policy permits reuse of the fixed Cargo target and existing PostgreSQL container → use those fixed resources and one disposable `ritma_test_T-110a` database, dropping the database after checks. |
+| TD-147 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | API-07/CAN-23 require a versioned `/me` response and the spec-defined `version_conflict` error, but the reused login DTO has no version and Core has no registered symbol → flatten `PersonMe` into a self-profile response with `version`/ETag and register `VERSION_CONFLICT` in Core without changing login JSON. |
+| TD-148 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | T-103 phone normalization needs tenant country, while the tenant contract has no country field → accept validated canonical E.164 for this request and compute its existing tenant blind index without inventing a country default. |
+| TD-149 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | Self-service mutation has no separate write-self permission in the spec → require the existing `identity.people.read` self permission and hard-bind every read/write to the authenticated Actor's own person or session. |
+| TD-150 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | The general state-change rule asks for an outbox event but the event catalog has no profile/password/session event → use only the specified audit actions and do not invent an event name. |
+| TD-151 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | The task DoD names `ritma_test_T-111`, but the explicit operator resource boundary allows only a new `ritma_test_T-110d` database → use a fresh `ritma_test_T-110d` and drop it after checks. |
 
-**Total mapped self-resolutions:** 93.
+| TD-152 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | API-15 requires per-user and per-IP limits, but no shared limiter is wired into the API yet and a route-local limiter would be incomplete → flag shared middleware as a required follow-up; do not mark this control as implemented. |
+| TD-153 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | The profile route updates Core-owned `persons`, but the task does not name its audit action → use `core.person.updated`, following STM-04's `<module>.<entity>.<verb_past>` form and ERD-01's Core ownership. |
+| TD-154 | T-110f | `tasks/M1-core/T-110f-profile-and-sessions.md` | T-110f implements five API behaviors in one existing task contract and exceeds CQ-101's approximately 400 non-generated-line guidance → complete the assigned contract in one task commit as instructed, disclose the 2,066-line implementation diff, and request architect review of the task sizing. |
+
+**Total mapped self-resolutions:** 99.
 
 ## Detailed entries added in run 6
 
@@ -1003,3 +1012,75 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The shipped IDN-03 token contract compares whole-second versions. A password reset must change that version so existing access tokens stop matching; the monotonic timestamp uses only the mapped column and introduces no business rule or schema change.
 - **Changed:** `crates/eq-identity/src/repo.rs`, `crates/eq-identity/tests/api_reset.rs`, and `tasks/M1-core/T-110e-password-reset.md`.
 - **Ratify:** Yes.
+
+### TD-147 — Version the self-profile without changing the login DTO
+
+- **Question:** API-07 and CAN-23 require the mutable self-profile response to expose its aggregate version and ETag, but the existing login `PersonMe` DTO has no version and the shared `version_conflict` code was not registered.
+- **Options:** (a) change the shared login response DTO; (b) add a self-profile response that preserves the login fields and adds `version`, and register the spec-defined conflict code.
+- **Decision:** Use option (b). The `/me` response flattens the existing `PersonMe` data, includes `persons.version`, returns the matching strong ETag, and uses the Core `VERSION_CONFLICT` code. The login JSON remains unchanged.
+- **Why:** API-07/CAN-23 require an ETag for this mutable aggregate and the shared stable code is specified; isolating the extra field to `/me` keeps the existing login contract intact.
+- **Changed:** `crates/eq-identity/src/api_me.rs`, `crates/eq-core/src/error.rs`, this task's Questions/Report, this register, and generated task index.
+- **Ratify:** Yes.
+
+### TD-148 — Accept only canonical E.164 in self-profile updates
+
+- **Question:** T-110f requires phone normalization, but `TenantInfo` has no country and POL-02 prohibits deriving a country from locale, currency or timezone.
+- **Options:** (a) guess a default dialing region; (b) add a tenant country field or schema change; (c) accept only the validated canonical E.164 representation and compute the existing tenant-scoped blind index.
+- **Decision:** Use option (c). Parse with the existing `Phone` value type, reject non-canonical/non-E.164 values, and blind-index the supplied canonical value through Core crypto.
+- **Why:** This follows the existing canonical phone contract and avoids introducing a default or schema field not named by the task/spec.
+- **Changed:** `crates/eq-core/src/crypto.rs`, `crates/eq-identity/src/api_me.rs`, this task's Questions/Report, and this register.
+- **Ratify:** Yes.
+
+### TD-149 — Scope self-service to the authenticated person
+
+- **Question:** T-110f requires self-service reads and writes but does not name a separate self-write permission; the handlers still must check a permission and must not allow another person's data to be changed.
+- **Options:** (a) add a new permission key or role grant; (b) use the existing spec-defined `identity.people.read` permission and bind every route/query to the authenticated Actor's own person/session.
+- **Decision:** Use option (b). The module uses the existing permission matrix; operations derive person and tenant only from Actor and session revocation targets only a family owned by that person.
+- **Why:** This adds no permission key or role grant and enforces resource ownership at the route and repository boundary.
+- **Changed:** `crates/eq-identity/src/api_me.rs`, `crates/eq-identity/src/module.rs`, `crates/eq-identity/src/repo.rs`, this task's Questions/Report, and this register.
+- **Ratify:** Yes.
+
+### TD-150 — Do not invent an outbox event for self-profile changes
+
+- **Question:** The repository-wide state-change guideline calls for audit and outbox work, but the event catalogue does not define a profile, password-change or session-revocation event and T-110f names no such event.
+- **Options:** (a) invent and emit a new event name/payload; (b) record the required audits transactionally and leave the outbox unchanged.
+- **Decision:** Use option (b). The password and session audits use their task/spec-defined actions; the profile audit action follows STM-04 and Core ownership as recorded in TD-153. No outbox event is emitted.
+- **Why:** Event names and payloads are contracts and cannot be inferred. Adding a new event would exceed scope and violate the no-invented-event rule.
+- **Changed:** `crates/eq-identity/src/api_me.rs`, `crates/eq-identity/src/service.rs`, this task's Questions/Report, and this register.
+- **Ratify:** Yes.
+
+### TD-151 — Use the operator-approved T-110d database for T-110f
+
+- **Question:** The task's DoD names `ritma_test_T-111`, while the operator explicitly allows creating only `ritma_test_T-110d` in the existing PostgreSQL container.
+- **Options:** (a) create the task-named database; (b) create only the operator-approved fresh database and drop it after the checks.
+- **Decision:** Use option (b). All T-110f database checks run against a fresh `ritma_test_T-110d` in the existing `ritma-db-1` container; the database is dropped after checks.
+- **Why:** The explicit resource boundary limits created databases, while the fresh database still prevents stale-state results.
+- **Changed:** `tasks/M1-core/T-110f-profile-and-sessions.md`, this register, and the task Report.
+- **Ratify:** Yes.
+
+### TD-152 — Track the missing shared API rate limiter
+
+- **Question:** API-15 specifies 100 requests/minute per authenticated user and 300/minute per IP with `RateLimit-*` headers, but the current API composition has no shared rate-limiting middleware. T-110f's Files and Scope are limited to Identity's self-profile and session paths.
+- **Options:** (a) add a one-off limiter to these handlers, which would not provide uniform API middleware or cover other authenticated routes; (b) leave the rate limit explicitly unimplemented here and require a shared API middleware task before these routes are externally exposed.
+- **Decision:** Use option (b). Do not claim API-15 is satisfied by this task. Record the gap as a required follow-up for shared API middleware using the existing `tower_governor` stack and the exact API-15 limits.
+- **Why:** A local workaround would create inconsistent limits and omit the shared `RateLimit-*` behavior. A cross-cutting fix needs to cover all authenticated routes and belongs in the API composition, which T-110f does not name or own.
+- **Changed:** `tasks/M1-core/T-110f-profile-and-sessions.md` and this register. No rate-limit control is weakened or reported as implemented.
+- **Ratify:** Yes; maintainer review is required before deployment.
+
+### TD-153 — Name the Core-owned profile audit action
+
+- **Question:** T-110f updates the Core-owned `persons` aggregate through the Core port, but does not name the profile-update audit action.
+- **Options:** (a) use an Identity action because the route lives in Identity; (b) use a Core action because ERD-01 assigns `persons` to Core, while following STM-04's `<module>.<entity>.<verb_past>` format.
+- **Decision:** Use option (b), `core.person.updated`.
+- **Why:** The updated aggregate is Core-owned; the audit action follows the normative module/entity/verb format without adding an outbox event.
+- **Changed:** `crates/eq-identity/src/api_me.rs`, this task's Questions/Report, and this register.
+- **Ratify:** Yes.
+
+### TD-154 — Record the T-110f task-size deviation
+
+- **Question:** CQ-101 asks for about 400 changed non-generated lines per task/PR and says larger work should be split, while T-110f already assigns five API behaviors across Core and Identity paths and the operator requires one task commit without editing other tasks.
+- **Options:** (a) rewrite the task breakdown and successor contracts before implementation; (b) complete this assigned contract in one task commit and disclose the measured size for architect review.
+- **Decision:** Use option (b), as directed by the operator's one-task-per-commit and no-block run instructions.
+- **Why:** The existing task contract was already implemented in the active workspace; splitting it now would require changing other task files and separating dependent code beyond this task's authorized edit set. The implementation-only diff is 2,066 lines excluding generated SQLx metadata.
+- **Changed:** `tasks/M1-core/T-110f-profile-and-sessions.md`, this register, and the generated task index.
+- **Ratify:** Yes; review whether equivalent future task contracts should be split before implementation.

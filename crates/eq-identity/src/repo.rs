@@ -123,6 +123,34 @@ pub(crate) struct RefreshSession {
     revoked_at: Option<DateTime<Utc>>,
 }
 
+/// SBD-50: a caller-owned device row may contain S2 user-agent and network data.
+pub(crate) struct DeviceSession {
+    pub(crate) id: Uuid,
+    pub(crate) active_role: Role,
+    pub(crate) created_at: DateTime<Utc>,
+    pub(crate) last_used_at: DateTime<Utc>,
+    pub(crate) idle_expires_at: DateTime<Utc>,
+    pub(crate) absolute_expires_at: DateTime<Utc>,
+    pub(crate) user_agent: Option<String>,
+    pub(crate) ip: Option<String>,
+}
+
+impl std::fmt::Debug for DeviceSession {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("DeviceSession")
+            .field("id", &"[REDACTED]")
+            .field("active_role", &self.active_role)
+            .field("created_at", &self.created_at)
+            .field("last_used_at", &self.last_used_at)
+            .field("idle_expires_at", &self.idle_expires_at)
+            .field("absolute_expires_at", &self.absolute_expires_at)
+            .field("user_agent", &self.user_agent.as_ref().map(|_| "[REDACTED]"))
+            .field("ip", &self.ip.as_ref().map(|_| "[REDACTED]"))
+            .finish()
+    }
+}
+
 impl RefreshSession {
     pub(crate) const fn id(&self) -> Uuid {
         self.id
@@ -366,7 +394,7 @@ pub(crate) async fn mark_password_reset_used(
 }
 
 /// IDN-08/STM-24: stores the new password and advances its whole-second version for the reset person.
-pub(crate) async fn set_password_after_reset(
+pub(crate) async fn set_password(
     tx: &mut Tx,
     tenant: TenantId,
     person: PersonId,
@@ -410,6 +438,102 @@ pub(crate) async fn revoke_person_refresh_sessions(
     .execute(tx.conn())
     .await?;
     Ok(())
+}
+
+/// IDN-13/STM-22: revokes every other refresh-session row after self-service password change.
+pub(crate) async fn revoke_other_refresh_sessions(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    current_session: Uuid,
+    now: DateTime<Utc>,
+) -> Result<u64, AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.refresh_sessions SET revoked_at = COALESCE(revoked_at, $4) \
+         WHERE tenant_id = $1 AND person_id = $2 AND id <> $3",
+        tenant.0,
+        person.0,
+        current_session,
+        now
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(result.rows_affected())
+}
+
+/// IDN-13/ERD-04: lists only a person's active, unexpired device sessions.
+pub(crate) async fn active_device_sessions(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    now: DateTime<Utc>,
+) -> Result<Vec<DeviceSession>, AppError> {
+    let rows = sqlx::query!(
+        "SELECT id, active_role AS \"active_role: Role\", created_at, last_used_at, idle_expires_at, \
+                absolute_expires_at, user_agent, ip::text AS ip \
+         FROM public.refresh_sessions \
+         WHERE tenant_id = $1 AND person_id = $2 AND revoked_at IS NULL \
+           AND idle_expires_at > $3 AND absolute_expires_at > $3 \
+         ORDER BY created_at DESC, id DESC",
+        tenant.0,
+        person.0,
+        now
+    )
+    .fetch_all(tx.conn())
+    .await?;
+    Ok(rows
+        .into_iter()
+        .map(|row| DeviceSession {
+            id: row.id,
+            active_role: row.active_role,
+            created_at: row.created_at,
+            last_used_at: row.last_used_at,
+            idle_expires_at: row.idle_expires_at,
+            absolute_expires_at: row.absolute_expires_at,
+            user_agent: row.user_agent,
+            ip: row.ip,
+        })
+        .collect())
+}
+
+/// STM-22: resolves one caller-owned refresh family; no row is returned for another person.
+pub(crate) async fn refresh_family_for_person(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    session_id: Uuid,
+) -> Result<Option<Uuid>, AppError> {
+    let row = sqlx::query!(
+        "SELECT family_id FROM public.refresh_sessions \
+         WHERE tenant_id = $1 AND person_id = $2 AND id = $3 FOR UPDATE",
+        tenant.0,
+        person.0,
+        session_id
+    )
+    .fetch_optional(tx.conn())
+    .await?;
+    Ok(row.map(|session| session.family_id))
+}
+
+/// STM-22: revokes the specified tenant/person session family atomically.
+pub(crate) async fn revoke_refresh_family_for_person(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    family_id: Uuid,
+    now: DateTime<Utc>,
+) -> Result<u64, AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.refresh_sessions SET revoked_at = COALESCE(revoked_at, $4) \
+         WHERE tenant_id = $1 AND person_id = $2 AND family_id = $3",
+        tenant.0,
+        person.0,
+        family_id,
+        now
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(result.rows_affected())
 }
 
 /// IDN-04/ERD-04: resolves the person behind a canonical refresh digest before actor-scoped work.

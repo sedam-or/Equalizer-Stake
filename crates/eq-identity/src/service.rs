@@ -659,7 +659,7 @@ impl<'a> PasswordResetService<'a> {
         if !repo::mark_password_reset_used(tx, tenant, reset_record.id, now).await? {
             return Err(token_invalid());
         }
-        repo::set_password_after_reset(tx, tenant, reset_record.person, password_hash, now).await?;
+        repo::set_password(tx, tenant, reset_record.person, password_hash, now).await?;
         repo::revoke_person_refresh_sessions(tx, tenant, reset_record.person, now).await?;
         record(
             tx,
@@ -730,6 +730,142 @@ fn map_password_error(error: PasswordError) -> AppError {
         | PasswordError::Operation
         | PasswordError::InvalidStoredHash
         | PasswordError::Random => AppError::Internal(anyhow::anyhow!("password reset hashing failed")),
+    }
+}
+
+/// IDN-13/STM-22: self-service password changes keep the credential and session effects atomic.
+pub(crate) struct PasswordChangeService<'a> {
+    pool: &'a PgPool,
+    policies: &'a PolicyStore,
+    clock: &'a dyn Clock,
+}
+
+impl fmt::Debug for PasswordChangeService<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PasswordChangeService")
+            .field("pool", &"[tenant database pool]")
+            .field("policies", &"[tenant policy store]")
+            .field("clock", &self.clock)
+            .finish()
+    }
+}
+
+impl<'a> PasswordChangeService<'a> {
+    /// IDN-13: constructs the password-change recipe from tenant-owned infrastructure.
+    pub(crate) const fn new(pool: &'a PgPool, policies: &'a PolicyStore, clock: &'a dyn Clock) -> Self {
+        Self {
+            pool,
+            policies,
+            clock,
+        }
+    }
+
+    /// IDN-13/STM-22: verifies both passwords, advances token version, preserves this session, and audits.
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "the password-change recipe keeps tenant, actor, session and validated password context explicit"
+    )]
+    pub(crate) async fn change(
+        &self,
+        tenant: TenantId,
+        person: PersonId,
+        current_session: Uuid,
+        current_input: PasswordInput,
+        new_input: PasswordInput,
+        field_ctx: &FieldCtx,
+        actor: &ActorCtx,
+    ) -> Result<(), AppError> {
+        let mut tx = begin(self.pool, tenant, actor).await?;
+        let result = self
+            .change_in_tx(
+                &mut tx,
+                tenant,
+                person,
+                current_session,
+                current_input,
+                new_input,
+                field_ctx,
+                actor,
+            )
+            .await;
+        match result {
+            Ok(()) => tx.commit().await.map_err(AppError::from),
+            Err(error) => {
+                tx.rollback().await?;
+                Err(error)
+            }
+        }
+    }
+
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "the self-service transition needs the actor, tenant, session, inputs and field context"
+    )]
+    async fn change_in_tx(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        person: PersonId,
+        current_session: Uuid,
+        current_input: PasswordInput,
+        new_input: PasswordInput,
+        field_ctx: &FieldCtx,
+        actor: &ActorCtx,
+    ) -> Result<(), AppError> {
+        let policy = self.policies.current::<IdentityPolicy>(tx, tenant).await?.doc;
+        let mut current_ctx = *field_ctx;
+        current_ctx.password_min_length = None;
+        let current_password =
+            Password::parse(current_input, &current_ctx).map_err(|_| invalid_credentials())?;
+        let mut new_ctx = *field_ctx;
+        new_ctx.password_min_length = Some(usize::from(policy.password_min_length()));
+        let new_password = Password::parse(new_input, &new_ctx).map_err(|_| password_weak())?;
+        validate_new_password(&new_password, &policy).map_err(map_password_change_error)?;
+
+        let credentials = repo::credentials_for_update(tx, tenant, person)
+            .await?
+            .ok_or_else(invalid_credentials)?;
+        let password_hash = credentials.password_hash.ok_or_else(invalid_credentials)?;
+        let valid = tokio::task::spawn_blocking(move || verify_password(&current_password, &password_hash))
+            .await
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("password verification task failed")))?
+            .map_err(map_password_change_error)?;
+        if !valid {
+            return Err(invalid_credentials());
+        }
+
+        let new_hash = tokio::task::spawn_blocking(move || hash_password(&new_password))
+            .await
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("password hashing task failed")))?
+            .map_err(map_password_change_error)?;
+        let now = self.clock.now();
+        repo::set_password(tx, tenant, person, &new_hash, now).await?;
+        repo::revoke_other_refresh_sessions(tx, tenant, person, current_session, now).await?;
+        record(
+            tx,
+            AuditEvent {
+                action: "security.password.changed",
+                category: Category::Security,
+                entity_type: "credential",
+                entity_id: Some(person.0),
+                before: None,
+                after: Some(serde_json::json!({ "password_changed": true })),
+                actor,
+            },
+        )
+        .await?;
+        Ok(())
+    }
+}
+
+fn map_password_change_error(error: PasswordError) -> AppError {
+    match error {
+        PasswordError::Weak => password_weak(),
+        PasswordError::Parameters
+        | PasswordError::Operation
+        | PasswordError::InvalidStoredHash
+        | PasswordError::Random => AppError::Internal(anyhow::anyhow!("password change failed")),
     }
 }
 

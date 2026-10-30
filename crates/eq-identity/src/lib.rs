@@ -2,6 +2,7 @@
 
 pub mod api_auth;
 pub mod api_invites;
+pub mod api_me;
 pub mod api_reset;
 pub mod errors;
 pub mod invites;
