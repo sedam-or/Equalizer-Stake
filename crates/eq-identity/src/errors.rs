@@ -34,11 +34,19 @@ pub mod codes {
         title: "Password does not meet the password policy",
     };
 
+    /// IDN-07/STM-21/ERR-21: an invite is expired or has already been consumed.
+    pub static INVITE_EXPIRED: ErrorCodeDef = ErrorCodeDef {
+        code: "invite_expired",
+        status: 410,
+        title: "Invite expired",
+    };
+
     /// Registered application codes owned by Identity.
     pub const CODES: &[&ErrorCodeDef] = &[
         &INVALID_CREDENTIALS,
         &SESSION_EXPIRED,
         &TOTP_REQUIRED,
         &PASSWORD_WEAK,
+        &INVITE_EXPIRED,
     ];
 }

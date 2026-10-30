@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.credentials (tenant_id, person_id, password_hash, password_changed_at) VALUES ($1, $2, $3, $4) ON CONFLICT (person_id) DO UPDATE SET password_hash = EXCLUDED.password_hash, password_changed_at = EXCLUDED.password_changed_at, failed_count = 0, failed_window_start = NULL, locked_until = NULL WHERE credentials.tenant_id = EXCLUDED.tenant_id",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f37ed87de6edebf74c41d7a612d6b713dc5ee90081db1975856aae5a7d4d6aa7"
+}

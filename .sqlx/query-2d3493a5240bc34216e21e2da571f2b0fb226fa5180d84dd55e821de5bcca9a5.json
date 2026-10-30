@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT accepted_at FROM public.invites WHERE tenant_id = $1 AND person_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "accepted_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "invites",
+            "name": "accepted_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "2d3493a5240bc34216e21e2da571f2b0fb226fa5180d84dd55e821de5bcca9a5"
+}

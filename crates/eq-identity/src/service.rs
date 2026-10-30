@@ -101,6 +101,54 @@ impl<'a> LoginService<'a> {
             .await
     }
 
+    /// IDN-02/STM-21: stores an invite password and creates the first session in the acceptance transaction.
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "the method receives the accepted identity and request metadata needed by the existing session flow"
+    )]
+    pub(crate) async fn accept_invited_identity(
+        &self,
+        tx: &mut Tx,
+        tenant: TenantId,
+        actor: &ActorCtx,
+        identity: LoginIdentity,
+        password: &Password,
+        policy: &IdentityPolicy,
+        user_agent: Option<&str>,
+        ip: Option<IpAddr>,
+        now: DateTime<Utc>,
+    ) -> Result<LoginSuccess, AppError> {
+        if repo::credentials_for_update(tx, tenant, identity.person_id())
+            .await?
+            .is_some_and(|credentials| credentials.totp_enabled)
+        {
+            return Err(AppError::Unauthenticated {
+                code: &codes::TOTP_REQUIRED,
+            });
+        }
+        let password_hash = crate::password::hash_password(password).map_err(|error| {
+            AppError::Internal(anyhow::anyhow!("invite password hashing failed: {error}"))
+        })?;
+        repo::set_invited_password(tx, tenant, identity.person_id(), &password_hash, now).await?;
+        let credentials = repo::credentials_for_update(tx, tenant, identity.person_id())
+            .await?
+            .ok_or_else(|| AppError::Internal(anyhow::anyhow!("invite credential row disappeared")))?;
+        self.create_login_session(
+            tx,
+            &LoginSessionRequest {
+                tenant,
+                actor,
+                user_agent,
+                ip,
+            },
+            &identity,
+            &credentials,
+            policy,
+            now,
+        )
+        .await
+    }
+
     async fn finish_login(
         &self,
         tx: &mut Tx,
@@ -149,8 +197,20 @@ impl<'a> LoginService<'a> {
             self.verify_totp(tx, request, identity, credentials, now).await?;
         }
 
-        self.create_login_session(tx, request, identity, credentials, policy, now)
-            .await
+        self.create_login_session(
+            tx,
+            &LoginSessionRequest {
+                tenant: request.tenant,
+                actor: request.actor,
+                user_agent: request.user_agent,
+                ip: request.ip,
+            },
+            identity,
+            credentials,
+            policy,
+            now,
+        )
+        .await
     }
 
     async fn verify_totp(
@@ -194,7 +254,7 @@ impl<'a> LoginService<'a> {
     async fn create_login_session(
         &self,
         tx: &mut Tx,
-        request: &LoginRequest<'_>,
+        request: &LoginSessionRequest<'_>,
         identity: &LoginIdentity,
         credentials: &repo::Credentials,
         policy: &IdentityPolicy,
@@ -252,7 +312,7 @@ impl<'a> LoginService<'a> {
             AccessTokenSubject::new(person, request.tenant, active_role, session_id, password_version),
         )
         .map_err(|error| AppError::Internal(anyhow::anyhow!("access token issuance failed: {error}")))?;
-        audit_login_success(tx, request, person).await?;
+        audit_login_success(tx, request.actor, person).await?;
 
         Ok(LoginSuccess {
             person,
@@ -1019,6 +1079,13 @@ impl fmt::Debug for NewRefreshToken {
     }
 }
 
+struct LoginSessionRequest<'a> {
+    tenant: TenantId,
+    actor: &'a ActorCtx,
+    user_agent: Option<&'a str>,
+    ip: Option<IpAddr>,
+}
+
 fn new_refresh_token() -> Result<NewRefreshToken, AppError> {
     let mut raw = Zeroizing::new([0_u8; 32]);
     OsRng
@@ -1123,10 +1190,14 @@ async fn audit_login_failure(
 
 async fn audit_login_success(
     tx: &mut Tx,
-    request: &LoginRequest<'_>,
+    request_actor: &ActorCtx,
     person: PersonId,
 ) -> Result<(), AppError> {
-    let actor = audit_actor(request.actor);
+    let actor = if request_actor.person_id.is_some() {
+        request_actor.clone()
+    } else {
+        audit_actor(request_actor)
+    };
     record(
         tx,
         AuditEvent {

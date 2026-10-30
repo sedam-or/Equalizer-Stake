@@ -80,6 +80,22 @@ pub trait CoreIdentityDirectory: Send + Sync {
         role: Role,
     ) -> Result<(), AppError>;
 
+    /// STM-20/21: activates one invited membership and returns the person's active roles.
+    async fn activate_invited_membership(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<Option<LoginIdentity>, AppError>;
+
+    /// TD-138/ERD-01: resolves the caller tenant's display name through the tenant-scoped function.
+    async fn tenant_name(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+    ) -> Result<Option<String>, AppError>;
+
     /// ERD-02/SBD-10: reads the caller's core-owned profile and decrypts PII only when authorized.
     async fn login_profile(
         &self,
@@ -224,6 +240,76 @@ impl CoreIdentityDirectory for PgIdentityDirectory {
         .execute(tx.conn())
         .await?;
         Ok(())
+    }
+
+    async fn activate_invited_membership(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<Option<LoginIdentity>, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        let changed = sqlx::query!(
+            "UPDATE public.memberships SET status = 'active' \
+             WHERE tenant_id = $1 AND person_id = $2 AND role = $3 AND status = 'invited'",
+            tenant.0,
+            person.0,
+            role as Role
+        )
+        .execute(tx.conn())
+        .await?;
+        if changed.rows_affected() != 1 {
+            return Ok(None);
+        }
+
+        let rows = sqlx::query_as!(
+            LoginIdentityRow,
+            r#"SELECT person_id AS "person_id!: Uuid", role AS "role!: Role"
+               FROM public.memberships
+               WHERE tenant_id = $1 AND person_id = $2 AND status = 'active'
+               ORDER BY CASE role
+                 WHEN 'owner' THEN 0
+                 WHEN 'admin' THEN 1
+                 WHEN 'instructor' THEN 2
+                 WHEN 'guardian' THEN 3
+                 WHEN 'student' THEN 4
+               END"#,
+            tenant.0,
+            person.0
+        )
+        .fetch_all(tx.conn())
+        .await?;
+        if rows.is_empty() {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "activated identity has no active membership"
+            )));
+        }
+        Ok(Some(LoginIdentity {
+            person_id: person,
+            roles: rows.into_iter().map(|row| row.role).collect(),
+        }))
+    }
+
+    async fn tenant_name(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+    ) -> Result<Option<String>, AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        Ok(
+            sqlx::query_scalar!("SELECT public.resolve_tenant_name($1)", tenant.0)
+                .fetch_one(tx.conn())
+                .await?,
+        )
     }
 
     async fn login_profile(

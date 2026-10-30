@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.credentials (tenant_id, person_id, totp_secret_enc, totp_enabled) VALUES ($1, $2, $3, true)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bytea"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ea063e0afa1e1cabe9865a81e17fa27fc72441c36bacc37056988256129aa5c7"
+}

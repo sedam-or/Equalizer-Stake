@@ -940,3 +940,30 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The maintainer requires that no task stay blocked. The lint already encodes this rule, and `tasks/README.md` agrees. Option (a) would weaken the guard the maintainer relies on. Technical questions are decided under the stricter-reading rule of AGENTS.md §0 and recorded here, so they stay traceable. Security, money and schema beyond the spec are still never guessed: the decision records the strictest safe option and is marked Ratify.
 - **Changed:** `WORKFLOW.md`, `tasks/M1-core/T-110d-invite-acceptance.md`, this register.
 - **Ratify:** Yes.
+
+### TD-140 — Activate invited membership through Core during acceptance
+
+- **Question:** T-110d requires invite acceptance to activate a membership and create a login session in one transaction, while `CoreIdentityDirectory` exposes only `ensure_invited_membership` and Identity must not query the Core-owned memberships table.
+- **Options:** (a) add an Identity SQL update of `memberships`; (b) add a Core-owned port operation that transitions the invited role to active and returns the active roles needed for the login session; (c) accept the invite without activating membership.
+- **Decision:** Use option (b). Add `activate_invited_membership(tx, tenant, person, role) -> Result<Option<LoginIdentity>, AppError>` to `CoreIdentityDirectory`. It changes only the matching `invited` row to `active`, then returns the person's active roles through Core. Return `None` if no matching invited membership was activated.
+- **Why:** STM-20 t3 defines `invited → active` on invite acceptance, STM-21 t2 requires membership activation and login session creation in the same transaction, and CA-30 assigns membership SQL to Core. The returned Core-owned `LoginIdentity` gives the session service only active roles and avoids a second module reading memberships.
+- **Changed:** `tasks/M1-core/T-110d-invite-acceptance.md`, Core directory port/adapter, invite service, login-session service, and invite acceptance tests. No schema, business value, or error code is added.
+- **Ratify:** Yes.
+
+### TD-141 — Preserve TOTP for an already enrolled invitee
+
+- **Question:** T-110d's accept body contains only a password and places TOTP behavior out of scope, but an invited person may already have a credential with TOTP enabled.
+- **Options:** (a) create the acceptance session without verifying the existing TOTP factor; (b) reject acceptance with the existing `totp_required` code and roll back the invite, password, and membership changes; (c) add a TOTP field to the request and expand this task's scope.
+- **Decision:** Use option (b). Before changing credentials or creating the refresh session, detect an already enabled TOTP credential and return the spec-defined `totp_required` 401. The handler rolls back the transaction.
+- **Why:** AUTH-06/SBD-20 requires preserving enrolled authentication factors, while T-110d does not define a TOTP request contract and explicitly excludes TOTP behavior. The existing login error code avoids inventing a code or bypassing a security control.
+- **Changed:** `tasks/M1-core/T-110d-invite-acceptance.md`, `crates/eq-identity/src/service.rs`, and `crates/eq-identity/src/api_invites.rs`.
+- **Ratify:** Yes.
+
+### TD-142 — Attribute invite acceptance to the invitee
+
+- **Question:** Public invite acceptance begins with an anonymous transaction actor, but STM-20 identifies the invitee as the actor for `invited → active`; `eq-audit` requires the recorded actor id to match the transaction's `app.actor_id` setting.
+- **Options:** (a) record acceptance as anonymous/system; (b) add a generic transaction actor-switch API; (c) resolve the tenant-scoped bearer invite in a read-only transaction, bind the atomic acceptance transaction to that invitee, and revalidate the invite before any mutation.
+- **Decision:** Use option (c). Resolve the token and invited role using the existing tenant-scoped, constant-work invite lookup, roll back the lookup transaction, then begin the acceptance transaction with the invitee's `ActorCtx`. Acceptance rechecks pending state and expiry before mutation. Successful login audit retains that authenticated invitee actor; ordinary anonymous login continues to use a system actor.
+- **Why:** STM-20 t3 names the invitee as the transition actor; STM-21 t2 requires all acceptance state changes and audit to be atomic; the existing audit adapter enforces actor/transaction equality. A preflight read does not authorize the mutation: the main transaction revalidates token, expiry, and single-use state before setting credentials, activating membership, or creating a session.
+- **Changed:** `tasks/M1-core/T-110d-invite-acceptance.md`, `crates/eq-identity/src/api_invites.rs`, `crates/eq-identity/src/invites.rs`, `crates/eq-identity/src/service.rs`, and `crates/eq-identity/tests/api_invites.rs`.
+- **Ratify:** Yes.

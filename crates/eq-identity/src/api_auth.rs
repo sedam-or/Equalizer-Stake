@@ -86,7 +86,7 @@ impl LoginHttpState {
         }
     }
 
-    async fn policy_store(&self) -> Result<&PolicyStore, AppError> {
+    pub(crate) async fn policy_store(&self) -> Result<&PolicyStore, AppError> {
         self.policy_store
             .get_or_try_init(|| async {
                 let presets: Arc<dyn PresetPatchSource> = Arc::new(UnavailablePresetPatches);
@@ -434,7 +434,7 @@ impl fmt::Debug for LinkedStudent {
     dead_code,
     reason = "OpenAPI response schema describes the secret-safe manual serializer"
 )]
-struct LoginResponseSchema {
+pub(crate) struct LoginResponseSchema {
     access_token: String,
     expires_in: u64,
     person: PersonMe,
@@ -945,7 +945,7 @@ fn forbidden_request(detail: &'static str) -> AppError {
     }
 }
 
-async fn login_success_response(
+pub(crate) async fn login_success_response(
     state: &AppState,
     runtime: &LoginHttpState,
     tenant: TenantId,

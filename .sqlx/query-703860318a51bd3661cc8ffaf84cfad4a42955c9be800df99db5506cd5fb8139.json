@@ -1,0 +1,77 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT actor_id, actor_role, action, entity_id, after FROM audit.entries WHERE tenant_id = $1 AND entity_id = $2 AND action = 'identity.invite.accepted'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "actor_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "actor_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "actor_role",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "actor_role"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "action",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "action"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "entity_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "entity_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "after",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "audit.entries",
+            "name": "after"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "703860318a51bd3661cc8ffaf84cfad4a42955c9be800df99db5506cd5fb8139"
+}

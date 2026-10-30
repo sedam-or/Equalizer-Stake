@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.invites SET accepted_at = $3 WHERE tenant_id = $1 AND id = $2 AND accepted_at IS NULL AND expires_at > $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "09916c6cb791474d69a2f583301d54026946d3ac6bb4ca8d71ddc3dc4ddf726d"
+}

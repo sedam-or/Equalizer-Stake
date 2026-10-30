@@ -6,7 +6,7 @@ use eq_core::db::Tx;
 use eq_core::error::AppError;
 use eq_core::ids::{PersonId, TenantId};
 use eq_core::model::Role;
-use secrecy::SecretBox;
+use secrecy::{ExposeSecret, SecretBox};
 use std::net::IpAddr;
 use uuid::Uuid;
 use zeroize::Zeroizing;
@@ -20,6 +20,36 @@ pub(crate) struct Credentials {
     pub(crate) failed_count: i32,
     pub(crate) failed_window_start: Option<DateTime<Utc>>,
     pub(crate) locked_until: Option<DateTime<Utc>>,
+}
+
+/// SBD-50: a pending invite row carries a secret token digest and is never serialized or cloned.
+pub(crate) struct InviteRecord {
+    pub(crate) id: Uuid,
+    pub(crate) person: PersonId,
+    pub(crate) role: Role,
+    pub(crate) token_hash: SecretBox<Zeroizing<Vec<u8>>>,
+    pub(crate) expires_at: DateTime<Utc>,
+    pub(crate) accepted_at: Option<DateTime<Utc>>,
+}
+
+impl std::fmt::Debug for InviteRecord {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("InviteRecord")
+            .field("id", &self.id)
+            .field("person", &self.person)
+            .field("role", &self.role)
+            .field("token_hash", &"[REDACTED]")
+            .field("expires_at", &self.expires_at)
+            .field("accepted_at", &self.accepted_at)
+            .finish()
+    }
+}
+
+impl InviteRecord {
+    pub(crate) fn token_hash(&self) -> &[u8] {
+        self.token_hash.expose_secret().as_slice()
+    }
 }
 
 impl std::fmt::Debug for Credentials {
@@ -482,5 +512,78 @@ pub(crate) async fn insert_invite(
     )
     .execute(tx.conn())
     .await?;
+    Ok(())
+}
+
+/// IDN-07/STM-21: loads a tenant-scoped invite candidate for preview or acceptance.
+pub(crate) async fn invite_for_token(
+    tx: &mut Tx,
+    tenant: TenantId,
+    token_hash: &[u8],
+) -> Result<Option<InviteRecord>, AppError> {
+    let row = sqlx::query!(
+        "SELECT id, person_id, role AS \"role!: Role\", token_hash, expires_at, accepted_at \
+         FROM public.invites WHERE tenant_id = $1 AND token_hash = $2",
+        tenant.0,
+        token_hash
+    )
+    .fetch_optional(tx.conn())
+    .await?;
+    Ok(row.map(|row| InviteRecord {
+        id: row.id,
+        person: PersonId(row.person_id),
+        role: row.role,
+        token_hash: SecretBox::new(Box::new(Zeroizing::new(row.token_hash))),
+        expires_at: row.expires_at,
+        accepted_at: row.accepted_at,
+    }))
+}
+
+/// STM-21: accepts only a still-pending invite inside its TTL.
+pub(crate) async fn mark_invite_accepted(
+    tx: &mut Tx,
+    tenant: TenantId,
+    invite: Uuid,
+    now: DateTime<Utc>,
+) -> Result<bool, AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.invites SET accepted_at = $3 \
+         WHERE tenant_id = $1 AND id = $2 AND accepted_at IS NULL AND expires_at > $3",
+        tenant.0,
+        invite,
+        now
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(result.rows_affected() == 1)
+}
+
+/// STM-21: sets a first invite password without changing any existing TOTP material.
+pub(crate) async fn set_invited_password(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    password_hash: &PasswordHash,
+    changed_at: DateTime<Utc>,
+) -> Result<(), AppError> {
+    let result = sqlx::query!(
+        "INSERT INTO public.credentials (tenant_id, person_id, password_hash, password_changed_at) \
+         VALUES ($1, $2, $3, $4) \
+         ON CONFLICT (person_id) DO UPDATE SET password_hash = EXCLUDED.password_hash, \
+           password_changed_at = EXCLUDED.password_changed_at, failed_count = 0, \
+           failed_window_start = NULL, locked_until = NULL \
+         WHERE credentials.tenant_id = EXCLUDED.tenant_id",
+        tenant.0,
+        person.0,
+        password_hash.expose_secret(),
+        changed_at
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() != 1 {
+        return Err(AppError::Internal(anyhow::anyhow!(
+            "invite credential row belongs to another tenant"
+        )));
+    }
     Ok(())
 }
