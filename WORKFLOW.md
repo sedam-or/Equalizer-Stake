@@ -5,8 +5,8 @@ This is the **standard operating procedure** for every task in `tasks/**/T-*.md`
 `AGENTS.md` holds the engineering rules. This file holds the **process**: which task to pick, the order of steps, what to write down, when to stop and how review works.
 
 > **Golden rules**
-> 1. **One task at a time, one task per session.** WIP = 1. Finish (→ `review`) or block (→ `blocked`), then stop.
-> 2. **The task file is the contract.** Build Scope → In, nothing more. If it's unclear, block. Don't guess.
+> 1. **One task at a time, one task per session.** WIP = 1. Finish (→ `review`), then stop. Never end a task `blocked`: record a decision in `tasks/DECISIONS.md` (TD-NNN) and continue (TD-139).
+> 2. **The task file is the contract.** Build Scope → In, nothing more. If it's unclear, decide technically under §4 and record a TD. Never guess on security, money or schema.
 > 3. **Never claim a check you didn't run.** An unticked box with a reason is fine. A false tick isn't.
 
 *(This 12-step flow is adapted from the v0 capstone's `TASK_WORKFLOW.md`, mapped onto the v2 spec, tools and task files.)*
@@ -15,7 +15,7 @@ This is the **standard operating procedure** for every task in `tasks/**/T-*.md`
 
 | Role | Who | Does |
 |---|---|---|
-| **Architect** | Spec author (Claude, with the maintainer) | Writes and maintains `spec/` and task files, answers `blocked` questions, promotes `draft` → `todo` |
+| **Architect** | Spec author (Claude, with the maintainer) | Writes and maintains `spec/` and task files, records technical decisions (TD) in `tasks/DECISIONS.md`, promotes `draft` → `todo` |
 | **Implementer** | Codex (or a human contributor) | Executes exactly one task with this workflow |
 | **Reviewer / maintainer** | A human listed in `MAINTAINERS.md` | Reviews, requests changes or approves, merges, and sets `done` |
 
@@ -26,8 +26,6 @@ stateDiagram-v2
   [*] --> draft: architect writes
   draft --> todo: architect promotes (context inlined, Security section)
   todo --> in_progress: implementer claims
-  in_progress --> blocked: question needs a decision
-  blocked --> todo: architect answers (Resolution)
   in_progress --> review: DoD green, Report filled
   review --> changes_requested: reviewer asks for changes
   changes_requested --> in_progress: implementer resumes
@@ -40,7 +38,6 @@ stateDiagram-v2
 | `draft` | Written but not ready. **Never start it** | Architect |
 | `todo` | Ready to pick | Architect |
 | `in_progress` | Being implemented. **At most one task in the whole repo** | Implementer |
-| `blocked` | Waiting for an answer in `## Questions` | Implementer |
 | `review` | Implementation finished, waiting for a human | Implementer |
 | `changes_requested` | Review feedback in `## Review` needs work | Reviewer |
 | `done` | Merged to `main` | Reviewer |
@@ -85,7 +82,7 @@ scripts/tasks-index.sh --check            # index consistent, WIP ≤ 1
 1. A task in `changes_requested` (rework comes before new work). Take the lowest ID.
 2. The **lowest-ID** `todo` task whose `depends_on` are **all `done`**.
 
-If nothing matches, stop and report "no ready task" with the list of blockers (`blocked`, `review`, or dependencies not done).
+If nothing matches, stop and report "no ready task" with the list of waiting tasks (`review`, or dependencies not done).
 
 **Claim:**
 
@@ -278,20 +275,12 @@ git commit -s -m "<type>(<scope>): <task title> [T-xxx]"
 
 **Don't start the next task in the same session.**
 
-## 4. When blocked
+## 4. When a decision is needed (no blocked status, TD-139)
 
-1. Under `## Questions`, add one entry per question:
+1. Record the decision in `tasks/DECISIONS.md` as `TD-NNN` (format: `Question`, `Options`, `Decision`, `Why`, `Changed`, `Ratify: yes`), and reference it from the task's `## Questions` and `## Report`.
 
-```markdown
-- **Q1 (blocking):** <the question, one sentence>
-  - Context: <what the task, spec or code says; file:line or spec ID; what you verified>
-  - Options: (a) … (b) …
-  - Recommendation: (a), because …
-```
-
-2. Record in `## Report` what you analysed and verified (plus the Debug log if Step 7 led here). Revert any half-done code, so the branch holds only the task file change.
-3. Set `status: blocked`, then run `scripts/tasks-index.sh`.
-4. Commit on the task branch: `docs(tasks): block T-xxx with questions [T-xxx]`. Stop.
+2. Record in `## Report` what you analysed and verified. Continue the task with the decision applied. Only if the decision would change security, money or schema beyond the spec, record it as `Ratify: yes` and keep the change minimal.
+3. Commit with `docs(decisions): TD-NNN <title> [T-xxx]` if the decision is recorded on its own, or in the task's commit.
 
 **The architect answers on `main`.** That means:
 - a `- **Resolved (<who>, <date>):** Q1 — …` line above the question;
@@ -330,7 +319,7 @@ The commit message is `docs(tasks): resolve T-xxx questions [T-xxx]`. The implem
 | Situation | Commit message (`COMMIT_CONVENTION.md` §8) | Status after |
 |---|---|---|
 | Task done | `<type>(<scope>): <title> [T-xxx]` | `review` |
-| Blocked | `docs(tasks): block T-xxx with questions [T-xxx]` | `blocked` |
+| Decision recorded | `docs(decisions): TD-NNN <title> [T-xxx]` | unchanged |
 | Reviewer feedback | `docs(tasks): review feedback [T-xxx]` | `changes_requested` |
 | Rework done | squashed into the task commit | `review` |
 | Merged | the task commit, with `done` | `done` |

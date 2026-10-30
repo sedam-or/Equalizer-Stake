@@ -922,3 +922,21 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** CAN-60 says payloads contain minimal IDs/facts and no S2/S3 values; FLW-60 explicitly excludes invite tokens from events; `spec/03-module-system.md` §6 declares the exact payload; T-110c places email/WhatsApp sending out of scope. This chooses the stricter spec-compliant behavior without adding a schema object or weakening a security control.
 - **Changed:** `tasks/M1-core/T-110c-invite-issue.md`, this register, and the invite event implementation.
 - **Ratify:** Yes.
+
+### TD-138 — Expose tenant display name to the invite preview through Core
+
+- **Question:** T-110d's preview requires `tenant_name`, but `tenants.name` is not readable by `eq_app` and the existing resolver `resolve_tenant_info_by_slug` (migration 0009) omits it, so Identity has no approved path to it.
+- **Options:** (a) add a Core-owned SECURITY DEFINER function that returns `tenants.name` for the caller's tenant only, and call it through the Core directory port; (b) drop `tenant_name` from the preview; (c) return `slug` as `tenant_name`.
+- **Decision:** Option (a). Migration `migrations/0012_core_tenant_name_resolver.sql` defines `public.resolve_tenant_name(p_tenant_id uuid) RETURNS text`, `LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public`, returning `t.name` only when `t.id = p_tenant_id` AND `t.id = NULLIF(current_setting('app.tenant_id', true), '')::uuid`. `REVOKE ALL FROM PUBLIC`, `GRANT EXECUTE TO eq_app`. Identity calls `CoreIdentityDirectory::tenant_name`, never the table.
+- **Why:** Option (b) changes the specified contract; option (c) returns a different value under the same name. Option (a) follows the TD-001 pattern (a named function with a grant), keeps SEC-05 (no direct `tenants` SELECT for `eq_app`), and adds no cross-tenant read because the setting check limits the result to the tenant set by `core::db::begin` (the same setting every RLS policy reads, `migrations/0001_core_bootstrap.sql:28`). The number 0012 is the next free forward-only number; 0008 is unused and is not reused.
+- **Changed:** `migrations/0012_core_tenant_name_resolver.sql` (new), `tasks/M1-core/T-110d-invite-acceptance.md` (Files, Context, Security, Questions, status `todo`), this register.
+- **Ratify:** Yes. Migration `0012` and the new function are not in `spec/06` DDL; `scripts/erd.py --migrations` must be checked and, if it flags the function, the TD-001 allow-list entry applies with a reference to TD-138.
+
+### TD-139 — Retire the `blocked` task status
+
+- **Question:** `WORKFLOW.md` §§2/4 and the status table define `blocked` as the answer to an open question. `tasks/README.md` says a task never ends `blocked`, and `scripts/tasks-lint.py` (line 175) rejects it. The run that produced T-110d and the T-110c/T-108 blocks hit this conflict, and T-110d therefore stopped with the guard failing.
+- **Options:** (a) keep `blocked` in the docs and relax the guard; (b) retire `blocked`: a decision is recorded as a TD and the task continues; the guard stays strict.
+- **Decision:** Option (b). `WORKFLOW.md` §§1, 2, 4, the state diagram, the status table and the commit table are updated to match. The guard is not changed. Existing `blocked` tasks are reset to `todo` with their open question marked resolved by a TD.
+- **Why:** The maintainer requires that no task stay blocked. The lint already encodes this rule, and `tasks/README.md` agrees. Option (a) would weaken the guard the maintainer relies on. Technical questions are decided under the stricter-reading rule of AGENTS.md §0 and recorded here, so they stay traceable. Security, money and schema beyond the spec are still never guessed: the decision records the strictest safe option and is marked Ratify.
+- **Changed:** `WORKFLOW.md`, `tasks/M1-core/T-110d-invite-acceptance.md`, this register.
+- **Ratify:** Yes.

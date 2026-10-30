@@ -2,7 +2,7 @@
 id: T-111
 title: Add invites, password reset, /me endpoints, TOTP enrolment and device sessions
 milestone: M1
-status: draft
+status: todo
 depends_on: [T-110c, T-110d, T-110e, T-110f, T-110g, T-110h]
 spec_refs: [IDN-07, IDN-08, IDN-12, IDN-13, SEC-12, STM-21, STM-24, STM-25, AUTH-06]
 estimated_size: S
