@@ -111,8 +111,10 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-175 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | The task implementation exceeds CQ-101's approximate 400-line review guidance because its original Files list omitted the required route, service, Core port and Audit repository paths → keep the assigned acceptance criteria together, disclose the measured 1,723 Rust source/test additions and 84 deletions, and request architect review of task sizing. |
 | TD-176 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | Person creation and deactivation require transactional audit records, while their task/spec contracts do not define outbox event names or payloads → write the named audit records in the same transaction and do not invent outbox contracts, following the boundary recorded in TD-167. |
 | TD-177 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | The task DoD asks for `make api`, but the repository target is an explicit T-114 placeholder and generated OpenAPI/client paths are outside this task's Files → record the target as unavailable, leave generated artifacts to T-114, and do not fabricate outputs. |
+| TD-178 | T-113 | `tasks/M1-core/T-113-core-policy-settings-meta-api.md` | The split parent still says T-113a/T-113b are draft and gives T-113a a T-109 dependency, while their current frontmatter says todo and T-109h → update only the parent split table to match the children, because child frontmatter and the generated index are authoritative and the implementation/test assignment is already complete. |
+| TD-179 | T-113 | `tasks/M1-core/T-113-core-policy-settings-meta-api.md` | The attachment's isolated unittest module command cannot import `scripts` because Python `-I` removes the repo from `sys.path` → use `python3 -I -m unittest discover -s scripts/tests -p 'test_tasks_lint.py'`, which runs the same eight task-linter tests without relaxing isolation. |
 
-**Total mapped self-resolutions:** 104.
+**Total mapped self-resolutions:** 106.
 
 ## Detailed entries added in run 6
 
@@ -1295,4 +1297,22 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Use option (b); the command was attempted, returned its placeholder failure, and no generated artifacts were written.
 - **Why:** T-114 owns the generator stack, and fabricating outputs here would exceed this task's Scope and Files. This follows the sequencing decision in TD-164.
 - **Changed:** T-112b's Report and this decision register.
+- **Ratify:** Yes.
+
+### TD-178 — Align the T-113 split tracker with child frontmatter
+
+- **Question:** The parent split table labels T-113a and T-113b `draft` and lists T-109 for T-113a, while the child task files mark both `todo` and T-113a depends on T-109h.
+- **Options:** (a) leave the tracker stale until implementation starts; (b) update only the parent table to match the authoritative child frontmatter and generated task index.
+- **Decision:** Use option (b); retain the existing child task files, their scopes, tests and dependency chain.
+- **Why:** Status and dependency values come from child frontmatter, and all AC/test names are already assigned exactly once; the correction changes no implementation contract.
+- **Changed:** T-113's split table, this register, and generated `tasks/INDEX.md` after status update.
+- **Ratify:** Yes.
+
+### TD-179 — Run task-linter tests under Python isolation
+
+- **Question:** `python3 -I -m unittest scripts/tests/test_tasks_lint.py` treats `scripts` as an importable module, but isolated mode removes the repository from `sys.path` and that import fails.
+- **Options:** (a) remove `-I` to make the module import; (b) use unittest discovery with the explicit test directory and filename pattern while preserving isolation.
+- **Decision:** Use option (b): `python3 -I -m unittest discover -s scripts/tests -p 'test_tasks_lint.py'`.
+- **Why:** It runs the same task-linter tests without weakening Python's isolated mode; all 8 tests pass.
+- **Changed:** T-113's Report and Questions, and this register.
 - **Ratify:** Yes.
