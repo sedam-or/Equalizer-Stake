@@ -9,7 +9,7 @@ use axum::body::{Body, to_bytes};
 use axum::http::header::{CONTENT_TYPE, SET_COOKIE};
 use axum::http::{Request, StatusCode};
 use eq_core::app_state::AppState;
-use eq_core::clock::SystemClock;
+use eq_core::clock::{Clock, SystemClock};
 use eq_core::config::Config;
 use eq_core::crypto::{Keys, bidx_email};
 use eq_core::error::AppError;
@@ -30,6 +30,7 @@ use secrecy::ExposeSecret;
 use serde_json::{Value, json};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{PgPool, Row};
+use totp_rs::{Algorithm, Builder, Secret};
 use tower::ServiceExt;
 use uuid::Uuid;
 
@@ -65,6 +66,7 @@ struct Fixture {
     owner_pool: PgPool,
     router: axum::Router,
     runtime: Arc<LoginHttpState>,
+    clock: Arc<SystemClock>,
     tenant: TenantId,
     person: PersonId,
     policy: IdentityPolicy,
@@ -104,6 +106,41 @@ impl Fixture {
             .await
             .context("read login response")?;
         let body = serde_json::from_slice(&body).context("decode login response JSON")?;
+        Ok((status, headers, body))
+    }
+
+    async fn request_http(
+        &self,
+        method: reqwest::Method,
+        path: &str,
+        token: Option<&str>,
+        body: Option<Value>,
+    ) -> Result<(StatusCode, reqwest::header::HeaderMap, Value)> {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
+        let address = listener.local_addr()?;
+        let router = self.router.clone();
+        let server = tokio::spawn(async move {
+            axum::serve(
+                listener,
+                router.into_make_service_with_connect_info::<SocketAddr>(),
+            )
+            .await
+        });
+        let mut request = reqwest::Client::new().request(method, format!("http://{address}{path}"));
+        if let Some(token) = token {
+            request = request.bearer_auth(token);
+        }
+        if let Some(body) = body {
+            request = request.json(&body);
+        }
+        let response = request.send().await;
+        server.abort();
+        let _ = server.await;
+        let response = response?;
+        let status = StatusCode::from_u16(response.status().as_u16())?;
+        let headers = response.headers().clone();
+        let bytes = response.bytes().await.context("read auth flow HTTP response")?;
+        let body = serde_json::from_slice(&bytes).context("decode auth flow response JSON")?;
         Ok((status, headers, body))
     }
 
@@ -325,7 +362,7 @@ async fn fixture_for_role_and_admin(
     let enabled: Arc<dyn EnabledModuleSet> = Arc::new(AlwaysEnabled);
     let runtime = Arc::new(LoginHttpState::new(
         app_pool.clone(),
-        clock,
+        clock.clone(),
         Arc::clone(&modules),
         Arc::clone(&enabled),
         Arc::clone(&state.auth),
@@ -354,6 +391,7 @@ async fn fixture_for_role_and_admin(
         owner_pool,
         router,
         runtime,
+        clock,
         tenant,
         person,
         policy,
@@ -474,6 +512,22 @@ fn field_ctx() -> Result<FieldCtx> {
     })
 }
 
+fn current_totp_code(secret_base32: &str, now: chrono::DateTime<chrono::Utc>) -> Result<String> {
+    let secret = Secret::try_from_base32(secret_base32)
+        .map_err(|_| anyhow::anyhow!("generated test TOTP seed is valid Base32"))?;
+    let totp = Builder::new()
+        .with_algorithm(Algorithm::SHA1)
+        .with_digits(6)
+        .with_skew(1)
+        .with_step_duration(30)
+        .with_secret(secret.as_bytes())
+        .build()
+        .map_err(|_| anyhow::anyhow!("test TOTP configuration is valid"))?;
+    let timestamp = u64::try_from(now.timestamp())
+        .map_err(|_| anyhow::anyhow!("test timestamp is after the Unix epoch"))?;
+    Ok(totp.generate(timestamp).to_string())
+}
+
 #[tokio::test]
 async fn login_success() -> Result<()> {
     let fixture = fixture().await?;
@@ -519,6 +573,177 @@ async fn login_success() -> Result<()> {
     .fetch_one(&fixture.owner_pool)
     .await?;
     assert_eq!(audit, 1);
+    Ok(())
+}
+
+#[tokio::test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "the named acceptance journey checks TOTP, recovery, replay, audit and tenant isolation together"
+)]
+async fn totp_flow() -> Result<()> {
+    let fixture = fixture().await?;
+    let (login_status, _login_headers, login_body) = fixture
+        .request_http(
+            reqwest::Method::POST,
+            "/api/v1/auth/login",
+            None,
+            Some(json!({"email": EMAIL, "password": CORRECT_PASSWORD})),
+        )
+        .await?;
+    assert_eq!(login_status, StatusCode::OK, "{login_body}");
+    let access_token = login_body["access_token"]
+        .as_str()
+        .context("login returns a bearer token for TOTP setup")?;
+
+    let (setup_status, _setup_headers, setup_body) = fixture
+        .request_http(
+            reqwest::Method::POST,
+            "/api/v1/me/totp/setup",
+            Some(access_token),
+            None,
+        )
+        .await?;
+    assert_eq!(setup_status, StatusCode::OK, "{setup_body}");
+    let seed = setup_body["secret_base32"]
+        .as_str()
+        .context("setup returns its one-time TOTP seed")?;
+    let confirmation_code = current_totp_code(seed, fixture.clock.now())?;
+    let (confirm_status, _confirm_headers, confirm_body) = fixture
+        .request_http(
+            reqwest::Method::POST,
+            "/api/v1/me/totp/confirm",
+            Some(access_token),
+            Some(json!({"code": confirmation_code})),
+        )
+        .await?;
+    assert_eq!(confirm_status, StatusCode::OK, "{confirm_body}");
+    let recovery_codes = confirm_body["recovery_codes"]
+        .as_array()
+        .context("confirmation returns one-time recovery codes")?;
+    assert_eq!(recovery_codes.len(), 10);
+    let recovery_code = recovery_codes[0]
+        .as_str()
+        .context("recovery code is a string")?
+        .to_owned();
+
+    let (missing_status, _missing_headers, missing_body) = fixture
+        .request_http(
+            reqwest::Method::POST,
+            "/api/v1/auth/login",
+            None,
+            Some(json!({"email": EMAIL, "password": CORRECT_PASSWORD})),
+        )
+        .await?;
+    assert_eq!(missing_status, StatusCode::UNAUTHORIZED, "{missing_body}");
+    assert_eq!(missing_body["code"], "totp_required");
+
+    let totp_code = current_totp_code(seed, fixture.clock.now())?;
+    let (totp_status, _totp_headers, totp_body) = fixture
+        .request_http(
+            reqwest::Method::POST,
+            "/api/v1/auth/login",
+            None,
+            Some(json!({"email": EMAIL, "password": CORRECT_PASSWORD, "totp": totp_code})),
+        )
+        .await?;
+    assert_eq!(totp_status, StatusCode::OK, "{totp_body}");
+
+    let foreign_tenant = TenantId(Uuid::now_v7());
+    let foreign_person = PersonId(Uuid::now_v7());
+    let foreign_code = "test-code1";
+    sqlx::query(
+        "INSERT INTO public.tenants (id, slug, name, country, preset_id, preset_version) \
+         VALUES ($1, $2, 'Test Foreign Tenant', 'ID', 'test', 1)",
+    )
+    .bind(foreign_tenant.0)
+    .bind(format!("foreign-{}", foreign_tenant.0.simple()))
+    .execute(&fixture.owner_pool)
+    .await?;
+    sqlx::query(
+        "INSERT INTO public.persons (id, tenant_id, display_name, locale) VALUES ($1, $2, 'Test Foreign Person', 'en')",
+    )
+    .bind(foreign_person.0)
+    .bind(foreign_tenant.0)
+    .execute(&fixture.owner_pool)
+    .await?;
+    let context = field_ctx()?;
+    let foreign_password_input = serde_json::from_value::<PasswordInput>(json!(foreign_code))?;
+    let foreign_password = Password::parse(foreign_password_input, &context)
+        .map_err(|_| anyhow::anyhow!("fake foreign recovery value parses"))?;
+    let foreign_hash = hash_password(&foreign_password)?;
+    sqlx::query(
+        "INSERT INTO public.totp_recovery_codes (tenant_id, person_id, code_hash) VALUES ($1, $2, $3)",
+    )
+    .bind(foreign_tenant.0)
+    .bind(foreign_person.0)
+    .bind(foreign_hash.expose_secret())
+    .execute(&fixture.owner_pool)
+    .await?;
+
+    let (foreign_status, _foreign_headers, foreign_body) = fixture
+        .request_http(
+            reqwest::Method::POST,
+            "/api/v1/auth/login",
+            None,
+            Some(json!({"email": EMAIL, "password": CORRECT_PASSWORD, "totp": foreign_code})),
+        )
+        .await?;
+    assert_eq!(foreign_status, StatusCode::UNAUTHORIZED, "{foreign_body}");
+    assert_eq!(foreign_body["code"], "invalid_credentials");
+
+    let (recovery_status, _recovery_headers, recovery_body) = fixture
+        .request_http(
+            reqwest::Method::POST,
+            "/api/v1/auth/login",
+            None,
+            Some(json!({"email": EMAIL, "password": CORRECT_PASSWORD, "totp": recovery_code})),
+        )
+        .await?;
+    assert_eq!(recovery_status, StatusCode::OK, "{recovery_body}");
+    assert!(recovery_body["access_token"].as_str().is_some());
+
+    let (replay_status, _replay_headers, replay_body) = fixture
+        .request_http(
+            reqwest::Method::POST,
+            "/api/v1/auth/login",
+            None,
+            Some(json!({"email": EMAIL, "password": CORRECT_PASSWORD, "totp": recovery_codes[0]})),
+        )
+        .await?;
+    assert_eq!(replay_status, StatusCode::UNAUTHORIZED, "{replay_body}");
+    assert_eq!(replay_body["code"], "invalid_credentials");
+
+    let used_count = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2 AND used_at IS NOT NULL",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.person.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(used_count, 1, "one successful recovery login consumes one code");
+    let foreign_used_at = sqlx::query_scalar::<_, Option<chrono::DateTime<chrono::Utc>>>(
+        "SELECT used_at FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(foreign_tenant.0)
+    .bind(foreign_person.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert!(
+        foreign_used_at.is_none(),
+        "foreign recovery codes are not consumed"
+    );
+    let login_success_count = sqlx::query_scalar::<_, i64>(
+        "SELECT count(*) FROM audit.entries WHERE tenant_id = $1 AND entity_id = $2 AND action = 'security.login.success'",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.person.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(
+        login_success_count, 3,
+        "normal password, TOTP and recovery logins are audited"
+    );
     Ok(())
 }
 

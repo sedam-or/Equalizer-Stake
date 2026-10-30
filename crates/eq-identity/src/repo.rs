@@ -317,6 +317,51 @@ pub(crate) async fn insert_totp_recovery_hashes(
     Ok(())
 }
 
+/// IDN-12/ERD-03: locks only this tenant/person's unused recovery hashes during login.
+pub(crate) async fn unused_totp_recovery_hashes(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+) -> Result<Vec<PasswordHash>, AppError> {
+    let rows = sqlx::query!(
+        "SELECT code_hash FROM public.totp_recovery_codes \
+         WHERE tenant_id = $1 AND person_id = $2 AND used_at IS NULL ORDER BY code_hash FOR UPDATE",
+        tenant.0,
+        person.0
+    )
+    .fetch_all(tx.conn())
+    .await?;
+
+    rows.into_iter()
+        .map(|row| {
+            PasswordHash::try_from(row.code_hash).map_err(|error| {
+                AppError::Internal(anyhow::anyhow!("stored TOTP recovery hash is invalid: {error}"))
+            })
+        })
+        .collect()
+}
+
+/// IDN-12/STM-25: atomically marks one matching unused hash consumed in the login transaction.
+pub(crate) async fn consume_totp_recovery_hash(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    hash: &PasswordHash,
+    used_at: DateTime<Utc>,
+) -> Result<bool, AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.totp_recovery_codes SET used_at = $4 \
+         WHERE tenant_id = $1 AND person_id = $2 AND code_hash = $3 AND used_at IS NULL",
+        tenant.0,
+        person.0,
+        hash.expose_secret(),
+        used_at
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(result.rows_affected() == 1)
+}
+
 /// IDN-12/STM-25: deletes the caller's recovery-code hashes during re-enrolment or disable.
 pub(crate) async fn delete_totp_recovery_codes(
     tx: &mut Tx,

@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.totp_recovery_codes SET used_at = $4 WHERE tenant_id = $1 AND person_id = $2 AND code_hash = $3 AND used_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6cb675651829d4cfdbfb10f664673b7ceeb5cdacb7b0f3bee56094813d2500dd"
+}

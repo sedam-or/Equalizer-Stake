@@ -1138,3 +1138,21 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The task and user instruction assign one task/commit, and moving work would require changing other task contracts beyond this task's scope.
 - **Changed:** tasks/M1-core/T-110g-totp-enrolment.md, this register, and the generated task index.
 - **Ratify:** Yes; review the task sizing and whether the backlog should split comparable security workflows before implementation.
+
+### TD-161 — Place the TOTP login acceptance test with the auth adapter
+
+- **Question:** The T-110h interface sketch names `crates/eq-identity/tests/api_me.rs`, but the shipped login route and email-backed login fixture are in `api_auth.rs`.
+- **Options:** (a) add login identity setup to the unrelated `api_me.rs` fixture; (b) keep the exact `totp_flow` test name and implement it in the auth adapter test file.
+- **Decision:** Use option (b), placing `totp_flow` in `crates/eq-identity/tests/api_auth.rs`.
+- **Why:** The existing auth fixture exercises the actual login boundary and already seeds the required email identity; this is mechanical drift in the task sketch.
+- **Changed:** `tasks/M1-core/T-110h-recovery-code-login.md`, `tasks/DECISIONS.md`, and generated task index.
+- **Ratify:** Yes.
+
+### TD-162 — Reuse configured Argon2id parameters for recovery-code verification
+
+- **Question:** T-110h needs to verify a recovery-code secret, but the existing shared verifier accepts only the domain `Password` type.
+- **Options:** (a) duplicate Argon2id configuration in the service; (b) add a narrow `SecretString` verifier beside the configured password verifier.
+- **Decision:** Use option (b), adding the recovery-code verifier in `password.rs` and reusing its configured Argon2id parameters.
+- **Why:** `password.rs` owns the existing Argon2id configuration; this preserves the PHC format used by T-110g without duplicating security-sensitive settings.
+- **Changed:** `crates/eq-identity/src/password.rs`, `tasks/M1-core/T-110h-recovery-code-login.md`, `tasks/DECISIONS.md`, and generated task index.
+- **Ratify:** Yes.

@@ -144,9 +144,21 @@ fn hash_password_bytes(password: &[u8]) -> Result<PasswordHash, PasswordError> {
 /// `PasswordError::Parameters` for invalid fixed parameters, or
 /// `PasswordError::Operation` for another Argon2 verification failure.
 pub fn verify_password(password: &Password, stored_hash: &PasswordHash) -> Result<bool, PasswordError> {
+    verify_secret_bytes(password.expose_secret().as_bytes(), stored_hash)
+}
+
+/// IDN-12/SBD-50: verifies one recovery code without converting its secret into a password field.
+pub(crate) fn verify_recovery_code(
+    code: &SecretString,
+    stored_hash: &PasswordHash,
+) -> Result<bool, PasswordError> {
+    verify_secret_bytes(code.expose_secret().as_bytes(), stored_hash)
+}
+
+fn verify_secret_bytes(secret: &[u8], stored_hash: &PasswordHash) -> Result<bool, PasswordError> {
     let parsed =
         ParsedPasswordHash::new(stored_hash.expose_secret()).map_err(|_| PasswordError::InvalidStoredHash)?;
-    match configured_argon2()?.verify_password(password.expose_secret().as_bytes(), &parsed) {
+    match configured_argon2()?.verify_password(secret, &parsed) {
         Ok(()) => Ok(true),
         Err(PasswordHashFormatError::Password) => Ok(false),
         Err(_) => Err(PasswordError::Operation),
@@ -179,13 +191,15 @@ pub fn verify_dummy_password(password: &Password, dummy_hash: &PasswordHash) -> 
 mod tests {
     use super::{
         ARGON2_ITERATIONS, ARGON2_MEMORY_KIB, ARGON2_PARALLELISM, PasswordHash, create_dummy_password_hash,
-        hash_password, validate_new_password, verify_dummy_password, verify_password,
+        hash_password, hash_recovery_code, validate_new_password, verify_dummy_password, verify_password,
+        verify_recovery_code,
     };
     use crate::policy::IdentityPolicy;
     use argon2::Params;
     use eq_core::fields::{FieldCtx, FieldKind, Password, PasswordInput};
     use eq_core::money::Currency;
     use eq_core::policy::types::Locale;
+    use secrecy::SecretString;
 
     #[test]
     fn common_rejected() {
@@ -228,6 +242,17 @@ mod tests {
         assert!(verify_password(&correct, &stored).expect("hash verifies"));
         assert!(!verify_password(&incorrect, &stored).expect("mismatch verifies in constant work"));
         verify_dummy_password(&incorrect, &dummy).expect("dummy verification completes");
+    }
+
+    #[test]
+    fn recovery_code_hash_verifies_only_the_matching_secret() {
+        let code = SecretString::from("test-secret-recovery-code");
+        let incorrect = SecretString::from("test-secret-other-recovery");
+        let stored = hash_recovery_code(&code).expect("recovery code hash succeeds");
+
+        assert!(verify_recovery_code(&code, &stored).expect("recovery code verifies"));
+        assert!(!verify_recovery_code(&incorrect, &stored).expect("different recovery code mismatches"));
+        assert!(!format!("{code:?}").contains("test-secret-recovery-code"));
     }
 
     #[test]

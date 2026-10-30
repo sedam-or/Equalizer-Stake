@@ -4,7 +4,7 @@ use crate::errors::codes;
 use crate::jwt::{AccessToken, AccessTokenSubject, issue_access_token};
 use crate::password::{
     PasswordError, PasswordHash, create_dummy_password_hash, hash_password, hash_recovery_code,
-    validate_new_password, verify_dummy_password, verify_password,
+    validate_new_password, verify_dummy_password, verify_password, verify_recovery_code,
 };
 use crate::policy::{IdentityPolicy, TotpPolicy};
 use crate::repo;
@@ -253,11 +253,39 @@ impl<'a> LoginService<'a> {
             .decrypt_field(tx, &aad, secret_enc.expose_secret().as_slice())
             .await
             .map_err(crypto_error)?;
-        if !totp_verify(&secret, code, now)? {
-            audit_login_failure(tx, request, Some(person)).await?;
-            return Err(invalid_credentials());
+        if totp_verify(&secret, code, now)? {
+            return Ok(());
         }
-        Ok(())
+
+        if code.len() == RECOVERY_CODE_LENGTH {
+            let hashes = repo::unused_totp_recovery_hashes(tx, request.tenant, person).await?;
+            if !hashes.is_empty() {
+                let code = SecretString::from(code.to_owned());
+                let matching_hash = tokio::task::spawn_blocking(move || {
+                    let mut matching_hash = None;
+                    for hash in hashes {
+                        if verify_recovery_code(&code, &hash)? {
+                            matching_hash = Some(hash);
+                        }
+                    }
+                    Ok::<_, PasswordError>(matching_hash)
+                })
+                .await
+                .map_err(|_| AppError::Internal(anyhow::anyhow!("TOTP recovery verification task failed")))?
+                .map_err(|error| {
+                    AppError::Internal(anyhow::anyhow!("TOTP recovery verification failed: {error}"))
+                })?;
+
+                if let Some(hash) = matching_hash
+                    && repo::consume_totp_recovery_hash(tx, request.tenant, person, &hash, now).await?
+                {
+                    return Ok(());
+                }
+            }
+        }
+
+        audit_login_failure(tx, request, Some(person)).await?;
+        Err(invalid_credentials())
     }
 
     async fn create_login_session(

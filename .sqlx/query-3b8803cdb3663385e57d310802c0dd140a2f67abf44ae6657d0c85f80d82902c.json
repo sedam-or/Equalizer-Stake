@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT code_hash FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2 AND used_at IS NULL ORDER BY code_hash FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "code_hash",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "totp_recovery_codes",
+            "name": "code_hash"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3b8803cdb3663385e57d310802c0dd140a2f67abf44ae6657d0c85f80d82902c"
+}
