@@ -885,3 +885,31 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** `spec/modules/identity.md` §2 explicitly defines `POST /auth/refresh` as returning the login response; no new public contract is needed.
 - **Changed:** T-110b Interfaces and `crates/eq-identity/src/api_auth.rs`.
 - **Ratify:** Yes.
+
+### TD-134 — Split the T-111 identity workflows
+
+- **Question:** T-111 combines invite issuance/acceptance, password reset, profile/session management and TOTP/recovery login in one task, exceeding CQ-101's approximate 400 changed-line review limit.
+- **Options:** (a) keep all six security workflows in one task; (b) split them into ordered implementation parts and retain T-111 as an aggregate.
+- **Decision:** Split implementation into T-110c through T-110h, chained by dependencies; T-111 depends on all parts and becomes an aggregate verification/report after they are review.
+- **Why:** CQ-101 and the task's exact acceptance names require smaller independently reviewable changes; the split preserves all listed behavior and tests.
+- **Changed:** T-111, T-110c through T-110h, and generated tasks/INDEX.md.
+- **Ratify:** Yes.
+
+### TD-135 — Carry invite token to the Notify consumer
+
+- **Question:** identity.user_invited.v1 lists person_id, role and invite_id, while FLW-12 requires Notify to build an invite URL and the database stores only token_hash.
+- **Options:** (a) add the raw token as a secret field in the existing server-side outbox payload; (b) keep the declared payload unchanged, leaving Notify unable to create a usable invite link.
+- **Decision:** Add token to the existing identity.user_invited.v1 payload, keep it confined to the server-side outbox and never log or expose it.
+- **Why:** FLW-12 requires an invite URL containing the token, and a SHA-256 hash cannot recover the raw token. The password-reset flow already keeps its raw token in the server-side outbox for Notify. The event name and database schema remain unchanged.
+- **Changed:** T-111 and T-110c task contract; T-110c will implement the Identity invite event.
+- **Status:** Not implemented. This decision conflicts with CAN-60 and FLW-60; T-110c is blocked on Q1 until a compliant handoff is specified.
+- **Ratify:** Yes.
+
+### TD-136 — Keep split task ids before the aggregate
+
+- **Question:** T-111a through T-111f sort after T-111, so a dependency from T-111 to those parts fails the task index's topological-order guard.
+- **Options:** (a) keep the later child ids and weaken the task index ordering rule; (b) use the next unused suffixes after T-110b, which sort before T-111.
+- **Decision:** Rename the six parts to T-110c through T-110h and keep T-111 as their aggregate.
+- **Why:** tasks/README.md requires inserted tasks to use the lower neighbor's id plus a suffix; scripts/tasks-index.sh enforces that dependencies sort before dependants.
+- **Changed:** T-111, T-110c through T-110h, this register and generated tasks/INDEX.md.
+- **Ratify:** Yes.

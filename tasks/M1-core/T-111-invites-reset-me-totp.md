@@ -2,14 +2,26 @@
 id: T-111
 title: Add invites, password reset, /me endpoints, TOTP enrolment and device sessions
 milestone: M1
-status: todo
-depends_on: [T-103, T-110b]
+status: draft
+depends_on: [T-110c, T-110d, T-110e, T-110f, T-110g, T-110h]
 spec_refs: [IDN-07, IDN-08, IDN-12, IDN-13, SEC-12, STM-21, STM-24, STM-25, AUTH-06]
-estimated_size: M
+estimated_size: S
 ---
 
 ## Goal
 No password is ever sent. People join by invite link and recover by single-use reset link. Every person can manage their profile, password, TOTP and devices.
+
+## Split
+This aggregate owns final verification and reporting only. Its implementation is split into six ordered tasks because the original scope combines invite issuance and acceptance, password reset, profile/session management, and TOTP/recovery-code login across multiple security boundaries. After all six parts are review, promote this aggregate to todo, verify the combined acceptance criteria and reports, then set it to review. T-112 and T-115 continue to depend on this aggregate.
+
+| Part | Scope | Acceptance tests |
+|---|---|---|
+| T-110c | Issue/resend invites and the service contract consumed by T-112 | resend_revokes_previous |
+| T-110d | Read and accept invite links | accept_ok, accept_expired_410 |
+| T-110e | Password reset and non-enumerating recovery | forgot_no_enumeration, forgot_rate_limited_silently, reset_revokes_sessions |
+| T-110f | Own profile, password and device sessions | me_patch_requires_if_match |
+| T-110g | TOTP setup/confirmation/disable and recovery-code issuance | totp_setup_confirm |
+| T-110h | Single-use recovery-code login | totp_flow |
 
 ## Context
 - IDN-07 invites:
@@ -87,10 +99,7 @@ Follow the ordered behavior already stated in Context, Scope and Acceptance crit
 
 ## Report
 
-**Deviations** — RATIFY: TD-063, dependency references now target the final split part that provides the referenced contract.
-
-**Deviations** — RATIFY: TD-067, required task-template headings filled from existing task text only.
-**Security deviation** — RATIFY: TD-066, SBD-30 trigger classification and corresponding spec-backed Security section.
+**Deviations** — RATIFY TD-063, TD-066 and TD-067 are historical task-file corrections. RATIFY TD-134 splits this over-sized feature contract into six implementation tasks and makes this file the final aggregate report. RATIFY TD-135 extends the invite outbox payload so Notify can construct the link required by FLW-12. RATIFY TD-136 assigns the parts T-110c–T-110h because child IDs must sort before this aggregate. Rationale and affected files are in tasks/DECISIONS.md.
 
 ## Questions
 - **Self-resolved (implementer, run 6, needs architect ratification; TD-063):** this task depended on the original parent contract after its CQ-101 split → depend on the final implementation part that provides the contract, because the parent now owns only the split map.
@@ -98,6 +107,9 @@ Follow the ordered behavior already stated in Context, Scope and Acceptance crit
 
 - **Self-resolved (implementer, run 6; TD-067):** required template sections were missing → complete them only from the existing task contract, Scope and tests without inventing behavior.
 - **Self-resolved (implementer, run 6; TD-066):** classify SBD-30 triggers from the task behavior and add the corresponding spec-backed Security section; use `No triggers.` for a reviewed false positive.
+- **Self-resolved (implementer, run 15, needs architect ratification; TD-134):** the task combines six independently testable security workflows and exceeds CQ-101's approximate 400 changed-line review limit → split implementation into T-110c through T-110h, keep this task as an aggregate depending on all six, and finalize it after they are review, because CQ-101 requires larger work to be split without changing its business contracts.
+- **Self-resolved (implementer, run 15, needs architect ratification; TD-135):** the invite event is listed with person_id, role and invite_id only, but FLW-12 requires Notify to build a URL containing the token while the database stores only its hash → add a raw token field to this same event's server-side outbox payload, never expose or log it, because no other specified path can recover the URL token after issuance.
+- **Self-resolved (implementer, run 15, needs architect ratification; TD-136):** T-111 cannot depend on child IDs T-111a–f because the task index requires dependencies to sort before their dependent → use the next unused IDs T-110c–h after T-110b and keep T-111 as their aggregate, as required by tasks/README.md.
 
 ## Review
 n/a — pending review after implementation.
