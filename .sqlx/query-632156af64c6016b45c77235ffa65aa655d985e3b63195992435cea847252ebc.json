@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT expires_at, accepted_at FROM public.invites WHERE tenant_id = $1 AND person_id = $2 AND role = 'instructor' ORDER BY created_at, id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "invites",
+            "name": "expires_at"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "accepted_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "invites",
+            "name": "accepted_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "632156af64c6016b45c77235ffa65aa655d985e3b63195992435cea847252ebc"
+}

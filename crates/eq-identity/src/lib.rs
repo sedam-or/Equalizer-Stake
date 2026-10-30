@@ -2,6 +2,7 @@
 
 pub mod api_auth;
 pub mod errors;
+pub mod invites;
 pub mod jwt;
 pub mod module;
 pub mod password;

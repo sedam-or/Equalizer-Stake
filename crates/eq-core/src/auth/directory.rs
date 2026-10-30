@@ -71,6 +71,15 @@ pub trait CoreIdentityDirectory: Send + Sync {
         role: Role,
     ) -> Result<bool, AppError>;
 
+    /// STM-20/CA-30: inserts the invited membership through Core ownership without changing an existing state.
+    async fn ensure_invited_membership(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<(), AppError>;
+
     /// ERD-02/SBD-10: reads the caller's core-owned profile and decrypts PII only when authorized.
     async fn login_profile(
         &self,
@@ -190,6 +199,31 @@ impl CoreIdentityDirectory for PgIdentityDirectory {
         .fetch_one(tx.conn())
         .await?;
         Ok(row.is_active)
+    }
+
+    async fn ensure_invited_membership(
+        &self,
+        tx: &mut Tx,
+        tenant: crate::ids::TenantId,
+        person: PersonId,
+        role: Role,
+    ) -> Result<(), AppError> {
+        if tx.tenant() != tenant {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "identity tenant does not match transaction context"
+            )));
+        }
+        sqlx::query!(
+            "INSERT INTO public.memberships (tenant_id, person_id, role, status) \
+             VALUES ($1, $2, $3, 'invited') \
+             ON CONFLICT (tenant_id, person_id, role) DO NOTHING",
+            tenant.0,
+            person.0,
+            role as Role
+        )
+        .execute(tx.conn())
+        .await?;
+        Ok(())
     }
 
     async fn login_profile(

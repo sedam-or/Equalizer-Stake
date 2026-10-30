@@ -414,3 +414,73 @@ fn role_name(role: Role) -> &'static str {
         Role::Student => "student",
     }
 }
+
+/// STM-21: serializes invite issuance for the same tenant/person/role before revoking prior tokens.
+pub(crate) async fn lock_invite_series(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    role: Role,
+) -> Result<(), AppError> {
+    let key = format!("{}:{}:{}", tenant.0, person.0, role_name(role));
+    sqlx::query!(
+        "SELECT pg_advisory_xact_lock(hashtextextended($1, 0)) IS NULL AS \"locked!\"",
+        key
+    )
+    .fetch_one(tx.conn())
+    .await?;
+    Ok(())
+}
+
+/// STM-21: expires earlier pending invites for one tenant/person/role.
+pub(crate) async fn expire_pending_invites(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    role: Role,
+    now: DateTime<Utc>,
+) -> Result<(), AppError> {
+    sqlx::query!(
+        "UPDATE public.invites SET expires_at = $4 \
+         WHERE tenant_id = $1 AND person_id = $2 AND role = $3 \
+           AND accepted_at IS NULL AND expires_at > $4",
+        tenant.0,
+        person.0,
+        role_name(role),
+        now
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(())
+}
+
+/// IDN-07/ERD-04: stores the invite ID, SHA-256 token digest, and policy-derived expiry.
+#[expect(
+    clippy::too_many_arguments,
+    reason = "this repository insert binds each column in the invite DDL explicitly"
+)]
+pub(crate) async fn insert_invite(
+    tx: &mut Tx,
+    id: Uuid,
+    tenant: TenantId,
+    person: PersonId,
+    role: Role,
+    token_hash: &[u8],
+    expires_at: DateTime<Utc>,
+    created_by: Option<PersonId>,
+) -> Result<(), AppError> {
+    sqlx::query!(
+        "INSERT INTO public.invites (id, tenant_id, person_id, role, token_hash, expires_at, created_by) \
+         VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        id,
+        tenant.0,
+        person.0,
+        role_name(role),
+        token_hash,
+        expires_at,
+        created_by.map(|person| person.0)
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(())
+}

@@ -98,7 +98,7 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-129 | T-110a | `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md` | The original DoD requires a `feat(identity)` commit while the post-split Scope owns aggregate verification only → use a signed `docs(identity): report login aggregate [T-110a]` commit because the task changes only its report, decision register and generated index. |
 | TD-130 | T-110a | `tasks/M1-core/T-110a-identity-schema,-login-and-credential-validation.md` | The Report says the disk rule prohibits all caches and databases, but the current policy permits reuse of the fixed Cargo target and existing PostgreSQL container → use those fixed resources and one disposable `ritma_test_T-110a` database, dropping the database after checks. |
 
-**Total mapped self-resolutions:** 92.
+**Total mapped self-resolutions:** 93.
 
 ## Detailed entries added in run 6
 
@@ -902,7 +902,7 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Add token to the existing identity.user_invited.v1 payload, keep it confined to the server-side outbox and never log or expose it.
 - **Why:** FLW-12 requires an invite URL containing the token, and a SHA-256 hash cannot recover the raw token. The password-reset flow already keeps its raw token in the server-side outbox for Notify. The event name and database schema remain unchanged.
 - **Changed:** T-111 and T-110c task contract; T-110c will implement the Identity invite event.
-- **Status:** Not implemented. This decision conflicts with CAN-60 and FLW-60; T-110c is blocked on Q1 until a compliant handoff is specified.
+- **Status:** Not implemented; superseded for T-110c by TD-137. Email/WhatsApp delivery remains outside T-110c pending a spec-compliant Notify handoff.
 - **Ratify:** Yes.
 
 ### TD-136 — Keep split task ids before the aggregate
@@ -912,4 +912,13 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Decision:** Rename the six parts to T-110c through T-110h and keep T-111 as their aggregate.
 - **Why:** tasks/README.md requires inserted tasks to use the lower neighbor's id plus a suffix; scripts/tasks-index.sh enforces that dependencies sort before dependants.
 - **Changed:** T-111, T-110c through T-110h, this register and generated tasks/INDEX.md.
+- **Ratify:** Yes.
+
+### TD-137 — Keep invite tokens out of the event payload
+
+- **Question:** TD-135 adds a raw S3 invite token to `identity.user_invited.v1`, but the normative event contract and security lineage prohibit S2/S3 values in events, while T-110c excludes notification delivery.
+- **Options:** (a) include the token in the server-side event as TD-135 proposed; (b) add a durable protected token handoff or schema field; (c) keep the spec-defined IDs-only payload, return the URL only for link channel, and leave email/WhatsApp delivery to M5 Notify.
+- **Decision:** Use option (c). `identity.user_invited.v1` carries only `{person_id, role, invite_id}`. T-110c returns the URL only for `link`; it does not persist or emit the S3 token for email/WhatsApp delivery.
+- **Why:** CAN-60 says payloads contain minimal IDs/facts and no S2/S3 values; FLW-60 explicitly excludes invite tokens from events; `spec/03-module-system.md` §6 declares the exact payload; T-110c places email/WhatsApp sending out of scope. This chooses the stricter spec-compliant behavior without adding a schema object or weakening a security control.
+- **Changed:** `tasks/M1-core/T-110c-invite-issue.md`, this register, and the invite event implementation.
 - **Ratify:** Yes.
