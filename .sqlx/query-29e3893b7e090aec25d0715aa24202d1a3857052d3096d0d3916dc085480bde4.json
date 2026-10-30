@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "29e3893b7e090aec25d0715aa24202d1a3857052d3096d0d3916dc085480bde4"
+}

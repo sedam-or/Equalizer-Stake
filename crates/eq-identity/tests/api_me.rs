@@ -4,10 +4,12 @@ use std::sync::Arc;
 use anyhow::{Context, Result, ensure};
 use async_trait::async_trait;
 use axum::http::StatusCode;
+use eq_core::actor::ActorCtx;
 use eq_core::app_state::AppState;
 use eq_core::clock::Clock;
 use eq_core::config::Config;
 use eq_core::crypto::{Keys, bidx_phone_e164};
+use eq_core::db::begin;
 use eq_core::error::AppError;
 use eq_core::fields::{FieldCtx, FieldKind, Password, PasswordInput};
 use eq_core::ids::{PersonId, TenantId};
@@ -29,6 +31,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{PgPool, Row};
+use totp_rs::{Algorithm, Builder, Secret};
 use uuid::Uuid;
 
 const CURRENT_PASSWORD: &str = "test-secret-current-password";
@@ -36,6 +39,7 @@ const NEW_PASSWORD: &str = "test-secret-new-password-strong";
 const PHONE: &str = "+6281234567890";
 
 struct Fixture {
+    app_pool: PgPool,
     owner_pool: PgPool,
     client: Client,
     address: std::net::SocketAddr,
@@ -107,6 +111,7 @@ impl Fixture {
             Arc::new(IdentityModule) as Arc<dyn Module>,
         ]));
         let enabled: Arc<dyn EnabledModuleSet> = Arc::new(AlwaysEnabled);
+        let fixture_app_pool = app_pool.clone();
         let runtime = Arc::new(LoginHttpState::new(
             app_pool,
             clock.clone(),
@@ -137,6 +142,7 @@ impl Fixture {
         let server = tokio::spawn(async move { axum::serve(listener, router).await });
 
         Ok(Self {
+            app_pool: fixture_app_pool,
             owner_pool,
             client: Client::new(),
             address,
@@ -156,6 +162,10 @@ impl Fixture {
     }
 
     fn access_token(&self, person: PersonId, session: Uuid) -> Result<AccessToken> {
+        self.access_token_as(person, session, Role::Guardian)
+    }
+
+    fn access_token_as(&self, person: PersonId, session: Uuid, role: Role) -> Result<AccessToken> {
         let password_version = if person == self.guardian {
             self.clock.now().timestamp()
         } else {
@@ -164,7 +174,7 @@ impl Fixture {
         Ok(issue_access_token(
             &Keys::derive(self.config.secret_key.expose_secret(), None),
             self.clock.as_ref(),
-            AccessTokenSubject::new(person, self.tenant, Role::Guardian, session, password_version),
+            AccessTokenSubject::new(person, self.tenant, role, session, password_version),
         )?)
     }
 
@@ -267,6 +277,82 @@ async fn verify_app_pool(pool: &PgPool) -> Result<()> {
     ensure!(role.try_get::<String, _>("username")? == "eq_app");
     ensure!(!role.try_get::<bool, _>("rolsuper")? && !role.try_get::<bool, _>("rolbypassrls")?);
     Ok(())
+}
+
+fn current_totp_code(secret_base32: &str, now: chrono::DateTime<chrono::Utc>) -> Result<String> {
+    let secret = Secret::try_from_base32(secret_base32)
+        .map_err(|_| anyhow::anyhow!("generated enrollment seed is valid Base32"))?;
+    let totp = Builder::new()
+        .with_algorithm(Algorithm::SHA1)
+        .with_digits(6)
+        .with_skew(1)
+        .with_step_duration(30)
+        .with_secret(secret.as_bytes())
+        .build()
+        .map_err(|_| anyhow::anyhow!("test TOTP parameters are valid"))?;
+    let timestamp =
+        u64::try_from(now.timestamp()).map_err(|_| anyhow::anyhow!("test clock is after the Unix epoch"))?;
+    Ok(totp.generate(timestamp).to_string())
+}
+
+fn different_totp_code(code: &str) -> String {
+    if code == "000000" {
+        String::from("000001")
+    } else {
+        String::from("000000")
+    }
+}
+
+async fn set_identity_totp_policy(pool: &PgPool, tenant: TenantId, value: &str) -> Result<()> {
+    let mut document = serde_json::to_value(IdentityPolicy::default())?;
+    document["totp"] = json!(value);
+    sqlx::query(
+        "UPDATE public.policies SET document = $2 WHERE tenant_id = $1 AND module_id = 'identity' AND version = 1",
+    )
+    .bind(tenant.0)
+    .bind(document)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+async fn request_totp_setup(fixture: &Fixture, token: &AccessToken) -> Result<(Value, String)> {
+    let (status, headers, body) = fixture
+        .json_request(reqwest::Method::POST, "/api/v1/me/totp/setup", token, None, None)
+        .await?;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(
+        headers
+            .get(reqwest::header::CACHE_CONTROL)
+            .and_then(|value| value.to_str().ok()),
+        Some("no-store")
+    );
+    let secret = body["secret_base32"]
+        .as_str()
+        .context("setup response contains the one-time Base32 seed")?
+        .to_owned();
+    ensure!(body["otpauth_url"].as_str().is_some());
+    let qr_svg = body["qr_svg"]
+        .as_str()
+        .context("setup response contains an SVG QR")?;
+    ensure!(qr_svg.starts_with("<svg ") && qr_svg.contains("data:image/png;base64,"));
+    Ok((body, secret))
+}
+
+async fn confirm_totp(
+    fixture: &Fixture,
+    token: &AccessToken,
+    code: &str,
+) -> Result<(StatusCode, reqwest::header::HeaderMap, Value)> {
+    fixture
+        .json_request(
+            reqwest::Method::POST,
+            "/api/v1/me/totp/confirm",
+            token,
+            Some(json!({"code": code})),
+            None,
+        )
+        .await
 }
 
 #[expect(
@@ -739,5 +825,331 @@ async fn me_password_and_sessions() -> Result<()> {
         password_audit.try_get::<Option<Uuid>, _>("actor_id")?,
         Some(fixture.guardian.0)
     );
+    Ok(())
+}
+
+#[tokio::test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "the acceptance flow verifies pending-seed replacement, validation, enrollment, one-time codes and RLS"
+)]
+async fn totp_setup_confirm() -> Result<()> {
+    let fixture = Fixture::new().await?;
+    verify_app_pool(&fixture.app_pool).await?;
+    let token = fixture.access_token(fixture.guardian, fixture.current_session)?;
+
+    let (first_setup, first_seed) = request_totp_setup(&fixture, &token).await?;
+    let (second_setup, seed) = request_totp_setup(&fixture, &token).await?;
+    ensure!(first_seed != seed, "repeated setup replaces the pending seed");
+    let setup_audits = sqlx::query(
+        "SELECT \"before\"::text AS before_json, \"after\"::text AS after_json FROM audit.entries \
+         WHERE tenant_id = $1 AND entity_id = $2 AND action = 'security.totp.setup_started'",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.guardian.0)
+    .fetch_all(&fixture.owner_pool)
+    .await?;
+    assert_eq!(setup_audits.len(), 2);
+    for audit in setup_audits {
+        let before: String = audit.try_get("before_json")?;
+        let after: String = audit.try_get("after_json")?;
+        for secret in [
+            first_seed.as_str(),
+            seed.as_str(),
+            first_setup["otpauth_url"].as_str().unwrap_or_default(),
+            second_setup["otpauth_url"].as_str().unwrap_or_default(),
+        ] {
+            ensure!(!before.contains(secret) && !after.contains(secret));
+        }
+    }
+
+    let (malformed_status, _, malformed_body) = confirm_totp(&fixture, &token, "12345").await?;
+    assert_eq!(
+        malformed_status,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "{malformed_body}"
+    );
+    assert_eq!(malformed_body["code"], "validation");
+    assert_eq!(malformed_body["errors"][0]["pointer"], "/code");
+
+    let current_code = current_totp_code(&seed, fixture.clock.now())?;
+    let wrong_code = different_totp_code(&current_code);
+    let (wrong_status, _, wrong_body) = confirm_totp(&fixture, &token, &wrong_code).await?;
+    assert_eq!(wrong_status, StatusCode::UNPROCESSABLE_ENTITY, "{wrong_body}");
+    assert_eq!(wrong_body["code"], "validation");
+    assert_eq!(wrong_body["errors"][0]["pointer"], "/code");
+
+    let pending = sqlx::query(
+        "SELECT totp_secret_enc, totp_enabled FROM public.credentials WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.guardian.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    let encrypted_seed: Option<Vec<u8>> = pending.try_get("totp_secret_enc")?;
+    let seed_bytes =
+        Secret::try_from_base32(&seed).map_err(|_| anyhow::anyhow!("the generated Base32 seed parses"))?;
+    ensure!(encrypted_seed.is_some());
+    ensure!(encrypted_seed.as_deref() != Some(seed_bytes.as_bytes()));
+    assert!(!pending.try_get::<bool, _>("totp_enabled")?);
+
+    let (confirmed_status, confirmed_headers, confirmed_body) =
+        confirm_totp(&fixture, &token, &current_code).await?;
+    assert_eq!(confirmed_status, StatusCode::OK, "{confirmed_body}");
+    assert_eq!(
+        confirmed_headers
+            .get(reqwest::header::CACHE_CONTROL)
+            .and_then(|value| value.to_str().ok()),
+        Some("no-store")
+    );
+    let recovery_codes = confirmed_body["recovery_codes"]
+        .as_array()
+        .context("confirmation returns recovery codes once")?;
+    assert_eq!(recovery_codes.len(), 10);
+    let recovery_codes = recovery_codes
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .context("each recovery code is a string")
+                .map(ToOwned::to_owned)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    ensure!(recovery_codes.iter().all(|code| code.len() == 10));
+
+    let stored_rows = sqlx::query(
+        "SELECT code_hash, used_at FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.guardian.0)
+    .fetch_all(&fixture.owner_pool)
+    .await?;
+    assert_eq!(stored_rows.len(), 10);
+    let stored_hashes = stored_rows
+        .iter()
+        .map(|row| {
+            let hash: String = row.try_get("code_hash")?;
+            let used_at: Option<chrono::DateTime<chrono::Utc>> = row.try_get("used_at")?;
+            assert!(hash.starts_with("$argon2id$"));
+            assert!(used_at.is_none());
+            assert!(!recovery_codes.contains(&hash));
+            Ok::<_, sqlx::Error>(hash)
+        })
+        .collect::<std::result::Result<Vec<_>, _>>()?;
+
+    let other_tenant = TenantId(Uuid::now_v7());
+    let other_person = PersonId(Uuid::now_v7());
+    sqlx::query(
+        "INSERT INTO public.tenants (id, slug, name, country, preset_id, preset_version) \
+         VALUES ($1, $2, 'T-110g RLS fixture', 'ID', 'test', 1)",
+    )
+    .bind(other_tenant.0)
+    .bind(format!("other-{}", other_tenant.0.simple()))
+    .execute(&fixture.owner_pool)
+    .await?;
+    insert_person(&fixture.owner_pool, other_tenant, other_person, "Other Person").await?;
+    let field_ctx = FieldCtx {
+        country: None,
+        tenant_currency: Currency::USD,
+        tenant_locale: Locale::En,
+        today: fixture.clock.now().date_naive(),
+        password_min_length: None,
+    };
+    let foreign_password_input =
+        serde_json::from_value::<PasswordInput>(json!("test-secret-cross-tenant-code"))?;
+    let foreign_password = Password::parse(foreign_password_input, &field_ctx)
+        .map_err(|_| anyhow::anyhow!("fake cross-tenant code hashes as a valid Argon2 secret"))?;
+    let foreign_hash = hash_password(&foreign_password)?;
+    sqlx::query(
+        "INSERT INTO public.totp_recovery_codes (tenant_id, person_id, code_hash) VALUES ($1, $2, $3)",
+    )
+    .bind(other_tenant.0)
+    .bind(other_person.0)
+    .bind(foreign_hash.expose_secret())
+    .execute(&fixture.owner_pool)
+    .await?;
+
+    let mut tx = begin(
+        &fixture.app_pool,
+        fixture.tenant,
+        &ActorCtx::anonymous(None, None),
+    )
+    .await?;
+    let own_rows = sqlx::query(
+        "SELECT code_hash FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.guardian.0)
+    .fetch_all(tx.conn())
+    .await?;
+    assert_eq!(own_rows.len(), 10);
+    let foreign_rows = sqlx::query(
+        "SELECT code_hash FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(other_tenant.0)
+    .bind(other_person.0)
+    .fetch_all(tx.conn())
+    .await?;
+    assert!(foreign_rows.is_empty());
+    tx.commit().await?;
+
+    let stored_totp =
+        sqlx::query("SELECT totp_enabled FROM public.credentials WHERE tenant_id = $1 AND person_id = $2")
+            .bind(fixture.tenant.0)
+            .bind(fixture.guardian.0)
+            .fetch_one(&fixture.owner_pool)
+            .await?;
+    assert!(stored_totp.try_get::<bool, _>("totp_enabled")?);
+
+    let (again_status, _, again_body) = confirm_totp(&fixture, &token, &current_code).await?;
+    assert_eq!(again_status, StatusCode::CONFLICT, "{again_body}");
+    assert_eq!(again_body["code"], "invalid_transition");
+
+    let audit = sqlx::query(
+        "SELECT action FROM audit.entries WHERE tenant_id = $1 AND entity_id = $2 AND action = 'security.totp.enabled'",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.guardian.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit.try_get::<String, _>("action")?, "security.totp.enabled");
+    ensure!(!stored_hashes.is_empty());
+    Ok(())
+}
+
+#[tokio::test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "the acceptance flow proves password, code and owner-policy guards plus the transactional disable effects"
+)]
+async fn totp_disable_requires_code() -> Result<()> {
+    let fixture = Fixture::new().await?;
+    verify_app_pool(&fixture.app_pool).await?;
+    set_identity_totp_policy(&fixture.owner_pool, fixture.tenant, "required_for_owner_admin").await?;
+    let guardian_token = fixture.access_token(fixture.guardian, fixture.current_session)?;
+    let (_, seed) = request_totp_setup(&fixture, &guardian_token).await?;
+    let current_code = current_totp_code(&seed, fixture.clock.now())?;
+    let (confirmed_status, _, confirmed_body) =
+        confirm_totp(&fixture, &guardian_token, &current_code).await?;
+    assert_eq!(confirmed_status, StatusCode::OK, "{confirmed_body}");
+    assert_eq!(
+        confirmed_body["recovery_codes"].as_array().map(Vec::len),
+        Some(10)
+    );
+
+    insert_membership(&fixture.owner_pool, fixture.tenant, fixture.guardian, "owner").await?;
+    sqlx::query("UPDATE public.refresh_sessions SET active_role = 'owner' WHERE tenant_id = $1 AND id = $2")
+        .bind(fixture.tenant.0)
+        .bind(fixture.current_session)
+        .execute(&fixture.owner_pool)
+        .await?;
+    let owner_token = fixture.access_token_as(fixture.guardian, fixture.current_session, Role::Owner)?;
+    let (policy_status, _, policy_body) = fixture
+        .json_request(
+            reqwest::Method::DELETE,
+            "/api/v1/me/totp",
+            &owner_token,
+            Some(json!({"current_password": CURRENT_PASSWORD, "code": current_code})),
+            None,
+        )
+        .await?;
+    assert_eq!(policy_status, StatusCode::UNPROCESSABLE_ENTITY, "{policy_body}");
+    assert_eq!(policy_body["code"], "policy_violation");
+    ensure!(policy_body.to_string().contains("identity.totp"));
+
+    sqlx::query(
+        "UPDATE public.refresh_sessions SET active_role = 'guardian' WHERE tenant_id = $1 AND id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.current_session)
+    .execute(&fixture.owner_pool)
+    .await?;
+    let wrong_password = fixture
+        .json_request(
+            reqwest::Method::DELETE,
+            "/api/v1/me/totp",
+            &guardian_token,
+            Some(json!({"current_password": "test-secret-wrong-password", "code": current_code})),
+            None,
+        )
+        .await?;
+    assert_eq!(wrong_password.0, StatusCode::UNAUTHORIZED, "{}", wrong_password.2);
+    assert_eq!(wrong_password.2["code"], "invalid_credentials");
+
+    let wrong_code = different_totp_code(&current_code);
+    let wrong_totp = fixture
+        .json_request(
+            reqwest::Method::DELETE,
+            "/api/v1/me/totp",
+            &guardian_token,
+            Some(json!({"current_password": CURRENT_PASSWORD, "code": wrong_code})),
+            None,
+        )
+        .await?;
+    assert_eq!(wrong_totp.0, StatusCode::UNAUTHORIZED, "{}", wrong_totp.2);
+    assert_eq!(wrong_totp.2["code"], "invalid_credentials");
+
+    let (disabled_status, disabled_headers, disabled_body) = fixture
+        .json_request(
+            reqwest::Method::DELETE,
+            "/api/v1/me/totp",
+            &guardian_token,
+            Some(json!({"current_password": CURRENT_PASSWORD, "code": current_code})),
+            None,
+        )
+        .await?;
+    assert_eq!(disabled_status, StatusCode::NO_CONTENT, "{disabled_body}");
+    assert_eq!(
+        disabled_headers
+            .get(reqwest::header::CACHE_CONTROL)
+            .and_then(|value| value.to_str().ok()),
+        Some("no-store")
+    );
+
+    let credentials = sqlx::query(
+        "SELECT totp_secret_enc, totp_enabled FROM public.credentials WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.guardian.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert!(
+        credentials
+            .try_get::<Option<Vec<u8>>, _>("totp_secret_enc")?
+            .is_none()
+    );
+    assert!(!credentials.try_get::<bool, _>("totp_enabled")?);
+    let recovery_count = sqlx::query(
+        "SELECT COUNT(*) AS count FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.guardian.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?
+    .try_get::<i64, _>("count")?;
+    assert_eq!(recovery_count, 0);
+    assert_eq!(fixture.session_state(fixture.current_session).await?, Some(None));
+    assert!(
+        fixture
+            .session_state(fixture.revoke_session)
+            .await?
+            .flatten()
+            .is_some()
+    );
+    assert!(
+        fixture
+            .session_state(fixture.revoke_successor)
+            .await?
+            .flatten()
+            .is_some()
+    );
+    let audit = sqlx::query(
+        "SELECT action FROM audit.entries WHERE tenant_id = $1 AND entity_id = $2 AND action = 'security.totp.disabled'",
+    )
+    .bind(fixture.tenant.0)
+    .bind(fixture.guardian.0)
+    .fetch_one(&fixture.owner_pool)
+    .await?;
+    assert_eq!(audit.try_get::<String, _>("action")?, "security.totp.disabled");
     Ok(())
 }

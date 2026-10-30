@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE public.credentials SET totp_secret_enc = NULL, totp_enabled = false WHERE tenant_id = $1 AND person_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "aade5d22a670ceda4e6ea98eba5c2285f8e26884522dc79e9918b9296f3107b5"
+}

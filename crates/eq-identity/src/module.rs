@@ -156,6 +156,9 @@ impl Module for IdentityModule {
             .routes(utoipa_axum::routes!(crate::api_me::get_me))
             .routes(utoipa_axum::routes!(crate::api_me::patch_me))
             .routes(utoipa_axum::routes!(crate::api_me::change_password))
+            .routes(utoipa_axum::routes!(crate::api_me::setup_totp))
+            .routes(utoipa_axum::routes!(crate::api_me::confirm_totp))
+            .routes(utoipa_axum::routes!(crate::api_me::disable_totp))
             .routes(utoipa_axum::routes!(crate::api_me::list_sessions))
             .routes(utoipa_axum::routes!(crate::api_me::revoke_session))
     }

@@ -41,7 +41,7 @@ clap = { version = "4", features = ["derive", "env"] }
 jsonwebtoken = "9"
 argon2 = "0.5"
 password-hash = "0.5"
-totp-rs = { version = "6", default-features = false, features = ["std", "zeroize"] }
+totp-rs = { version = "6", default-features = false, features = ["std", "zeroize", "qr"] }
 aes-gcm = "0.10"
 chacha20poly1305 = { version = "0.10", features = ["stream"] }
 hkdf = "0.12"

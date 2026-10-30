@@ -123,6 +123,11 @@ pub fn hash_password(password: &Password) -> Result<PasswordHash, PasswordError>
     hash_password_bytes(password.expose_secret().as_bytes())
 }
 
+/// IDN-12/SBD-50: hashes one recovery code with the existing Argon2id credential parameters.
+pub(crate) fn hash_recovery_code(code: &SecretString) -> Result<PasswordHash, PasswordError> {
+    hash_password_bytes(code.expose_secret().as_bytes())
+}
+
 fn hash_password_bytes(password: &[u8]) -> Result<PasswordHash, PasswordError> {
     let salt = SaltString::generate(&mut OsRng);
     let encoded = configured_argon2()?

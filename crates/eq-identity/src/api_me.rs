@@ -15,21 +15,29 @@ use eq_core::app_state::AppState;
 use eq_core::auth::Actor;
 use eq_core::db::{Tx, begin};
 use eq_core::error::{AppError, FieldError, codes};
-use eq_core::fields::{DisplayName, FieldCtx, FieldIssue, FieldKind, Phone};
+use eq_core::fields::{
+    Collector, DisplayName, FieldCtx, FieldIssue, FieldKind, Password, PasswordInput, Phone, Raw,
+};
 use eq_core::ids::PersonId;
 use eq_core::model::Role;
 use eq_core::policy::types::Locale;
 use eq_core::tenant::{RequireTenant, TenantInfo};
-use secrecy::ExposeSecret;
+use secrecy::{ExposeSecret, SecretString};
 use serde::de::DeserializeOwned;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::ser::SerializeStruct;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Map;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::api_auth::{LinkedStudent, LoginHttpState};
+use crate::policy::IdentityPolicy;
 use crate::repo;
-use crate::service::PasswordChangeService;
+use crate::service::{
+    DisableTotpRequest, PasswordChangeService, TotpCode, TotpSetupMaterial,
+    confirm_totp as confirm_totp_service, disable_totp as disable_totp_service,
+    setup_totp as setup_totp_service,
+};
 
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
@@ -161,8 +169,8 @@ where
 #[derive(Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct ChangePasswordBody {
-    current_password: eq_core::fields::PasswordInput,
-    new_password: eq_core::fields::PasswordInput,
+    current_password: PasswordInput,
+    new_password: PasswordInput,
 }
 
 impl fmt::Debug for ChangePasswordBody {
@@ -171,6 +179,117 @@ impl fmt::Debug for ChangePasswordBody {
             .debug_struct("ChangePasswordBody")
             .field("current_password", &"[REDACTED]")
             .field("new_password", &"[REDACTED]")
+            .finish()
+    }
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ConfirmTotpBody {
+    #[schema(min_length = 6, max_length = 6, pattern = "^[0-9]{6}$")]
+    code: String,
+}
+
+impl fmt::Debug for ConfirmTotpBody {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ConfirmTotpBody")
+            .field("code", &"[REDACTED]")
+            .finish()
+    }
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct DisableTotpBody {
+    current_password: PasswordInput,
+    #[schema(min_length = 6, max_length = 6, pattern = "^[0-9]{6}$")]
+    code: String,
+}
+
+impl fmt::Debug for DisableTotpBody {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("DisableTotpBody")
+            .field("current_password", &"[REDACTED]")
+            .field("code", &"[REDACTED]")
+            .finish()
+    }
+}
+
+/// SBD-50/FLW-60: the setup payload carries S3 material only during enrollment.
+#[derive(ToSchema)]
+pub(crate) struct TotpSetupResponse {
+    #[schema(value_type = String)]
+    otpauth_url: SecretString,
+    #[schema(value_type = String)]
+    qr_svg: SecretString,
+    #[schema(value_type = String)]
+    secret_base32: SecretString,
+}
+
+impl From<TotpSetupMaterial> for TotpSetupResponse {
+    fn from(value: TotpSetupMaterial) -> Self {
+        Self {
+            otpauth_url: value.otpauth_url,
+            qr_svg: value.qr_svg,
+            secret_base32: value.secret_base32,
+        }
+    }
+}
+
+impl Serialize for TotpSetupResponse {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut response = serializer.serialize_struct("TotpSetupResponse", 3)?;
+        response.serialize_field("otpauth_url", self.otpauth_url.expose_secret())?;
+        response.serialize_field("qr_svg", self.qr_svg.expose_secret())?;
+        response.serialize_field("secret_base32", self.secret_base32.expose_secret())?;
+        response.end()
+    }
+}
+
+impl fmt::Debug for TotpSetupResponse {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("TotpSetupResponse")
+            .field("otpauth_url", &"[REDACTED]")
+            .field("qr_svg", &"[REDACTED]")
+            .field("secret_base32", &"[REDACTED]")
+            .finish()
+    }
+}
+
+/// SBD-50/IDN-12: recovery values are serialized only in the confirmation response.
+#[derive(ToSchema)]
+pub(crate) struct RecoveryCodesResponse {
+    #[schema(value_type = Vec<String>)]
+    recovery_codes: Vec<SecretString>,
+}
+
+impl Serialize for RecoveryCodesResponse {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let codes = self
+            .recovery_codes
+            .iter()
+            .map(ExposeSecret::expose_secret)
+            .collect::<Vec<_>>();
+        let mut response = serializer.serialize_struct("RecoveryCodesResponse", 1)?;
+        response.serialize_field("recovery_codes", &codes)?;
+        response.end()
+    }
+}
+
+impl fmt::Debug for RecoveryCodesResponse {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RecoveryCodesResponse")
+            .field("recovery_codes", &"[REDACTED]")
             .finish()
     }
 }
@@ -352,6 +471,162 @@ pub(crate) async fn change_password(
         .invalidate_password_version(actor.tenant(), actor.person_id())
         .await;
     Ok(no_store(StatusCode::NO_CONTENT.into_response()))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/v1/me/totp/setup",
+    responses(
+        (status = 200, description = "One-time TOTP enrollment material", body = TotpSetupResponse),
+        (status = 401, description = "Authentication is required"),
+        (status = 422, description = "TOTP enrollment is disabled by policy")
+    ),
+    tag = "identity"
+)]
+pub(crate) async fn setup_totp(
+    State(state): State<AppState>,
+    Extension(runtime): Extension<Arc<LoginHttpState>>,
+    actor: Actor,
+) -> Result<Response, AppError> {
+    actor.require("identity.people.read")?;
+    let policies = runtime.policy_store().await?;
+    let mut tx = begin(&state.pool, actor.tenant(), actor.context()).await?;
+    let result = async {
+        let policy = policies
+            .current::<IdentityPolicy>(&mut tx, actor.tenant())
+            .await?
+            .doc;
+        setup_totp_service(
+            &mut tx,
+            actor.tenant(),
+            actor.person_id(),
+            &policy,
+            state.auth.keyring(),
+            actor.context(),
+        )
+        .await
+    }
+    .await;
+    match result {
+        Ok(material) => {
+            tx.commit().await?;
+            let response = TotpSetupResponse::from(material);
+            Ok(no_store((StatusCode::OK, Json(response)).into_response()))
+        }
+        Err(error) => {
+            tx.rollback().await?;
+            Err(error)
+        }
+    }
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/v1/me/totp/confirm",
+    request_body = ConfirmTotpBody,
+    responses(
+        (status = 200, description = "One-time recovery codes", body = RecoveryCodesResponse),
+        (status = 409, description = "TOTP enrollment is not pending"),
+        (status = 422, description = "The TOTP code is invalid")
+    ),
+    tag = "identity"
+)]
+pub(crate) async fn confirm_totp(
+    State(state): State<AppState>,
+    RequireTenant(tenant): RequireTenant,
+    actor: Actor,
+    Json(body): Json<ConfirmTotpBody>,
+) -> Result<Response, AppError> {
+    actor.require("identity.people.read")?;
+    let field_ctx = field_context(&tenant, state.clock.now());
+    let code = parse_totp_code(body.code, &field_ctx)?;
+    let mut tx = begin(&state.pool, actor.tenant(), actor.context()).await?;
+    let result = confirm_totp_service(
+        &mut tx,
+        actor.tenant(),
+        actor.person_id(),
+        &code,
+        state.auth.keyring(),
+        actor.context(),
+        state.clock.now(),
+    )
+    .await;
+    match result {
+        Ok(recovery_codes) => {
+            tx.commit().await?;
+            let response = RecoveryCodesResponse { recovery_codes };
+            Ok(no_store((StatusCode::OK, Json(response)).into_response()))
+        }
+        Err(error) => {
+            tx.rollback().await?;
+            Err(error)
+        }
+    }
+}
+
+#[utoipa::path(
+    delete,
+    path = "/api/v1/me/totp",
+    request_body = DisableTotpBody,
+    responses(
+        (status = 204, description = "TOTP and recovery codes disabled"),
+        (status = 401, description = "The current password or TOTP code is invalid"),
+        (status = 409, description = "TOTP is not enabled"),
+        (status = 422, description = "TOTP is required by policy")
+    ),
+    tag = "identity"
+)]
+pub(crate) async fn disable_totp(
+    State(state): State<AppState>,
+    Extension(runtime): Extension<Arc<LoginHttpState>>,
+    RequireTenant(tenant): RequireTenant,
+    actor: Actor,
+    Json(body): Json<DisableTotpBody>,
+) -> Result<Response, AppError> {
+    actor.require("identity.people.read")?;
+    let field_ctx = field_context(&tenant, state.clock.now());
+    let mut password_ctx = field_ctx;
+    password_ctx.password_min_length = None;
+    let current_password =
+        Password::parse(body.current_password, &password_ctx).map_err(|_| AppError::Unauthenticated {
+            code: &crate::errors::codes::INVALID_CREDENTIALS,
+        })?;
+    let code = parse_totp_code(body.code, &field_ctx)?;
+    let policies = runtime.policy_store().await?;
+    let mut tx = begin(&state.pool, actor.tenant(), actor.context()).await?;
+    let result = async {
+        let policy = policies
+            .current::<IdentityPolicy>(&mut tx, actor.tenant())
+            .await?
+            .doc;
+        disable_totp_service(
+            &mut tx,
+            DisableTotpRequest {
+                tenant: actor.tenant(),
+                person: actor.person_id(),
+                current_session: actor.session_id(),
+                role: actor.role(),
+                current_password,
+                code,
+                policy: &policy,
+                keyring: state.auth.keyring(),
+                actor: actor.context(),
+                now: state.clock.now(),
+            },
+        )
+        .await
+    }
+    .await;
+    match result {
+        Ok(()) => {
+            tx.commit().await?;
+            Ok(no_store(StatusCode::NO_CONTENT.into_response()))
+        }
+        Err(error) => {
+            tx.rollback().await?;
+            Err(error)
+        }
+    }
 }
 
 #[utoipa::path(
@@ -626,6 +901,13 @@ fn validation_error(pointer: &str, issues: Vec<FieldIssue>) -> AppError {
     AppError::Validation { errors }
 }
 
+fn parse_totp_code(raw: String, context: &FieldCtx) -> Result<TotpCode, AppError> {
+    let mut collector = Collector::new(context);
+    let code = collector.field("/code", Raw::new(raw));
+    collector.finish()?;
+    code.ok_or_else(|| AppError::Internal(anyhow::anyhow!("valid TOTP code was not collected")))
+}
+
 fn field_context(tenant: &TenantInfo, now: DateTime<Utc>) -> FieldCtx {
     FieldCtx {
         country: None,
@@ -639,18 +921,23 @@ fn field_context(tenant: &TenantInfo, now: DateTime<Utc>) -> FieldCtx {
 #[cfg(test)]
 mod tests {
     use super::{
-        ChangePasswordBody, DeviceSessionResponse, MeResponse, NonZeroI32, PatchField, ProfilePatchBody,
-        parse_if_match,
+        ChangePasswordBody, ConfirmTotpBody, DeviceSessionResponse, DisableTotpBody, MeResponse, NonZeroI32,
+        PatchField, ProfilePatchBody, RecoveryCodesResponse, TotpSetupResponse, parse_if_match,
     };
+    use crate::policy::IdentityPolicy;
+    use crate::service::{DisableTotpRequest, TotpCode, TotpSetupMaterial};
     use axum::http::HeaderMap;
     use axum::http::header::IF_MATCH;
     use chrono::{TimeZone, Utc};
+    use eq_core::actor::{ActorCtx, ActorRole};
     use eq_core::auth::directory::LoginProfileUpdate;
-    use eq_core::fields::{DisplayName, FieldCtx, FieldKind, Phone};
-    use eq_core::ids::PersonId;
+    use eq_core::crypto::{Keyring, Keys};
+    use eq_core::fields::{DisplayName, FieldCtx, FieldKind, Password, PasswordInput, Phone};
+    use eq_core::ids::{PersonId, TenantId};
     use eq_core::model::Role;
     use eq_core::money::Currency;
     use eq_core::policy::types::Locale;
+    use secrecy::SecretString;
     use uuid::Uuid;
 
     #[test]
@@ -755,5 +1042,87 @@ mod tests {
         let session_debug = format!("{session:?}");
         assert!(!session_debug.contains("test-secret-browser"));
         assert!(!session_debug.contains("192.0.2.10"));
+    }
+
+    #[test]
+    fn totp_secret_debug_redacts_fake_values() {
+        let setup = TotpSetupMaterial {
+            otpauth_url: SecretString::from("test-secret-otpauth-uri"),
+            qr_svg: SecretString::from("test-secret-qr-svg"),
+            secret_base32: SecretString::from("test-secret-base32-seed"),
+        };
+        let setup_debug = format!("{setup:?}");
+        assert!(!setup_debug.contains("test-secret-otpauth-uri"));
+        assert!(!setup_debug.contains("test-secret-qr-svg"));
+        assert!(!setup_debug.contains("test-secret-base32-seed"));
+
+        let setup_response = TotpSetupResponse {
+            otpauth_url: SecretString::from("test-secret-response-uri"),
+            qr_svg: SecretString::from("test-secret-response-svg"),
+            secret_base32: SecretString::from("test-secret-response-seed"),
+        };
+        let response_debug = format!("{setup_response:?}");
+        assert!(!response_debug.contains("test-secret-response-uri"));
+        assert!(!response_debug.contains("test-secret-response-svg"));
+        assert!(!response_debug.contains("test-secret-response-seed"));
+
+        let recovery_response = RecoveryCodesResponse {
+            recovery_codes: vec![SecretString::from("test-secret-recovery-code")],
+        };
+        assert!(!format!("{recovery_response:?}").contains("test-secret-recovery-code"));
+        let confirm_body: ConfirmTotpBody = serde_json::from_value(serde_json::json!({
+            "code": "test-secret-totp-code"
+        }))
+        .expect("fake code deserializes");
+        assert!(!format!("{confirm_body:?}").contains("test-secret-totp-code"));
+        let disable_body: DisableTotpBody = serde_json::from_value(serde_json::json!({
+            "current_password": "test-secret-disable-password",
+            "code": "test-secret-disable-code"
+        }))
+        .expect("fake credentials deserialize");
+        let disable_body_debug = format!("{disable_body:?}");
+        assert!(!disable_body_debug.contains("test-secret-disable-password"));
+        assert!(!disable_body_debug.contains("test-secret-disable-code"));
+
+        let now = Utc.timestamp_opt(0, 0).single().expect("valid test time");
+        let context = FieldCtx {
+            country: None,
+            tenant_currency: Currency::USD,
+            tenant_locale: Locale::En,
+            today: now.date_naive(),
+            password_min_length: None,
+        };
+        let password_input =
+            serde_json::from_value::<PasswordInput>(serde_json::json!("test-secret-current-password"))
+                .expect("fake password deserializes");
+        let password = Password::parse(password_input, &context).expect("fake current password parses");
+        let code = TotpCode::parse(String::from("123456"), &context).expect("six ASCII digits parse");
+        let policy = IdentityPolicy::default();
+        let keys = Keys::derive(b"test-secret-debug-master-key", None);
+        let keyring = Keyring::new(keys);
+        let actor = ActorCtx {
+            person_id: Some(PersonId(Uuid::from_u128(1))),
+            role: ActorRole::Guardian,
+            ip: None,
+            request_id: None,
+        };
+        let request = DisableTotpRequest {
+            tenant: TenantId(Uuid::from_u128(2)),
+            person: PersonId(Uuid::from_u128(1)),
+            current_session: Uuid::from_u128(3),
+            role: Role::Guardian,
+            current_password: password,
+            code,
+            policy: &policy,
+            keyring: &keyring,
+            actor: &actor,
+            now,
+        };
+        let request_debug = format!("{request:?}");
+        assert!(!request_debug.contains("test-secret-current-password"));
+        assert!(!request_debug.contains("123456"));
+        assert!(
+            !format!("{:?}", TotpCode::parse(String::from("123456"), &context).unwrap()).contains("123456")
+        );
     }
 }

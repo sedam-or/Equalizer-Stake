@@ -87,6 +87,11 @@ pub mod codes {
         status: 409,
         title: "Version conflict",
     };
+    pub static INVALID_TRANSITION: ErrorCodeDef = ErrorCodeDef {
+        code: "invalid_transition",
+        status: 409,
+        title: "Invalid transition",
+    };
     pub static PAYLOAD_TOO_LARGE: ErrorCodeDef = ErrorCodeDef {
         code: "payload_too_large",
         status: 413,
@@ -130,6 +135,7 @@ pub mod codes {
         &POLICY_VIOLATION,
         &PRECONDITION_REQUIRED,
         &VERSION_CONFLICT,
+        &INVALID_TRANSITION,
         &PAYLOAD_TOO_LARGE,
         &LOCKED,
         &RATE_LIMITED,

@@ -60,6 +60,21 @@ async fn conflict_problem_json() {
 }
 
 #[tokio::test]
+async fn invalid_transition_is_a_registered_conflict() {
+    let response = AppError::Conflict {
+        code: &codes::INVALID_TRANSITION,
+        detail: String::from("This transition is not currently allowed"),
+        extra: Map::new(),
+    }
+    .into_response();
+    let (status, _, problem) = response_parts(response).await;
+
+    assert_eq!(status, StatusCode::CONFLICT);
+    assert_eq!(problem["code"], "invalid_transition");
+    assert!(codes::CODES.contains(&&codes::INVALID_TRANSITION));
+}
+
+#[tokio::test]
 async fn internal_hides_detail() {
     let response = AppError::Internal(AnyError::msg("test-secret-internal-message")).into_response();
     let (status, _, problem) = response_parts(response).await;

@@ -3,8 +3,8 @@
 use crate::errors::codes;
 use crate::jwt::{AccessToken, AccessTokenSubject, issue_access_token};
 use crate::password::{
-    PasswordError, PasswordHash, create_dummy_password_hash, hash_password, validate_new_password,
-    verify_dummy_password, verify_password,
+    PasswordError, PasswordHash, create_dummy_password_hash, hash_password, hash_recovery_code,
+    validate_new_password, verify_dummy_password, verify_password,
 };
 use crate::policy::{IdentityPolicy, TotpPolicy};
 use crate::repo;
@@ -17,8 +17,10 @@ use eq_core::auth::{CoreIdentityDirectory, LoginIdentity};
 use eq_core::clock::Clock;
 use eq_core::crypto::{Aad, CryptoError, Keyring, Keys};
 use eq_core::db::{Tx, begin};
-use eq_core::error::AppError;
-use eq_core::fields::{Email, FieldCtx, FieldKind, Password, PasswordInput};
+use eq_core::error::{AppError, FieldError};
+use eq_core::fields::{
+    Email, FieldCtx, FieldIssue, FieldKind, Password, PasswordInput, Profile, SchemaBounds, string_schema,
+};
 use eq_core::ids::{PersonId, TenantId};
 use eq_core::model::Role;
 use eq_core::outbox::{DomainEvent, emit};
@@ -27,13 +29,14 @@ use rand::RngCore;
 use rand::rngs::OsRng;
 use secrecy::{ExposeSecret, SecretBox, SecretString};
 use serde::Serialize;
+use serde_json::Map;
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use std::fmt;
 use std::net::IpAddr;
 use std::sync::OnceLock;
 use subtle::ConstantTimeEq;
-use totp_rs::{Algorithm, Builder, Totp};
+use totp_rs::{Algorithm, Builder, Secret, Totp};
 use uuid::Uuid;
 use zeroize::Zeroizing;
 
@@ -712,7 +715,7 @@ fn password_weak() -> AppError {
     AppError::Unprocessable {
         code: &codes::PASSWORD_WEAK,
         detail: String::from("password does not meet the current identity policy"),
-        extra: serde_json::Map::new(),
+        extra: Map::new(),
     }
 }
 
@@ -1609,6 +1612,382 @@ pub fn totp_verify(secret: &[u8], code: &str, now: DateTime<Utc>) -> Result<bool
     let timestamp = u64::try_from(now.timestamp())
         .map_err(|_| AppError::Internal(anyhow::anyhow!("TOTP timestamp is outside Unix range")))?;
     Ok(totp.check(code, timestamp).is_some())
+}
+
+const TOTP_SECRET_BYTES: usize = 20; // technical: RFC 4226 recommends a 160-bit secret.
+const RECOVERY_CODE_COUNT: usize = 10; // technical: the enrollment contract issues ten codes.
+const RECOVERY_CODE_LENGTH: usize = 10; // technical: the enrollment contract requires ten characters.
+const RECOVERY_CODE_RANDOM_BYTES: usize = 7; // technical: seven random bytes supply at least ten Base32 characters.
+const TOTP_QR_SIZE: u16 = 256; // technical: render the generated square PNG at a conventional SVG size.
+
+/// IDN-12/VAL-25: six ASCII digits parsed at the HTTP boundary and redacted in memory.
+pub(crate) struct TotpCode(SecretString);
+
+impl TotpCode {
+    pub(crate) fn expose_secret(&self) -> &str {
+        self.0.expose_secret()
+    }
+}
+
+impl fmt::Debug for TotpCode {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("TotpCode([REDACTED])")
+    }
+}
+
+impl FieldKind for TotpCode {
+    type Input = String;
+    const NAME: &'static str = "TotpCode";
+    const PROFILE: Profile = Profile::None;
+    const SENSITIVE: bool = true;
+
+    fn parse(raw: Self::Input, _ctx: &FieldCtx) -> Result<Self, Vec<FieldIssue>> {
+        if raw.len() != 6 || !raw.bytes().all(|byte| byte.is_ascii_digit()) {
+            return Err(vec![FieldIssue::new(eq_core::errors::INVALID_FORMAT)]);
+        }
+        Ok(Self(SecretString::from(raw)))
+    }
+
+    fn schema() -> utoipa::openapi::schema::Schema {
+        string_schema(
+            Self::NAME,
+            Self::PROFILE,
+            SchemaBounds {
+                min_length: Some(6),
+                max_length: Some(6),
+                minimum: None,
+                maximum: None,
+            },
+            Some("^[0-9]{6}$"),
+        )
+    }
+}
+
+/// SBD-50: setup material is retained only for the immediate no-store response.
+pub(crate) struct TotpSetupMaterial {
+    pub(crate) otpauth_url: SecretString,
+    pub(crate) qr_svg: SecretString,
+    pub(crate) secret_base32: SecretString,
+}
+
+impl fmt::Debug for TotpSetupMaterial {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("TotpSetupMaterial")
+            .field("otpauth_url", &"[REDACTED]")
+            .field("qr_svg", &"[REDACTED]")
+            .field("secret_base32", &"[REDACTED]")
+            .finish()
+    }
+}
+
+/// IDN-12/STM-25: starts or replaces an authenticated pending TOTP enrollment.
+pub(crate) async fn setup_totp(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    policy: &IdentityPolicy,
+    keyring: &Keyring,
+    actor: &ActorCtx,
+) -> Result<TotpSetupMaterial, AppError> {
+    if policy.totp() == TotpPolicy::Off {
+        return Err(AppError::PolicyViolation {
+            rule: String::from("identity.totp"),
+            detail: String::from("TOTP enrollment is disabled by policy"),
+            extra: Map::new(),
+        });
+    }
+    let credentials = repo::credentials_for_update(tx, tenant, person)
+        .await?
+        .ok_or(AppError::NotFound { entity: "person" })?;
+    if credentials.totp_enabled {
+        return Err(invalid_totp_transition("TOTP is already enabled"));
+    }
+
+    let mut raw_secret = Zeroizing::new([0_u8; TOTP_SECRET_BYTES]);
+    OsRng
+        .try_fill_bytes(&mut raw_secret[..])
+        .map_err(|_| AppError::Internal(anyhow::anyhow!("secure random source failed")))?;
+    let totp = build_totp(&raw_secret[..], person)?;
+    let secret_base32 = SecretString::from(totp.secret().to_base32());
+    let otpauth_url = SecretString::from(
+        totp.to_url()
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("TOTP setup URI generation failed")))?,
+    );
+    let png = Zeroizing::new(
+        totp.to_qr_png()
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("TOTP QR generation failed")))?,
+    );
+    let png_data_uri = Zeroizing::new(format!(
+        "data:image/png;base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(png.as_slice())
+    ));
+    let qr_svg = SecretString::from(format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{TOTP_QR_SIZE}\" height=\"{TOTP_QR_SIZE}\" viewBox=\"0 0 {TOTP_QR_SIZE} {TOTP_QR_SIZE}\"><image href=\"{}\" width=\"{TOTP_QR_SIZE}\" height=\"{TOTP_QR_SIZE}\"/></svg>",
+        png_data_uri.as_str()
+    ));
+
+    let aad = Aad {
+        tenant,
+        table: "credentials",
+        column: "totp_secret_enc",
+        row_id: person.0,
+    };
+    let encrypted_secret = SecretBox::new(Box::new(Zeroizing::new(
+        keyring
+            .encrypt_field(tx, &aad, &raw_secret[..])
+            .await
+            .map_err(crypto_error)?,
+    )));
+    repo::delete_totp_recovery_codes(tx, tenant, person).await?;
+    repo::set_totp_pending(tx, tenant, person, encrypted_secret.expose_secret().as_slice()).await?;
+    record(
+        tx,
+        AuditEvent {
+            action: "security.totp.setup_started",
+            category: Category::Security,
+            entity_type: "credential",
+            entity_id: Some(person.0),
+            before: Some(serde_json::json!({
+                "pending": credentials.totp_secret_enc.is_some(),
+                "enabled": credentials.totp_enabled
+            })),
+            after: Some(serde_json::json!({ "pending": true, "enabled": false })),
+            actor,
+        },
+    )
+    .await?;
+
+    Ok(TotpSetupMaterial {
+        otpauth_url,
+        qr_svg,
+        secret_base32,
+    })
+}
+
+/// IDN-12/STM-25: confirms a pending secret and returns new recovery codes once.
+pub(crate) async fn confirm_totp(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    code: &TotpCode,
+    keyring: &Keyring,
+    actor: &ActorCtx,
+    now: DateTime<Utc>,
+) -> Result<Vec<SecretString>, AppError> {
+    let credentials = repo::credentials_for_update(tx, tenant, person)
+        .await?
+        .ok_or(AppError::NotFound { entity: "person" })?;
+    if credentials.totp_enabled {
+        return Err(invalid_totp_transition("TOTP is already enabled"));
+    }
+    let secret_enc = credentials
+        .totp_secret_enc
+        .as_ref()
+        .ok_or_else(|| invalid_totp_transition("TOTP enrollment has not started"))?;
+    let aad = Aad {
+        tenant,
+        table: "credentials",
+        column: "totp_secret_enc",
+        row_id: person.0,
+    };
+    let raw_secret = keyring
+        .decrypt_field(tx, &aad, secret_enc.expose_secret().as_slice())
+        .await
+        .map_err(crypto_error)?;
+    if !totp_verify(&raw_secret, code.expose_secret(), now)? {
+        return Err(invalid_totp_code());
+    }
+
+    let codes = generate_recovery_codes()?;
+    let (codes, hashes) = tokio::task::spawn_blocking(move || {
+        let mut hashes = Vec::with_capacity(codes.len());
+        for code in &codes {
+            hashes.push(hash_recovery_code(code)?);
+        }
+        Ok::<_, PasswordError>((codes, hashes))
+    })
+    .await
+    .map_err(|_| AppError::Internal(anyhow::anyhow!("recovery code hashing task failed")))?
+    .map_err(|error| AppError::Internal(anyhow::anyhow!("recovery code hashing failed: {error}")))?;
+
+    repo::delete_totp_recovery_codes(tx, tenant, person).await?;
+    repo::insert_totp_recovery_hashes(tx, tenant, person, &hashes).await?;
+    if !repo::enable_totp(tx, tenant, person).await? {
+        return Err(invalid_totp_transition("TOTP enrollment is no longer pending"));
+    }
+    record(
+        tx,
+        AuditEvent {
+            action: "security.totp.enabled",
+            category: Category::Security,
+            entity_type: "credential",
+            entity_id: Some(person.0),
+            before: Some(serde_json::json!({ "enabled": false })),
+            after: Some(serde_json::json!({ "enabled": true, "recovery_codes": RECOVERY_CODE_COUNT })),
+            actor,
+        },
+    )
+    .await?;
+    Ok(codes)
+}
+
+pub(crate) struct DisableTotpRequest<'a> {
+    pub(crate) tenant: TenantId,
+    pub(crate) person: PersonId,
+    pub(crate) current_session: Uuid,
+    pub(crate) role: Role,
+    pub(crate) current_password: Password,
+    pub(crate) code: TotpCode,
+    pub(crate) policy: &'a IdentityPolicy,
+    pub(crate) keyring: &'a Keyring,
+    pub(crate) actor: &'a ActorCtx,
+    pub(crate) now: DateTime<Utc>,
+}
+
+impl fmt::Debug for DisableTotpRequest<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("DisableTotpRequest")
+            .field("tenant", &self.tenant)
+            .field("person", &"[REDACTED]")
+            .field("current_session", &"[REDACTED]")
+            .field("role", &self.role)
+            .field("current_password", &"[REDACTED]")
+            .field("code", &"[REDACTED]")
+            .field("policy", &self.policy)
+            .field("keyring", &"[REDACTED]")
+            .field("actor", &"[REDACTED]")
+            .field("now", &self.now)
+            .finish()
+    }
+}
+
+/// IDN-12/STM-25: disables TOTP only after password, code and tenant policy checks pass.
+pub(crate) async fn disable_totp(tx: &mut Tx, request: DisableTotpRequest<'_>) -> Result<(), AppError> {
+    let credentials = repo::credentials_for_update(tx, request.tenant, request.person)
+        .await?
+        .ok_or_else(invalid_credentials)?;
+    if !credentials.totp_enabled {
+        return Err(invalid_totp_transition("TOTP is not enabled"));
+    }
+    let Some(password_hash) = credentials.password_hash else {
+        return Err(invalid_credentials());
+    };
+    let current_password = request.current_password;
+    let password_matches =
+        tokio::task::spawn_blocking(move || verify_password(&current_password, &password_hash))
+            .await
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("TOTP password verification task failed")))?
+            .map_err(|error| {
+                AppError::Internal(anyhow::anyhow!("TOTP password verification failed: {error}"))
+            })?;
+    if !password_matches {
+        return Err(invalid_credentials());
+    }
+
+    let secret_enc = credentials.totp_secret_enc.as_ref().ok_or_else(|| {
+        AppError::Internal(anyhow::anyhow!("enabled TOTP credential has no encrypted secret"))
+    })?;
+    let aad = Aad {
+        tenant: request.tenant,
+        table: "credentials",
+        column: "totp_secret_enc",
+        row_id: request.person.0,
+    };
+    let raw_secret = request
+        .keyring
+        .decrypt_field(tx, &aad, secret_enc.expose_secret().as_slice())
+        .await
+        .map_err(crypto_error)?;
+    if !totp_verify(&raw_secret, request.code.expose_secret(), request.now)? {
+        return Err(invalid_credentials());
+    }
+
+    if request.policy.totp() == TotpPolicy::RequiredForOwnerAdmin
+        && matches!(request.role, Role::Owner | Role::Admin)
+    {
+        return Err(AppError::PolicyViolation {
+            rule: String::from("identity.totp"),
+            detail: String::from("TOTP is required by the active identity policy"),
+            extra: Map::new(),
+        });
+    }
+
+    repo::clear_totp(tx, request.tenant, request.person).await?;
+    repo::delete_totp_recovery_codes(tx, request.tenant, request.person).await?;
+    repo::revoke_other_refresh_sessions(
+        tx,
+        request.tenant,
+        request.person,
+        request.current_session,
+        request.now,
+    )
+    .await?;
+    record(
+        tx,
+        AuditEvent {
+            action: "security.totp.disabled",
+            category: Category::Security,
+            entity_type: "credential",
+            entity_id: Some(request.person.0),
+            before: Some(serde_json::json!({ "enabled": true })),
+            after: Some(serde_json::json!({ "enabled": false })),
+            actor: request.actor,
+        },
+    )
+    .await?;
+    Ok(())
+}
+
+fn build_totp(secret: &[u8], person: PersonId) -> Result<Totp, AppError> {
+    Builder::new()
+        .with_algorithm(Algorithm::SHA1)
+        .with_digits(6)
+        .with_skew(1)
+        .with_step_duration(30)
+        .with_secret(secret.to_vec())
+        .with_issuer(Some("Ritma"))
+        .with_account_name(person.0.to_string())
+        .build()
+        .map_err(|_| AppError::Internal(anyhow::anyhow!("TOTP setup configuration is invalid")))
+}
+
+fn generate_recovery_codes() -> Result<Vec<SecretString>, AppError> {
+    let mut codes = Vec::with_capacity(RECOVERY_CODE_COUNT);
+    for _ in 0..RECOVERY_CODE_COUNT {
+        let mut random = Zeroizing::new([0_u8; RECOVERY_CODE_RANDOM_BYTES]);
+        OsRng
+            .try_fill_bytes(&mut random[..])
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("secure random source failed")))?;
+        let encoded = Zeroizing::new(Secret::from(random.to_vec()).to_base32());
+        let code = encoded.chars().take(RECOVERY_CODE_LENGTH).collect::<String>();
+        if code.len() != RECOVERY_CODE_LENGTH {
+            return Err(AppError::Internal(anyhow::anyhow!(
+                "recovery code encoding failed"
+            )));
+        }
+        codes.push(SecretString::from(code));
+    }
+    Ok(codes)
+}
+
+fn invalid_totp_transition(detail: &'static str) -> AppError {
+    AppError::Conflict {
+        code: &eq_core::error::codes::INVALID_TRANSITION,
+        detail: String::from(detail),
+        extra: Map::new(),
+    }
+}
+
+fn invalid_totp_code() -> AppError {
+    AppError::Validation {
+        errors: vec![FieldError {
+            pointer: String::from("/code"),
+            code: eq_core::errors::INVALID_FORMAT.to_owned(),
+            params: Map::new(),
+        }],
+    }
 }
 
 #[derive(Serialize)]

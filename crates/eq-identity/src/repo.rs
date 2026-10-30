@@ -246,6 +246,93 @@ pub(crate) async fn credentials_for_update(
     .transpose()
 }
 
+/// IDN-12/STM-25: stores a new encrypted pending TOTP seed without enabling it.
+pub(crate) async fn set_totp_pending(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    encrypted_secret: &[u8],
+) -> Result<(), AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.credentials SET totp_secret_enc = $3, totp_enabled = false \
+         WHERE tenant_id = $1 AND person_id = $2",
+        tenant.0,
+        person.0,
+        encrypted_secret
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound { entity: "person" });
+    }
+    Ok(())
+}
+
+/// IDN-12/STM-25: enables only a pending encrypted seed.
+pub(crate) async fn enable_totp(tx: &mut Tx, tenant: TenantId, person: PersonId) -> Result<bool, AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.credentials SET totp_enabled = true \
+         WHERE tenant_id = $1 AND person_id = $2 AND totp_secret_enc IS NOT NULL AND totp_enabled = false",
+        tenant.0,
+        person.0
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(result.rows_affected() == 1)
+}
+
+/// IDN-12/STM-25: removes the TOTP seed from the caller's own credentials.
+pub(crate) async fn clear_totp(tx: &mut Tx, tenant: TenantId, person: PersonId) -> Result<(), AppError> {
+    let result = sqlx::query!(
+        "UPDATE public.credentials SET totp_secret_enc = NULL, totp_enabled = false \
+         WHERE tenant_id = $1 AND person_id = $2",
+        tenant.0,
+        person.0
+    )
+    .execute(tx.conn())
+    .await?;
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound { entity: "person" });
+    }
+    Ok(())
+}
+
+/// IDN-12/ERD-03: persists only Argon2id PHC hashes for newly issued recovery codes.
+pub(crate) async fn insert_totp_recovery_hashes(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+    hashes: &[PasswordHash],
+) -> Result<(), AppError> {
+    for hash in hashes {
+        sqlx::query!(
+            "INSERT INTO public.totp_recovery_codes (tenant_id, person_id, code_hash) VALUES ($1, $2, $3)",
+            tenant.0,
+            person.0,
+            hash.expose_secret()
+        )
+        .execute(tx.conn())
+        .await?;
+    }
+    Ok(())
+}
+
+/// IDN-12/STM-25: deletes the caller's recovery-code hashes during re-enrolment or disable.
+pub(crate) async fn delete_totp_recovery_codes(
+    tx: &mut Tx,
+    tenant: TenantId,
+    person: PersonId,
+) -> Result<(), AppError> {
+    sqlx::query!(
+        "DELETE FROM public.totp_recovery_codes WHERE tenant_id = $1 AND person_id = $2",
+        tenant.0,
+        person.0
+    )
+    .execute(tx.conn())
+    .await?;
+    Ok(())
+}
+
 /// STM-23: persists the counter and optional lock transition in the caller transaction.
 pub(crate) async fn set_failures(
     tx: &mut Tx,

@@ -1084,3 +1084,57 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The existing task contract was already implemented in the active workspace; splitting it now would require changing other task files and separating dependent code beyond this task's authorized edit set. The implementation-only diff is 2,066 lines excluding generated SQLx metadata.
 - **Changed:** `tasks/M1-core/T-110f-profile-and-sessions.md`, this register, and the generated task index.
 - **Ratify:** Yes; review whether equivalent future task contracts should be split before implementation.
+
+### TD-155 — Preserve the declared TOTP wire contract
+
+- **Question:** T-110g's context notes that `totp-rs`'s mapped `qr` feature returns a PNG, while its Interfaces/Acceptance criteria and the T-111 aggregate require `qr_svg`. T-111's old shorthand for DELETE also says only `password`, while STM-25 requires current password and TOTP code.
+- **Options:** (a) change the endpoint response to PNG and omit the code; (b) keep the task's declared `qr_svg` response and STM-25's password-plus-code request, adapting the library output without adding a dependency.
+- **Decision:** Use option (b). Embed `totp-rs`'s PNG data URI in a minimal SVG response; require both the current password and a valid current TOTP code for disable.
+- **Why:** The task's explicit API and acceptance contracts plus STM-25 give the more specific current behavior. The generated PNG is fixed library output, so embedding it in SVG preserves the wire type without adding a crate or allowing user markup.
+- **Changed:** `crates/eq-identity/src/api_me.rs`, `crates/eq-identity/src/service.rs`, `crates/eq-identity/src/module.rs`, `crates/eq-identity/tests/api_me.rs`, and `tasks/M1-core/T-110g-totp-enrolment.md`.
+- **Ratify:** Yes.
+
+### TD-156 — Limit the TOTP setup secret disclosure
+
+- **Question:** SBD-10 classifies TOTP seeds as S3 and generally says they are never returned, while IDN-12, FLW-60 and T-110g require the user to receive a setup QR/URI/seed to enroll an authenticator.
+- **Options:** (a) suppress the setup material and leave the declared enrollment flow unusable; (b) disclose only the newly generated seed through the authenticated setup response, with no-store handling, redacted Debug, and no logging or later read endpoint.
+- **Decision:** Use option (b); setup returns the declared URI/QR/base32 fields only while creating a pending secret for the authenticated Actor. The secret remains encrypted at rest, response caching is disabled, and no endpoint or log exposes it later.
+- **Why:** FLW-60 explicitly names the setup response as the one-time TOTP disclosure path. This is the narrow enrollment flow needed by IDN-12 and the task; general S3 reads remain prohibited.
+- **Changed:** `crates/eq-identity/src/api_me.rs`, `crates/eq-identity/src/service.rs`, `crates/eq-identity/tests/api_me.rs`, and `tasks/M1-core/T-110g-totp-enrolment.md`.
+- **Ratify:** Yes.
+
+### TD-157 — Reuse the operator-approved task database name for T-110g
+
+- **Question:** The existing API test fixture is constrained to a single task database name, while this task must not create any database except `ritma_test_T-110d` in the existing `ritma-db-1` container.
+- **Options:** (a) create a second task-named database; (b) run T-110g against a fresh `ritma_test_T-110d` and drop it after the task checks, leaving every other database untouched.
+- **Decision:** Use option (b). Confirm `ritma_test_T-110d` is absent before creation; create only that database and drop only it after testing. Do not read, modify or delete `ritma_test_T-110a4b`.
+- **Why:** This is the operator's exact resource boundary and preserves the isolation provided by a fresh disposable database.
+- **Changed:** `crates/eq-identity/tests/api_me.rs`, `tasks/M1-core/T-110g-totp-enrolment.md`, `tasks/DECISIONS.md`, and the generated task index.
+- **Ratify:** Yes.
+
+### TD-158 — Register the spec-defined TOTP transition error
+
+- **Question:** T-110g must return invalid_transition for an invalid enrollment state, and spec/19 ERR-10 already defines that 409 code, but eq_core::error::codes had no corresponding shared symbol.
+- **Options:** (a) add a task-local error or reuse an unrelated conflict; (b) register the exact existing spec code in the shared Core registry and test its 409 mapping.
+- **Decision:** Use option (b), adding codes::INVALID_TRANSITION with the spec-defined wire value and conflict status.
+- **Why:** The value and status are already fixed by spec/19; adding the missing symbol makes the existing interface usable without inventing an error code.
+- **Changed:** crates/eq-core/src/error.rs, crates/eq-core/src/error/tests.rs, tasks/M1-core/T-110g-totp-enrolment.md, this register, and the generated task index.
+- **Ratify:** Yes.
+
+### TD-159 — Audit the pending TOTP enrollment transition
+
+- **Question:** STM-25 names audit actions for TOTP enable/disable but not the off-to-pending setup transition; SBD requires security state changes to be audited.
+- **Options:** (a) omit the setup audit; (b) use the action security.totp.setup_started and record only the pending/enabled booleans, without including the seed, URI, QR or recovery values.
+- **Decision:** Use option (b). The action describes the transition and its audit payload contains only state booleans.
+- **Why:** This preserves the security audit trail while following the action naming pattern in STM-25 and keeping all enrollment secrets out of audit data. Do not emit an outbox event because the event catalogue defines none; T-110f's TD-150 records that boundary.
+- **Changed:** crates/eq-identity/src/service.rs, crates/eq-identity/tests/api_me.rs, tasks/M1-core/T-110g-totp-enrolment.md, this register, and the generated task index.
+- **Ratify:** Yes.
+
+### TD-160 — Record T-110g review-size deviation
+
+- **Question:** T-110g's assigned enrollment, confirmation, disable, migration and HTTP security tests exceed CQ-101's approximate 400 non-generated changed-line review guidance, while the operator requires this task to be finished as one signed commit.
+- **Options:** (a) split the implementation into new task files and move scope; (b) complete the existing contract in this task, disclose its measured size, and ask the architect to adjust the future breakdown.
+- **Decision:** Use option (b), keeping the existing task boundaries and documenting the code review-size deviation for maintainer review.
+- **Why:** The task and user instruction assign one task/commit, and moving work would require changing other task contracts beyond this task's scope.
+- **Changed:** tasks/M1-core/T-110g-totp-enrolment.md, this register, and the generated task index.
+- **Ratify:** Yes; review the task sizing and whether the backlog should split comparable security workflows before implementation.
