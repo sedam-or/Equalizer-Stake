@@ -113,8 +113,10 @@ This register maps each recorded self-resolution to a stable decision ID. Unless
 | TD-177 | T-112b | `tasks/M1-core/T-112b-pii-audit,-normalized-email,-deactivation-and-pa.md` | The task DoD asks for `make api`, but the repository target is an explicit T-114 placeholder and generated OpenAPI/client paths are outside this task's Files → record the target as unavailable, leave generated artifacts to T-114, and do not fabricate outputs. |
 | TD-178 | T-113 | `tasks/M1-core/T-113-core-policy-settings-meta-api.md` | The split parent still says T-113a/T-113b are draft and gives T-113a a T-109 dependency, while their current frontmatter says todo and T-109h → update only the parent split table to match the children, because child frontmatter and the generated index are authoritative and the implementation/test assignment is already complete. |
 | TD-179 | T-113 | `tasks/M1-core/T-113-core-policy-settings-meta-api.md` | The attachment's isolated unittest module command cannot import `scripts` because Python `-I` removes the repo from `sys.path` → use `python3 -I -m unittest discover -s scripts/tests -p 'test_tasks_lint.py'`, which runs the same eight task-linter tests without relaxing isolation. |
+| TD-185 | T-109 | `tasks/M1-core/T-109-audit.md` | The shared TestDb fixture can create a template, random databases and a container, while the disk rule permits only the fixed DB/container → use task-local owner/app pools against `ritma_test_T-109`. |
+| TD-186 | T-109 | `tasks/M1-core/T-109-audit.md` | The run asks to reuse TD-010 for the audit derive license, but TD-010 is already assigned to T-005 → preserve the unique ID and rely on the existing exact license decision TD-074. |
 
-**Total mapped self-resolutions:** 106.
+**Total mapped self-resolutions:** 108.
 
 ## Detailed entries added in run 6
 
@@ -1361,3 +1363,21 @@ The delegated resolver directive calls itself TD-001; this registry already assi
 - **Why:** The current work must retain every assigned acceptance criterion and named test, and the implementer must not edit other task files. This decision records the CQ-101 exception for review; it does not waive the code-quality standard.
 - **Changed:** `tasks/M1-core/T-113a-core-policy-and-versioned-settings-api.md` and this register.
 - **Ratify:** Yes; the maintainer should decide whether to require a follow-up split/refactor.
+
+### TD-185 — Run T-109 audit integration tests on its fixed task database
+
+- **Question:** The shipped `eq_testkit::TestDb::new()` may start a PostgreSQL container and creates `eq_template` plus random test databases, while the disk rule allows only existing `ritma-db-1` and `ritma_test_T-109`.
+- **Options:** (a) keep the shared fixture and violate the fixed-resource rule; (b) use a test-local fixture that connects owner and `eq_app` pools to the named task database.
+- **Decision:** Use option (b). Run the audit integration suite serially against environment-provided owner/app URLs; do not create a Testcontainers container, template database or random database.
+- **Why:** The explicit resource rule takes precedence, and sequential audit tests use isolated tenant IDs in the disposable task database. Production code and database semantics are unchanged.
+- **Changed:** `crates/eq-audit/tests/audit.rs`, `tasks/M1-core/T-109-audit.md`, `tasks/DECISIONS.md` and generated `tasks/INDEX.md`.
+- **Ratify:** Yes.
+
+### TD-186 — Preserve the existing audit derive license decision ID
+
+- **Question:** The resumed run asks to record the audit derive license resolution as TD-010, but TD-010 is already assigned to T-005.
+- **Options:** (a) overwrite or duplicate TD-010; (b) keep TD-010 unchanged and rely on TD-074, which already records the exact `eq-audit-derive` AGPL exception.
+- **Decision:** Use option (b). `eq-audit-derive` inherits `AGPL-3.0-only` from the workspace, the repository license matches, and the package-scoped `deny.toml` exception already exists; `cargo deny check` passes without policy changes.
+- **Why:** Decision IDs are unique, and TD-074 already captures the OSS-03 license basis. No new license or exception is needed.
+- **Changed:** `tasks/M1-core/T-109-audit.md` and this register.
+- **Ratify:** Yes.

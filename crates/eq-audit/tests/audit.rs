@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use chrono::{DateTime, Months, Utc};
 use eq_audit::policy::AuditPolicy;
 use eq_audit::{AuditEvent, AuditModule, AuditRetentionJob, AuditVerifyRecentJob, Category, Sealer, record};
@@ -14,10 +14,9 @@ use eq_core::policy::types::Locale;
 use eq_core::policy::{PolicyStore, PresetPatchSource, PresetSourceError};
 use eq_core::ports::sinks::{AuditSink, PolicyChange};
 use eq_core::tenant::TenantInfo;
-use eq_testkit::TestDb;
 use eq_testkit::module_sinks::ModuleSinkDoubles;
 use serde_json::{Value, json};
-use sqlx::{Error, Row};
+use sqlx::{Error, PgPool, Row, postgres::PgPoolOptions};
 use std::net::IpAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -25,6 +24,31 @@ use uuid::Uuid;
 
 const SEALER_LOCK_WAIT_TIMEOUT: Duration = Duration::from_secs(10); // technical: allow PostgreSQL activity state to expose the test lock wait.
 const SEALER_ACTIVITY_POLL_INTERVAL: Duration = Duration::from_millis(10); // technical: observe lock state without busy polling.
+
+struct TestDb {
+    pool: PgPool,
+    app_pool: PgPool,
+}
+
+impl TestDb {
+    async fn new() -> Result<Self> {
+        let owner_url = test_database_url("RITMA_TEST_DATABASE_URL")?;
+        let app_url = test_database_url("RITMA_TEST_DATABASE_APP_URL")?;
+        let pool = PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&owner_url)
+            .await?;
+        let app_pool = PgPoolOptions::new().max_connections(5).connect(&app_url).await?;
+        Ok(Self { pool, app_pool })
+    }
+}
+
+fn test_database_url(name: &str) -> Result<String> {
+    std::env::var_os(name)
+        .ok_or_else(|| anyhow!("{name} is required for the fixed PostgreSQL test database"))?
+        .into_string()
+        .map_err(|_| anyhow!("{name} must be UTF-8"))
+}
 
 async fn tenant(db: &TestDb) -> Result<TenantId> {
     let id = TenantId(Uuid::now_v7());
@@ -43,7 +67,7 @@ async fn tenant(db: &TestDb) -> Result<TenantId> {
 
 #[tokio::test]
 async fn audit_failure_rolls_back() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let row_id = Uuid::now_v7();
 
@@ -99,7 +123,7 @@ async fn audit_failure_rolls_back() -> Result<()> {
 
 #[tokio::test]
 async fn audit_sink_records_changes_in_the_caller_transaction() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let actor = ActorCtx::system("audit-sink-test");
     let sink = AuditModule;
@@ -147,7 +171,7 @@ async fn audit_sink_records_changes_in_the_caller_transaction() -> Result<()> {
 
 #[tokio::test]
 async fn audit_sink_rejects_mismatched_tenant_context() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant_id = tenant(&db).await?;
     let other_tenant = tenant(&db).await?;
     let actor = ActorCtx::system("audit-sink-test");
@@ -172,7 +196,7 @@ async fn audit_sink_rejects_mismatched_tenant_context() -> Result<()> {
 
 #[tokio::test]
 async fn app_role_cannot_mutate() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
 
     let role = sqlx::query_scalar::<_, String>("SELECT current_user")
         .fetch_one(&db.app_pool)
@@ -194,7 +218,7 @@ async fn app_role_cannot_mutate() -> Result<()> {
 
 #[tokio::test]
 async fn tamper_detected() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let seq = record_entry(&db, tenant, None, Some(json!({ "status": "initial" })), None).await?;
     let sealer = Sealer::new(db.app_pool.clone());
@@ -215,7 +239,7 @@ async fn tamper_detected() -> Result<()> {
 
 #[tokio::test]
 async fn anonymize_keeps_chain_valid() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let before = json!({
         "person": { "display_name": "test-person-109f", "contacts": [{ "phone": "test-phone-109f" }] }
@@ -265,7 +289,7 @@ async fn anonymize_keeps_chain_valid() -> Result<()> {
 
 #[tokio::test]
 async fn purge_with_checkpoint() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let expired_seq = record_entry(&db, tenant, None, Some(json!({ "kind": "expired" })), None).await?;
     let cutoff: DateTime<Utc> = sqlx::query_scalar("SELECT pg_catalog.clock_timestamp()")
@@ -321,7 +345,7 @@ async fn purge_with_checkpoint() -> Result<()> {
 
 #[tokio::test]
 async fn concurrent_sealers() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let first_seq = record_entry(&db, tenant, None, Some(json!({ "order": 1 })), None).await?;
     let second_seq = record_entry(&db, tenant, None, Some(json!({ "order": 2 })), None).await?;
@@ -341,7 +365,7 @@ async fn concurrent_sealers() -> Result<()> {
 
 #[tokio::test]
 async fn concurrent_writer_and_sealer_preserve_sequence_order() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let request_id = Uuid::now_v7();
     let actor = ActorCtx {
@@ -419,7 +443,7 @@ async fn concurrent_writer_and_sealer_preserve_sequence_order() -> Result<()> {
 
 #[tokio::test]
 async fn audit_functions_reject_cross_tenant_arguments() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant_id = tenant(&db).await?;
     let other_tenant = tenant(&db).await?;
     let statements = [
@@ -443,7 +467,7 @@ async fn audit_functions_reject_cross_tenant_arguments() -> Result<()> {
 
 #[tokio::test]
 async fn audit_retention_job_uses_policy_store() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let purged_seq = record_entry(&db, tenant, None, Some(json!({ "value": "old-entry" })), None).await?;
     let retained_seq = record_entry(
@@ -558,7 +582,7 @@ async fn run_retention_job(
 
 #[tokio::test]
 async fn audit_verify_job_raises_attention_on_mismatch() -> Result<()> {
-    let db = TestDb::new().await;
+    let db = TestDb::new().await?;
     let tenant = tenant(&db).await?;
     let seq = record_entry(&db, tenant, None, Some(json!({ "value": "initial" })), None).await?;
     Sealer::new(db.app_pool.clone()).seal_tenant(tenant).await?;
